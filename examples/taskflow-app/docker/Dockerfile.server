@@ -1,0 +1,23 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
+COPY src/server ./src/server
+COPY src/shared ./src/shared
+COPY tsconfig.json ./
+
+# Build TypeScript
+RUN npm run build:server
+
+# Expose port
+EXPOSE 3000
+
+# Start server
+CMD ["node", "dist/server/index.js"]

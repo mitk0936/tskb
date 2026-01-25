@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "outDir": "./dist/client",
+    "rootDir": "./src"
+  },
+  "include": ["src/client/**/*", "src/shared/**/*"]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "taskflow-app-example",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sample task management application for tskb documentation examples",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:client": "tsc -p tsconfig.client.json",
+    "build:shared": "tsc -p tsconfig.json --outDir dist/shared src/shared/**/*",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "typescript": "^5.9.3"
+  }
+}

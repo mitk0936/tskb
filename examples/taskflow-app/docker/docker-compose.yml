@@ -1,0 +1,89 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: taskflow-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: taskflow
+      POSTGRES_USER: taskflow_user
+      POSTGRES_PASSWORD: taskflow_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - taskflow-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: taskflow-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - taskflow-network
+
+  # Backend API Server
+  server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+    container_name: taskflow-server
+    restart: unless-stopped
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: taskflow
+      DATABASE_USER: taskflow_user
+      DATABASE_PASSWORD: taskflow_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PORT: 3000
+      NODE_ENV: development
+      JWT_SECRET: dev-secret-change-in-production
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./src/server:/app/src/server
+      - ./src/shared:/app/src/shared
+    networks:
+      - taskflow-network
+
+  # Frontend Client
+  client:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.client
+    container_name: taskflow-client
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE_URL: http://localhost:3000/api
+      VITE_WS_BASE_URL: ws://localhost:3000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+    volumes:
+      - ./src/client:/app/src/client
+      - ./src/shared:/app/src/shared
+    networks:
+      - taskflow-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  taskflow-network:
+    driver: bridge

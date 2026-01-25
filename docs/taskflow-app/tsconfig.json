@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "rootDir": "../../",
+    "baseUrl": "../../",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "jsx": "react-jsx",
+    "jsxImportSource": "tskb",
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "esModuleInterop": true
+  },
+  "include": ["./src/**/*.tskb.tsx"],
+  "exclude": ["node_modules"]
+}
