@@ -13,9 +13,11 @@
     "clean": "npx rimraf --glob node_modules **/node_modules **/dist",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "mkdirp": "^3.0.1",
     "prettier": "^3.2.4",
     "rimraf": "^6.0.1"
@@ -26,6 +28,6 @@
   },
   "keywords": [],
   "author": "Dimitar Mihaylov",
-  "license": "ISC",
+  "license": "MIT",
   "description": "Task Knowledge Base - A TypeScript-based system for documenting software architecture using TSX syntax"
 }

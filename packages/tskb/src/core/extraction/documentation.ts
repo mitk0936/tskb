@@ -1,9 +1,11 @@
 import ts from "typescript";
+import path from "node:path";
 
 /**
  * Extracted documentation data from a single file
  */
 export interface ExtractedDoc {
+  /** Relative file path from baseDir (tsconfig root), using forward slashes */
   filePath: string;
   format: "tsx";
   content: string;
@@ -22,9 +24,14 @@ export interface ExtractedDoc {
  *
  * @param program - TypeScript program
  * @param filePaths - Set of absolute file paths to process (from glob match)
+ * @param baseDir - Base directory (from tsconfig) to make paths relative to
  * @returns Array of extracted documentation
  */
-export function extractDocs(program: ts.Program, filePaths: Set<string>): ExtractedDoc[] {
+export function extractDocs(
+  program: ts.Program,
+  filePaths: Set<string>,
+  baseDir: string
+): ExtractedDoc[] {
   const docs: ExtractedDoc[] = [];
 
   // Normalize file paths for comparison (handle different path separators)
@@ -38,7 +45,7 @@ export function extractDocs(program: ts.Program, filePaths: Set<string>): Extrac
 
     // Only process files that were explicitly matched by the glob pattern
     if (normalizedFilePaths.has(normalizedSourcePath) && sourceFile.fileName.endsWith(".tsx")) {
-      const doc = extractFromTsxFile(sourceFile);
+      const doc = extractFromTsxFile(sourceFile, baseDir);
       if (doc) {
         docs.push(doc);
       }
@@ -51,7 +58,7 @@ export function extractDocs(program: ts.Program, filePaths: Set<string>): Extrac
 /**
  * Extract documentation from TSX file (JSX style)
  */
-function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
+function extractFromTsxFile(sourceFile: ts.SourceFile, baseDir: string): ExtractedDoc | null {
   const references = {
     modules: [] as string[],
     terms: [] as string[],
@@ -61,15 +68,21 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
 
   let content = "";
 
+  // Build a map of constant declarations to their type assertions
+  const constantReferences = buildConstantReferencesMap(sourceFile);
+
   // Find the default export
   const defaultExport = findDefaultExport(sourceFile);
   if (!defaultExport) return null;
 
   // Extract content and references from JSX
-  content = extractJsxContent(defaultExport, references);
+  content = extractJsxContent(defaultExport, references, constantReferences);
+
+  // Convert absolute path to relative path (for portability across repos/machines)
+  const relativePath = path.relative(baseDir, sourceFile.fileName).replace(/\\/g, "/");
 
   return {
-    filePath: sourceFile.fileName,
+    filePath: relativePath,
     format: "tsx",
     content,
     references: {
@@ -94,6 +107,71 @@ function findDefaultExport(sourceFile: ts.SourceFile): ts.Expression | null {
 }
 
 /**
+ * Build a map of constant variable names to their type assertion metadata.
+ * This handles cases like: const CliIndexModule = ref as tskb.Modules["cli.index"];
+ */
+function buildConstantReferencesMap(
+  sourceFile: ts.SourceFile
+): Map<string, { category: string; name: string }> {
+  const map = new Map<string, { category: string; name: string }>();
+
+  function visit(node: ts.Node): void {
+    if (ts.isVariableStatement(node)) {
+      for (const declaration of node.declarationList.declarations) {
+        if (
+          ts.isIdentifier(declaration.name) &&
+          declaration.initializer &&
+          ts.isAsExpression(declaration.initializer)
+        ) {
+          const varName = declaration.name.text;
+          const metadata = extractTypeAssertionMetadata(declaration.initializer);
+          if (metadata) {
+            map.set(varName, metadata);
+          }
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return map;
+}
+
+/**
+ * Extract category and name from a type assertion like: ref as tskb.Modules["cli.index"]
+ */
+function extractTypeAssertionMetadata(
+  assertion: ts.AsExpression
+): { category: string; name: string } | null {
+  const type = assertion.type;
+
+  // Check for indexed access type: tskb.Folders['Name']
+  if (ts.isIndexedAccessTypeNode(type)) {
+    const objType = type.objectType;
+    const indexType = type.indexType;
+
+    // Ensure it's tskb.X['...'] pattern
+    if (
+      ts.isTypeReferenceNode(objType) &&
+      ts.isQualifiedName(objType.typeName) &&
+      ts.isIdentifier(objType.typeName.left) &&
+      objType.typeName.left.text === "tskb" &&
+      ts.isIdentifier(objType.typeName.right) &&
+      ts.isLiteralTypeNode(indexType) &&
+      ts.isStringLiteral(indexType.literal)
+    ) {
+      const interfaceName = objType.typeName.right.text;
+      const refName = indexType.literal.text;
+
+      return { category: interfaceName, name: refName };
+    }
+  }
+
+  return null;
+}
+
+/**
  * Extract text content and references from JSX tree.
  *
  * JSX TRAVERSAL STRATEGY:
@@ -112,7 +190,8 @@ function findDefaultExport(sourceFile: ts.SourceFile): ts.Expression | null {
  */
 function extractJsxContent(
   node: ts.Node,
-  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] }
+  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] },
+  constantReferences: Map<string, { category: string; name: string }>
 ): string {
   let content = "";
 
@@ -190,6 +269,21 @@ function extractJsxContent(
       if (ts.isStringLiteral(n.expression)) {
         content += n.expression.text + " ";
       }
+      // Handle identifier references to constants: {CliIndexModule}
+      else if (ts.isIdentifier(n.expression)) {
+        const varName = n.expression.text;
+        const refMetadata = constantReferences.get(varName);
+        if (refMetadata) {
+          const refContent = createReferenceContent(
+            refMetadata.category,
+            refMetadata.name,
+            references
+          );
+          if (refContent) {
+            content += refContent;
+          }
+        }
+      }
       // Handle type assertions: {ref as tskb.Folders['Name']}
       else if (ts.isAsExpression(n.expression)) {
         const refContent = extractReferenceFromTypeAssertion(n.expression, references);
@@ -215,42 +309,34 @@ function extractReferenceFromTypeAssertion(
   assertion: ts.AsExpression,
   references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] }
 ): string | null {
-  const type = assertion.type;
-
-  // Check for indexed access type: tskb.Folders['Name']
-  if (ts.isIndexedAccessTypeNode(type)) {
-    const objType = type.objectType;
-    const indexType = type.indexType;
-
-    // Ensure it's tskb.X['...'] pattern
-    if (
-      ts.isTypeReferenceNode(objType) &&
-      ts.isQualifiedName(objType.typeName) &&
-      ts.isIdentifier(objType.typeName.left) &&
-      objType.typeName.left.text === "tskb" &&
-      ts.isIdentifier(objType.typeName.right) &&
-      ts.isLiteralTypeNode(indexType) &&
-      ts.isStringLiteral(indexType.literal)
-    ) {
-      const interfaceName = objType.typeName.right.text;
-      const refName = indexType.literal.text;
-
-      if (interfaceName === "Folders") {
-        references.folders.push(refName);
-        return `[Folder: ${refName}]`;
-      } else if (interfaceName === "Modules") {
-        references.modules.push(refName);
-        return `[Module: ${refName}]`;
-      } else if (interfaceName === "Terms") {
-        references.terms.push(refName);
-        return `[Term: ${refName}]`;
-      } else if (interfaceName === "Exports") {
-        references.exports.push(refName);
-        return `[Export: ${refName}]`;
-      }
-    }
+  const metadata = extractTypeAssertionMetadata(assertion);
+  if (metadata) {
+    return createReferenceContent(metadata.category, metadata.name, references);
   }
+  return null;
+}
 
+/**
+ * Create reference content and add to the appropriate references array
+ */
+function createReferenceContent(
+  category: string,
+  name: string,
+  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] }
+): string | null {
+  if (category === "Folders") {
+    references.folders.push(name);
+    return `[Folder: ${name}]`;
+  } else if (category === "Modules") {
+    references.modules.push(name);
+    return `[Module: ${name}]`;
+  } else if (category === "Terms") {
+    references.terms.push(name);
+    return `[Term: ${name}]`;
+  } else if (category === "Exports") {
+    references.exports.push(name);
+    return `[Export: ${name}]`;
+  }
   return null;
 }
 

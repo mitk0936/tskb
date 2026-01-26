@@ -37,14 +37,24 @@ declare global {
   }
 }
 
+const JwtTerm = ref as tskb.Terms["jwt"];
+const MiddlewareChainTerm = ref as tskb.Terms["middlewareChain"];
+const ContextProviderTerm = ref as tskb.Terms["contextProvider"];
+
+const AuthServiceExport = ref as tskb.Exports["AuthService"];
+const AuthMiddlewareExport = ref as tskb.Exports["AuthMiddleware"];
+const AuthContextExport = ref as tskb.Exports["AuthContext"];
+const ApiClientExport = ref as tskb.Exports["ApiClient"];
+
+const ServicesFolder = ref as tskb.Folders["Services"];
+
 export default (
   <Doc>
     <H1>Authentication System</H1>
 
     <P>
       The authentication system provides secure user login, registration, and session management
-      using {ref as tskb.Terms["jwt"]} tokens. The implementation spans both client and server
-      layers.
+      using {JwtTerm} tokens. The implementation spans both client and server layers.
     </P>
 
     <H2>Server-Side Authentication</H2>
@@ -52,8 +62,8 @@ export default (
     <H3>AuthService</H3>
 
     <P>
-      The {ref as tskb.Exports["AuthService"]} in {ref as tskb.Folders["Services"]} handles the core
-      authentication logic including password validation, token generation, and user verification.
+      The {AuthServiceExport} in {ServicesFolder} handles the core authentication logic including
+      password validation, token generation, and user verification.
     </P>
 
     <Snippet
@@ -109,9 +119,8 @@ export default (
     <H3>Authentication Middleware</H3>
 
     <P>
-      The {ref as tskb.Exports["AuthMiddleware"]} protects API routes by validating{" "}
-      {ref as tskb.Terms["jwt"]}
-      tokens on each request. It runs as part of the {ref as tskb.Terms["middlewareChain"]}.
+      The {AuthMiddlewareExport} protects API routes by validating {JwtTerm}
+      tokens on each request. It runs as part of the {MiddlewareChainTerm}.
     </P>
 
     <Snippet
@@ -161,8 +170,8 @@ export default (
     <H3>AuthContext</H3>
 
     <P>
-      The {ref as tskb.Exports["AuthContext"]} uses the {ref as tskb.Terms["contextProvider"]}{" "}
-      pattern to manage authentication state across the React application.
+      The {AuthContextExport} uses the {ContextProviderTerm} pattern to manage authentication state
+      across the React application.
     </P>
 
     <Snippet
@@ -212,9 +221,7 @@ export default (
     <List>
       <Li>Access tokens are stored in localStorage using AUTH_TOKEN_KEY constant</Li>
       <Li>Refresh tokens enable obtaining new access tokens without re-authentication</Li>
-      <Li>
-        The {ref as tskb.Exports["ApiClient"]} automatically includes tokens in request headers
-      </Li>
+      <Li>The {ApiClientExport} automatically includes tokens in request headers</Li>
       <Li>Token expiration is handled by refreshing or redirecting to login</Li>
     </List>
 

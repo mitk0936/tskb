@@ -1,13 +1,5 @@
 import fs from "node:fs";
-import type {
-  KnowledgeGraph,
-  AnyNode,
-  GraphEdge,
-  FolderNode,
-  ModuleNode,
-  ExportNode,
-  DocNode,
-} from "../../core/graph/types.js";
+import type { KnowledgeGraph, AnyNode, GraphEdge } from "../../core/graph/types.js";
 
 /**
  * Relationship information for connected nodes
@@ -85,9 +77,14 @@ interface QueryMatch {
  *
  * @param graphPath - Path to the knowledge graph JSON file
  * @param searchTerm - Search term to match against nodes
+ * @param concise - Output concise format optimized for AI consumption (default: true)
  * @returns Array of matching nodes with their edges
  */
-export async function query(graphPath: string, searchTerm: string): Promise<void> {
+export async function query(
+  graphPath: string,
+  searchTerm: string,
+  concise: boolean = true
+): Promise<void> {
   // Load the knowledge graph
   if (!fs.existsSync(graphPath)) {
     console.error(`Error: Graph file not found: ${graphPath}`);
@@ -97,7 +94,7 @@ export async function query(graphPath: string, searchTerm: string): Promise<void
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
 
-  const matches = searchGraph(graph, searchTerm);
+  const matches = searchGraph(graph, searchTerm, concise);
 
   // Output results wrapper
   const response = {
@@ -112,37 +109,37 @@ export async function query(graphPath: string, searchTerm: string): Promise<void
 /**
  * Search across all nodes in the graph
  */
-function searchGraph(graph: KnowledgeGraph, searchTerm: string): QueryMatch[] {
+function searchGraph(graph: KnowledgeGraph, searchTerm: string, concise: boolean): QueryMatch[] {
   const matches: QueryMatch[] = [];
   const lowerSearchTerm = searchTerm.toLowerCase();
 
   // Search folders
   for (const [id, node] of Object.entries(graph.nodes.folders)) {
-    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph);
+    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph, concise);
     if (result) matches.push(result);
   }
 
   // Search modules
   for (const [id, node] of Object.entries(graph.nodes.modules)) {
-    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph);
+    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph, concise);
     if (result) matches.push(result);
   }
 
   // Search terms
   for (const [id, node] of Object.entries(graph.nodes.terms)) {
-    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph);
+    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph, concise);
     if (result) matches.push(result);
   }
 
   // Search exports
   for (const [id, node] of Object.entries(graph.nodes.exports)) {
-    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph);
+    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph, concise);
     if (result) matches.push(result);
   }
 
   // Search docs
   for (const [id, node] of Object.entries(graph.nodes.docs)) {
-    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph);
+    const result = matchNode(id, node, lowerSearchTerm, graph.edges, graph, concise);
     if (result) matches.push(result);
   }
 
@@ -158,7 +155,8 @@ function matchNode(
   node: AnyNode,
   searchTerm: string,
   allEdges: GraphEdge[],
-  graph: KnowledgeGraph
+  graph: KnowledgeGraph,
+  concise: boolean
 ): QueryMatch | null {
   const matchedFields: string[] = [];
   let score = 0;
@@ -220,7 +218,7 @@ function matchNode(
   const edges = getNodeEdges(allEdges, id);
 
   // Build enhanced response
-  return buildQueryMatch(id, node, matchedFields, score, edges, graph);
+  return buildQueryMatch(id, node, matchedFields, score, edges, graph, concise);
 }
 
 /**
@@ -257,26 +255,38 @@ function buildQueryMatch(
   matchedFields: string[],
   score: number,
   edges: { incoming: GraphEdge[]; outgoing: GraphEdge[] },
-  graph: KnowledgeGraph
+  graph: KnowledgeGraph,
+  concise: boolean
 ): QueryMatch {
-  // Build hierarchy breadcrumb
-  const hierarchy = buildHierarchy(id, node, edges, graph);
+  if (concise) {
+    // Concise mode: minimal output for AI consumption
+    const parent = findParent(edges, graph);
+    const primaryFile = extractPrimaryFile(node);
+    const relatedFiles = extractRelatedFiles(node, edges, graph, primaryFile).slice(0, 3);
 
-  // Find parent node
-  const parent = findParent(edges, graph);
+    return {
+      match: {
+        id,
+        type: node.type,
+        desc: "desc" in node ? node.desc : undefined,
+        score,
+        matchReason: matchedFields.join(", "),
+      },
+      context: {
+        hierarchy: buildHierarchy(id, node, edges, graph),
+        parent,
+      },
+      files: {
+        primary: primaryFile,
+        related: relatedFiles,
+      },
+      relationships: buildRelationships(edges, graph),
+      documentation: extractDocumentation(id, node, edges, graph, true),
+      suggestions: generateSuggestions(node, edges, graph, matchedFields),
+    };
+  }
 
-  // Extract files
-  const files = extractFiles(node, edges, graph);
-
-  // Build relationships
-  const relationships = buildRelationships(edges, graph);
-
-  // Extract documentation
-  const documentation = extractDocumentation(id, node, edges, graph);
-
-  // Generate suggestions
-  const suggestions = generateSuggestions(node, edges, graph, matchedFields);
-
+  // Verbose mode: full context
   return {
     match: {
       id,
@@ -286,13 +296,13 @@ function buildQueryMatch(
       matchReason: `Matched in ${matchedFields.join(", ")}`,
     },
     context: {
-      hierarchy,
-      parent,
+      hierarchy: buildHierarchy(id, node, edges, graph),
+      parent: findParent(edges, graph),
     },
-    files,
-    relationships,
-    documentation,
-    suggestions,
+    files: extractFiles(node, edges, graph),
+    relationships: buildRelationships(edges, graph),
+    documentation: extractDocumentation(id, node, edges, graph, false),
+    suggestions: generateSuggestions(node, edges, graph, matchedFields),
   };
 }
 
@@ -354,46 +364,55 @@ function findParent(
 }
 
 /**
- * Extract primary and related files
+ * Extract primary file from node
+ */
+function extractPrimaryFile(node: AnyNode): string | undefined {
+  if ("resolvedPath" in node && node.resolvedPath) {
+    return node.resolvedPath;
+  } else if ("filePath" in node) {
+    return node.filePath;
+  } else if ("path" in node && node.path) {
+    return node.path;
+  }
+  return undefined;
+}
+
+/**
+ * Extract related files from connected nodes
+ */
+function extractRelatedFiles(
+  node: AnyNode,
+  edges: { incoming: GraphEdge[]; outgoing: GraphEdge[] },
+  graph: KnowledgeGraph,
+  primaryFile?: string
+): string[] {
+  const related: string[] = [];
+
+  for (const edge of [...edges.incoming, ...edges.outgoing]) {
+    const relatedId = edge.from === (node as any).id ? edge.to : edge.from;
+    const relatedNode = findNodeById(relatedId, graph);
+
+    if (!relatedNode) continue;
+
+    const filePath = extractPrimaryFile(relatedNode);
+    if (filePath && filePath !== primaryFile && !related.includes(filePath)) {
+      related.push(filePath);
+    }
+  }
+
+  return related;
+}
+
+/**
+ * Extract primary and related files (verbose mode)
  */
 function extractFiles(
   node: AnyNode,
   edges: { incoming: GraphEdge[]; outgoing: GraphEdge[] },
   graph: KnowledgeGraph
 ): { primary?: string; related: string[] } {
-  const related: string[] = [];
-  let primary: string | undefined;
-
-  // Primary file from node itself
-  if ("resolvedPath" in node && node.resolvedPath) {
-    primary = node.resolvedPath;
-  } else if ("filePath" in node) {
-    primary = node.filePath;
-  } else if ("path" in node && node.path) {
-    primary = node.path;
-  }
-
-  // Related files from connected nodes
-  for (const edge of [...edges.incoming, ...edges.outgoing]) {
-    const relatedId = edge.from === node.id ? edge.to : edge.from;
-    const relatedNode = findNodeById(relatedId, graph);
-
-    if (!relatedNode) continue;
-
-    let filePath: string | undefined;
-    if ("resolvedPath" in relatedNode && relatedNode.resolvedPath) {
-      filePath = relatedNode.resolvedPath;
-    } else if ("filePath" in relatedNode) {
-      filePath = relatedNode.filePath;
-    } else if ("path" in relatedNode && relatedNode.path) {
-      filePath = relatedNode.path;
-    }
-
-    if (filePath && filePath !== primary && !related.includes(filePath)) {
-      related.push(filePath);
-    }
-  }
-
+  const primary = extractPrimaryFile(node);
+  const related = extractRelatedFiles(node, edges, graph, primary);
   return { primary, related };
 }
 
@@ -464,23 +483,27 @@ function extractDocumentation(
   id: string,
   node: AnyNode,
   edges: { incoming: GraphEdge[]; outgoing: GraphEdge[] },
-  graph: KnowledgeGraph
+  graph: KnowledgeGraph,
+  concise: boolean
 ): DocumentationContext {
   const relatedDocs: Array<{ id: string; title: string }> = [];
   let primary: { file: string; excerpt: string } | undefined;
 
+  const excerptLength = concise ? 100 : 200;
+
   // If this is a doc node, use it as primary
   if (node.type === "doc") {
-    const excerpt = node.content.substring(0, 200).replace(/\s+/g, " ").trim();
+    const excerpt = node.content.substring(0, excerptLength).replace(/\s+/g, " ").trim();
     primary = {
       file: node.filePath,
-      excerpt: excerpt + (node.content.length > 200 ? "..." : ""),
+      excerpt: excerpt + (node.content.length > excerptLength ? "..." : ""),
     };
   }
 
   // Find related doc nodes
+  const maxRelatedDocs = concise ? 2 : 10;
   for (const edge of edges.incoming) {
-    if (edge.type === "references") {
+    if (edge.type === "references" && relatedDocs.length < maxRelatedDocs) {
       const docNode = graph.nodes.docs[edge.from];
       if (docNode) {
         relatedDocs.push({
@@ -490,10 +513,10 @@ function extractDocumentation(
 
         // Use first doc as primary if we don't have one
         if (!primary) {
-          const excerpt = docNode.content.substring(0, 200).replace(/\s+/g, " ").trim();
+          const excerpt = docNode.content.substring(0, excerptLength).replace(/\s+/g, " ").trim();
           primary = {
             file: docNode.filePath,
-            excerpt: excerpt + (docNode.content.length > 200 ? "..." : ""),
+            excerpt: excerpt + (docNode.content.length > excerptLength ? "..." : ""),
           };
         }
       }

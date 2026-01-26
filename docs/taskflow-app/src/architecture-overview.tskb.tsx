@@ -10,14 +10,41 @@ import {
 } from "examples/taskflow-app/src/shared/types/api.types.js";
 import { Task } from "examples/taskflow-app/src/shared/types/task.types.js";
 
+const ClientFolder = ref as tskb.Folders["Client"];
+const ServerFolder = ref as tskb.Folders["Server"];
+const SharedFolder = ref as tskb.Folders["Shared"];
+const ControllersFolder = ref as tskb.Folders["Controllers"];
+const ServicesFolder = ref as tskb.Folders["Services"];
+const RepositoriesFolder = ref as tskb.Folders["Repositories"];
+const MiddlewareFolder = ref as tskb.Folders["Middleware"];
+const PagesFolder = ref as tskb.Folders["Pages"];
+const ComponentsFolder = ref as tskb.Folders["Components"];
+const ContextsFolder = ref as tskb.Folders["Contexts"];
+const HooksFolder = ref as tskb.Folders["Hooks"];
+const ClientServicesFolder = ref as tskb.Folders["ClientServices"];
+const TypesFolder = ref as tskb.Folders["Types"];
+
+const ContextProviderTerm = ref as tskb.Terms["contextProvider"];
+const ServiceLayerTerm = ref as tskb.Terms["serviceLayer"];
+const RepositoryPatternTerm = ref as tskb.Terms["repositoryPattern"];
+const MiddlewareChainTerm = ref as tskb.Terms["middlewareChain"];
+const CrudOperationsTerm = ref as tskb.Terms["crudOperations"];
+const PaginationTerm = ref as tskb.Terms["pagination"];
+const JwtTerm = ref as tskb.Terms["jwt"];
+
+const TaskServiceExport = ref as tskb.Exports["TaskService"];
+const AuthContextExport = ref as tskb.Exports["AuthContext"];
+const ApiClientExport = ref as tskb.Exports["ApiClient"];
+const AuthMiddlewareExport = ref as tskb.Exports["AuthMiddleware"];
+
 export default (
   <Doc>
     <H1>TaskFlow Architecture Overview</H1>
 
     <P>
       TaskFlow is a full-stack task management application demonstrating modern web architecture
-      patterns. The application follows a clean separation between {ref as tskb.Folders["Client"]},{" "}
-      {ref as tskb.Folders["Server"]}, and {ref as tskb.Folders["Shared"]} code.
+      patterns. The application follows a clean separation between {ClientFolder}, {ServerFolder},
+      and {SharedFolder} code.
     </P>
 
     <H2>Core Architecture</H2>
@@ -26,18 +53,16 @@ export default (
 
     <List>
       <Li>
-        Client Layer - React frontend located in {ref as tskb.Folders["Client"]} handles user
-        interface, state management via {ref as tskb.Terms["contextProvider"]}, and API
-        communication.
+        Client Layer - React frontend located in {ClientFolder} handles user interface, state
+        management via {ContextProviderTerm}, and API communication.
       </Li>
       <Li>
-        Server Layer - Node.js backend in {ref as tskb.Folders["Server"]} implements the{" "}
-        {ref as tskb.Terms["serviceLayer"]} pattern with controllers, services, and the{" "}
-        {ref as tskb.Terms["repositoryPattern"]}.
+        Server Layer - Node.js backend in {ServerFolder} implements the {ServiceLayerTerm} pattern
+        with controllers, services, and the {RepositoryPatternTerm}.
       </Li>
       <Li>
-        Shared Layer - TypeScript types in {ref as tskb.Folders["Shared"]} ensure type safety across
-        the entire stack.
+        Shared Layer - TypeScript types in {SharedFolder} ensure type safety across the entire
+        stack.
       </Li>
     </List>
 
@@ -47,29 +72,26 @@ export default (
 
     <List>
       <Li>
-        {ref as tskb.Folders["Controllers"]} - Handle HTTP requests and responses, delegating
-        business logic to services
+        {ControllersFolder} - Handle HTTP requests and responses, delegating business logic to
+        services
       </Li>
       <Li>
-        {ref as tskb.Folders["Services"]} - Implement core business logic using the{" "}
-        {ref as tskb.Terms["serviceLayer"]} pattern
+        {ServicesFolder} - Implement core business logic using the {ServiceLayerTerm} pattern
       </Li>
       <Li>
-        {ref as tskb.Folders["Repositories"]} - Abstract database operations following the{" "}
-        {ref as tskb.Terms["repositoryPattern"]}
+        {RepositoriesFolder} - Abstract database operations following the {RepositoryPatternTerm}
       </Li>
       <Li>
-        {ref as tskb.Folders["Middleware"]} - Process requests through a{" "}
-        {ref as tskb.Terms["middlewareChain"]} for auth, validation, and errors
+        {MiddlewareFolder} - Process requests through a {MiddlewareChainTerm} for auth, validation,
+        and errors
       </Li>
     </List>
 
     <H3>Key Services</H3>
 
     <P>
-      The {ref as tskb.Exports["TaskService"]} is the central module for task management, supporting{" "}
-      {ref as tskb.Terms["crudOperations"]}, status updates, and filtering with{" "}
-      {ref as tskb.Terms["pagination"]}.
+      The {TaskServiceExport} is the central module for task management, supporting{" "}
+      {CrudOperationsTerm}, status updates, and filtering with {PaginationTerm}.
     </P>
 
     <Snippet
@@ -110,25 +132,21 @@ export default (
     </P>
 
     <List>
+      <Li>{PagesFolder} - Route-level components organized by feature (auth, projects, tasks)</Li>
+      <Li>{ComponentsFolder} - Reusable UI components grouped by domain</Li>
       <Li>
-        {ref as tskb.Folders["Pages"]} - Route-level components organized by feature (auth,
-        projects, tasks)
+        {ContextsFolder} - Global state providers using {ContextProviderTerm} pattern
       </Li>
-      <Li>{ref as tskb.Folders["Components"]} - Reusable UI components grouped by domain</Li>
-      <Li>
-        {ref as tskb.Folders["Contexts"]} - Global state providers using{" "}
-        {ref as tskb.Terms["contextProvider"]} pattern
-      </Li>
-      <Li>{ref as tskb.Folders["Hooks"]} - Custom hooks for shared client-side logic</Li>
-      <Li>{ref as tskb.Folders["ClientServices"]} - API clients for backend communication</Li>
+      <Li>{HooksFolder} - Custom hooks for shared client-side logic</Li>
+      <Li>{ClientServicesFolder} - API clients for backend communication</Li>
     </List>
 
     <H3>State Management</H3>
 
     <P>
-      Authentication state is managed by {ref as tskb.Exports["AuthContext"]}, which provides
-      login/logout functionality and user information to all components. The context uses{" "}
-      {ref as tskb.Terms["jwt"]} tokens for authentication.
+      Authentication state is managed by {AuthContextExport}, which provides login/logout
+      functionality and user information to all components. The context uses {JwtTerm} tokens for
+      authentication.
     </P>
 
     <Snippet
@@ -152,9 +170,9 @@ export default (
     <P>The typical request flow through the application:</P>
 
     <List>
-      <Li>User interacts with React component in {ref as tskb.Folders["Pages"]}</Li>
-      <Li>Component calls {ref as tskb.Exports["ApiClient"]} to send HTTP request</Li>
-      <Li>Request passes through {ref as tskb.Exports["AuthMiddleware"]} for authentication</Li>
+      <Li>User interacts with React component in {PagesFolder}</Li>
+      <Li>Component calls {ApiClientExport} to send HTTP request</Li>
+      <Li>Request passes through {AuthMiddlewareExport} for authentication</Li>
       <Li>Controller receives request and calls appropriate service</Li>
       <Li>Service implements business logic and calls repository</Li>
       <Li>Repository queries database and returns data</Li>
@@ -165,9 +183,8 @@ export default (
     <H2>Type Safety</H2>
 
     <P>
-      The {ref as tskb.Folders["Types"]} folder contains all shared type definitions, ensuring
-      end-to-end type safety. Types are organized by domain: user.types, task.types, project.types,
-      etc.
+      The {TypesFolder} folder contains all shared type definitions, ensuring end-to-end type
+      safety. Types are organized by domain: user.types, task.types, project.types, etc.
     </P>
 
     <P>

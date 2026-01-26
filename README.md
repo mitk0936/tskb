@@ -1,4 +1,4 @@
-# tskb - Task Knowledge Base
+# tskb - TypeScript Knowledge Base
 
 A TypeScript-based system for documenting software architecture using TSX syntax. Write architectural documentation as code with type-safe, structured components.
 
@@ -19,9 +19,13 @@ Core tskb package that provides:
 
 Demonstration boilerplate showing a full-stack task management application. This is **not meant to be built or run** - it exists purely as a reference for documentation purposes.
 
-### `docs/taskflow/`
+### `docs/taskflow-app/`
 
 Real-world documentation examples using tskb to document the TaskFlow app architecture, including ADRs, constraints, and system design.
+
+### `docs/tskb-package/`
+
+Documentation for the tskb package itself, demonstrating how to document CLI tools, core functionality, and runtime systems.
 
 ## Getting Started
 
@@ -60,10 +64,15 @@ npm run format:check
 
 ### Working with Documentation
 
-Navigate to `docs/taskflow/` to see example documentation:
+Navigate to either documentation folder to see examples:
 
 ```bash
-cd docs/taskflow
+# TaskFlow app documentation
+cd docs/taskflow-app
+npm run generate
+
+# tskb package documentation
+cd docs/tskb-package
 npm run generate
 ```
 
@@ -78,7 +87,8 @@ tskb/
 ├── examples/
 │   └── taskflow-app/      # Demo application (reference only)
 ├── docs/
-│   └── taskflow/          # Documentation examples
+│   ├── taskflow-app/      # TaskFlow app documentation examples
+│   └── tskb-package/      # tskb package documentation examples
 └── package.json           # Workspace root
 ```
 

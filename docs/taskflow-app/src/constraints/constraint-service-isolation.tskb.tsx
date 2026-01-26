@@ -1,12 +1,19 @@
 import { Doc, H1, H2, P, List, Li, ref } from "tskb";
 
+const ServicesFolder = ref as tskb.Folders["Services"];
+const RepositoriesFolder = ref as tskb.Folders["Repositories"];
+
+const DependencyInjectionTerm = ref as tskb.Terms["dependencyInjection"];
+
+const TaskServiceExport = ref as tskb.Exports["TaskService"];
+
 export default (
   <Doc>
     <H1>Constraint: Service Layer Isolation</H1>
 
     <P>
-      Services in {ref as tskb.Folders["Services"]} MUST NOT directly access the database. All data
-      persistence operations MUST go through repositories in {ref as tskb.Folders["Repositories"]}.
+      Services in {ServicesFolder} MUST NOT directly access the database. All data persistence
+      operations MUST go through repositories in {RepositoriesFolder}.
     </P>
 
     <H2>Rationale</H2>
@@ -21,14 +28,11 @@ export default (
 
     <H2>Correct Pattern</H2>
 
-    <P>
-      Services receive repository instances via {ref as tskb.Terms["dependencyInjection"]} in the
-      constructor.
-    </P>
+    <P>Services receive repository instances via {DependencyInjectionTerm} in the constructor.</P>
 
     <P>✅ Good Example:</P>
     <List>
-      <Li>{ref as tskb.Exports["TaskService"]} accepts TaskRepository in constructor</Li>
+      <Li>{TaskServiceExport} accepts TaskRepository in constructor</Li>
       <Li>Service calls repository.findById() instead of writing SQL</Li>
       <Li>Repository handles all database interaction details</Li>
     </List>

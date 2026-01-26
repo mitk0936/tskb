@@ -166,13 +166,13 @@ function buildExportNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
  */
 function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string): void {
   for (const doc of docs) {
-    // Use file path as ID (could hash it for stability)
-    const id = normalizeFilePath(doc.filePath, baseDir);
+    // doc.filePath is already relative from extraction, use it directly as both id and filePath
+    const id = doc.filePath;
 
     const node: DocNode = {
       id,
       type: "doc",
-      filePath: doc.filePath,
+      filePath: doc.filePath, // Now relative, not absolute
       content: doc.content,
       format: doc.format,
     };
@@ -206,7 +206,8 @@ function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: str
  */
 function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string): void {
   for (const doc of docs) {
-    const docId = normalizeFilePath(doc.filePath, baseDir);
+    // doc.filePath is already relative from extraction
+    const docId = doc.filePath;
 
     // Create "references" edges from doc to modules/terms/contexts
     for (const moduleName of doc.references.modules) {
