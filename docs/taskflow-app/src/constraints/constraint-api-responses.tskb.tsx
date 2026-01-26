@@ -1,14 +1,21 @@
 import { ApiError, ResponseMetadata } from "examples/taskflow-app/src/shared/types/api.types.js";
 import { Doc, H1, H2, P, List, Li, Snippet, ref } from "tskb";
 
+const TypesFolder = ref as tskb.Folders["Types"];
+
+const PaginationTerm = ref as tskb.Terms["pagination"];
+
+const ErrorHandlerExport = ref as tskb.Exports["ErrorHandler"];
+const ApiClientExport = ref as tskb.Exports["ApiClient"];
+
 export default (
   <Doc>
     <H1>Constraint: API Response Structure</H1>
 
     <P>
       All API endpoints MUST return responses following the ApiResponse type defined in{" "}
-      {ref as tskb.Folders["Types"]}. This ensures consistent error handling and response structure
-      across the entire API.
+      {TypesFolder}. This ensures consistent error handling and response structure across the entire
+      API.
     </P>
 
     <H2>Required Structure</H2>
@@ -69,7 +76,7 @@ export default (
 
     <P>
       List endpoints returning multiple items MUST use PaginatedResponse type for consistency with{" "}
-      {ref as tskb.Terms["pagination"]}.
+      {PaginationTerm}.
     </P>
 
     <Snippet
@@ -88,10 +95,8 @@ export default (
 
     <List>
       <Li>Controllers must use typed response helpers that enforce structure</Li>
-      <Li>
-        {ref as tskb.Exports["ErrorHandler"]} middleware ensures errors follow ApiResponse format
-      </Li>
-      <Li>Client {ref as tskb.Exports["ApiClient"]} expects and validates this structure</Li>
+      <Li>{ErrorHandlerExport} middleware ensures errors follow ApiResponse format</Li>
+      <Li>Client {ApiClientExport} expects and validates this structure</Li>
       <Li>End-to-end type safety from server through client</Li>
     </List>
 

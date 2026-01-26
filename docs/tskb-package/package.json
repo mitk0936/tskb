@@ -1,16 +1,17 @@
 {
-  "name": "taskflow-docs",
+  "name": "tskb-meta-docs",
   "version": "1.0.0",
-  "private": true,
+  "description": "<tskb> docs for the library package itself",
   "type": "module",
-  "description": "tskb documentation for TaskFlow example application",
   "scripts": {
     "build": "node ../../packages/tskb/dist/cli/index.js \"**/*.tskb.tsx\" --out ./dist/taskflow-graph.json --tsconfig tsconfig.json",
     "visualize": "node ../../packages/tskb/dist/cli/index.js visualize ./dist/taskflow-graph.json --out ./dist/architecture.dot",
-    "generate": "mkdirp dist && npm run build && npm run visualize"
+    "generate": "mkdirp dist && npm run build && npm run visualize",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "rimraf": "^6.0.1",
+  "dependencies": {
     "tskb": "*"
-  }
+  },
+  "author": "Dimitar Mihaylov",
+  "license": "ISC"
 }

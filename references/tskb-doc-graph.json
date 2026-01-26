@@ -1,0 +1,999 @@
+{
+  "nodes": {
+    "folders": {
+      "Package.Root": {
+        "id": "Package.Root",
+        "type": "folder",
+        "desc": "The root folder of the package, with its package.json",
+        "path": "packages/tskb",
+        "resolvedPath": "packages/tskb",
+        "pathExists": true
+      },
+      "tskb.cli": {
+        "id": "tskb.cli",
+        "type": "folder",
+        "desc": "Source code for the cli",
+        "path": "packages/tskb/src/cli",
+        "resolvedPath": "packages/tskb/src/cli",
+        "pathExists": true
+      },
+      "tskb.core": {
+        "id": "tskb.core",
+        "type": "folder",
+        "desc": "Source code for the core - extraction logic for registry (interfaces) and doc processing <Doc></Doc>",
+        "path": "packages/tskb/src/core",
+        "resolvedPath": "packages/tskb/src/core",
+        "pathExists": true
+      },
+      "tskb.runtime": {
+        "id": "tskb.runtime",
+        "type": "folder",
+        "desc": "Source code for the runtime, the lib does not have an actual runtime, but this folder contains the registry interfaces and jsx runtime primitives",
+        "path": "packages/tskb/src/runtime",
+        "resolvedPath": "packages/tskb/src/runtime",
+        "pathExists": true
+      },
+      "tskb.typescript": {
+        "id": "tskb.typescript",
+        "type": "folder",
+        "desc": "Creates a TypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output",
+        "path": "packages/tskb/src/typescript",
+        "resolvedPath": "packages/tskb/src/typescript",
+        "pathExists": true
+      },
+      "core.extraction": {
+        "id": "core.extraction",
+        "type": "folder",
+        "desc": "Contains the logic for extracting registry and documentation from TypeScript AST",
+        "path": "packages/tskb/src/core/extraction",
+        "resolvedPath": "packages/tskb/src/core/extraction",
+        "pathExists": true
+      },
+      "tskb.cli.commands": {
+        "id": "tskb.cli.commands",
+        "type": "folder",
+        "desc": "Command implementations for build, visualize, and query operations",
+        "path": "packages/tskb/src/cli/commands",
+        "resolvedPath": "packages/tskb/src/cli/commands",
+        "pathExists": true
+      }
+    },
+    "modules": {
+      "package.json": {
+        "id": "package.json",
+        "type": "module",
+        "desc": "Library's package.json file",
+        "typeSignature": "typeof import(\"../../../packages/tskb/package.json\")",
+        "importPath": "../../../packages/tskb/package.json",
+        "resolvedPath": "packages/tskb/package.json",
+        "pathExists": true
+      },
+      "Main.index.js": {
+        "id": "Main.index.js",
+        "type": "module",
+        "desc": "The main package export",
+        "typeSignature": "typeof import(\"packages/tskb/src/index.js\")",
+        "importPath": "packages/tskb/src/index.js",
+        "resolvedPath": "packages/tskb/src/index.ts",
+        "pathExists": true
+      },
+      "Jsx.runtime.js": {
+        "id": "Jsx.runtime.js",
+        "type": "module",
+        "desc": "The JSX runtime, provided by the package. Includes all available jsx tags in tskb as functions.",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\")",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "sample.tsconfig.json": {
+        "id": "sample.tsconfig.json",
+        "type": "module",
+        "desc": "An example of required tsconfig.json for building <TSKB> docs",
+        "typeSignature": "typeof import(\"../tsconfig.json\")",
+        "importPath": "../tsconfig.json",
+        "resolvedPath": "docs/tskb-package/tsconfig.json",
+        "pathExists": true
+      },
+      "typescript.program": {
+        "id": "typescript.program",
+        "type": "module",
+        "desc": "Creates TypeScript Program from files and tsconfig for static analysis",
+        "typeSignature": "typeof import(\"packages/tskb/src/typescript/program.js\")",
+        "importPath": "packages/tskb/src/typescript/program.js",
+        "resolvedPath": "packages/tskb/src/typescript/program.ts",
+        "pathExists": true
+      },
+      "typescript.index": {
+        "id": "typescript.index",
+        "type": "module",
+        "desc": "TypeScript module exports",
+        "typeSignature": "typeof import(\"packages/tskb/src/typescript/index.js\")",
+        "importPath": "packages/tskb/src/typescript/index.js",
+        "resolvedPath": "packages/tskb/src/typescript/index.ts",
+        "pathExists": true
+      },
+      "runtime.jsx": {
+        "id": "runtime.jsx",
+        "type": "module",
+        "desc": "JSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\")",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "runtime.registry": {
+        "id": "runtime.registry",
+        "type": "module",
+        "desc": "Registry type definitions - Folder, Module, Export, Term interfaces for global namespace augmentation",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/registry.js\")",
+        "importPath": "packages/tskb/src/runtime/registry.js",
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "pathExists": true
+      },
+      "extraction.registry": {
+        "id": "extraction.registry",
+        "type": "module",
+        "desc": "Main registry extraction module that traverses TypeScript AST to extract Folders, Modules, Terms, and Exports from the global tskb namespace",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/registry.js\")",
+        "importPath": "packages/tskb/src/core/extraction/registry.js",
+        "resolvedPath": "packages/tskb/src/core/extraction/registry.ts",
+        "pathExists": true
+      },
+      "extraction.documentation": {
+        "id": "extraction.documentation",
+        "type": "module",
+        "desc": "Documentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\")",
+        "importPath": "packages/tskb/src/core/extraction/documentation.js",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "pathExists": true
+      },
+      "cli.index": {
+        "id": "cli.index",
+        "type": "module",
+        "desc": "CLI entry point - handles argument parsing, command routing, and error handling",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/index.js\")",
+        "importPath": "packages/tskb/src/cli/index.js",
+        "resolvedPath": "packages/tskb/src/cli/index.ts",
+        "pathExists": true
+      },
+      "cli.commands.build": {
+        "id": "cli.commands.build",
+        "type": "module",
+        "desc": "Build command module - orchestrates the complete pipeline from source files to knowledge graph JSON",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/build.js\")",
+        "importPath": "packages/tskb/src/cli/commands/build.js",
+        "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
+        "pathExists": true
+      },
+      "cli.commands.visualize": {
+        "id": "cli.commands.visualize",
+        "type": "module",
+        "desc": "Visualize command module - transforms knowledge graph JSON to Graphviz DOT format",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/visualize.js\")",
+        "importPath": "packages/tskb/src/cli/commands/visualize.js",
+        "resolvedPath": "packages/tskb/src/cli/commands/visualize.ts",
+        "pathExists": true
+      },
+      "cli.commands.query": {
+        "id": "cli.commands.query",
+        "type": "module",
+        "desc": "Query command module - searches knowledge graph and returns structured results with context",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/query.js\")",
+        "importPath": "packages/tskb/src/cli/commands/query.js",
+        "resolvedPath": "packages/tskb/src/cli/commands/query.ts",
+        "pathExists": true
+      }
+    },
+    "terms": {
+      "library": {
+        "id": "library",
+        "type": "term",
+        "desc": "Refers to the <TSKB> package with all of its capabilities, interfaces and commands"
+      },
+      "cli": {
+        "id": "cli",
+        "type": "term",
+        "desc": "The library exposes a command line interface for main actions - build docs to json graph, gnerate visualization, query a generated graph by keywords"
+      },
+      "jsxRuntime": {
+        "id": "jsxRuntime",
+        "type": "term",
+        "desc": "TSKB provides a custom JSX runtime (jsx-runtime module) that transforms TSX documentation syntax into a knowledge graph. Configured via tsconfig's jsxImportSource option, it processes JSX elements differently from React - instead of DOM rendering, it extracts documentation structure, references, and code snippets for analysis and visualization."
+      },
+      "tsProgram": {
+        "id": "tsProgram",
+        "type": "term",
+        "desc": "TypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output."
+      },
+      "registry": {
+        "id": "registry",
+        "type": "term",
+        "desc": "The global namespace (declare global { namespace tskb }) containing typed interfaces (Folders, Modules, Exports, Terms) that serve as a type-safe vocabulary registry, enabling autocomplete and type-checked references across all .tskb.tsx documentation files."
+      },
+      "graph": {
+        "id": "graph",
+        "type": "term",
+        "desc": "Refers to th raw output of the library, where it constructs all the relations and connections between folders, modules, exports, terms, docs, etc. In its raw form it is a json file"
+      },
+      "dotFile": {
+        "id": "dotFile",
+        "type": "term",
+        "desc": "A Graphviz DOT format file that describes the graph structure with nodes and edges, used for rendering visual diagrams of the architecture"
+      },
+      "queryMatch": {
+        "id": "queryMatch",
+        "type": "term",
+        "desc": "A structured result from querying the knowledge graph, containing the matched node, its hierarchy, relationships, related files, documentation context, and AI suggestions for next steps"
+      },
+      "ast": {
+        "id": "ast",
+        "type": "term",
+        "desc": "Abstract Syntax Tree - TypeScript's tree representation of source code, used by the compiler API to analyze code structure"
+      },
+      "declarationMerging": {
+        "id": "declarationMerging",
+        "type": "term",
+        "desc": "TypeScript feature that allows multiple declarations with the same name to be merged into a single definition, enabling distributed vocabulary across files"
+      },
+      "typeChecker": {
+        "id": "typeChecker",
+        "type": "term",
+        "desc": "TypeScript compiler component that resolves types, validates code, and provides type information for symbols in the AST"
+      },
+      "literalType": {
+        "id": "literalType",
+        "type": "term",
+        "desc": "A TypeScript type that represents a specific literal value (e.g., string literal 'hello' or number literal 42), used to extract constant values from type definitions"
+      },
+      "jsxElement": {
+        "id": "jsxElement",
+        "type": "term",
+        "desc": "A JSX syntax node in the TypeScript AST representing an element like <Doc> or <P>, containing opening tag, children, and closing tag"
+      },
+      "jsxExpression": {
+        "id": "jsxExpression",
+        "type": "term",
+        "desc": "A TypeScript AST node representing an embedded expression in JSX curly braces like {ref as tskb.Folders['Auth']}"
+      },
+      "typeAssertion": {
+        "id": "typeAssertion",
+        "type": "term",
+        "desc": "TypeScript 'as' syntax that casts a value to a specific type, used in tskb to reference vocabulary items: {ref as tskb.Modules['X']}"
+      },
+      "depthFirstTraversal": {
+        "id": "depthFirstTraversal",
+        "type": "term",
+        "desc": "Tree traversal algorithm that explores as far as possible along each branch before backtracking, used to visit all JSX nodes in order"
+      },
+      "cliPipeline": {
+        "id": "cliPipeline",
+        "type": "term",
+        "desc": "The six-stage build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → JSON output"
+      },
+      "commandRouting": {
+        "id": "commandRouting",
+        "type": "term",
+        "desc": "The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, visualize, or query)"
+      },
+      "globPattern": {
+        "id": "globPattern",
+        "type": "term",
+        "desc": "File pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing"
+      }
+    },
+    "exports": {
+      "Folder": {
+        "id": "Folder",
+        "type": "export",
+        "desc": "A generic helper to reference folders inside doc files",
+        "typeSignature": "import(\"packages/tskb/src/runtime/registry.js\").Folder<any>",
+        "importPath": "packages/tskb/src/runtime/registry.js",
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "pathExists": true
+      },
+      "Module": {
+        "id": "Module",
+        "type": "export",
+        "desc": "A generic helper to reference modules inside doc files",
+        "typeSignature": "import(\"packages/tskb/src/runtime/registry.js\").Module<any>",
+        "importPath": "packages/tskb/src/runtime/registry.js",
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "pathExists": true
+      },
+      "Export": {
+        "id": "Export",
+        "type": "export",
+        "desc": "A generic helper to reference exports inside doc files",
+        "typeSignature": "import(\"packages/tskb/src/runtime/registry.js\").Export<any>",
+        "importPath": "packages/tskb/src/runtime/registry.js",
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "pathExists": true
+      },
+      "Term": {
+        "id": "Term",
+        "type": "export",
+        "desc": "A generic helper to reference terms inside doc files",
+        "typeSignature": "import(\"packages/tskb/src/runtime/registry.js\").Term<any>",
+        "importPath": "packages/tskb/src/runtime/registry.js",
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "pathExists": true
+      },
+      "ref": {
+        "id": "ref",
+        "type": "export",
+        "desc": "A placeholder for referencing anything from the global tskb registry into jsx tags",
+        "typeSignature": "typeof import(\"packages/tskb/src/index.js\").ref",
+        "importPath": "packages/tskb/src/index.js",
+        "resolvedPath": "packages/tskb/src/index.ts",
+        "pathExists": true
+      },
+      "cli.build": {
+        "id": "cli.build",
+        "type": "export",
+        "desc": "The control flow function for building the docs",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/build.js\").build",
+        "importPath": "packages/tskb/src/cli/commands/build.js",
+        "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
+        "pathExists": true
+      },
+      "cli.visualize": {
+        "id": "cli.visualize",
+        "type": "export",
+        "desc": "Generates a Graphviz DOT file from the knowledge graph JSON",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/visualize.js\").visualize",
+        "importPath": "packages/tskb/src/cli/commands/visualize.js",
+        "resolvedPath": "packages/tskb/src/cli/commands/visualize.ts",
+        "pathExists": true
+      },
+      "cli.query": {
+        "id": "cli.query",
+        "type": "export",
+        "desc": "Simple demo query command that searches the knowledge graph and returns structured results with context, relationships, and AI suggestions",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/query.js\").query",
+        "importPath": "packages/tskb/src/cli/commands/query.js",
+        "resolvedPath": "packages/tskb/src/cli/commands/query.ts",
+        "pathExists": true
+      },
+      "generateDot": {
+        "id": "generateDot",
+        "type": "export",
+        "desc": "Core function that transforms the knowledge graph into DOT format",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/visualization/index.js\").generateDot",
+        "importPath": "packages/tskb/src/core/visualization/index.js",
+        "resolvedPath": "packages/tskb/src/core/visualization/index.ts",
+        "pathExists": true
+      },
+      "ts.createProgram": {
+        "id": "ts.createProgram",
+        "type": "export",
+        "desc": "Creates a TypeScript Program for analyzing code structure, types, and symbols without emitting output",
+        "typeSignature": "typeof import(\"packages/tskb/src/typescript/program.js\").createProgram",
+        "importPath": "packages/tskb/src/typescript/program.js",
+        "resolvedPath": "packages/tskb/src/typescript/program.ts",
+        "pathExists": true
+      },
+      "jsx.Doc": {
+        "id": "jsx.Doc",
+        "type": "export",
+        "desc": "Documentation container component",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Doc",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "jsx.H1": {
+        "id": "jsx.H1",
+        "type": "export",
+        "desc": "Heading level 1",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").H1",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "jsx.H2": {
+        "id": "jsx.H2",
+        "type": "export",
+        "desc": "Heading level 2",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").H2",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "jsx.H3": {
+        "id": "jsx.H3",
+        "type": "export",
+        "desc": "Heading level 3",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").H3",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "jsx.P": {
+        "id": "jsx.P",
+        "type": "export",
+        "desc": "Paragraph",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").P",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "jsx.List": {
+        "id": "jsx.List",
+        "type": "export",
+        "desc": "List container",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").List",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "jsx.Li": {
+        "id": "jsx.Li",
+        "type": "export",
+        "desc": "List item",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Li",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "jsx.Snippet": {
+        "id": "jsx.Snippet",
+        "type": "export",
+        "desc": "Code snippet component",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Snippet",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "jsx.ref": {
+        "id": "jsx.ref",
+        "type": "export",
+        "desc": "Reference placeholder for type assertions to registry items",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").ref",
+        "importPath": "packages/tskb/src/runtime/jsx.js",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "pathExists": true
+      },
+      "extractRegistry": {
+        "id": "extractRegistry",
+        "type": "export",
+        "desc": "Main function that extracts the vocabulary (Folders, Modules, Terms, Exports) from TypeScript's type system using the compiler API",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/registry.js\").extractRegistry",
+        "importPath": "packages/tskb/src/core/extraction/registry.js",
+        "resolvedPath": "packages/tskb/src/core/extraction/registry.ts",
+        "pathExists": true
+      },
+      "ExtractedRegistry": {
+        "id": "ExtractedRegistry",
+        "type": "export",
+        "desc": "Type definition for the registry data structure containing Maps of folders, modules, terms, and exports",
+        "typeSignature": "import(\"packages/tskb/src/core/extraction/registry.js\").ExtractedRegistry",
+        "importPath": "packages/tskb/src/core/extraction/registry.js",
+        "resolvedPath": "packages/tskb/src/core/extraction/registry.ts",
+        "pathExists": true
+      },
+      "extractDocs": {
+        "id": "extractDocs",
+        "type": "export",
+        "desc": "Main function that extracts documentation content and references from TSX files by traversing JSX AST",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\").extractDocs",
+        "importPath": "packages/tskb/src/core/extraction/documentation.js",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "pathExists": true
+      },
+      "ExtractedDoc": {
+        "id": "ExtractedDoc",
+        "type": "export",
+        "desc": "Type definition for extracted documentation containing file path, content, and all references to vocabulary items",
+        "typeSignature": "import(\"packages/tskb/src/core/extraction/documentation.js\").ExtractedDoc",
+        "importPath": "packages/tskb/src/core/extraction/documentation.js",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "pathExists": true
+      },
+      "cli.build.ExtractConfig": {
+        "id": "cli.build.ExtractConfig",
+        "type": "export",
+        "desc": "Configuration interface for the build command containing pattern, output path, and tsconfig path",
+        "typeSignature": "import(\"packages/tskb/src/cli/commands/build.js\").ExtractConfig",
+        "importPath": "packages/tskb/src/cli/commands/build.js",
+        "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
+        "pathExists": true
+      }
+    },
+    "docs": {
+      "docs/tskb-package/src/main.tskb.tsx": {
+        "id": "docs/tskb-package/src/main.tskb.tsx",
+        "type": "doc",
+        "filePath": "docs/tskb-package/src/main.tskb.tsx",
+        "content": "Architecture and implementation docs for the <TSKB> library The package is located in [Folder: Package.Root]What is <TSKB> ? A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge\r\n      graphs and diagrams with type-checked references. What it provides in terms of interfaces (API's) and tools In the root folder: [Folder: Package.Root]. In the [Module: package.json]file, it declares a bin command named 'tskb' that runs the [Term: cli]The package exports two main modules, in addition to the [Term: cli]: the index module   [Module: Main.index.js]and the jsxRuntime ( [Term: jsxRuntime]), defined in: [Module: Jsx.runtime.js]Core Primitives for Type-Safe Documentation Main exports (primitives) of the library for creating type-safe architectural documentation: [Export: Folder]: Represents logical groupings in the codebase (features, layers, packages) [Export: Module]: Represents concrete code units (classes, services, components) [Export: Export]: Creates type-safe references to actual code exports using TypeScript's\r\n          typeof import() syntax - ensures documentation stays in sync with codebase [Export: Term]: Represents domain concepts, patterns, or terminology [Export: ref]: A placeholder for referencing anything from the global tskb registry into jsx\r\n          tags with type assertions Plus all the JSX documentation components exported from [Module: Jsx.runtime.js]: Doc, H1, H2, H3,\r\n      P, List, Li, Snippet - providing a familiar TSX syntax for structured content A typical flow of usage Create a docs folder in your repository for documentation files Define a tsconfig.json similar to [Module: sample.tsconfig.json]pointing to repo root with jsx:\r\n        \"react-jsx\" and jsxImportSource: \"tskb\" Declare vocabulary (Folders, Modules, Exports, Terms) using global namespace augmentation.\r\n        Use typeof import() for type-safe references. Write *.tskb.tsx files using JSX components. TypeScript validates all references at compile\r\n        time. Run [Export: cli.build]: \"tskb \\\"**/*.tskb.tsx\\\" --out ./dist/taskflow-graph.json --tsconfig tsconfig.json\" The [Term: cli]creates a [Term: tsProgram]and type-checks all documentation files against\r\n        actual source code Extracts vocabulary from the [Term: registry](Folders, Modules, Exports, Terms) Processes *.tskb.tsx files, extracting content and references Constructs the [Term: graph]by analyzing relationships and hierarchies Outputs JSON knowledge graph optimized for AI agents and tooling Generating a visual representation: Run [Export: cli.visualize]: \"tskb visualize ./dist/taskflow-graph.json --out\r\n        ./dist/architecture.dot\" [Export: generateDot]transforms the [Term: graph]into a [Term: dotFile]with nodes and\r\n        relationship edges Render with Graphviz: \"dot -Tpng architecture.dot -o architecture.png\" Or use interactive viewers like xdot or online Graphviz tools Key Benefits Type-checked references: Renames, moves, or API changes break the build - enforcing\r\n        correctness Validated snippets: Code examples are type-checked against actual source Living documentation: Stays in sync through the compiler - CI catches drift AI-optimized: Queryable knowledge graph reduces hallucination Docs as infrastructure: Compile-time validation, not afterthought Querying the knowledge graph Demo query command for programmatic [Term: graph]access by AI agents and tools Run [Export: cli.query]: \"tskb query ./dist/taskflow-graph.json auth\" Searches all node types matching against IDs, descriptions, paths, and content Each [Term: queryMatch]includes: node with relevance score, hierarchy breadcrumb, parent\r\n        context, related files, relationships, and AI suggestions Sorted by relevance: ID matches highest, then path, description, and content Outputs structured JSON for AI consumption and tooling Documentation Philosophy: Map, Not Manual Write structural signposts showing what exists where and how pieces connect - not\r\n      implementation details. Document structure: Declare folders, locations, and key relationships Use type-safe references: typeof import() ensures TypeScript validates existence and catches\r\n        renames Focus on WHAT and WHERE, not HOW: Describe purpose and location, not algorithms Trust validation: TSKB catches broken references, not behavior changes Major relationships only: Document architectural connections, not every dependency",
+        "format": "tsx"
+      },
+      "docs/tskb-package/src/typescript/typescript.tskb.tsx": {
+        "id": "docs/tskb-package/src/typescript/typescript.tskb.tsx",
+        "type": "doc",
+        "filePath": "docs/tskb-package/src/typescript/typescript.tskb.tsx",
+        "content": "TypeScript Program Located in [Folder: tskb.typescript]. Creates [Term: tsProgram]for analyzing code without compilation. Key Module [Module: typescript.program]: Exports [Export: ts.createProgram]which: Reads and parses tsconfig.json for compiler options Creates TypeScript Program with noEmit=true (analysis only) Validates TypeScript errors in specified files Returns Program with AST, type checker, and symbol resolution Purpose Provides the [Term: tsProgram]used by extraction logic to parse *.tskb.tsx files, resolve\r\n      types, and walk ASTs for registry and documentation extraction.",
+        "format": "tsx"
+      },
+      "docs/tskb-package/src/runtime/runtime.tskb.tsx": {
+        "id": "docs/tskb-package/src/runtime/runtime.tskb.tsx",
+        "type": "doc",
+        "filePath": "docs/tskb-package/src/runtime/runtime.tskb.tsx",
+        "content": "Runtime Located in [Folder: tskb.runtime]. Contains registry type definitions and JSX primitives - no actual\r\n      runtime execution. Modules [Module: runtime.jsx]: JSX runtime with [Export: jsx.Doc]and heading/paragraph/list components. Includes   [Export: jsx.ref]for type-safe registry references. [Module: runtime.registry]: Type definitions for Folder, Module, Export, Term interfaces used in\r\n        global namespace augmentation. Purpose Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry\r\n      interfaces enable type-safe vocabulary declarations. JSX components structure documentation\r\n      content.",
+        "format": "tsx"
+      },
+      "docs/tskb-package/src/cli/cli-overview.tskb.tsx": {
+        "id": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+        "type": "doc",
+        "filePath": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+        "content": "CLI Implementation Entry: [Module: cli.index]- Command routing, arg parsing, error handling. Commands:   [Folder: tskb.cli.commands]Entry Point [Module: cli.index]- [Term: commandRouting]Parses process.argv → command + args Validates required args, provides defaults (--out, --tsconfig) Backward compat: allows pattern without \"build\" prefix Routes to command handlers with typed configs Build Command [Module: cli.commands.build]( [Export: cli.build]) - [Term: cliPipeline]File Discovery: [Term: globPattern]→ .tskb.tsx files Program Init: Create [Term: tsProgram]Registry: Extract [Term: registry]from global namespace Docs: Parse JSX trees → content + refs Graph: Build [Term: graph]nodes + edges Output: Write JSON Visualize Command [Module: cli.commands.visualize]( [Export: cli.visualize]) Read [Term: graph]JSON Call [Export: generateDot]→ [Term: dotFile]Write DOT file Query Command [Module: cli.commands.query]( [Export: cli.query]) Load graph JSON Search: node IDs, paths, descs, content Score: ID=10, path=8, desc=5, content=3 Build [Term: queryMatch]: hierarchy, files, relationships, doc excerpts, AI suggestions Sort by score, output JSON Output modes: concise (default, ~5-10k tokens) or --verbose (full context, ~25k tokens)",
+        "format": "tsx"
+      }
+    }
+  },
+  "edges": [
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "package.json",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "Main.index.js",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "Jsx.runtime.js",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "sample.tsconfig.json",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "cli",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "jsxRuntime",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "tsProgram",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "registry",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "graph",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "dotFile",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "queryMatch",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "Package.Root",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "Folder",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "Module",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "Export",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "Term",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "ref",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "cli.build",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "cli.visualize",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "generateDot",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/main.tskb.tsx",
+      "to": "cli.query",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/typescript/typescript.tskb.tsx",
+      "to": "typescript.program",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/typescript/typescript.tskb.tsx",
+      "to": "tsProgram",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/typescript/typescript.tskb.tsx",
+      "to": "tskb.typescript",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/typescript/typescript.tskb.tsx",
+      "to": "ts.createProgram",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/runtime/runtime.tskb.tsx",
+      "to": "runtime.jsx",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/runtime/runtime.tskb.tsx",
+      "to": "runtime.registry",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/runtime/runtime.tskb.tsx",
+      "to": "tskb.runtime",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/runtime/runtime.tskb.tsx",
+      "to": "jsx.Doc",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/runtime/runtime.tskb.tsx",
+      "to": "jsx.ref",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "cli.index",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "cli.commands.build",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "cli.commands.visualize",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "cli.commands.query",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "commandRouting",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "cliPipeline",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "globPattern",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "tsProgram",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "registry",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "graph",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "dotFile",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "queryMatch",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "tskb.cli.commands",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "cli.build",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "cli.visualize",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "generateDot",
+      "type": "references"
+    },
+    {
+      "from": "docs/tskb-package/src/cli/cli-overview.tskb.tsx",
+      "to": "cli.query",
+      "type": "references"
+    },
+    {
+      "from": "Package.Root",
+      "to": "tskb.cli",
+      "type": "contains"
+    },
+    {
+      "from": "Package.Root",
+      "to": "tskb.core",
+      "type": "contains"
+    },
+    {
+      "from": "Package.Root",
+      "to": "tskb.runtime",
+      "type": "contains"
+    },
+    {
+      "from": "Package.Root",
+      "to": "tskb.typescript",
+      "type": "contains"
+    },
+    {
+      "from": "tskb.core",
+      "to": "core.extraction",
+      "type": "contains"
+    },
+    {
+      "from": "tskb.cli",
+      "to": "tskb.cli.commands",
+      "type": "contains"
+    },
+    {
+      "from": "package.json",
+      "to": "Package.Root",
+      "type": "belongs-to"
+    },
+    {
+      "from": "Main.index.js",
+      "to": "Package.Root",
+      "type": "belongs-to"
+    },
+    {
+      "from": "Jsx.runtime.js",
+      "to": "tskb.runtime",
+      "type": "belongs-to"
+    },
+    {
+      "from": "typescript.program",
+      "to": "tskb.typescript",
+      "type": "belongs-to"
+    },
+    {
+      "from": "typescript.index",
+      "to": "tskb.typescript",
+      "type": "belongs-to"
+    },
+    {
+      "from": "runtime.jsx",
+      "to": "tskb.runtime",
+      "type": "belongs-to"
+    },
+    {
+      "from": "runtime.registry",
+      "to": "tskb.runtime",
+      "type": "belongs-to"
+    },
+    {
+      "from": "extraction.registry",
+      "to": "core.extraction",
+      "type": "belongs-to"
+    },
+    {
+      "from": "extraction.documentation",
+      "to": "core.extraction",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.index",
+      "to": "tskb.cli",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.commands.build",
+      "to": "tskb.cli.commands",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.commands.visualize",
+      "to": "tskb.cli.commands",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.commands.query",
+      "to": "tskb.cli.commands",
+      "type": "belongs-to"
+    },
+    {
+      "from": "Folder",
+      "to": "runtime.registry",
+      "type": "belongs-to"
+    },
+    {
+      "from": "Module",
+      "to": "runtime.registry",
+      "type": "belongs-to"
+    },
+    {
+      "from": "Export",
+      "to": "runtime.registry",
+      "type": "belongs-to"
+    },
+    {
+      "from": "Term",
+      "to": "runtime.registry",
+      "type": "belongs-to"
+    },
+    {
+      "from": "ref",
+      "to": "Main.index.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.build",
+      "to": "cli.commands.build",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.visualize",
+      "to": "cli.commands.visualize",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.query",
+      "to": "cli.commands.query",
+      "type": "belongs-to"
+    },
+    {
+      "from": "generateDot",
+      "to": "tskb.core",
+      "type": "belongs-to"
+    },
+    {
+      "from": "ts.createProgram",
+      "to": "typescript.program",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.Doc",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.H1",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.H2",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.H3",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.P",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.List",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.Li",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.Snippet",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.ref",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "extractRegistry",
+      "to": "extraction.registry",
+      "type": "belongs-to"
+    },
+    {
+      "from": "ExtractedRegistry",
+      "to": "extraction.registry",
+      "type": "belongs-to"
+    },
+    {
+      "from": "extractDocs",
+      "to": "extraction.documentation",
+      "type": "belongs-to"
+    },
+    {
+      "from": "ExtractedDoc",
+      "to": "extraction.documentation",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.build.ExtractConfig",
+      "to": "cli.commands.build",
+      "type": "belongs-to"
+    }
+  ],
+  "metadata": {
+    "generatedAt": "2026-01-26T11:46:09.175Z",
+    "version": "1.0.0",
+    "stats": {
+      "folderCount": 7,
+      "moduleCount": 14,
+      "termCount": 19,
+      "exportCount": 24,
+      "docCount": 4,
+      "edgeCount": 90
+    }
+  }
+}

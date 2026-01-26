@@ -3,6 +3,15 @@ import { Doc, H1, H2, H3, P, List, Li, Snippet, ref } from "tskb";
 import { CommentForm } from "examples/taskflow-app/src/client/components/comments/CommentForm.js";
 import { User } from "examples/taskflow-app/src/shared/types/user.types.js";
 
+const ClientFolder = ref as tskb.Folders["Client"];
+const ContextsFolder = ref as tskb.Folders["Contexts"];
+
+const ContextProviderTerm = ref as tskb.Terms["contextProvider"];
+
+const AuthContextExport = ref as tskb.Exports["AuthContext"];
+const TaskContextExport = ref as tskb.Exports["TaskContext"];
+const ProjectContextExport = ref as tskb.Exports["ProjectContext"];
+
 export default (
   <Doc>
     <H1>ADR: React Context Over Redux for State Management</H1>
@@ -13,8 +22,8 @@ export default (
     <H2>Context</H2>
 
     <P>
-      The {ref as tskb.Folders["Client"]} needed a state management solution for sharing
-      authentication status, current project, and task lists across components.
+      The {ClientFolder} needed a state management solution for sharing authentication status,
+      current project, and task lists across components.
     </P>
 
     <P>Options considered:</P>
@@ -29,15 +38,14 @@ export default (
     <H2>Decision</H2>
 
     <P>
-      Use React Context API with custom hooks, implementing the{" "}
-      {ref as tskb.Terms["contextProvider"]}
-      pattern. Create separate contexts in {ref as tskb.Folders["Contexts"]} for different domains
-      (Auth, Tasks, Projects, Notifications).
+      Use React Context API with custom hooks, implementing the {ContextProviderTerm}
+      pattern. Create separate contexts in {ContextsFolder} for different domains (Auth, Tasks,
+      Projects, Notifications).
     </P>
 
     <H2>Implementation Pattern</H2>
 
-    <P>The {ref as tskb.Exports["AuthContext"]} demonstrates the pattern:</P>
+    <P>The {AuthContextExport} demonstrates the pattern:</P>
 
     <Snippet
       code={() => {
@@ -139,9 +147,9 @@ export default (
     <P>Separate contexts by domain to minimize unnecessary re-renders:</P>
 
     <List>
-      <Li>{ref as tskb.Exports["AuthContext"]} - User authentication state</Li>
-      <Li>{ref as tskb.Exports["TaskContext"]} - Current project's tasks</Li>
-      <Li>{ref as tskb.Exports["ProjectContext"]} - Project list and selection</Li>
+      <Li>{AuthContextExport} - User authentication state</Li>
+      <Li>{TaskContextExport} - Current project's tasks</Li>
+      <Li>{ProjectContextExport} - Project list and selection</Li>
       <Li>NotificationContext - User notifications and alerts</Li>
     </List>
 

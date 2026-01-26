@@ -2,6 +2,17 @@ import { Doc, H1, H2, H3, P, List, Li, Snippet, ref } from "tskb";
 import { Task } from "examples/taskflow-app/src/shared/types/task.types.js";
 import { Database } from "examples/taskflow-app/src/server/database/connection.js";
 
+const ServicesFolder = ref as tskb.Folders["Services"];
+const RepositoriesFolder = ref as tskb.Folders["Repositories"];
+
+const ServiceLayerTerm = ref as tskb.Terms["serviceLayer"];
+const RepositoryPatternTerm = ref as tskb.Terms["repositoryPattern"];
+const CrudOperationsTerm = ref as tskb.Terms["crudOperations"];
+const DependencyInjectionTerm = ref as tskb.Terms["dependencyInjection"];
+
+const TaskServiceExport = ref as tskb.Exports["TaskService"];
+const TaskRepositoryExport = ref as tskb.Exports["TaskRepository"];
+
 export default (
   <Doc>
     <H1>ADR: Repository Pattern Over Direct Database Access</H1>
@@ -12,8 +23,7 @@ export default (
     <H2>Context</H2>
 
     <P>
-      We needed to decide how the {ref as tskb.Terms["serviceLayer"]} in{" "}
-      {ref as tskb.Folders["Services"]}
+      We needed to decide how the {ServiceLayerTerm} in {ServicesFolder}
       should interact with the database. Options considered:
     </P>
 
@@ -26,9 +36,8 @@ export default (
     <H2>Decision</H2>
 
     <P>
-      We will implement the {ref as tskb.Terms["repositoryPattern"]} with repository classes in
-      {ref as tskb.Folders["Repositories"]}. Each domain entity (Task, User, Project) gets its own
-      repository.
+      We will implement the {RepositoryPatternTerm} with repository classes in
+      {RepositoriesFolder}. Each domain entity (Task, User, Project) gets its own repository.
     </P>
 
     <H3>Repository Responsibilities</H3>
@@ -38,7 +47,7 @@ export default (
       <Li>Map database rows to TypeScript types</Li>
       <Li>Handle pagination and filtering</Li>
       <Li>Ensure parameterized queries to prevent SQL injection</Li>
-      <Li>Provide clean API for {ref as tskb.Terms["crudOperations"]}</Li>
+      <Li>Provide clean API for {CrudOperationsTerm}</Li>
     </List>
 
     <H3>Service Responsibilities</H3>
@@ -93,8 +102,8 @@ export default (
     <H2>Implementation Example</H2>
 
     <P>
-      The {ref as tskb.Exports["TaskService"]} uses {ref as tskb.Exports["TaskRepository"]} through
-      {ref as tskb.Terms["dependencyInjection"]}.
+      The {TaskServiceExport} uses {TaskRepositoryExport} through
+      {DependencyInjectionTerm}.
     </P>
 
     <Snippet

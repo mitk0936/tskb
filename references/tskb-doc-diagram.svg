@@ -1,0 +1,912 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="9187pt" height="2701pt" viewBox="0.00 0.00 9187.00 2701.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 2696.85)">
+<title>KnowledgeGraph</title>
+<polygon fill="white" stroke="none" points="-4,4 -4,-2696.85 9183.14,-2696.85 9183.14,4 -4,4"/>
+<g id="clust1" class="cluster">
+<title>cluster_Package_Root</title>
+<polygon fill="#e3f2fd" stroke="#1976d2" points="0,-864.41 0,-2431.2 3512.84,-2431.2 3512.84,-864.41 0,-864.41"/>
+<text xml:space="preserve" text-anchor="middle" x="1756.42" y="-2414.6" font-family="Times,serif" font-size="14.00">Package.Root</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_tskb_cli</title>
+<polygon fill="#e3f2fd" stroke="#1976d2" points="8,-1243.2 8,-1894.65 1260,-1894.65 1260,-1243.2 8,-1243.2"/>
+<text xml:space="preserve" text-anchor="middle" x="634" y="-1878.05" font-family="Times,serif" font-size="14.00">tskb.cli</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_tskb_cli_commands</title>
+<polygon fill="#e3f2fd" stroke="#1976d2" points="16,-1251.2 16,-1703.74 1252,-1703.74 1252,-1251.2 16,-1251.2"/>
+<text xml:space="preserve" text-anchor="middle" x="634" y="-1687.14" font-family="Times,serif" font-size="14.00">tskb.cli.commands</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_tskb_core</title>
+<polygon fill="#e3f2fd" stroke="#1976d2" points="2040.9,-945.91 2040.9,-1690.22 3504.84,-1690.22 3504.84,-945.91 2040.9,-945.91"/>
+<text xml:space="preserve" text-anchor="middle" x="2772.87" y="-1673.62" font-family="Times,serif" font-size="14.00">tskb.core</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_core_extraction</title>
+<polygon fill="#e3f2fd" stroke="#1976d2" points="2048.9,-953.91 2048.9,-1522.71 3292.9,-1522.71 3292.9,-953.91 2048.9,-953.91"/>
+<text xml:space="preserve" text-anchor="middle" x="2670.9" y="-1506.11" font-family="Times,serif" font-size="14.00">core.extraction</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_tskb_runtime</title>
+<polygon fill="#e3f2fd" stroke="#1976d2" points="1269.87,-1746.6 1269.87,-2398.4 2701.28,-2398.4 2701.28,-1746.6 1269.87,-1746.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1985.57" y="-2381.8" font-family="Times,serif" font-size="14.00">tskb.runtime</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_tskb_typescript</title>
+<polygon fill="#e3f2fd" stroke="#1976d2" points="593.28,-872.41 593.28,-1234.32 1739.36,-1234.32 1739.36,-872.41 593.28,-872.41"/>
+<text xml:space="preserve" text-anchor="middle" x="1166.32" y="-1217.72" font-family="Times,serif" font-size="14.00">tskb.typescript</text>
+</g>
+<g id="clust8" class="cluster">
+<title>cluster_terms</title>
+<polygon fill="none" stroke="gray" stroke-dasharray="5,2" points="3762.16,0 3762.16,-1768.8 9179.14,-1768.8 9179.14,0 3762.16,0"/>
+<text xml:space="preserve" text-anchor="middle" x="6470.65" y="-1752.2" font-family="Times,serif" font-size="14.00">Terms</text>
+</g>
+<g id="clust9" class="cluster">
+<title>cluster_docs</title>
+<polygon fill="none" stroke="gray" stroke-dasharray="5,2" points="4420.83,-1840.95 4420.83,-2068.03 5375.16,-2068.03 5375.16,-1840.95 4420.83,-1840.95"/>
+<text xml:space="preserve" text-anchor="middle" x="4897.99" y="-2051.43" font-family="Times,serif" font-size="14.00">Documentation</text>
+</g>
+<!-- Package.Root -->
+<g id="node1" class="node">
+<title>Package.Root</title>
+<polygon fill="#bbdefb" stroke="black" points="1897.88,-1467.88 1650.64,-1467.88 1650.64,-1423.88 1897.88,-1423.88 1897.88,-1467.88"/>
+<text xml:space="preserve" text-anchor="middle" x="1774.26" y="-1454.88" font-family="Arial" font-size="10.00">Folder&lt;"Package.Root"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1774.26" y="-1442.88" font-family="Arial" font-size="10.00">The root folder of the package, with its package.json</text>
+<text xml:space="preserve" text-anchor="middle" x="1774.26" y="-1430.88" font-family="Arial" font-size="10.00">📁 packages/tskb</text>
+</g>
+<!-- package.json -->
+<g id="node2" class="node">
+<title>package.json</title>
+<ellipse fill="#fff9c4" stroke="black" cx="1860.79" cy="-1059.66" rx="109.97" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="1860.79" y="-1068.66" font-family="Arial" font-size="10.00">Module&lt;"package.json"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1860.79" y="-1056.66" font-family="Arial" font-size="10.00">Library's package.json file</text>
+<text xml:space="preserve" text-anchor="middle" x="1860.79" y="-1044.66" font-family="Arial" font-size="10.00">📁 packages/tskb/package.json</text>
+</g>
+<!-- Main.index.js -->
+<g id="node3" class="node">
+<title>Main.index.js</title>
+<ellipse fill="#fff9c4" stroke="black" cx="1856.08" cy="-1141.53" rx="104.06" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="1856.08" y="-1150.53" font-family="Arial" font-size="10.00">Module&lt;"Main.index.js"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1856.08" y="-1138.53" font-family="Arial" font-size="10.00">The main package export</text>
+<text xml:space="preserve" text-anchor="middle" x="1856.08" y="-1126.53" font-family="Arial" font-size="10.00">📁 packages/tskb/src/index.ts</text>
+</g>
+<!-- ref -->
+<g id="node4" class="node">
+<title>ref</title>
+<polygon fill="#c5e1a5" stroke="black" points="1862.01,-1524.43 1495.83,-1524.43 1495.83,-1520.43 1491.83,-1520.43 1491.83,-1516.43 1495.83,-1516.43 1495.83,-1488.43 1491.83,-1488.43 1491.83,-1484.43 1495.83,-1484.43 1495.83,-1480.43 1862.01,-1480.43 1862.01,-1524.43"/>
+<polyline fill="none" stroke="black" points="1495.83,-1520.43 1499.83,-1520.43 1499.83,-1516.43 1495.83,-1516.43"/>
+<polyline fill="none" stroke="black" points="1495.83,-1488.43 1499.83,-1488.43 1499.83,-1484.43 1495.83,-1484.43"/>
+<text xml:space="preserve" text-anchor="middle" x="1678.92" y="-1511.43" font-family="Arial" font-size="10.00">Export&lt;"ref"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1678.92" y="-1499.43" font-family="Arial" font-size="10.00">A placeholder for referencing anything from the global tskb registry into jsx tags</text>
+<text xml:space="preserve" text-anchor="middle" x="1678.92" y="-1487.43" font-family="Arial" font-size="10.00">📁 packages/tskb/src/index.ts</text>
+</g>
+<!-- tskb.cli -->
+<g id="node5" class="node">
+<title>tskb.cli</title>
+<polygon fill="#bbdefb" stroke="black" points="1083.06,-1861.85 960.91,-1861.85 960.91,-1817.85 1083.06,-1817.85 1083.06,-1861.85"/>
+<text xml:space="preserve" text-anchor="middle" x="1021.98" y="-1848.85" font-family="Arial" font-size="10.00">Folder&lt;"tskb.cli"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1021.98" y="-1836.85" font-family="Arial" font-size="10.00">Source code for the cli</text>
+<text xml:space="preserve" text-anchor="middle" x="1021.98" y="-1824.85" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli</text>
+</g>
+<!-- cli.index -->
+<g id="node6" class="node">
+<title>cli.index</title>
+<ellipse fill="#fff9c4" stroke="black" cx="493.24" cy="-1745.47" rx="265.23" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="493.24" y="-1754.47" font-family="Arial" font-size="10.00">Module&lt;"cli.index"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="493.24" y="-1742.47" font-family="Arial" font-size="10.00">CLI entry point - handles argument parsing, command routing, and error handling</text>
+<text xml:space="preserve" text-anchor="middle" x="493.24" y="-1730.47" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli/index.ts</text>
+</g>
+<!-- tskb.cli.commands -->
+<g id="node7" class="node">
+<title>tskb.cli.commands</title>
+<polygon fill="#bbdefb" stroke="black" points="999.58,-1458.26 680.09,-1458.26 680.09,-1414.26 999.58,-1414.26 999.58,-1458.26"/>
+<text xml:space="preserve" text-anchor="middle" x="839.83" y="-1445.26" font-family="Arial" font-size="10.00">Folder&lt;"tskb.cli.commands"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="839.83" y="-1433.26" font-family="Arial" font-size="10.00">Command implementations for build, visualize, and query operations</text>
+<text xml:space="preserve" text-anchor="middle" x="839.83" y="-1421.26" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli/commands</text>
+</g>
+<!-- cli.commands.build -->
+<g id="node8" class="node">
+<title>cli.commands.build</title>
+<ellipse fill="#fff9c4" stroke="black" cx="792.07" cy="-1370.87" rx="337.53" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="792.07" y="-1379.87" font-family="Arial" font-size="10.00">Module&lt;"cli.commands.build"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="792.07" y="-1367.87" font-family="Arial" font-size="10.00">Build command module - orchestrates the complete pipeline from source files to knowledge graph JSON</text>
+<text xml:space="preserve" text-anchor="middle" x="792.07" y="-1355.87" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli/commands/build.ts</text>
+</g>
+<!-- cli.build -->
+<g id="node9" class="node">
+<title>cli.build</title>
+<polygon fill="#c5e1a5" stroke="black" points="482.01,-1512.79 265.35,-1512.79 265.35,-1508.79 261.35,-1508.79 261.35,-1504.79 265.35,-1504.79 265.35,-1476.79 261.35,-1476.79 261.35,-1472.79 265.35,-1472.79 265.35,-1468.79 482.01,-1468.79 482.01,-1512.79"/>
+<polyline fill="none" stroke="black" points="265.35,-1508.79 269.35,-1508.79 269.35,-1504.79 265.35,-1504.79"/>
+<polyline fill="none" stroke="black" points="265.35,-1476.79 269.35,-1476.79 269.35,-1472.79 265.35,-1472.79"/>
+<text xml:space="preserve" text-anchor="middle" x="373.68" y="-1499.79" font-family="Arial" font-size="10.00">Export&lt;"cli.build"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="373.68" y="-1487.79" font-family="Arial" font-size="10.00">The control flow function for building the docs</text>
+<text xml:space="preserve" text-anchor="middle" x="373.68" y="-1475.79" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli/commands/build.ts</text>
+</g>
+<!-- cli.build.ExtractConfig -->
+<g id="node10" class="node">
+<title>cli.build.ExtractConfig</title>
+<polygon fill="#c5e1a5" stroke="black" points="1244,-1670.94 806.06,-1670.94 806.06,-1666.94 802.06,-1666.94 802.06,-1662.94 806.06,-1662.94 806.06,-1634.94 802.06,-1634.94 802.06,-1630.94 806.06,-1630.94 806.06,-1626.94 1244,-1626.94 1244,-1670.94"/>
+<polyline fill="none" stroke="black" points="806.06,-1666.94 810.06,-1666.94 810.06,-1662.94 806.06,-1662.94"/>
+<polyline fill="none" stroke="black" points="806.06,-1634.94 810.06,-1634.94 810.06,-1630.94 806.06,-1630.94"/>
+<text xml:space="preserve" text-anchor="middle" x="1025.03" y="-1657.94" font-family="Arial" font-size="10.00">Export&lt;"cli.build.ExtractConfig"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1025.03" y="-1645.94" font-family="Arial" font-size="10.00">Configuration interface for the build command containing pattern, output path, and tsconfig path</text>
+<text xml:space="preserve" text-anchor="middle" x="1025.03" y="-1633.94" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli/commands/build.ts</text>
+</g>
+<!-- cli.commands.visualize -->
+<g id="node11" class="node">
+<title>cli.commands.visualize</title>
+<ellipse fill="#fff9c4" stroke="black" cx="679.65" cy="-1290.32" rx="291.12" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="679.65" y="-1299.32" font-family="Arial" font-size="10.00">Module&lt;"cli.commands.visualize"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="679.65" y="-1287.32" font-family="Arial" font-size="10.00">Visualize command module - transforms knowledge graph JSON to Graphviz DOT format</text>
+<text xml:space="preserve" text-anchor="middle" x="679.65" y="-1275.32" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli/commands/visualize.ts</text>
+</g>
+<!-- cli.visualize -->
+<g id="node12" class="node">
+<title>cli.visualize</title>
+<polygon fill="#c5e1a5" stroke="black" points="443.8,-1395.72 142.68,-1395.72 142.68,-1391.72 138.68,-1391.72 138.68,-1387.72 142.68,-1387.72 142.68,-1359.72 138.68,-1359.72 138.68,-1355.72 142.68,-1355.72 142.68,-1351.72 443.8,-1351.72 443.8,-1395.72"/>
+<polyline fill="none" stroke="black" points="142.68,-1391.72 146.68,-1391.72 146.68,-1387.72 142.68,-1387.72"/>
+<polyline fill="none" stroke="black" points="142.68,-1359.72 146.68,-1359.72 146.68,-1355.72 142.68,-1355.72"/>
+<text xml:space="preserve" text-anchor="middle" x="293.24" y="-1382.72" font-family="Arial" font-size="10.00">Export&lt;"cli.visualize"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="293.24" y="-1370.72" font-family="Arial" font-size="10.00">Generates a Graphviz DOT file from the knowledge graph JSON</text>
+<text xml:space="preserve" text-anchor="middle" x="293.24" y="-1358.72" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli/commands/visualize.ts</text>
+</g>
+<!-- cli.commands.query -->
+<g id="node13" class="node">
+<title>cli.commands.query</title>
+<ellipse fill="#fff9c4" stroke="black" cx="803.54" cy="-1507.55" rx="312.77" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="803.54" y="-1516.55" font-family="Arial" font-size="10.00">Module&lt;"cli.commands.query"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="803.54" y="-1504.55" font-family="Arial" font-size="10.00">Query command module - searches knowledge graph and returns structured results with context</text>
+<text xml:space="preserve" text-anchor="middle" x="803.54" y="-1492.55" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli/commands/query.ts</text>
+</g>
+<!-- cli.query -->
+<g id="node14" class="node">
+<title>cli.query</title>
+<polygon fill="#c5e1a5" stroke="black" points="672.01,-1454.84 24,-1454.84 24,-1450.84 20,-1450.84 20,-1446.84 24,-1446.84 24,-1418.84 20,-1418.84 20,-1414.84 24,-1414.84 24,-1410.84 672.01,-1410.84 672.01,-1454.84"/>
+<polyline fill="none" stroke="black" points="24,-1450.84 28,-1450.84 28,-1446.84 24,-1446.84"/>
+<polyline fill="none" stroke="black" points="24,-1418.84 28,-1418.84 28,-1414.84 24,-1414.84"/>
+<text xml:space="preserve" text-anchor="middle" x="348" y="-1441.84" font-family="Arial" font-size="10.00">Export&lt;"cli.query"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="348" y="-1429.84" font-family="Arial" font-size="10.00">Simple demo query command that searches the knowledge graph and returns structured results with context, relationships, and AI suggestions</text>
+<text xml:space="preserve" text-anchor="middle" x="348" y="-1417.84" font-family="Arial" font-size="10.00">📁 packages/tskb/src/cli/commands/query.ts</text>
+</g>
+<!-- tskb.core -->
+<g id="node15" class="node">
+<title>tskb.core</title>
+<polygon fill="#bbdefb" stroke="black" points="3496.84,-1657.31 3038.96,-1657.31 3038.96,-1613.31 3496.84,-1613.31 3496.84,-1657.31"/>
+<text xml:space="preserve" text-anchor="middle" x="3267.9" y="-1644.31" font-family="Arial" font-size="10.00">Folder&lt;"tskb.core"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="3267.9" y="-1632.31" font-family="Arial" font-size="10.00">Source code for the core - extraction logic for registry (interfaces) and doc processing &lt;Doc&gt;&lt;/Doc&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="3267.9" y="-1620.31" font-family="Arial" font-size="10.00">📁 packages/tskb/src/core</text>
+</g>
+<!-- generateDot -->
+<g id="node16" class="node">
+<title>generateDot</title>
+<polygon fill="#c5e1a5" stroke="black" points="2912.91,-1657.42 2598.43,-1657.42 2598.43,-1653.42 2594.43,-1653.42 2594.43,-1649.42 2598.43,-1649.42 2598.43,-1621.42 2594.43,-1621.42 2594.43,-1617.42 2598.43,-1617.42 2598.43,-1613.42 2912.91,-1613.42 2912.91,-1657.42"/>
+<polyline fill="none" stroke="black" points="2598.43,-1653.42 2602.43,-1653.42 2602.43,-1649.42 2598.43,-1649.42"/>
+<polyline fill="none" stroke="black" points="2598.43,-1621.42 2602.43,-1621.42 2602.43,-1617.42 2598.43,-1617.42"/>
+<text xml:space="preserve" text-anchor="middle" x="2755.67" y="-1644.42" font-family="Arial" font-size="10.00">Export&lt;"generateDot"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2755.67" y="-1632.42" font-family="Arial" font-size="10.00">Core function that transforms the knowledge graph into DOT format</text>
+<text xml:space="preserve" text-anchor="middle" x="2755.67" y="-1620.42" font-family="Arial" font-size="10.00">📁 packages/tskb/src/core/visualization/index.ts</text>
+</g>
+<!-- core.extraction -->
+<g id="node17" class="node">
+<title>core.extraction</title>
+<polygon fill="#bbdefb" stroke="black" points="2651.33,-1467.91 2276.27,-1467.91 2276.27,-1423.91 2651.33,-1423.91 2651.33,-1467.91"/>
+<text xml:space="preserve" text-anchor="middle" x="2463.8" y="-1454.91" font-family="Arial" font-size="10.00">Folder&lt;"core.extraction"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2463.8" y="-1442.91" font-family="Arial" font-size="10.00">Contains the logic for extracting registry and documentation from TypeScript AST</text>
+<text xml:space="preserve" text-anchor="middle" x="2463.8" y="-1430.91" font-family="Arial" font-size="10.00">📁 packages/tskb/src/core/extraction</text>
+</g>
+<!-- extraction.registry -->
+<g id="node18" class="node">
+<title>extraction.registry</title>
+<ellipse fill="#fff9c4" stroke="black" cx="2517.8" cy="-1168.91" rx="460.9" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="2517.8" y="-1177.91" font-family="Arial" font-size="10.00">Module&lt;"extraction.registry"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2517.8" y="-1165.91" font-family="Arial" font-size="10.00">Main registry extraction module that traverses TypeScript AST to extract Folders, Modules, Terms, and Exports from the global tskb namespace</text>
+<text xml:space="preserve" text-anchor="middle" x="2517.8" y="-1153.91" font-family="Arial" font-size="10.00">📁 packages/tskb/src/core/extraction/registry.ts</text>
+</g>
+<!-- extractRegistry -->
+<g id="node19" class="node">
+<title>extractRegistry</title>
+<polygon fill="#c5e1a5" stroke="black" points="3117.42,-1093.91 2518.18,-1093.91 2518.18,-1089.91 2514.18,-1089.91 2514.18,-1085.91 2518.18,-1085.91 2518.18,-1057.91 2514.18,-1057.91 2514.18,-1053.91 2518.18,-1053.91 2518.18,-1049.91 3117.42,-1049.91 3117.42,-1093.91"/>
+<polyline fill="none" stroke="black" points="2518.18,-1089.91 2522.18,-1089.91 2522.18,-1085.91 2518.18,-1085.91"/>
+<polyline fill="none" stroke="black" points="2518.18,-1057.91 2522.18,-1057.91 2522.18,-1053.91 2518.18,-1053.91"/>
+<text xml:space="preserve" text-anchor="middle" x="2817.8" y="-1080.91" font-family="Arial" font-size="10.00">Export&lt;"extractRegistry"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2817.8" y="-1068.91" font-family="Arial" font-size="10.00">Main function that extracts the vocabulary (Folders, Modules, Terms, Exports) from TypeScript's type system using the compiler API</text>
+<text xml:space="preserve" text-anchor="middle" x="2817.8" y="-1056.91" font-family="Arial" font-size="10.00">📁 packages/tskb/src/core/extraction/registry.ts</text>
+</g>
+<!-- ExtractedRegistry -->
+<g id="node20" class="node">
+<title>ExtractedRegistry</title>
+<polygon fill="#c5e1a5" stroke="black" points="2981.24,-1005.91 2518.36,-1005.91 2518.36,-1001.91 2514.36,-1001.91 2514.36,-997.91 2518.36,-997.91 2518.36,-969.91 2514.36,-969.91 2514.36,-965.91 2518.36,-965.91 2518.36,-961.91 2981.24,-961.91 2981.24,-1005.91"/>
+<polyline fill="none" stroke="black" points="2518.36,-1001.91 2522.36,-1001.91 2522.36,-997.91 2518.36,-997.91"/>
+<polyline fill="none" stroke="black" points="2518.36,-969.91 2522.36,-969.91 2522.36,-965.91 2518.36,-965.91"/>
+<text xml:space="preserve" text-anchor="middle" x="2749.8" y="-992.91" font-family="Arial" font-size="10.00">Export&lt;"ExtractedRegistry"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2749.8" y="-980.91" font-family="Arial" font-size="10.00">Type definition for the registry data structure containing Maps of folders, modules, terms, and exports</text>
+<text xml:space="preserve" text-anchor="middle" x="2749.8" y="-968.91" font-family="Arial" font-size="10.00">📁 packages/tskb/src/core/extraction/registry.ts</text>
+</g>
+<!-- extraction.documentation -->
+<g id="node21" class="node">
+<title>extraction.documentation</title>
+<ellipse fill="#fff9c4" stroke="black" cx="2934.8" cy="-1278.91" rx="350.1" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="2934.8" y="-1287.91" font-family="Arial" font-size="10.00">Module&lt;"extraction.documentation"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2934.8" y="-1275.91" font-family="Arial" font-size="10.00">Documentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files</text>
+<text xml:space="preserve" text-anchor="middle" x="2934.8" y="-1263.91" font-family="Arial" font-size="10.00">📁 packages/tskb/src/core/extraction/documentation.ts</text>
+</g>
+<!-- extractDocs -->
+<g id="node22" class="node">
+<title>extractDocs</title>
+<polygon fill="#c5e1a5" stroke="black" points="3257.35,-1489.91 2782.25,-1489.91 2782.25,-1485.91 2778.25,-1485.91 2778.25,-1481.91 2782.25,-1481.91 2782.25,-1453.91 2778.25,-1453.91 2778.25,-1449.91 2782.25,-1449.91 2782.25,-1445.91 3257.35,-1445.91 3257.35,-1489.91"/>
+<polyline fill="none" stroke="black" points="2782.25,-1485.91 2786.25,-1485.91 2786.25,-1481.91 2782.25,-1481.91"/>
+<polyline fill="none" stroke="black" points="2782.25,-1453.91 2786.25,-1453.91 2786.25,-1449.91 2782.25,-1449.91"/>
+<text xml:space="preserve" text-anchor="middle" x="3019.8" y="-1476.91" font-family="Arial" font-size="10.00">Export&lt;"extractDocs"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="3019.8" y="-1464.91" font-family="Arial" font-size="10.00">Main function that extracts documentation content and references from TSX files by traversing JSX AST</text>
+<text xml:space="preserve" text-anchor="middle" x="3019.8" y="-1452.91" font-family="Arial" font-size="10.00">📁 packages/tskb/src/core/extraction/documentation.ts</text>
+</g>
+<!-- ExtractedDoc -->
+<g id="node23" class="node">
+<title>ExtractedDoc</title>
+<polygon fill="#c5e1a5" stroke="black" points="3200.94,-1401.91 2694.66,-1401.91 2694.66,-1397.91 2690.66,-1397.91 2690.66,-1393.91 2694.66,-1393.91 2694.66,-1365.91 2690.66,-1365.91 2690.66,-1361.91 2694.66,-1361.91 2694.66,-1357.91 3200.94,-1357.91 3200.94,-1401.91"/>
+<polyline fill="none" stroke="black" points="2694.66,-1397.91 2698.66,-1397.91 2698.66,-1393.91 2694.66,-1393.91"/>
+<polyline fill="none" stroke="black" points="2694.66,-1365.91 2698.66,-1365.91 2698.66,-1361.91 2694.66,-1361.91"/>
+<text xml:space="preserve" text-anchor="middle" x="2947.8" y="-1388.91" font-family="Arial" font-size="10.00">Export&lt;"ExtractedDoc"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2947.8" y="-1376.91" font-family="Arial" font-size="10.00">Type definition for extracted documentation containing file path, content, and all references to vocabulary items</text>
+<text xml:space="preserve" text-anchor="middle" x="2947.8" y="-1364.91" font-family="Arial" font-size="10.00">📁 packages/tskb/src/core/extraction/documentation.ts</text>
+</g>
+<!-- tskb.runtime -->
+<g id="node24" class="node">
+<title>tskb.runtime</title>
+<polygon fill="#bbdefb" stroke="black" points="2531.81,-1969.22 1895.5,-1969.22 1895.5,-1925.22 2531.81,-1925.22 2531.81,-1969.22"/>
+<text xml:space="preserve" text-anchor="middle" x="2213.66" y="-1956.22" font-family="Arial" font-size="10.00">Folder&lt;"tskb.runtime"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2213.66" y="-1944.22" font-family="Arial" font-size="10.00">Source code for the runtime, the lib does not have an actual runtime, but this folder contains the registry interfaces and jsx runtime primitives</text>
+<text xml:space="preserve" text-anchor="middle" x="2213.66" y="-1932.22" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime</text>
+</g>
+<!-- Jsx.runtime.js -->
+<g id="node25" class="node">
+<title>Jsx.runtime.js</title>
+<ellipse fill="#fff9c4" stroke="black" cx="1582" cy="-1946.37" rx="304.13" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="1582" y="-1955.37" font-family="Arial" font-size="10.00">Module&lt;"Jsx.runtime.js"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1582" y="-1943.37" font-family="Arial" font-size="10.00">The JSX runtime, provided by the package. Includes all available jsx tags in tskb as functions.</text>
+<text xml:space="preserve" text-anchor="middle" x="1582" y="-1931.37" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- jsx.Doc -->
+<g id="node26" class="node">
+<title>jsx.Doc</title>
+<polygon fill="#c5e1a5" stroke="black" points="2276.56,-2166.25 2097.12,-2166.25 2097.12,-2162.25 2093.12,-2162.25 2093.12,-2158.25 2097.12,-2158.25 2097.12,-2130.25 2093.12,-2130.25 2093.12,-2126.25 2097.12,-2126.25 2097.12,-2122.25 2276.56,-2122.25 2276.56,-2166.25"/>
+<polyline fill="none" stroke="black" points="2097.12,-2162.25 2101.12,-2162.25 2101.12,-2158.25 2097.12,-2158.25"/>
+<polyline fill="none" stroke="black" points="2097.12,-2130.25 2101.12,-2130.25 2101.12,-2126.25 2097.12,-2126.25"/>
+<text xml:space="preserve" text-anchor="middle" x="2186.84" y="-2153.25" font-family="Arial" font-size="10.00">Export&lt;"jsx.Doc"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2186.84" y="-2141.25" font-family="Arial" font-size="10.00">Documentation container component</text>
+<text xml:space="preserve" text-anchor="middle" x="2186.84" y="-2129.25" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- jsx.H1 -->
+<g id="node27" class="node">
+<title>jsx.H1</title>
+<polygon fill="#c5e1a5" stroke="black" points="2340.66,-2257.6 2169.06,-2257.6 2169.06,-2253.6 2165.06,-2253.6 2165.06,-2249.6 2169.06,-2249.6 2169.06,-2221.6 2165.06,-2221.6 2165.06,-2217.6 2169.06,-2217.6 2169.06,-2213.6 2340.66,-2213.6 2340.66,-2257.6"/>
+<polyline fill="none" stroke="black" points="2169.06,-2253.6 2173.06,-2253.6 2173.06,-2249.6 2169.06,-2249.6"/>
+<polyline fill="none" stroke="black" points="2169.06,-2221.6 2173.06,-2221.6 2173.06,-2217.6 2169.06,-2217.6"/>
+<text xml:space="preserve" text-anchor="middle" x="2254.86" y="-2244.6" font-family="Arial" font-size="10.00">Export&lt;"jsx.H1"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2254.86" y="-2232.6" font-family="Arial" font-size="10.00">Heading level 1</text>
+<text xml:space="preserve" text-anchor="middle" x="2254.86" y="-2220.6" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- jsx.H2 -->
+<g id="node28" class="node">
+<title>jsx.H2</title>
+<polygon fill="#c5e1a5" stroke="black" points="2097.66,-2284.6 1926.06,-2284.6 1926.06,-2280.6 1922.06,-2280.6 1922.06,-2276.6 1926.06,-2276.6 1926.06,-2248.6 1922.06,-2248.6 1922.06,-2244.6 1926.06,-2244.6 1926.06,-2240.6 2097.66,-2240.6 2097.66,-2284.6"/>
+<polyline fill="none" stroke="black" points="1926.06,-2280.6 1930.06,-2280.6 1930.06,-2276.6 1926.06,-2276.6"/>
+<polyline fill="none" stroke="black" points="1926.06,-2248.6 1930.06,-2248.6 1930.06,-2244.6 1926.06,-2244.6"/>
+<text xml:space="preserve" text-anchor="middle" x="2011.86" y="-2271.6" font-family="Arial" font-size="10.00">Export&lt;"jsx.H2"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2011.86" y="-2259.6" font-family="Arial" font-size="10.00">Heading level 2</text>
+<text xml:space="preserve" text-anchor="middle" x="2011.86" y="-2247.6" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- jsx.H3 -->
+<g id="node29" class="node">
+<title>jsx.H3</title>
+<polygon fill="#c5e1a5" stroke="black" points="2394.66,-1825.6 2223.06,-1825.6 2223.06,-1821.6 2219.06,-1821.6 2219.06,-1817.6 2223.06,-1817.6 2223.06,-1789.6 2219.06,-1789.6 2219.06,-1785.6 2223.06,-1785.6 2223.06,-1781.6 2394.66,-1781.6 2394.66,-1825.6"/>
+<polyline fill="none" stroke="black" points="2223.06,-1821.6 2227.06,-1821.6 2227.06,-1817.6 2223.06,-1817.6"/>
+<polyline fill="none" stroke="black" points="2223.06,-1789.6 2227.06,-1789.6 2227.06,-1785.6 2223.06,-1785.6"/>
+<text xml:space="preserve" text-anchor="middle" x="2308.86" y="-1812.6" font-family="Arial" font-size="10.00">Export&lt;"jsx.H3"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2308.86" y="-1800.6" font-family="Arial" font-size="10.00">Heading level 3</text>
+<text xml:space="preserve" text-anchor="middle" x="2308.86" y="-1788.6" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- jsx.P -->
+<g id="node30" class="node">
+<title>jsx.P</title>
+<polygon fill="#c5e1a5" stroke="black" points="2151.66,-1798.6 1980.06,-1798.6 1980.06,-1794.6 1976.06,-1794.6 1976.06,-1790.6 1980.06,-1790.6 1980.06,-1762.6 1976.06,-1762.6 1976.06,-1758.6 1980.06,-1758.6 1980.06,-1754.6 2151.66,-1754.6 2151.66,-1798.6"/>
+<polyline fill="none" stroke="black" points="1980.06,-1794.6 1984.06,-1794.6 1984.06,-1790.6 1980.06,-1790.6"/>
+<polyline fill="none" stroke="black" points="1980.06,-1762.6 1984.06,-1762.6 1984.06,-1758.6 1980.06,-1758.6"/>
+<text xml:space="preserve" text-anchor="middle" x="2065.86" y="-1785.6" font-family="Arial" font-size="10.00">Export&lt;"jsx.P"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2065.86" y="-1773.6" font-family="Arial" font-size="10.00">Paragraph</text>
+<text xml:space="preserve" text-anchor="middle" x="2065.86" y="-1761.6" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- jsx.List -->
+<g id="node31" class="node">
+<title>jsx.List</title>
+<polygon fill="#c5e1a5" stroke="black" points="1881.66,-1879.6 1710.06,-1879.6 1710.06,-1875.6 1706.06,-1875.6 1706.06,-1871.6 1710.06,-1871.6 1710.06,-1843.6 1706.06,-1843.6 1706.06,-1839.6 1710.06,-1839.6 1710.06,-1835.6 1881.66,-1835.6 1881.66,-1879.6"/>
+<polyline fill="none" stroke="black" points="1710.06,-1875.6 1714.06,-1875.6 1714.06,-1871.6 1710.06,-1871.6"/>
+<polyline fill="none" stroke="black" points="1710.06,-1843.6 1714.06,-1843.6 1714.06,-1839.6 1710.06,-1839.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1795.86" y="-1866.6" font-family="Arial" font-size="10.00">Export&lt;"jsx.List"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1795.86" y="-1854.6" font-family="Arial" font-size="10.00">List container</text>
+<text xml:space="preserve" text-anchor="middle" x="1795.86" y="-1842.6" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- jsx.Li -->
+<g id="node32" class="node">
+<title>jsx.Li</title>
+<polygon fill="#c5e1a5" stroke="black" points="2448.66,-2365.6 2277.06,-2365.6 2277.06,-2361.6 2273.06,-2361.6 2273.06,-2357.6 2277.06,-2357.6 2277.06,-2329.6 2273.06,-2329.6 2273.06,-2325.6 2277.06,-2325.6 2277.06,-2321.6 2448.66,-2321.6 2448.66,-2365.6"/>
+<polyline fill="none" stroke="black" points="2277.06,-2361.6 2281.06,-2361.6 2281.06,-2357.6 2277.06,-2357.6"/>
+<polyline fill="none" stroke="black" points="2277.06,-2329.6 2281.06,-2329.6 2281.06,-2325.6 2277.06,-2325.6"/>
+<text xml:space="preserve" text-anchor="middle" x="2362.86" y="-2352.6" font-family="Arial" font-size="10.00">Export&lt;"jsx.Li"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2362.86" y="-2340.6" font-family="Arial" font-size="10.00">List item</text>
+<text xml:space="preserve" text-anchor="middle" x="2362.86" y="-2328.6" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- jsx.Snippet -->
+<g id="node33" class="node">
+<title>jsx.Snippet</title>
+<polygon fill="#c5e1a5" stroke="black" points="1854.66,-2365.6 1683.06,-2365.6 1683.06,-2361.6 1679.06,-2361.6 1679.06,-2357.6 1683.06,-2357.6 1683.06,-2329.6 1679.06,-2329.6 1679.06,-2325.6 1683.06,-2325.6 1683.06,-2321.6 1854.66,-2321.6 1854.66,-2365.6"/>
+<polyline fill="none" stroke="black" points="1683.06,-2361.6 1687.06,-2361.6 1687.06,-2357.6 1683.06,-2357.6"/>
+<polyline fill="none" stroke="black" points="1683.06,-2329.6 1687.06,-2329.6 1687.06,-2325.6 1683.06,-2325.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1768.86" y="-2352.6" font-family="Arial" font-size="10.00">Export&lt;"jsx.Snippet"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1768.86" y="-2340.6" font-family="Arial" font-size="10.00">Code snippet component</text>
+<text xml:space="preserve" text-anchor="middle" x="1768.86" y="-2328.6" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- jsx.ref -->
+<g id="node34" class="node">
+<title>jsx.ref</title>
+<polygon fill="#c5e1a5" stroke="black" points="2061.43,-2030.5 1786.98,-2030.5 1786.98,-2026.5 1782.98,-2026.5 1782.98,-2022.5 1786.98,-2022.5 1786.98,-1994.5 1782.98,-1994.5 1782.98,-1990.5 1786.98,-1990.5 1786.98,-1986.5 2061.43,-1986.5 2061.43,-2030.5"/>
+<polyline fill="none" stroke="black" points="1786.98,-2026.5 1790.98,-2026.5 1790.98,-2022.5 1786.98,-2022.5"/>
+<polyline fill="none" stroke="black" points="1786.98,-1994.5 1790.98,-1994.5 1790.98,-1990.5 1786.98,-1990.5"/>
+<text xml:space="preserve" text-anchor="middle" x="1924.21" y="-2017.5" font-family="Arial" font-size="10.00">Export&lt;"jsx.ref"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1924.21" y="-2005.5" font-family="Arial" font-size="10.00">Reference placeholder for type assertions to registry items</text>
+<text xml:space="preserve" text-anchor="middle" x="1924.21" y="-1993.5" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- runtime.jsx -->
+<g id="node35" class="node">
+<title>runtime.jsx</title>
+<ellipse fill="#fff9c4" stroke="black" cx="1792.3" cy="-2141" rx="271.88" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="1792.3" y="-2150" font-family="Arial" font-size="10.00">Module&lt;"runtime.jsx"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1792.3" y="-2138" font-family="Arial" font-size="10.00">JSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper</text>
+<text xml:space="preserve" text-anchor="middle" x="1792.3" y="-2126" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/jsx.ts</text>
+</g>
+<!-- runtime.registry -->
+<g id="node36" class="node">
+<title>runtime.registry</title>
+<ellipse fill="#fff9c4" stroke="black" cx="2361.65" cy="-2070.56" rx="331.63" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="2361.65" y="-2079.56" font-family="Arial" font-size="10.00">Module&lt;"runtime.registry"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2361.65" y="-2067.56" font-family="Arial" font-size="10.00">Registry type definitions - Folder, Module, Export, Term interfaces for global namespace augmentation</text>
+<text xml:space="preserve" text-anchor="middle" x="2361.65" y="-2055.56" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/registry.ts</text>
+</g>
+<!-- Folder -->
+<g id="node37" class="node">
+<title>Folder</title>
+<polygon fill="#c5e1a5" stroke="black" points="1775.37,-2032.77 1529.24,-2032.77 1529.24,-2028.77 1525.24,-2028.77 1525.24,-2024.77 1529.24,-2024.77 1529.24,-1996.77 1525.24,-1996.77 1525.24,-1992.77 1529.24,-1992.77 1529.24,-1988.77 1775.37,-1988.77 1775.37,-2032.77"/>
+<polyline fill="none" stroke="black" points="1529.24,-2028.77 1533.24,-2028.77 1533.24,-2024.77 1529.24,-2024.77"/>
+<polyline fill="none" stroke="black" points="1529.24,-1996.77 1533.24,-1996.77 1533.24,-1992.77 1529.24,-1992.77"/>
+<text xml:space="preserve" text-anchor="middle" x="1652.3" y="-2019.77" font-family="Arial" font-size="10.00">Export&lt;"Folder"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1652.3" y="-2007.77" font-family="Arial" font-size="10.00">A generic helper to reference folders inside doc files</text>
+<text xml:space="preserve" text-anchor="middle" x="1652.3" y="-1995.77" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/registry.ts</text>
+</g>
+<!-- Module -->
+<g id="node38" class="node">
+<title>Module</title>
+<polygon fill="#c5e1a5" stroke="black" points="1842.96,-2092.39 1589.05,-2092.39 1589.05,-2088.39 1585.05,-2088.39 1585.05,-2084.39 1589.05,-2084.39 1589.05,-2056.39 1585.05,-2056.39 1585.05,-2052.39 1589.05,-2052.39 1589.05,-2048.39 1842.96,-2048.39 1842.96,-2092.39"/>
+<polyline fill="none" stroke="black" points="1589.05,-2088.39 1593.05,-2088.39 1593.05,-2084.39 1589.05,-2084.39"/>
+<polyline fill="none" stroke="black" points="1589.05,-2056.39 1593.05,-2056.39 1593.05,-2052.39 1589.05,-2052.39"/>
+<text xml:space="preserve" text-anchor="middle" x="1716.01" y="-2079.39" font-family="Arial" font-size="10.00">Export&lt;"Module"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1716.01" y="-2067.39" font-family="Arial" font-size="10.00">A generic helper to reference modules inside doc files</text>
+<text xml:space="preserve" text-anchor="middle" x="1716.01" y="-2055.39" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/registry.ts</text>
+</g>
+<!-- Export -->
+<g id="node39" class="node">
+<title>Export</title>
+<polygon fill="#c5e1a5" stroke="black" points="2329.74,-2031.2 2080.83,-2031.2 2080.83,-2027.2 2076.83,-2027.2 2076.83,-2023.2 2080.83,-2023.2 2080.83,-1995.2 2076.83,-1995.2 2076.83,-1991.2 2080.83,-1991.2 2080.83,-1987.2 2329.74,-1987.2 2329.74,-2031.2"/>
+<polyline fill="none" stroke="black" points="2080.83,-2027.2 2084.83,-2027.2 2084.83,-2023.2 2080.83,-2023.2"/>
+<polyline fill="none" stroke="black" points="2080.83,-1995.2 2084.83,-1995.2 2084.83,-1991.2 2080.83,-1991.2"/>
+<text xml:space="preserve" text-anchor="middle" x="2205.29" y="-2018.2" font-family="Arial" font-size="10.00">Export&lt;"Export"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2205.29" y="-2006.2" font-family="Arial" font-size="10.00">A generic helper to reference exports inside doc files</text>
+<text xml:space="preserve" text-anchor="middle" x="2205.29" y="-1994.2" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/registry.ts</text>
+</g>
+<!-- Term -->
+<g id="node40" class="node">
+<title>Term</title>
+<polygon fill="#c5e1a5" stroke="black" points="2170.94,-1906.97 1929.83,-1906.97 1929.83,-1902.97 1925.83,-1902.97 1925.83,-1898.97 1929.83,-1898.97 1929.83,-1870.97 1925.83,-1870.97 1925.83,-1866.97 1929.83,-1866.97 1929.83,-1862.97 2170.94,-1862.97 2170.94,-1906.97"/>
+<polyline fill="none" stroke="black" points="1929.83,-1902.97 1933.83,-1902.97 1933.83,-1898.97 1929.83,-1898.97"/>
+<polyline fill="none" stroke="black" points="1929.83,-1870.97 1933.83,-1870.97 1933.83,-1866.97 1929.83,-1866.97"/>
+<text xml:space="preserve" text-anchor="middle" x="2050.39" y="-1893.97" font-family="Arial" font-size="10.00">Export&lt;"Term"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="2050.39" y="-1881.97" font-family="Arial" font-size="10.00">A generic helper to reference terms inside doc files</text>
+<text xml:space="preserve" text-anchor="middle" x="2050.39" y="-1869.97" font-family="Arial" font-size="10.00">📁 packages/tskb/src/runtime/registry.ts</text>
+</g>
+<!-- tskb.typescript -->
+<g id="node41" class="node">
+<title>tskb.typescript</title>
+<polygon fill="#bbdefb" stroke="black" points="1405.98,-1046.95 601.28,-1046.95 601.28,-1002.95 1405.98,-1002.95 1405.98,-1046.95"/>
+<text xml:space="preserve" text-anchor="middle" x="1003.63" y="-1033.95" font-family="Arial" font-size="10.00">Folder&lt;"tskb.typescript"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1003.63" y="-1021.95" font-family="Arial" font-size="10.00">Creates a TypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output</text>
+<text xml:space="preserve" text-anchor="middle" x="1003.63" y="-1009.95" font-family="Arial" font-size="10.00">📁 packages/tskb/src/typescript</text>
+</g>
+<!-- typescript.program -->
+<g id="node42" class="node">
+<title>typescript.program</title>
+<ellipse fill="#fff9c4" stroke="black" cx="1152.89" cy="-911.52" rx="227.85" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="1152.89" y="-920.52" font-family="Arial" font-size="10.00">Module&lt;"typescript.program"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1152.89" y="-908.52" font-family="Arial" font-size="10.00">Creates TypeScript Program from files and tsconfig for static analysis</text>
+<text xml:space="preserve" text-anchor="middle" x="1152.89" y="-896.52" font-family="Arial" font-size="10.00">📁 packages/tskb/src/typescript/program.ts</text>
+</g>
+<!-- ts.createProgram -->
+<g id="node43" class="node">
+<title>ts.createProgram</title>
+<polygon fill="#c5e1a5" stroke="black" points="1731.36,-994.66 1260.7,-994.66 1260.7,-990.66 1256.7,-990.66 1256.7,-986.66 1260.7,-986.66 1260.7,-958.66 1256.7,-958.66 1256.7,-954.66 1260.7,-954.66 1260.7,-950.66 1731.36,-950.66 1731.36,-994.66"/>
+<polyline fill="none" stroke="black" points="1260.7,-990.66 1264.7,-990.66 1264.7,-986.66 1260.7,-986.66"/>
+<polyline fill="none" stroke="black" points="1260.7,-958.66 1264.7,-958.66 1264.7,-954.66 1260.7,-954.66"/>
+<text xml:space="preserve" text-anchor="middle" x="1496.03" y="-981.66" font-family="Arial" font-size="10.00">Export&lt;"ts.createProgram"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1496.03" y="-969.66" font-family="Arial" font-size="10.00">Creates a TypeScript Program for analyzing code structure, types, and symbols without emitting output</text>
+<text xml:space="preserve" text-anchor="middle" x="1496.03" y="-957.66" font-family="Arial" font-size="10.00">📁 packages/tskb/src/typescript/program.ts</text>
+</g>
+<!-- typescript.index -->
+<g id="node44" class="node">
+<title>typescript.index</title>
+<ellipse fill="#fff9c4" stroke="black" cx="1477.21" cy="-1170.41" rx="136.29" ry="31.11"/>
+<text xml:space="preserve" text-anchor="middle" x="1477.21" y="-1179.41" font-family="Arial" font-size="10.00">Module&lt;"typescript.index"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="1477.21" y="-1167.41" font-family="Arial" font-size="10.00">TypeScript module exports</text>
+<text xml:space="preserve" text-anchor="middle" x="1477.21" y="-1155.41" font-family="Arial" font-size="10.00">📁 packages/tskb/src/typescript/index.ts</text>
+</g>
+<!-- library -->
+<g id="node45" class="node">
+<title>library</title>
+<polygon fill="#f0f4c3" stroke="black" points="6714.89,-1736 6330.92,-1704 6714.89,-1672 7098.85,-1704 6714.89,-1736"/>
+<text xml:space="preserve" text-anchor="middle" x="6714.89" y="-1707" font-family="Arial" font-size="10.00">Term&lt;"library"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="6714.89" y="-1695" font-family="Arial" font-size="10.00">Refers to the &lt;TSKB&gt; package with all of its capabilities, interfaces and commands</text>
+</g>
+<!-- cli -->
+<g id="node46" class="node">
+<title>cli</title>
+<polygon fill="#f0f4c3" stroke="black" points="6802.56,-799.93 6126.76,-767.93 6802.56,-735.93 7478.36,-767.93 6802.56,-799.93"/>
+<text xml:space="preserve" text-anchor="middle" x="6802.56" y="-770.93" font-family="Arial" font-size="10.00">Term&lt;"cli"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="6802.56" y="-758.93" font-family="Arial" font-size="10.00">The library exposes a command line interface for main actions - build docs to json graph, gnerate visualization, query a generated graph by keywords</text>
+</g>
+<!-- jsxRuntime -->
+<g id="node47" class="node">
+<title>jsxRuntime</title>
+<polygon fill="#f0f4c3" stroke="black" points="7601.4,-1005.88 6031.66,-973.88 7601.4,-941.88 9171.14,-973.88 7601.4,-1005.88"/>
+<text xml:space="preserve" text-anchor="middle" x="7601.4" y="-976.88" font-family="Arial" font-size="10.00">Term&lt;"jsxRuntime"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="7601.4" y="-964.88" font-family="Arial" font-size="10.00">TSKB provides a custom JSX runtime (jsx-runtime module) that transforms TSX documentation syntax into a knowledge graph. Configured via tsconfig's jsxImportSource option, it processes JSX elements differently from React - instead of DOM rendering, it extracts documentation structure, references, and code snippets for analysis and visualization.</text>
+</g>
+<!-- tsProgram -->
+<g id="node48" class="node">
+<title>tsProgram</title>
+<polygon fill="#f0f4c3" stroke="black" points="7230.67,-875.79 6469.33,-843.79 7230.67,-811.79 7992.01,-843.79 7230.67,-875.79"/>
+<text xml:space="preserve" text-anchor="middle" x="7230.67" y="-846.79" font-family="Arial" font-size="10.00">Term&lt;"tsProgram"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="7230.67" y="-834.79" font-family="Arial" font-size="10.00">TypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output.</text>
+</g>
+<!-- registry -->
+<g id="node49" class="node">
+<title>registry</title>
+<polygon fill="#f0f4c3" stroke="black" points="4941.2,-794.16 3770.16,-762.16 4941.2,-730.16 6112.23,-762.16 4941.2,-794.16"/>
+<text xml:space="preserve" text-anchor="middle" x="4941.2" y="-765.16" font-family="Arial" font-size="10.00">Term&lt;"registry"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="4941.2" y="-753.16" font-family="Arial" font-size="10.00">The global namespace (declare global { namespace tskb }) containing typed interfaces (Folders, Modules, Exports, Terms) that serve as a type-safe vocabulary registry, enabling autocomplete and type-checked references across all .tskb.tsx documentation files.</text>
+</g>
+<!-- graph -->
+<g id="node50" class="node">
+<title>graph</title>
+<polygon fill="#f0f4c3" stroke="black" points="5616.41,-872.54 4844.51,-840.54 5616.41,-808.54 6388.31,-840.54 5616.41,-872.54"/>
+<text xml:space="preserve" text-anchor="middle" x="5616.41" y="-843.54" font-family="Arial" font-size="10.00">Term&lt;"graph"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="5616.41" y="-831.54" font-family="Arial" font-size="10.00">Refers to th raw output of the library, where it constructs all the relations and connections between folders, modules, exports, terms, docs, etc. In its raw form it is a json file</text>
+</g>
+<!-- dotFile -->
+<g id="node51" class="node">
+<title>dotFile</title>
+<polygon fill="#f0f4c3" stroke="black" points="5388.33,-948.22 4758.68,-916.22 5388.33,-884.22 6017.97,-916.22 5388.33,-948.22"/>
+<text xml:space="preserve" text-anchor="middle" x="5388.33" y="-919.22" font-family="Arial" font-size="10.00">Term&lt;"dotFile"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="5388.33" y="-907.22" font-family="Arial" font-size="10.00">A Graphviz DOT format file that describes the graph structure with nodes and edges, used for rendering visual diagrams of the architecture</text>
+</g>
+<!-- queryMatch -->
+<g id="node52" class="node">
+<title>queryMatch</title>
+<polygon fill="#f0f4c3" stroke="black" points="5922.6,-721.33 5094.48,-689.33 5922.6,-657.33 6750.73,-689.33 5922.6,-721.33"/>
+<text xml:space="preserve" text-anchor="middle" x="5922.6" y="-692.33" font-family="Arial" font-size="10.00">Term&lt;"queryMatch"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="5922.6" y="-680.33" font-family="Arial" font-size="10.00">A structured result from querying the knowledge graph, containing the matched node, its hierarchy, relationships, related files, documentation context, and AI suggestions for next steps</text>
+</g>
+<!-- ast -->
+<g id="node53" class="node">
+<title>ast</title>
+<polygon fill="#f0f4c3" stroke="black" points="6313.89,-1544 5754.61,-1512 6313.89,-1480 6873.17,-1512 6313.89,-1544"/>
+<text xml:space="preserve" text-anchor="middle" x="6313.89" y="-1515" font-family="Arial" font-size="10.00">Term&lt;"ast"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="6313.89" y="-1503" font-family="Arial" font-size="10.00">Abstract Syntax Tree - TypeScript's tree representation of source code, used by the compiler API to analyze code structure</text>
+</g>
+<!-- declarationMerging -->
+<g id="node54" class="node">
+<title>declarationMerging</title>
+<polygon fill="#f0f4c3" stroke="black" points="7533.89,-1224 6843.08,-1192 7533.89,-1160 8224.69,-1192 7533.89,-1224"/>
+<text xml:space="preserve" text-anchor="middle" x="7533.89" y="-1195" font-family="Arial" font-size="10.00">Term&lt;"declarationMerging"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="7533.89" y="-1183" font-family="Arial" font-size="10.00">TypeScript feature that allows multiple declarations with the same name to be merged into a single definition, enabling distributed vocabulary across files</text>
+</g>
+<!-- typeChecker -->
+<g id="node55" class="node">
+<title>typeChecker</title>
+<polygon fill="#f0f4c3" stroke="black" points="7778.89,-1608 7226.52,-1576 7778.89,-1544 8331.25,-1576 7778.89,-1608"/>
+<text xml:space="preserve" text-anchor="middle" x="7778.89" y="-1579" font-family="Arial" font-size="10.00">Term&lt;"typeChecker"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="7778.89" y="-1567" font-family="Arial" font-size="10.00">TypeScript compiler component that resolves types, validates code, and provides type information for symbols in the AST</text>
+</g>
+<!-- literalType -->
+<g id="node56" class="node">
+<title>literalType</title>
+<polygon fill="#f0f4c3" stroke="black" points="7155.89,-456 6458.53,-424 7155.89,-392 7853.25,-424 7155.89,-456"/>
+<text xml:space="preserve" text-anchor="middle" x="7155.89" y="-427" font-family="Arial" font-size="10.00">Term&lt;"literalType"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="7155.89" y="-415" font-family="Arial" font-size="10.00">A TypeScript type that represents a specific literal value (e.g., string literal 'hello' or number literal 42), used to extract constant values from type definitions</text>
+</g>
+<!-- jsxElement -->
+<g id="node57" class="node">
+<title>jsxElement</title>
+<polygon fill="#f0f4c3" stroke="black" points="7071.89,-264 6458.31,-232 7071.89,-200 7685.47,-232 7071.89,-264"/>
+<text xml:space="preserve" text-anchor="middle" x="7071.89" y="-235" font-family="Arial" font-size="10.00">Term&lt;"jsxElement"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="7071.89" y="-223" font-family="Arial" font-size="10.00">A JSX syntax node in the TypeScript AST representing an element like &lt;Doc&gt; or &lt;P&gt;, containing opening tag, children, and closing tag</text>
+</g>
+<!-- jsxExpression -->
+<g id="node58" class="node">
+<title>jsxExpression</title>
+<polygon fill="#f0f4c3" stroke="black" points="6212.89,-1352 5691.15,-1320 6212.89,-1288 6734.63,-1320 6212.89,-1352"/>
+<text xml:space="preserve" text-anchor="middle" x="6212.89" y="-1323" font-family="Arial" font-size="10.00">Term&lt;"jsxExpression"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="6212.89" y="-1311" font-family="Arial" font-size="10.00">A TypeScript AST node representing an embedded expression in JSX curly braces like {ref as tskb.Folders['Auth']}</text>
+</g>
+<!-- typeAssertion -->
+<g id="node59" class="node">
+<title>typeAssertion</title>
+<polygon fill="#f0f4c3" stroke="black" points="7612.89,-1416 7034.54,-1384 7612.89,-1352 8191.24,-1384 7612.89,-1416"/>
+<text xml:space="preserve" text-anchor="middle" x="7612.89" y="-1387" font-family="Arial" font-size="10.00">Term&lt;"typeAssertion"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="7612.89" y="-1375" font-family="Arial" font-size="10.00">TypeScript 'as' syntax that casts a value to a specific type, used in tskb to reference vocabulary items: {ref as tskb.Modules['X']}</text>
+</g>
+<!-- depthFirstTraversal -->
+<g id="node60" class="node">
+<title>depthFirstTraversal</title>
+<polygon fill="#f0f4c3" stroke="black" points="7054.89,-72 6458.58,-40 7054.89,-8 7651.19,-40 7054.89,-72"/>
+<text xml:space="preserve" text-anchor="middle" x="7054.89" y="-43" font-family="Arial" font-size="10.00">Term&lt;"depthFirstTraversal"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="7054.89" y="-31" font-family="Arial" font-size="10.00">Tree traversal algorithm that explores as far as possible along each branch before backtracking, used to visit all JSX nodes in order</text>
+</g>
+<!-- cliPipeline -->
+<g id="node61" class="node">
+<title>cliPipeline</title>
+<polygon fill="#f0f4c3" stroke="black" points="8131.21,-801.55 7488.27,-769.55 8131.21,-737.55 8774.14,-769.55 8131.21,-801.55"/>
+<text xml:space="preserve" text-anchor="middle" x="8131.21" y="-772.55" font-family="Arial" font-size="10.00">Term&lt;"cliPipeline"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="8131.21" y="-760.55" font-family="Arial" font-size="10.00">The six-stage build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → JSON output</text>
+</g>
+<!-- commandRouting -->
+<g id="node62" class="node">
+<title>commandRouting</title>
+<polygon fill="#f0f4c3" stroke="black" points="6579.01,-648.37 6017.48,-616.37 6579.01,-584.37 7140.54,-616.37 6579.01,-648.37"/>
+<text xml:space="preserve" text-anchor="middle" x="6579.01" y="-619.37" font-family="Arial" font-size="10.00">Term&lt;"commandRouting"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="6579.01" y="-607.37" font-family="Arial" font-size="10.00">The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, visualize, or query)</text>
+</g>
+<!-- globPattern -->
+<g id="node63" class="node">
+<title>globPattern</title>
+<polygon fill="#f0f4c3" stroke="black" points="7187.06,-723.61 6782.61,-691.61 7187.06,-659.61 7591.5,-691.61 7187.06,-723.61"/>
+<text xml:space="preserve" text-anchor="middle" x="7187.06" y="-694.61" font-family="Arial" font-size="10.00">Term&lt;"globPattern"&gt;</text>
+<text xml:space="preserve" text-anchor="middle" x="7187.06" y="-682.61" font-family="Arial" font-size="10.00">File pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing</text>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx -->
+<g id="node64" class="node">
+<title>docs/tskb-package/src/main.tskb.tsx</title>
+<polygon fill="#e1bee7" stroke="black" points="4894.06,-1959.27 4428.83,-1959.27 4428.83,-1915.27 4900.06,-1915.27 4900.06,-1953.27 4894.06,-1959.27"/>
+<polyline fill="none" stroke="black" points="4894.06,-1959.27 4894.06,-1953.27"/>
+<polyline fill="none" stroke="black" points="4900.06,-1953.27 4894.06,-1953.27"/>
+<text xml:space="preserve" text-anchor="middle" x="4664.45" y="-1946.27" font-family="Arial" font-size="10.00">docs/tskb-package/src/main.tskb.tsx</text>
+<text xml:space="preserve" text-anchor="middle" x="4664.45" y="-1934.27" font-family="Arial" font-size="10.00">Architecture and implementation docs for the  library The package is located in [Folder: Package.Roo...</text>
+<text xml:space="preserve" text-anchor="middle" x="4664.45" y="-1922.27" font-family="Arial" font-size="10.00">📄 docs/tskb-package/src/main.tskb.tsx</text>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;Package.Root -->
+<g id="edge12" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;Package.Root</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4532.28,-1914.8C4051.04,-1832.98 2395.25,-1551.46 1909.33,-1468.85"/>
+<polygon fill="grey" stroke="grey" points="1910.01,-1465.41 1899.56,-1467.18 1908.84,-1472.31 1910.01,-1465.41"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;package.json -->
+<g id="edge1" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;package.json</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4592.68,-1914.81C4205.21,-1793.52 2364.96,-1217.47 1945.87,-1086.29"/>
+<polygon fill="grey" stroke="grey" points="1947.09,-1083 1936.5,-1083.36 1945,-1089.68 1947.09,-1083"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;Main.index.js -->
+<g id="edge2" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;Main.index.js</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4585.29,-1914.84C4182.59,-1800.74 2363.94,-1285.43 1943.16,-1166.21"/>
+<polygon fill="grey" stroke="grey" points="1944.33,-1162.9 1933.76,-1163.54 1942.43,-1169.64 1944.33,-1162.9"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;ref -->
+<g id="edge17" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;ref</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4510.22,-1914.81C4000.12,-1840.51 2370.12,-1603.1 1844.2,-1526.5"/>
+<polygon fill="grey" stroke="grey" points="1845.02,-1523.09 1834.62,-1525.11 1844.01,-1530.01 1845.02,-1523.09"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;cli.build -->
+<g id="edge18" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;cli.build</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4448.36,-1914.78C3678.3,-1834.65 1082.77,-1564.57 493.4,-1503.25"/>
+<polygon fill="grey" stroke="grey" points="494.17,-1499.81 483.86,-1502.25 493.44,-1506.77 494.17,-1499.81"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;cli.visualize -->
+<g id="edge19" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;cli.visualize</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4490.05,-1914.79C3783.54,-1823.7 1139.28,-1482.79 455.48,-1394.63"/>
+<polygon fill="grey" stroke="grey" points="455.95,-1391.17 445.59,-1393.36 455.06,-1398.11 455.95,-1391.17"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;cli.query -->
+<g id="edge21" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;cli.query</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4472,-1914.78C3760.41,-1831.62 1281.61,-1541.94 551.71,-1456.64"/>
+<polygon fill="grey" stroke="grey" points="552.14,-1453.17 541.8,-1455.49 551.33,-1460.12 552.14,-1453.17"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;generateDot -->
+<g id="edge20" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;generateDot</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4522.54,-1914.83C4172.66,-1859.5 3270.95,-1716.91 2909.19,-1659.7"/>
+<polygon fill="grey" stroke="grey" points="2909.78,-1656.25 2899.36,-1658.14 2908.69,-1663.16 2909.78,-1656.25"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;Jsx.runtime.js -->
+<g id="edge3" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;Jsx.runtime.js</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4428.65,-1937.97C3879.92,-1939.59 2517.17,-1943.61 1897.6,-1945.44"/>
+<polygon fill="grey" stroke="grey" points="1897.78,-1941.93 1887.79,-1945.46 1897.8,-1948.93 1897.78,-1941.93"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;Folder -->
+<g id="edge13" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;Folder</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4428.4,-1943.03C3827.98,-1957.68 2256.88,-1996.02 1786.96,-2007.48"/>
+<polygon fill="grey" stroke="grey" points="1787.16,-2003.98 1777.24,-2007.72 1787.33,-2010.98 1787.16,-2003.98"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;Module -->
+<g id="edge14" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;Module</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4428.46,-1947.92C3839.9,-1974.5 2320.96,-2043.08 1854.39,-2064.14"/>
+<polygon fill="grey" stroke="grey" points="1854.58,-2060.63 1844.74,-2064.58 1854.89,-2067.62 1854.58,-2060.63"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;Export -->
+<g id="edge15" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;Export</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4428.37,-1944.17C3921.4,-1959 2742.13,-1993.49 2341.39,-2005.22"/>
+<polygon fill="grey" stroke="grey" points="2341.45,-2001.71 2331.56,-2005.5 2341.66,-2008.71 2341.45,-2001.71"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;Term -->
+<g id="edge16" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;Term</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4428.43,-1932.55C3892.95,-1921.83 2600.12,-1895.97 2182.72,-1887.62"/>
+<polygon fill="grey" stroke="grey" points="2182.81,-1884.12 2172.74,-1887.42 2182.66,-1891.12 2182.81,-1884.12"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;cli -->
+<g id="edge5" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;cli</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4705.25,-1914.96C4967.53,-1771.51 6415.56,-979.59 6738.64,-802.89"/>
+<polygon fill="grey" stroke="grey" points="6739.89,-806.2 6746.99,-798.33 6736.53,-800.06 6739.89,-806.2"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;jsxRuntime -->
+<g id="edge6" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;jsxRuntime</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4732.72,-1914.87C5118.97,-1788.17 7029.51,-1161.48 7497.7,-1007.9"/>
+<polygon fill="grey" stroke="grey" points="7498.64,-1011.27 7507.05,-1004.83 7496.45,-1004.62 7498.64,-1011.27"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;tsProgram -->
+<g id="edge7" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;tsProgram</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4717.16,-1914.81C5040.95,-1776.84 6759.35,-1044.62 7151.12,-877.69"/>
+<polygon fill="grey" stroke="grey" points="7152.28,-881 7160.11,-873.86 7149.54,-874.56 7152.28,-881"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;registry -->
+<g id="edge8" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;registry</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4669.73,-1914.84C4703.2,-1772.74 4885.82,-997.3 4931.06,-805.22"/>
+<polygon fill="grey" stroke="grey" points="4934.42,-806.2 4933.31,-795.66 4927.61,-804.59 4934.42,-806.2"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;graph -->
+<g id="edge9" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;graph</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4683.89,-1914.87C4802.39,-1778.35 5427.3,-1058.4 5581.83,-880.37"/>
+<polygon fill="grey" stroke="grey" points="5584.34,-882.82 5588.26,-872.97 5579.06,-878.23 5584.34,-882.82"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;dotFile -->
+<g id="edge10" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;dotFile</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4680.24,-1914.99C4772.17,-1785.33 5238.41,-1127.68 5359.54,-956.83"/>
+<polygon fill="grey" stroke="grey" points="5362.39,-958.85 5365.32,-948.67 5356.68,-954.8 5362.39,-958.85"/>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;queryMatch -->
+<g id="edge11" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;queryMatch</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4687.09,-1914.81C4837.2,-1765.92 5688.83,-921.2 5883.13,-728.47"/>
+<polygon fill="grey" stroke="grey" points="5885.39,-731.17 5890.02,-721.64 5880.46,-726.2 5885.39,-731.17"/>
+</g>
+<!-- sample.tsconfig.json -->
+<g id="node68" class="node">
+<title>sample.tsconfig.json</title>
+<ellipse fill="none" stroke="black" cx="5173.2" cy="-2674.85" rx="64.1" ry="18"/>
+<text xml:space="preserve" text-anchor="middle" x="5173.2" y="-2671.85" font-family="Arial" font-size="10.00">sample.tsconfig.json</text>
+</g>
+<!-- docs/tskb&#45;package/src/main.tskb.tsx&#45;&gt;sample.tsconfig.json -->
+<g id="edge4" class="edge">
+<title>docs/tskb-package/src/main.tskb.tsx-&gt;sample.tsconfig.json</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4679.95,-1959.75C4754.22,-2067.42 5073.38,-2530.13 5154.43,-2647.63"/>
+<polygon fill="grey" stroke="grey" points="5151.48,-2649.52 5160.04,-2655.76 5157.24,-2645.54 5151.48,-2649.52"/>
+</g>
+<!-- docs/tskb&#45;package/src/typescript/typescript.tskb.tsx -->
+<g id="node65" class="node">
+<title>docs/tskb-package/src/typescript/typescript.tskb.tsx</title>
+<polygon fill="#e1bee7" stroke="black" points="5069.29,-1892.95 4601.89,-1892.95 4601.89,-1848.95 5075.29,-1848.95 5075.29,-1886.95 5069.29,-1892.95"/>
+<polyline fill="none" stroke="black" points="5069.29,-1892.95 5069.29,-1886.95"/>
+<polyline fill="none" stroke="black" points="5075.29,-1886.95 5069.29,-1886.95"/>
+<text xml:space="preserve" text-anchor="middle" x="4838.59" y="-1879.95" font-family="Arial" font-size="10.00">docs/tskb-package/src/typescript/typescript.tskb.tsx</text>
+<text xml:space="preserve" text-anchor="middle" x="4838.59" y="-1867.95" font-family="Arial" font-size="10.00">TypeScript Program Located in [Folder: tskb.typescript]. Creates [Term: tsProgram]for analyzing code...</text>
+<text xml:space="preserve" text-anchor="middle" x="4838.59" y="-1855.95" font-family="Arial" font-size="10.00">📄 docs/tskb-package/src/typescript/typescript.tskb.tsx</text>
+</g>
+<!-- docs/tskb&#45;package/src/typescript/typescript.tskb.tsx&#45;&gt;tskb.typescript -->
+<g id="edge24" class="edge">
+<title>docs/tskb-package/src/typescript/typescript.tskb.tsx-&gt;tskb.typescript</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4737,-1848.54C4198.5,-1729.75 1681.04,-1174.39 1116.27,-1049.8"/>
+<polygon fill="grey" stroke="grey" points="1117.29,-1046.44 1106.77,-1047.7 1115.78,-1053.28 1117.29,-1046.44"/>
+</g>
+<!-- docs/tskb&#45;package/src/typescript/typescript.tskb.tsx&#45;&gt;typescript.program -->
+<g id="edge22" class="edge">
+<title>docs/tskb-package/src/typescript/typescript.tskb.tsx-&gt;typescript.program</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4752.46,-1848.53C4263.27,-1721.19 1836.36,-1089.43 1270.82,-942.22"/>
+<polygon fill="grey" stroke="grey" points="1271.84,-938.87 1261.28,-939.73 1270.07,-945.64 1271.84,-938.87"/>
+</g>
+<!-- docs/tskb&#45;package/src/typescript/typescript.tskb.tsx&#45;&gt;ts.createProgram -->
+<g id="edge25" class="edge">
+<title>docs/tskb-package/src/typescript/typescript.tskb.tsx-&gt;ts.createProgram</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4755.13,-1848.52C4295.54,-1725.01 2076.32,-1128.61 1590.25,-997.98"/>
+<polygon fill="grey" stroke="grey" points="1591.46,-994.68 1580.89,-995.47 1589.64,-1001.44 1591.46,-994.68"/>
+</g>
+<!-- docs/tskb&#45;package/src/typescript/typescript.tskb.tsx&#45;&gt;tsProgram -->
+<g id="edge23" class="edge">
+<title>docs/tskb-package/src/typescript/typescript.tskb.tsx-&gt;tsProgram</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4890.78,-1848.54C5198.77,-1716.29 6778.29,-1038.04 7151.55,-877.77"/>
+<polygon fill="grey" stroke="grey" points="7152.78,-881.05 7160.58,-873.89 7150.01,-874.62 7152.78,-881.05"/>
+</g>
+<!-- docs/tskb&#45;package/src/runtime/runtime.tskb.tsx -->
+<g id="node66" class="node">
+<title>docs/tskb-package/src/runtime/runtime.tskb.tsx</title>
+<polygon fill="#e1bee7" stroke="black" points="5361.16,-1982.81 4909.85,-1982.81 4909.85,-1938.81 5367.16,-1938.81 5367.16,-1976.81 5361.16,-1982.81"/>
+<polyline fill="none" stroke="black" points="5361.16,-1982.81 5361.16,-1976.81"/>
+<polyline fill="none" stroke="black" points="5367.16,-1976.81 5361.16,-1976.81"/>
+<text xml:space="preserve" text-anchor="middle" x="5138.51" y="-1969.81" font-family="Arial" font-size="10.00">docs/tskb-package/src/runtime/runtime.tskb.tsx</text>
+<text xml:space="preserve" text-anchor="middle" x="5138.51" y="-1957.81" font-family="Arial" font-size="10.00">Runtime Located in [Folder: tskb.runtime]. Contains registry type definitions and JSX primitives - n...</text>
+<text xml:space="preserve" text-anchor="middle" x="5138.51" y="-1945.81" font-family="Arial" font-size="10.00">📄 docs/tskb-package/src/runtime/runtime.tskb.tsx</text>
+</g>
+<!-- docs/tskb&#45;package/src/runtime/runtime.tskb.tsx&#45;&gt;tskb.runtime -->
+<g id="edge28" class="edge">
+<title>docs/tskb-package/src/runtime/runtime.tskb.tsx-&gt;tskb.runtime</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4909.61,-1959.74C4394.52,-1957.35 3142.61,-1951.53 2543.61,-1948.75"/>
+<polygon fill="grey" stroke="grey" points="2543.74,-1945.25 2533.73,-1948.7 2543.71,-1952.25 2543.74,-1945.25"/>
+</g>
+<!-- docs/tskb&#45;package/src/runtime/runtime.tskb.tsx&#45;&gt;jsx.Doc -->
+<g id="edge29" class="edge">
+<title>docs/tskb-package/src/runtime/runtime.tskb.tsx-&gt;jsx.Doc</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4909.66,-1975.03C4309.39,-2012.34 2707.09,-2111.92 2288.2,-2137.95"/>
+<polygon fill="grey" stroke="grey" points="2288.02,-2134.45 2278.25,-2138.57 2288.45,-2141.44 2288.02,-2134.45"/>
+</g>
+<!-- docs/tskb&#45;package/src/runtime/runtime.tskb.tsx&#45;&gt;jsx.ref -->
+<g id="edge30" class="edge">
+<title>docs/tskb-package/src/runtime/runtime.tskb.tsx-&gt;jsx.ref</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4909.6,-1964.2C4288.92,-1973.41 2586.15,-1998.68 2072.69,-2006.3"/>
+<polygon fill="grey" stroke="grey" points="2072.98,-2002.79 2063.03,-2006.44 2073.08,-2009.79 2072.98,-2002.79"/>
+</g>
+<!-- docs/tskb&#45;package/src/runtime/runtime.tskb.tsx&#45;&gt;runtime.jsx -->
+<g id="edge26" class="edge">
+<title>docs/tskb-package/src/runtime/runtime.tskb.tsx-&gt;runtime.jsx</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4909.5,-1973.14C4307.58,-2005.55 2683.91,-2092.98 2050.41,-2127.1"/>
+<polygon fill="grey" stroke="grey" points="2050.62,-2123.58 2040.82,-2127.61 2050.99,-2130.57 2050.62,-2123.58"/>
+</g>
+<!-- docs/tskb&#45;package/src/runtime/runtime.tskb.tsx&#45;&gt;runtime.registry -->
+<g id="edge27" class="edge">
+<title>docs/tskb-package/src/runtime/runtime.tskb.tsx-&gt;runtime.registry</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4909.49,-1969.86C4414.76,-1989.41 3245.29,-2035.64 2679.37,-2058.01"/>
+<polygon fill="grey" stroke="grey" points="2679.55,-2054.5 2669.7,-2058.39 2679.83,-2061.49 2679.55,-2054.5"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx -->
+<g id="node67" class="node">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx</title>
+<polygon fill="#e1bee7" stroke="black" points="5009.53,-2035.23 4532.65,-2035.23 4532.65,-1991.23 5015.53,-1991.23 5015.53,-2029.23 5009.53,-2035.23"/>
+<polyline fill="none" stroke="black" points="5009.53,-2035.23 5009.53,-2029.23"/>
+<polyline fill="none" stroke="black" points="5015.53,-2029.23 5009.53,-2029.23"/>
+<text xml:space="preserve" text-anchor="middle" x="4774.09" y="-2022.23" font-family="Arial" font-size="10.00">docs/tskb-package/src/cli/cli-overview.tskb.tsx</text>
+<text xml:space="preserve" text-anchor="middle" x="4774.09" y="-2010.23" font-family="Arial" font-size="10.00">CLI Implementation Entry: [Module: cli.index]- Command routing, arg parsing, error handling. Command...</text>
+<text xml:space="preserve" text-anchor="middle" x="4774.09" y="-1998.23" font-family="Arial" font-size="10.00">📄 docs/tskb-package/src/cli/cli-overview.tskb.tsx</text>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;cli.index -->
+<g id="edge31" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;cli.index</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4532.44,-1998.12C3781.93,-1951.17 1496.28,-1808.21 739.5,-1760.87"/>
+<polygon fill="grey" stroke="grey" points="739.91,-1757.39 729.71,-1760.26 739.47,-1764.37 739.91,-1757.39"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;tskb.cli.commands -->
+<g id="edge43" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;tskb.cli.commands</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4620.77,-1990.75C3996.5,-1899.2 1648.73,-1554.89 1004.33,-1460.39"/>
+<polygon fill="grey" stroke="grey" points="1005.01,-1456.95 994.61,-1458.96 1004,-1463.88 1005.01,-1456.95"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;cli.commands.build -->
+<g id="edge32" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;cli.commands.build</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4634.7,-1990.75C4032.08,-1893.53 1650.7,-1509.38 972.93,-1400.04"/>
+<polygon fill="grey" stroke="grey" points="973.53,-1396.59 963.1,-1398.46 972.42,-1403.5 973.53,-1396.59"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;cli.build -->
+<g id="edge44" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;cli.build</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4584.66,-1990.74C3836.92,-1901.97 1101.68,-1577.22 493.88,-1505.06"/>
+<polygon fill="grey" stroke="grey" points="494.34,-1501.59 484,-1503.89 493.51,-1508.54 494.34,-1501.59"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;cli.commands.visualize -->
+<g id="edge33" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;cli.commands.visualize</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4646.78,-1990.75C4048.12,-1885.06 1514.15,-1437.66 843.21,-1319.19"/>
+<polygon fill="grey" stroke="grey" points="843.97,-1315.77 833.52,-1317.48 842.76,-1322.67 843.97,-1315.77"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;cli.visualize -->
+<g id="edge45" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;cli.visualize</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4616.59,-1990.75C3924.48,-1891.97 1156.48,-1496.92 455.32,-1396.85"/>
+<polygon fill="grey" stroke="grey" points="456.03,-1393.41 445.64,-1395.47 455.04,-1400.34 456.03,-1393.41"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;cli.commands.query -->
+<g id="edge34" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;cli.commands.query</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4597.71,-1990.77C3949.8,-1908.25 1702.9,-1622.09 1009.17,-1533.74"/>
+<polygon fill="grey" stroke="grey" points="1009.68,-1530.27 999.32,-1532.48 1008.8,-1537.22 1009.68,-1530.27"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;cli.query -->
+<g id="edge47" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;cli.query</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4602.62,-1990.75C3901.07,-1898.75 1252.49,-1551.45 530.66,-1456.79"/>
+<polygon fill="grey" stroke="grey" points="531.26,-1453.34 520.89,-1455.51 530.35,-1460.28 531.26,-1453.34"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;generateDot -->
+<g id="edge46" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;generateDot</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4654.25,-1990.8C4299.42,-1924.38 3256,-1729.07 2886.89,-1659.98"/>
+<polygon fill="grey" stroke="grey" points="2887.6,-1656.56 2877.13,-1658.16 2886.31,-1663.44 2887.6,-1656.56"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;tsProgram -->
+<g id="edge38" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;tsProgram</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4821.24,-1990.79C5123.46,-1846.92 6787.8,-1054.62 7157.78,-878.49"/>
+<polygon fill="grey" stroke="grey" points="7159.2,-881.69 7166.72,-874.23 7156.19,-875.37 7159.2,-881.69"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;registry -->
+<g id="edge39" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;registry</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4777.06,-1990.99C4796.76,-1843.53 4908.52,-1006.8 4935.39,-805.65"/>
+<polygon fill="grey" stroke="grey" points="4938.84,-806.27 4936.69,-795.89 4931.9,-805.34 4938.84,-806.27"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;graph -->
+<g id="edge40" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;graph</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4790.16,-1990.85C4892.44,-1848.46 5452.41,-1068.86 5587.21,-881.19"/>
+<polygon fill="grey" stroke="grey" points="5589.98,-883.33 5592.97,-873.17 5584.29,-879.25 5589.98,-883.33"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;dotFile -->
+<g id="edge41" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;dotFile</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4786.64,-1990.82C4862.86,-1854.69 5263.87,-1138.5 5365.1,-957.7"/>
+<polygon fill="grey" stroke="grey" points="5368.08,-959.54 5369.91,-949.11 5361.97,-956.12 5368.08,-959.54"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;queryMatch -->
+<g id="edge42" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;queryMatch</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4793.54,-1990.81C4927.51,-1836.38 5713.31,-930.58 5888.14,-729.05"/>
+<polygon fill="grey" stroke="grey" points="5890.63,-731.52 5894.54,-721.68 5885.34,-726.94 5890.63,-731.52"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;cliPipeline -->
+<g id="edge36" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;cliPipeline</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4834.5,-1990.85C5239.69,-1840.75 7560.49,-980.98 8043.25,-802.14"/>
+<polygon fill="grey" stroke="grey" points="8044.39,-805.45 8052.55,-798.69 8041.96,-798.88 8044.39,-805.45"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;commandRouting -->
+<g id="edge35" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;commandRouting</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4802.8,-1991.01C5009.49,-1831.05 6269.4,-855.98 6531.34,-653.27"/>
+<polygon fill="grey" stroke="grey" points="6533.27,-656.2 6539.04,-647.31 6528.99,-650.66 6533.27,-656.2"/>
+</g>
+<!-- docs/tskb&#45;package/src/cli/cli&#45;overview.tskb.tsx&#45;&gt;globPattern -->
+<g id="edge37" class="edge">
+<title>docs/tskb-package/src/cli/cli-overview.tskb.tsx-&gt;globPattern</title>
+<path fill="none" stroke="grey" stroke-dasharray="5,2" d="M4814.96,-1990.85C5099.21,-1835.16 6780.11,-914.5 7125.17,-725.51"/>
+<polygon fill="grey" stroke="grey" points="7126.8,-728.6 7133.89,-720.73 7123.44,-722.46 7126.8,-728.6"/>
+</g>
+</g>
+</svg>

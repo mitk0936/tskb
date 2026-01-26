@@ -28,6 +28,6 @@
   },
   "keywords": [],
   "author": "Dimitar Mihaylov",
-  "license": "ISC",
+  "license": "MIT",
   "description": "Task Knowledge Base - A TypeScript-based system for documenting software architecture using TSX syntax"
 }

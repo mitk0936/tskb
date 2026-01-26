@@ -80,31 +80,49 @@ declare global {
   }
 }
 
+const RepositoryPatternTerm = ref as tskb.Terms["repositoryPattern"];
+const CrudOperationsTerm = ref as tskb.Terms["crudOperations"];
+const PaginationTerm = ref as tskb.Terms["pagination"];
+const DependencyInjectionTerm = ref as tskb.Terms["dependencyInjection"];
+
+const DatabaseFolder = ref as tskb.Folders["Database"];
+const RepositoriesFolder = ref as tskb.Folders["Repositories"];
+const TypesFolder = ref as tskb.Folders["Types"];
+
+const DatabaseExport = ref as tskb.Exports["Database"];
+const TaskRepositoryExport = ref as tskb.Exports["TaskRepository"];
+const TaskServiceExport = ref as tskb.Exports["TaskService"];
+const NotificationServiceExport = ref as tskb.Exports["NotificationService"];
+const TaskExport = ref as tskb.Exports["Task"];
+const UserExport = ref as tskb.Exports["User"];
+const ProjectExport = ref as tskb.Exports["Project"];
+const PaginationParamsExport = ref as tskb.Exports["PaginationParams"];
+const FilterParamsExport = ref as tskb.Exports["FilterParams"];
+const PaginatedResponseExport = ref as tskb.Exports["PaginatedResponse"];
+
 export default (
   <Doc>
     <H1>Data Layer Architecture</H1>
 
     <P>
-      The data layer implements the {ref as tskb.Terms["repositoryPattern"]} to separate database
-      operations from business logic. This architecture provides clean abstraction and makes the
-      code testable and maintainable.
+      The data layer implements the {RepositoryPatternTerm} to separate database operations from
+      business logic. This architecture provides clean abstraction and makes the code testable and
+      maintainable.
     </P>
 
     <H2>Repository Pattern</H2>
 
     <P>
-      All database access goes through repository classes in {ref as tskb.Folders["Repositories"]}.
-      Repositories provide a clean API for {ref as tskb.Terms["crudOperations"]} without exposing
-      database implementation details.
+      All database access goes through repository classes in {RepositoriesFolder}. Repositories
+      provide a clean API for {CrudOperationsTerm} without exposing database implementation details.
     </P>
 
     <H3>TaskRepository Example</H3>
 
     <P>
-      The {ref as tskb.Exports["TaskRepository"]} demonstrates the pattern with support for
-      {ref as tskb.Terms["pagination"]} and filtering. It uses{" "}
-      {ref as tskb.Exports["PaginationParams"]}
-      and {ref as tskb.Exports["FilterParams"]} from the shared types to ensure consistency.
+      The {TaskRepositoryExport} demonstrates the pattern with support for
+      {PaginationTerm} and filtering. It uses {PaginationParamsExport}
+      and {FilterParamsExport} from the shared types to ensure consistency.
     </P>
 
     <Snippet
@@ -169,11 +187,9 @@ export default (
     <H2>Service Layer Integration</H2>
 
     <P>
-      Services like {ref as tskb.Exports["TaskService"]} use{" "}
-      {ref as tskb.Terms["dependencyInjection"]}
+      Services like {TaskServiceExport} use {DependencyInjectionTerm}
       to receive repository instances, keeping the layers decoupled. The service works with the
-      {ref as tskb.Exports["Task"]} type and delegates persistence to{" "}
-      {ref as tskb.Exports["TaskRepository"]}.
+      {TaskExport} type and delegates persistence to {TaskRepositoryExport}.
     </P>
 
     <Snippet
@@ -207,9 +223,9 @@ export default (
     <H2>Database Connection</H2>
 
     <P>
-      The {ref as tskb.Exports["Database"]} class in {ref as tskb.Folders["Database"]} manages the
-      connection pool and provides query methods with transaction support. All repositories receive
-      a Database instance via {ref as tskb.Terms["dependencyInjection"]}.
+      The {DatabaseExport} class in {DatabaseFolder} manages the connection pool and provides query
+      methods with transaction support. All repositories receive a Database instance via{" "}
+      {DependencyInjectionTerm}.
     </P>
 
     <Snippet
@@ -239,10 +255,9 @@ export default (
     <H2>Pagination Implementation</H2>
 
     <P>
-      {ref as tskb.Terms["pagination"]} is implemented consistently across all repositories using
-      shared types from {ref as tskb.Folders["Types"]}. The{" "}
-      {ref as tskb.Exports["PaginationParams"]}
-      type defines the input, and {ref as tskb.Exports["PaginatedResponse"]} wraps the output.
+      {PaginationTerm} is implemented consistently across all repositories using shared types from{" "}
+      {TypesFolder}. The {PaginationParamsExport}
+      type defines the input, and {PaginatedResponseExport} wraps the output.
     </P>
 
     <List>
@@ -255,9 +270,8 @@ export default (
     <H2>Data Validation</H2>
 
     <P>
-      Type safety is enforced at multiple levels using TypeScript types like{" "}
-      {ref as tskb.Exports["Task"]},{ref as tskb.Exports["User"]}, and{" "}
-      {ref as tskb.Exports["Project"]}:
+      Type safety is enforced at multiple levels using TypeScript types like {TaskExport},
+      {UserExport}, and {ProjectExport}:
     </P>
 
     <List>

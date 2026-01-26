@@ -1,7 +1,7 @@
 {
   "name": "tskb",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.0",
+  "description": "TS Knowledge Base. A TypeScript-native DSL for expressing architectural intent as typed declarations. Produces renderable docs/diagrams and a queryable knowledge graph, supporting type-checked snippet references, semantic relations, and constraints.",
   "type": "module",
   "bin": {
     "tskb": "./dist/cli/index.js"
@@ -27,8 +27,37 @@
     "dev": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Dimitar Mihaylov",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mitk0936/tskb.git"
+  },
+  "keywords": [
+    "typescript",
+    "documentation",
+    "architecture",
+    "knowledge-graph",
+    "docs-as-code",
+    "architecture-as-code",
+    "jsx",
+    "tsx",
+    "type-safe",
+    "compiler",
+    "validation",
+    "ai",
+    "graphviz",
+    "monorepo",
+    "diagrams",
+    "visualization",
+    "architectural-documentation",
+    "dsl",
+    "developer-tools",
+    "code-documentation",
+    "living-documentation",
+    "static-analysis",
+    "code-graph"
+  ],
   "dependencies": {
     "glob": "^13.0.0"
   },
