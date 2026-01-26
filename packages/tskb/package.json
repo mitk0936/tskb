@@ -1,6 +1,6 @@
 {
   "name": "tskb",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "TS Knowledge Base. A TypeScript-native DSL for expressing architectural intent as typed declarations. Produces renderable docs/diagrams and a queryable knowledge graph, supporting type-checked snippet references, semantic relations, and constraints.",
   "type": "module",
   "bin": {
@@ -25,6 +25,9 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
+    "clean": "rimraf dist",
+    "pack:test": "npm run build && npm pack",
+    "prepublishOnly": "npm run clean && npm run build",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "author": "Dimitar Mihaylov",
@@ -60,6 +63,9 @@
   ],
   "dependencies": {
     "glob": "^13.0.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

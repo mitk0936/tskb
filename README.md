@@ -98,4 +98,4 @@ The workspace uses npm workspaces for monorepo management. The build order ensur
 
 ## License
 
-ISC
+MIT

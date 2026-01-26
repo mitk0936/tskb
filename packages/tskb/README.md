@@ -1,13 +1,13 @@
 # \<tskb\>
 
-Build living documentation as code. Declaratively define architecture in large TypeScript codebases and monorepos - turning architecture into a compiler-verified artifact.
+Build living documentation as code. Declaratively define architecture in large TypeScript codebases and monorepos - turn the intent into a compiler-verified artifact.
 
 [![npm version](https://badge.fury.io/js/tskb.svg)](https://www.npmjs.com/package/tskb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ## Note
 
-This is an `experimental concept` in early development. APIs and behavior may change.
+This is an `experimental concept` in early development. APIs and behavior may change. **Not ready for production use** - the package has not been extensively tested and should be considered a proof-of-concept.
 
 ## Overview
 
@@ -71,16 +71,35 @@ tskb solves this by making architecture documentation a first-class, compiler-ve
 
 ### 0. Set up documentation folder
 
-Create a separate folder for your architecture docs with its own TypeScript configuration:
+Create a separate folder for your architecture docs with its own TypeScript configuration and dependencies.
+
+**Directory structure:**
+
+```
+your-repo/
+├── src/              # Your source code
+├── docs/             # Documentation (created below)
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── *.tskb.tsx
+└── package.json      # Your main package.json
+```
+
+**Create the docs folder:**
 
 ```bash
-# In your repo root
+# In your repo root (where your source files live)
 mkdir docs
 cd docs
 npm init -y
+npm install --save-dev tskb
 ```
 
-Your docs need a separate `tsconfig.json` that can import your source files:
+**Why separate?** The docs folder is its own package that imports and references your source code. This keeps documentation dependencies isolated from your production code.
+
+**Configure TypeScript (`docs/tsconfig.json`):**
+
+The tsconfig needs to "see" your source files to validate imports:
 
 ```json
 {
@@ -90,17 +109,17 @@ Your docs need a separate `tsconfig.json` that can import your source files:
     "moduleResolution": "NodeNext",
     "jsx": "react-jsx",
     "jsxImportSource": "tskb",
-    "rootDir": "../", // Point to repo root
-    "baseUrl": "../", // Enable imports from root
+    "rootDir": "../", // Include parent directory to access ../src
+    "baseUrl": "../", // Resolve imports from repo root
     "paths": {
-      "@/*": ["src/*"] // Your path aliases
+      "@/*": ["src/*"] // Match your source code path aliases
     }
   },
   "include": ["**/*.tskb.tsx"]
 }
 ```
 
-Add to `package.json`:
+**Add build script (`docs/package.json`):**
 
 ```json
 {
@@ -112,6 +131,8 @@ Add to `package.json`:
   }
 }
 ```
+
+**For monorepos:** Install tskb as a workspace-level dependency, or in the specific docs package. The `rootDir` should point to the root of all packages you want to document.
 
 ### 1. Define your vocabulary
 
@@ -155,8 +176,6 @@ declare global {
     }
   }
 }
-
-export {};
 ```
 
 ### 2. Write documentation
@@ -169,10 +188,11 @@ Create documentation files that reference your vocabulary.
 
 ```tsx
 // docs/authentication-system.tskb.tsx
-import { Doc, H1, H2, H3, P, Snippet, ref } from "tskb";
+import { Doc, H1, H2, P, Snippet, ref } from "tskb";
 import { UserRepository } from "../src/server/database/repositories/user.repository.js";
 import { LoginCredentials, AuthResponse } from "../src/shared/types/auth.types.js";
 
+// Create type-safe references to your vocabulary
 const JwtTerm = ref as tskb.Terms["jwt"];
 const AuthServiceExport = ref as tskb.Exports["AuthService"];
 const ServerFolder = ref as tskb.Folders["Server"];
@@ -226,7 +246,7 @@ tskb build
 Found 11 documentation files
 Creating TypeScript program...
 ❌ Error: TypeScript compilation errors:
-D:/tskb/docs/taskflow-app/src/architecture-overview.tskb.tsx (155,43): Cannot find name 'useAuthentication'.
+docs/authentication-system.tskb.tsx (18,56): Property 'findByEmail' does not exist on type 'UserRepository'.
 ```
 
 The build fails immediately when documentation references code that doesn't exist.
@@ -242,7 +262,7 @@ Or manually:
 
 ```bash
 # Build the knowledge graph
-npx tskb "docs/**/*.tskb.tsx" --out graph.json --tsconfig tsconfig.json
+npx tskb "docs/**/*.tskb.tsx" --out ./dist/graph.json --tsconfig tsconfig.json
 ```
 
 Example output:
@@ -270,7 +290,7 @@ Building knowledge graph...
    ├─ 19 term nodes
    ├─ 4 doc nodes
    └─ 90 edges
-Writing graph to ./dist/taskflow-graph.json...
+Writing graph to ./dist/graph.json...
 
 Done!
 ```
@@ -279,17 +299,17 @@ Visualize the graph:
 
 ```bash
 # Generate visualization
-npx tskb visualize graph.json --out architecture.dot
+npx tskb visualize ./dist/graph.json --out ./dist/architecture.dot
 ```
 
 ### 4. View the results
 
 ```bash
 # Render as PNG (requires Graphviz)
-dot -Tpng architecture.dot -o architecture.png
+dot -Tpng ./dist/architecture.dot -o ./dist/architecture.png
 
 # Or view interactively
-xdot architecture.dot
+xdot ./dist/architecture.dot
 ```
 
 Output is a JSON graph you can query programmatically or feed to AI tools.
@@ -323,7 +343,7 @@ declare global {
 
 ### Modules
 
-Modules represent the files in your codebase that contain exported functionality. Use the `Module<>` primitive to reference entire module files:
+Modules represent entire files in your codebase. Use when documenting a file as a whole unit:
 
 ```typescript
 import type { Module } from "tskb";
@@ -344,9 +364,13 @@ declare global {
 }
 ```
 
+**When to use Modules:** Reference entire files when describing file-level organization or when the file exports multiple related items as a cohesive unit.
+
 ### Exports
 
-Exports represent specific named exports from your modules (classes, functions, constants). Use the `Export<>` primitive to reference individual exports with precise type safety:
+Exports represent specific named exports from your modules (classes, functions, constants). Use when you need to reference individual exports with precise type safety:
+
+**When to use Exports:** Reference specific classes, functions, or constants when documenting their role in the architecture. Provides exact type checking for that export.
 
 ```typescript
 import type { Export } from "tskb";
@@ -401,9 +425,11 @@ JSX components for writing docs:
 
 **Referencing entities:**
 
-Extract references to constants before using in JSX:
+Extract references to constants before using in JSX. The `ref` constant is exported from tskb and acts as a type-safe reference placeholder:
 
 ```tsx
+import { ref } from "tskb";
+
 const FolderName = ref as tskb.Folders["FolderName"];
 const ModuleName = ref as tskb.Modules["ModuleName"];
 const termName = ref as tskb.Terms["termName"];
@@ -417,17 +443,23 @@ export default (
 );
 ```
 
+**Why extract to constants?** JSX children need constant references, not inline type assertions. This pattern enables TypeScript to validate your vocabulary references while keeping JSX readable.
+
 **Code snippets:**
+
+The `<Snippet>` component extracts code as a string for documentation - the function is never executed:
 
 ```tsx
 <Snippet
   code={() => {
-    // Your code here - will be extracted as-is
+    // Your code here - will be stringified, not executed
     const result = doSomething();
     return result;
   }}
 />
 ```
+
+The arrow function body is converted to a formatted code string. You can import types and reference them inside snippets - TypeScript validates everything, but the code is only used for documentation.
 
 **Importing React components for type-safe examples:**
 
@@ -435,6 +467,7 @@ You can import React components from your application to use in code snippets wi
 
 ```tsx
 // Import with .js extension (NodeNext resolves to .tsx source)
+import { useContext } from "react";
 import { AuthContext } from "examples/taskflow-app/src/client/contexts/AuthContext.js";
 import { Doc, H2, Snippet } from "tskb";
 
@@ -481,6 +514,8 @@ export default (
   }
 }
 ```
+
+**Why `.js` extensions in imports?** With `moduleResolution: "NodeNext"`, TypeScript follows Node.js ESM rules which require explicit file extensions. TypeScript automatically resolves `.js` to `.tsx` source files during type-checking - you get full type safety while following ESM standards.
 
 ### The power of JSX
 
@@ -750,24 +785,6 @@ tskb visualize <input> --out <file>
 - `<input>` — Path to knowledge graph JSON
 - `--out` — Output path for DOT file
 
-### Configuration file
-
-Create `tskb.json` in your project:
-
-```json
-{
-  "pattern": "docs/**/*.tskb.tsx",
-  "output": "tskb.json",
-  "tsconfig": "./tsconfig.json"
-}
-```
-
-Then run:
-
-```bash
-npx tskb build
-```
-
 ## Use Cases
 
 ### AI assistants
@@ -967,9 +984,41 @@ For accurate path resolution, set `rootDir` in your tsconfig:
 
 ## Examples
 
-See [examples/taskflow-app](../../examples/taskflow-app) for a full-stack TypeScript app with ADRs, design constraints, and layer documentation.
+See [Sample demo app docs](https://github.com/mitk0936/tskb/tree/main/docs/taskflow-app) for a full-stack TypeScript app with ADRs, design constraints, and layer documentation.
 
-See [docs/tskb-package](../../docs/tskb-package) for self-documenting the tskb package itself ([visualization](../../docs/tskb-package/dist/architecture.dot)).
+See [Meta docs of the library itself](https://github.com/mitk0936/tskb/tree/main/docs/tskb-package) for self-documenting the tskb package itself ([visualization](https://github.com/mitk0936/tskb/blob/main/references/tskb-doc-diagram.svg)).
+
+## Troubleshooting
+
+**Import paths not resolving?**
+
+Check your `tsconfig.json` settings:
+
+- `baseUrl` should point to your repo root
+- `rootDir` should include parent directories to access source files
+- Path aliases in `paths` should match your source code configuration
+- Verify `.js` extensions are used for imports with `moduleResolution: "NodeNext"`
+
+**TypeScript errors in .tskb.tsx files?**
+
+- Ensure `jsxImportSource: "tskb"` is set in tsconfig
+- Verify `tskb` is installed in the docs package
+- Check that `include` array contains `["**/*.tskb.tsx"]`
+- Make sure vocabulary files have `export {};` to enable declaration merging
+
+**Monorepo path issues?**
+
+- Set `rootDir` to the workspace root containing all packages
+- Use relative imports `../../../packages/...` or configure workspace path aliases
+- Install tskb at workspace level or in the docs package
+- Verify TypeScript can resolve imports from all documented packages
+
+**Build output missing nodes or edges?**
+
+- Check that folder paths exist and are relative to `rootDir`
+- Verify module imports resolve correctly (use TypeScript's "Go to Definition")
+- Ensure vocabulary declarations use `typeof import()` correctly
+- Check console output for validation warnings about missing paths
 
 ## FAQ
 
