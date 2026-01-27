@@ -1,273 +1,441 @@
-# \<tskb\>
+# tskb
 
-Build living documentation as code. Declaratively define architecture in large TypeScript codebases and monorepos - turn the intent into a compiler-verified artifact.
+Build **living architecture documentation as code**. Declaratively define architectural intent in large TypeScript codebases and monorepos, and turn that intent into a **compiler-verified artifact**.
+
+> **Documentation physically bound to your code, so you can trust it.**
 
 [![npm version](https://badge.fury.io/js/tskb.svg)](https://www.npmjs.com/package/tskb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-## Note
+---
 
-This is an `experimental concept` in early development. APIs and behavior may change. **Not ready for production use** - the package has not been extensively tested and should be considered a proof-of-concept.
+## ⚠️ Status
 
-## Overview
+**Experimental / early concept**.
 
-A TypeScript-native DSL for expressing architectural intent as typed declarations. Produces renderable docs/diagrams and a queryable knowledge graph, supporting type-checked snippet references, semantic relations, and constraints.
+- APIs and output may evolve
+- Not production-ready
+- Best viewed as a proof-of-concept and research tool
 
-Write architecture documentation in `.tskb.tsx` files that get type-checked alongside your codebase. References to code modules, files, and exports are validated by TypeScript - `refactored code automatically invalidates stale documentation at compile-time.`
+---
 
-The output is a JSON knowledge graph optimized for AI assistants, visualization tools, and programmatic analysis.
+## What is tskb?
 
-## Why tskb?
+**tskb** is a TypeScript-native DSL for expressing **architectural intent** as code.
 
-Large TypeScript codebases face common challenges:
+You write documentation in `.tskb.tsx` files that:
 
-- **Tribal knowledge** - Architecture understanding locked in senior developers' heads, not accessible to new team members or AI assistants
-- **Compound complexity** - As systems grow, the mental model of how everything connects becomes harder to maintain and communicate
-- **Low documentation coverage** - Traditional docs fall out of sync with code, so teams stop writing them and stop trusting them
+- are **type-checked by the TypeScript compiler**
+- reference **real folders, files, and exports**
+- fail the build when documentation and code drift apart
 
-tskb solves this by making architecture documentation a first-class, compiler-verified artifact that evolves with your codebase.
+The result is a **structured knowledge graph** that can be:
 
-## Features
+- visualized (Graphviz, diagrams)
+- queried programmatically
+- consumed efficiently by AI assistants
 
-- Architecture as code - write docs in TSX files with type-checked references
-- Documentation validated by TypeScript compiler alongside your codebase
-- Out-of-the-box IDE support - autocomplete, refactoring, go-to-definition (native TypeScript)
-- Zero runtime impact - purely build-time tooling, no production dependencies
-- Generate JSON knowledge graphs optimized for `AI assistant integration` and programmatic analysis
-- Visualize architecture as Graphviz diagrams
-- Works with monorepos and complex project structures
+> Refactor your code → stale documentation breaks at compile time.
 
-## How It Works
+---
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  Write Architecture Docs                                        │
-│  *.tskb.tsx files with type-safe references to your code        │
-└─────────────────┬───────────────────────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  TypeScript Validation                                          │
-│  Compiler checks all imports, types, and references             │
-│  ✓ Code exists  ✓ Types match  ✓ Paths correct                 │
-└─────────────────┬───────────────────────────────────────────────┘
-                  │
-                  ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  Build Knowledge Graph                                          │
-│  npx tskb build → generates structured JSON                     │
-└─────────────────┬───────────────────────────────────────────────┘
-                  │
-                  ├──────────────────────┬──────────────────────┐
-                  ▼                      ▼                      ▼
-         ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
-         │  AI Assistants  │   │  Visualization  │   │  CI/CD Checks   │
-         │  Optimized      │   │  Graphviz       │   │  Architecture   │
-         │  Context        │   │  Diagrams       │   │  Validation     │
-         └─────────────────┘   └─────────────────┘   └─────────────────┘
-```
+## Why tskb exists
 
-## Quick Start
+Large TypeScript codebases eventually suffer from:
 
-### 0. Set up documentation folder
+- **Tribal knowledge** - architecture lives in senior developers’ heads
+- **Compound complexity** - the mental model becomes fragile and expensive to communicate
+- **Documentation decay** - Markdown and diagrams drift silently
 
-Create a separate folder for your architecture docs with its own TypeScript configuration and dependencies.
+tskb addresses this by making architecture documentation:
 
-**Directory structure:**
+- **typed**
+- **validated**
+- **enforced at build time**
+
+---
+
+## Core features
+
+- Architecture as code using TSX
+- Compiler-verified references via `typeof import()`
+- **Type-checked code snippets** (not copied text)
+- Native IDE support (autocomplete, refactors)
+- Zero runtime impact (pure build-time tooling)
+- JSON knowledge graph output
+- Graphviz visualization
+- Monorepo-friendly by design
+- Optimized for AI context & RAG pipelines
+
+---
+
+## Quick start (recommended setup)
+
+### 0) Create a dedicated docs package
+
+Keep docs isolated from production dependencies while still “seeing” your source code.
+
+**Repo structure:**
 
 ```
 your-repo/
 ├── src/              # Your source code
-├── docs/             # Documentation (created below)
+├── docs/             # tskb docs package (created below)
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── *.tskb.tsx
-└── package.json      # Your main package.json
+└── package.json
 ```
 
-**Create the docs folder:**
+**Create it:**
 
 ```bash
-# In your repo root (where your source files live)
 mkdir docs
 cd docs
 npm init -y
 npm install --save-dev tskb
 ```
 
-**Why separate?** The docs folder is its own package that imports and references your source code. This keeps documentation dependencies isolated from your production code.
+> For monorepos: put `docs/` at workspace root (or as a workspace), and ensure `rootDir` / `baseUrl` point to the workspace root that contains all packages you want to document.
 
-**Configure TypeScript (`docs/tsconfig.json`):**
+---
 
-The tsconfig needs to "see" your source files to validate imports:
+### 1) Configure TypeScript for docs
+
+`docs/tsconfig.json` should be able to type-check your real code.
 
 ```json
 {
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "esnext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+
     "jsx": "react-jsx",
     "jsxImportSource": "tskb",
-    "rootDir": "../", // Include parent directory to access ../src
-    "baseUrl": "../", // Resolve imports from repo root
+
+    "rootDir": "../",
+    "baseUrl": "../",
+
     "paths": {
-      "@/*": ["src/*"] // Match your source code path aliases
+      "@/*": ["src/*"]
     }
   },
   "include": ["**/*.tskb.tsx"]
 }
 ```
 
-**Add build script (`docs/package.json`):**
+Notes:
+
+- `moduleResolution: "NodeNext"` means ESM-style imports with **explicit extensions** (often `.js`).
+- `rootDir` / `baseUrl` typically point to repo root so the docs program can resolve your code.
+
+---
+
+### 2) Add a build script
+
+`docs/package.json`:
 
 ```json
 {
   "scripts": {
-    "generate": "tskb \"**/*.tskb.tsx\" --out dist/graph.json --tsconfig tsconfig.json"
-  },
-  "devDependencies": {
-    "tskb": "latest"
+    "generate": "tskb "**/*.tskb.tsx" --out dist/graph.json --tsconfig tsconfig.json"
   }
 }
 ```
 
-**For monorepos:** Install tskb as a workspace-level dependency, or in the specific docs package. The `rootDir` should point to the root of all packages you want to document.
-
-### 1. Define your vocabulary
-
-Create `.tskb.tsx` files declaring your architecture:
-
-```tsx
-// docs/vocabulary.tskb.tsx
-import type { Export, Folder, Term } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Folders {
-      Server: Folder<{
-        desc: "Node.js backend API with services, controllers, and middleware";
-        path: "src/server";
-      }>;
-      Client: Folder<{
-        desc: "React frontend with components and state management";
-        path: "src/client";
-      }>;
-      Repositories: Folder<{
-        desc: "Data access layer abstracting database operations";
-        path: "src/server/database/repositories";
-      }>;
-    }
-
-    interface Exports {
-      AuthService: Export<{
-        desc: "Handles user authentication, registration, and token management";
-        type: typeof import("../src/server/services/auth.service.js").AuthService;
-      }>;
-      TaskRepository: Export<{
-        desc: "Data access layer for task persistence with pagination";
-        type: typeof import("../src/server/database/repositories/task.repository.js").TaskRepository;
-      }>;
-    }
-
-    interface Terms {
-      jwt: Term<"JSON Web Token - stateless authentication using signed tokens">;
-      repositoryPattern: Term<"Data access pattern isolating database logic from business logic">;
-    }
-  }
-}
-```
-
-### 2. Write documentation
-
-Create documentation files that reference your vocabulary.
-
-- Reference terms/exports defined in ANY .tskb.tsx file in your project
-- TypeScript declaration merging makes all vocabulary globally available
-- No need for a central registry - enables `distributed authorship` in large projects
-
-```tsx
-// docs/authentication-system.tskb.tsx
-import { Doc, H1, H2, P, Snippet, ref } from "tskb";
-import { UserRepository } from "../src/server/database/repositories/user.repository.js";
-import { LoginCredentials, AuthResponse } from "../src/shared/types/auth.types.js";
-
-// Create type-safe references to your vocabulary
-const JwtTerm = ref as tskb.Terms["jwt"];
-const AuthServiceExport = ref as tskb.Exports["AuthService"];
-const ServerFolder = ref as tskb.Folders["Server"];
-
-export default (
-  <Doc>
-    <H1>Authentication System</H1>
-
-    <P>
-      The authentication system in {ServerFolder} provides secure user login and session management
-      using {JwtTerm} tokens.
-    </P>
-
-    <H2>Server-Side Authentication</H2>
-
-    <P>
-      The {AuthServiceExport} handles core authentication logic including password validation, token
-      generation, and user verification.
-    </P>
-
-    <Snippet
-      code={() => {
-        const jwt = require("jsonwebtoken");
-
-        class AuthService {
-          constructor(private userRepository: UserRepository) {}
-
-          async login(credentials: LoginCredentials): Promise<AuthResponse> {
-            const user = await this.userRepository.findByEmail(credentials.email);
-            if (!user) throw new Error("User not found");
-
-            const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET);
-            return { token, user };
-          }
-        }
-      }}
-    />
-  </Doc>
-);
-```
-
-If `UserRepository.findByEmail()` signature changes or gets removed, this doc won't compile.
-
-Example of validation failure:
-
-```
-tskb build
-   Pattern: **/*.tskb.tsx
-   Tsconfig: tsconfig.json
-
-Found 11 documentation files
-Creating TypeScript program...
-❌ Error: TypeScript compilation errors:
-docs/authentication-system.tskb.tsx (18,56): Property 'findByEmail' does not exist on type 'UserRepository'.
-```
-
-The build fails immediately when documentation references code that doesn't exist.
-
-### 3. Generate the knowledge graph
+Run it:
 
 ```bash
 cd docs
 npm run generate
 ```
 
-Or manually:
+---
 
-```bash
-# Build the knowledge graph
-npx tskb "docs/**/*.tskb.tsx" --out ./dist/graph.json --tsconfig tsconfig.json
+## Define your vocabulary
+
+Declare architecture primitives using TypeScript declaration merging.
+
+```tsx
+// docs/vocabulary.tskb.tsx
+import type { Folder, Export, Term } from "tskb";
+
+declare global {
+  namespace tskb {
+    interface Folders {
+      DataLayer: Folder<{
+        desc: "Data access layer with repositories and database logic";
+        path: "src/server/database";
+      }>;
+      ServiceLayer: Folder<{
+        desc: "Business logic and application services";
+        path: "src/server/services";
+      }>;
+      APILayer: Folder<{
+        desc: "HTTP controllers and route handlers";
+        path: "src/server/controllers";
+      }>;
+    }
+
+    interface Modules {
+      AuthServiceModule: Module<{
+        desc: "Authentication service module";
+        path: typeof import("../src/server/services/auth.service.js");
+      }>;
+    }
+
+    interface Exports {
+      UserRepository: Export<{
+        desc: "User data access using repository pattern";
+        type: typeof import("../src/server/database/repositories/user.repository.js").UserRepository;
+      }>;
+      AuthService: Export<{
+        desc: "Authentication and authorization business logic";
+        type: typeof import("../src/server/services/auth.service.js").AuthService;
+      }>;
+    }
+
+    interface Terms {
+      "repository-pattern": Term<"Repository Pattern for data access abstraction">;
+      jwt: Term<"JSON Web Tokens for stateless authentication">;
+      "layered-architecture": Term<"Layered architecture pattern (API → Service → Data)">;
+    }
+  }
+}
 ```
 
-Example output:
+---
+
+## Write documentation
+
+Reference your global vocabulary to document architecture. Multiple teams can author docs that all use the same shared architectural terms.
+
+```tsx
+// docs/authentication.tskb.tsx
+import { Doc, H1, H2, P, Snippet, ref } from "tskb";
+import type { AuthService } from "../src/server/services/auth.service.js";
+import type { UserRepository } from "../src/server/database/repositories/user.repository.js";
+import type { LoginCredentials, AuthResponse } from "../src/shared/types/auth.types.js";
+
+// Reference the global vocabulary
+const ServiceLayer = ref as tskb.Folders["ServiceLayer"];
+const DataLayer = ref as tskb.Folders["DataLayer"];
+const AuthServiceExport = ref as tskb.Exports["AuthService"];
+const UserRepositoryExport = ref as tskb.Exports["UserRepository"];
+const Jwt = ref as tskb.Terms["jwt"];
+const RepositoryPattern = ref as tskb.Terms["repository-pattern"];
+
+export default (
+  <Doc>
+    <H1>Authentication Architecture</H1>
+
+    <P>
+      The {AuthServiceExport} in the {ServiceLayer} handles authentication using {Jwt}. It depends
+      on {UserRepositoryExport} in the {DataLayer} following the {RepositoryPattern}.
+    </P>
+
+    <H2>Example: Login Flow</H2>
+
+    <Snippet
+      code={async () => {
+        const authService: AuthService = new AuthService();
+        const credentials: LoginCredentials = {
+          email: "user@example.com",
+          password: "hashedPassword",
+        };
+        const response: AuthResponse = await authService.login(credentials);
+        return response.tokens.accessToken;
+      }}
+    />
+  </Doc>
+);
+```
+
+---
+
+## Snippet type checking
+
+`<Snippet>` is **not** a string literal.
+
+- Snippet bodies are fully type-checked
+- Real types and APIs can be imported
+- Broken examples fail the documentation build
+
+```tsx
+// docs/repository-pattern.tskb.tsx
+import { Doc, H1, P, Snippet } from "tskb";
+import type { UserRepository } from "../src/server/database/repositories/user.repository.js";
+import type { User } from "../src/shared/types/user.types.js";
+import type { Database } from "../src/server/database/connection.js";
+
+export default (
+  <Doc>
+    <H1>Repository Pattern Example</H1>
+
+    <P>The UserRepository demonstrates the repository pattern for data access abstraction.</P>
+
+    <Snippet
+      code={async () => {
+        const db: Database = new Database(config);
+        const userRepository: UserRepository = new UserRepository(db);
+        const user: User | null = await userRepository.findByEmail("test@example.com");
+        return user?.id;
+      }}
+    />
+  </Doc>
+);
+```
+
+If the API changes:
+
+```text
+❌ Property 'findByEmail' does not exist on type 'UserRepository'.
+```
+
+The snippet is never executed - it is parsed, validated, and stringified.
+
+---
+
+## What tskb produces: a semantic architecture graph
+
+tskb builds a **typed, semantic knowledge graph** describing your system.
+
+The graph captures:
+
+- **Nodes** - folders, modules, exports, terms, docs
+- **Edges** - explicit and inferred relationships
+- **Hierarchy** - nested architectural contexts
+- **Semantics** - intent expressed through JSX
+
+This graph is the primary output. Everything else (diagrams, markdown, AI context) is derived from it.
+
+---
+
+## Output schema (high level)
+
+```ts
+{
+  nodes: {
+    folders: Record<string, FolderNode>;
+    modules: Record<string, ModuleNode>;
+    exports: Record<string, ExportNode>;
+    terms: Record<string, TermNode>;
+    docs: Record<string, DocNode>;
+  },
+  edges: Array<{
+    from: string;
+    to: string;
+    type: "references" | "contains" | "belongs-to";
+  }>,
+  metadata: {
+    generatedAt: string;
+    version: string;
+    stats: {
+      folders: number;
+      modules: number;
+      exports: number;
+      terms: number;
+      docs: number;
+      edges: number;
+    };
+  }
+}
+```
+
+The schema is intentionally **graph-first** and machine-oriented.
+
+---
+
+## Nested contexts
+
+Folders define **architectural contexts**, not just paths.
+
+From folder paths, tskb infers:
+
+- hierarchical containment (`contains`)
+- ownership of modules and exports (`belongs-to`)
+- the most specific enclosing context
+
+Your architecture becomes a **tree of nested contexts**, not a flat list.
+
+---
+
+## Relations
+
+Relations in the graph come from two sources:
+
+### Explicit intent
+
+When you reference entities in JSX:
+
+```tsx
+<P>Authentication is handled by {AuthService}.</P>
+```
+
+tskb records a semantic edge:
 
 ```
+Doc → AuthService (references)
+```
+
+### Inferred structure
+
+From filesystem paths and imports:
+
+- Folder → Folder (`contains`)
+- Module → Folder (`belongs-to`)
+- Export → Module (`belongs-to`)
+
+The graph combines **authored intent** with **structural truth**.
+
+---
+
+## Why JSX: semantics, not rendering
+
+JSX in tskb is **not about UI**.
+
+It is a **semantic DSL** that allows you to declare meaning in a structured, type-safe way.
+Each JSX element becomes semantic data - not HTML.
+
+JSX provides composability, static analysis, and extensibility without inventing a new syntax.
+
+---
+
+## Defining semantics with JSX
+
+Because JSX is just TypeScript, it can evolve into richer semantics:
+
+```tsx
+<Relation from={AuthService} to={UserRepository} type="depends-on" />
+
+<Constraint kind="layering">
+  <Layer name="ui" cannotImport="data" />
+</Constraint>
+
+<Flow>
+  <Step component={LoginForm} />
+  <Step component={AuthService} />
+  <Step component={UserRepository} />
+</Flow>
+```
+
+These are **semantic primitives** that compile into graph structure - not UI components.
+
+---
+
+## Example real output
+
+This is the **actual CLI output** users will see:
+
+```text
 tskb build
    Pattern: **/*.tskb.tsx
    Tsconfig: tsconfig.json
@@ -291,795 +459,45 @@ Building knowledge graph...
    ├─ 4 doc nodes
    └─ 90 edges
 Writing graph to ./dist/graph.json...
-
-Done!
 ```
 
-Visualize the graph:
+---
+
+## Visualize
 
 ```bash
-# Generate visualization
 npx tskb visualize ./dist/graph.json --out ./dist/architecture.dot
-```
-
-### 4. View the results
-
-```bash
-# Render as PNG (requires Graphviz)
 dot -Tpng ./dist/architecture.dot -o ./dist/architecture.png
-
-# Or view interactively
-xdot ./dist/architecture.dot
 ```
 
-Output is a JSON graph you can query programmatically or feed to AI tools.
+---
 
-## Installation
+## How is this different?
 
-```bash
-npm install --save-dev tskb
-```
+**vs ADRs / Markdown docs:** Type-checked and validated against real code, not just text files that drift.
 
-## Core Concepts
+**vs Structurizr / C4 / PlantUML:** Native TypeScript (not a custom DSL), produces a queryable knowledge graph (not just static diagrams).
 
-### Folders
+**vs TypeDoc:** Documents _architecture and intent_ (why components exist, how they relate), not just API surfaces (what methods exist).
 
-Represent logical groupings in your codebase (features, layers, packages):
+**Unique to tskb:**
 
-```typescript
-import type { Folder } from "tskb";
+- Type-checks architecture docs at compile time
+- Validates against actual code via `typeof import()`
+- Documents whole systems (multiple packages, monorepos, microservices)
+- Type-checked code snippets (not string literals)
+- Semantic knowledge graph optimized for AI/RAG
 
-declare global {
-  namespace tskb {
-    interface Folders {
-      FeatureName: Folder<{
-        desc: "Description of what this folder contains";
-        path: "relative/path/from/repo/root";
-      }>;
-    }
-  }
-}
-```
-
-### Modules
-
-Modules represent entire files in your codebase. Use when documenting a file as a whole unit:
-
-```typescript
-import type { Module } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Modules {
-      "task.service": Module<{
-        desc: "Task management service with CRUD operations";
-        path: typeof import("@/server/services/task.service");
-      }>;
-      "auth.middleware": Module<{
-        desc: "Authentication middleware for protected routes";
-        path: typeof import("@/server/middleware/auth.middleware");
-      }>;
-    }
-  }
-}
-```
-
-**When to use Modules:** Reference entire files when describing file-level organization or when the file exports multiple related items as a cohesive unit.
-
-### Exports
-
-Exports represent specific named exports from your modules (classes, functions, constants). Use when you need to reference individual exports with precise type safety:
-
-**When to use Exports:** Reference specific classes, functions, or constants when documenting their role in the architecture. Provides exact type checking for that export.
-
-```typescript
-import type { Export } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Exports {
-      TaskRepository: Export<{
-        desc: "Data access layer for task persistence with pagination";
-        type: typeof import("@/server/database/repositories/task.repository").TaskRepository;
-      }>;
-      AuthService: Export<{
-        desc: "Authentication service handling login and session management";
-        type: typeof import("@/server/services/auth.service").AuthService;
-      }>;
-      authenticate: Export<{
-        desc: "Middleware function to verify JWT tokens";
-        type: typeof import("@/server/middleware/auth.middleware").authenticate;
-      }>;
-    }
-  }
-}
-```
-
-The `Export<>` primitive uses TypeScript's `typeof import()` syntax to create type-safe references to actual code exports. This ensures documentation stays in sync with your codebase.
-
-### Terms
-
-Represent domain concepts, patterns, or terminology:
-
-```typescript
-import type { Term } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Terms {
-      termName: Term<"Definition of this concept">;
-    }
-  }
-}
-```
-
-### Documentation Components
-
-JSX components for writing docs:
-
-- `<Doc>` - Document container
-- `<H1>`, `<H2>`, `<H3>` - Headings
-- `<P>` - Paragraphs
-- `<List>`, `<Li>` - Lists
-- `<Snippet>` - Code snippets
-
-**Referencing entities:**
-
-Extract references to constants before using in JSX. The `ref` constant is exported from tskb and acts as a type-safe reference placeholder:
-
-```tsx
-import { ref } from "tskb";
-
-const FolderName = ref as tskb.Folders["FolderName"];
-const ModuleName = ref as tskb.Modules["ModuleName"];
-const termName = ref as tskb.Terms["termName"];
-
-export default (
-  <Doc>
-    <P>
-      The {FolderName} contains {ModuleName} which implements {termName}.
-    </P>
-  </Doc>
-);
-```
-
-**Why extract to constants?** JSX children need constant references, not inline type assertions. This pattern enables TypeScript to validate your vocabulary references while keeping JSX readable.
-
-**Code snippets:**
-
-The `<Snippet>` component extracts code as a string for documentation - the function is never executed:
-
-```tsx
-<Snippet
-  code={() => {
-    // Your code here - will be stringified, not executed
-    const result = doSomething();
-    return result;
-  }}
-/>
-```
-
-The arrow function body is converted to a formatted code string. You can import types and reference them inside snippets - TypeScript validates everything, but the code is only used for documentation.
-
-**Importing React components for type-safe examples:**
-
-You can import React components from your application to use in code snippets with full TypeScript support:
-
-```tsx
-// Import with .js extension (NodeNext resolves to .tsx source)
-import { useContext } from "react";
-import { AuthContext } from "examples/taskflow-app/src/client/contexts/AuthContext.js";
-import { Doc, H2, Snippet } from "tskb";
-
-export default (
-  <Doc>
-    <H2>Client Authentication Context</H2>
-
-    <Snippet
-      code={() => {
-        // Type-safe! TypeScript validates AuthContext usage
-        const { user, login, logout } = useContext(AuthContext);
-
-        const handleLogin = async () => {
-          await login({ email: "user@example.com", password: "pass" });
-        };
-
-        return <div>{user?.name}</div>;
-      }}
-    />
-  </Doc>
-);
-```
-
-**How it works:**
-
-- With `moduleResolution: "NodeNext"`, TypeScript follows Node.js ESM rules
-- Import paths use `.js` extensions (required for ESM)
-- TypeScript automatically resolves to `.tsx` source files during type-checking
-- Your JSX uses tskb's runtime via `jsxImportSource: "tskb"`
-- Imported components provide types but aren't executed (just stringified)
-- Works with workspace packages, monorepos, and relative imports
-
-**Required tsconfig settings:**
-
-```json
-{
-  "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "jsx": "react-jsx",
-    "jsxImportSource": "tskb",
-    "allowJs": true,
-    "esModuleInterop": true
-  }
-}
-```
-
-**Why `.js` extensions in imports?** With `moduleResolution: "NodeNext"`, TypeScript follows Node.js ESM rules which require explicit file extensions. TypeScript automatically resolves `.js` to `.tsx` source files during type-checking - you get full type safety while following ESM standards.
-
-### The power of JSX
-
-Using JSX as the documentation format enables semantic, type-safe documentation that can be extended with custom components. The current component set (`<Doc>`, `<P>`, `<Snippet>`, etc.) is just the foundation.
-
-**Future possibilities with custom JSX components:**
-
-```tsx
-// Architectural constraints
-<Constraint type="layering">
-  <Layer name="UI" dependsOn={["Services"]} />
-  <Layer name="Services" dependsOn={["Data"]} />
-  <Layer name="Data" />
-</Constraint>
-
-// Explicit relationships
-<Relation from={AuthServiceExport} to={UserRepositoryExport} type="depends-on">
-  Uses repository for user authentication
-</Relation>
-
-// Data flow diagrams
-<Flow>
-  <Step component={UIComponent}>User submits form</Step>
-  <Step component={ServiceLayer}>Validates and processes</Step>
-  <Step component={DataLayer}>Persists to database</Step>
-</Flow>
-
-// Layer validation
-<Layers>
-  <Layer name="presentation" cannot="import-from" layer="data" />
-  <Layer name="business" can="import-from" layer="data" />
-</Layers>
-
-// Custom diagrams
-<SequenceDiagram>
-  <Actor name="Client" />
-  <Actor name="Server" />
-  <Message from="Client" to="Server">POST /login</Message>
-  <Message from="Server" to="Client">200 {token}</Message>
-</SequenceDiagram>
-```
-
-These custom components could be implemented through a future plugin system, enabling domain-specific architectural documentation while maintaining type safety through the TypeScript compiler.
-
-## Documentation Guidelines
-
-### Structure over implementation
-
-Documentation should describe what exists and where, not how it works. Focus on architecture and relationships between components.
-
-**Do:**
-
-- Declare root-level folders first (core layers, major features)
-- Point to where things live with short descriptions
-- Document important relationships between modules
-- Reference actual files/exports using `typeof import()`
-- Focus on architecture and structure
-
-**Don't:**
-
-- ~~Explain implementation details (that's in the code)~~
-- ~~Duplicate API documentation (use TSDoc for that)~~
-- ~~Write long explanations about how code works~~
-- ~~Document every single file or function~~
-
-### Start with the Foundation
-
-**1. Declare major folders first:**
-
-```tsx
-import type { Folder } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Folders {
-      // Top-level architecture
-      "src.client": Folder<{
-        desc: "Frontend React application";
-        path: "src/client";
-      }>;
-      "src.server": Folder<{
-        desc: "Backend Node.js API";
-        path: "src/server";
-      }>;
-      "src.shared": Folder<{
-        desc: "Shared types and utilities";
-        path: "src/shared";
-      }>;
-    }
-  }
-}
-```
-
-**2. Declare important modules:**
-
-```tsx
-import type { Export } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Exports {
-      // Core modules that matter architecturally
-      "api.client": Export<{
-        desc: "HTTP client for API communication - entry point for all server requests";
-        type: typeof import("@/client/services/api.client");
-      }>;
-
-      "auth.service": Export<{
-        desc: "Authentication service - handles login, logout, session management";
-        type: typeof import("@/server/services/auth.service");
-      }>;
-    }
-  }
-}
-```
-
-**3. Define domain terms:**
-
-```tsx
-import type { Term } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Terms {
-      // Architectural patterns, not every concept
-      jwt: Term<"JSON Web Token for stateless authentication">;
-      repository: Term<"Data access pattern isolating database logic from business logic">;
-      contextProvider: Term<"React pattern for sharing state across component tree">;
-    }
-  }
-}
-```
-
-### Documentation Structure
-
-**High-level architecture overview:**
-
-```tsx
-import { Doc, H1, H2, P, ref } from "tskb";
-
-const ClientFolder = ref as tskb.Folders["src.client"];
-const ServerFolder = ref as tskb.Folders["src.server"];
-const SharedFolder = ref as tskb.Folders["src.shared"];
-const ClientMainModule = ref as tskb.Modules["client.main"];
-const ServerMainModule = ref as tskb.Modules["server.main"];
-const ApiClientModule = ref as tskb.Modules["api.client"];
-const AuthServiceModule = ref as tskb.Modules["auth.service"];
-const ContextProviderTerm = ref as tskb.Terms["contextProvider"];
-const RepositoryTerm = ref as tskb.Terms["repository"];
-
-export default (
-  <Doc>
-    <H1>System Architecture</H1>
-
-    <P>
-      The application has three main layers: {ClientFolder}, {ServerFolder}, and {SharedFolder}.
-    </P>
-
-    <H2>Client Layer</H2>
-    <P>
-      Entry point: {ClientMainModule}. Uses {ContextProviderTerm} pattern for state. API calls go
-      through {ApiClientModule}.
-    </P>
-
-    <H2>Server Layer</H2>
-    <P>
-      Entry point: {ServerMainModule}. Uses {RepositoryTerm} pattern for data access. Authentication
-      via {AuthServiceModule}.
-    </P>
-  </Doc>
-);
-```
-
-**Focus on relationships, not details:**
-
-```tsx
-const TaskContextModule = ref as tskb.Modules["TaskContext"];
-const TaskApiServiceModule = ref as tskb.Modules["task-api.service"];
-const ApiClientModule = ref as tskb.Modules["api.client"];
-
-export default (
-  <Doc>
-    <P>
-      {TaskContextModule} provides task state to all components. It calls {TaskApiServiceModule}
-      which uses {ApiClientModule} for HTTP requests.
-    </P>
-  </Doc>
-);
-```
-
-### What gets validated
-
-**tskb catches:**
-
-- Referenced module/folder doesn't exist
-- Wrong import paths
-- Files moved or renamed
-- Removed exports
-- Changed type signatures in code snippets
-
-**tskb doesn't catch:**
-
-- ~~Implementation logic changes inside functions~~
-- ~~Business rule modifications~~
-- ~~Algorithm changes~~
-- ~~Performance optimizations~~
-
-`Describe structure, not behavior:`
-
-```tsx
-// Good - describes structure
-const JwtTerm = ref as tskb.Terms["jwt"];
-const AuthServiceModule = ref as tskb.Modules["auth.service"];
-const AuthMiddlewareModule = ref as tskb.Modules["auth.middleware"];
-
-export default (
-  <Doc>
-    <P>
-      Authentication uses {JwtTerm} tokens. Login logic in {AuthServiceModule}, validation in
-      {AuthMiddlewareModule}.
-    </P>
-  </Doc>
-);
-
-// Bad - explains implementation
-<P>
-  The authentication service uses bcrypt with 10 salt rounds to hash passwords, then compares using
-  a constant-time comparison function to prevent timing attacks. It generates a JWT with HMAC-SHA256
-  signing algorithm...
-</P>;
-```
-
-### File organization
-
-One file per major subsystem:
-
-```
-docs/
-  ├── architecture-overview.tskb.tsx    # Top-level structure
-  ├── client-layer.tskb.tsx             # Frontend architecture
-  ├── server-layer.tskb.tsx             # Backend architecture
-  ├── data-layer.tskb.tsx               # Database and repositories
-  ├── authentication.tskb.tsx           # Auth subsystem
-  └── vocabulary.tskb.tsx               # Shared terms and concepts
-```
-
-Vocabulary declarations merge across files automatically (TypeScript declaration merging).
-
-## CLI
-
-### Build
-
-```bash
-tskb <pattern> --out <file> --tsconfig <path>
-```
-
-- `<pattern>` — Glob pattern for documentation files (e.g., `"docs/**/*.tskb.tsx"`)
-- `--out` — Output path for knowledge graph JSON
-- `--tsconfig` — Path to tsconfig.json
-
-### Visualize
-
-```bash
-tskb visualize <input> --out <file>
-```
-
-- `<input>` — Path to knowledge graph JSON
-- `--out` — Output path for DOT file
-
-## Use Cases
-
-### AI assistants
-
-The knowledge graph provides optimized architectural intent for AI tools - a structured, queryable representation of your system's design, relationships, and patterns. Instead of having AI read thousands of files to understand your architecture, it gets a focused map showing:
-
-- What components exist and their purpose
-- How modules relate to each other
-- Where specific functionality lives
-- What patterns and terms your team uses
-
-This reduces AI hallucinations and improves response accuracy by giving context without noise.
-
-**Early tests show 10x-15x token optimization** - AI assistants can understand project architecture much faster by consuming the knowledge graph instead of scanning the entire codebase.
-
-**Note:** Context layer integration for AI assistants is currently in development and experimentation.
-
-### Living documentation
-
-Docs break when code changes, so you know immediately when they're out of sync. Works in CI.
-
-### Onboarding
-
-New team members can work with AI assistants that understand your architecture from day one - no need to wait for senior engineers to be available. Generate current architecture diagrams automatically and provide structured context that helps developers navigate unfamiliar codebases faster.
-
-### Code reviews
-
-Check if changes align with documented architecture. QA teams can understand the impact of changes much easier by referencing the knowledge graph - seeing which modules are affected and how components relate without diving through source code.
-
-### AI-powered development
-
-Copilot tools get a much clearer understanding of what's acceptable and where. The knowledge graph provides architectural guardrails - helping AI understand layer boundaries, valid dependencies, and project-specific patterns before suggesting code changes.
-
-### Architecture analysis
-
-Query the graph programmatically to find:
-
-- Orphaned modules (no documentation)
-- Missing references
-- Undocumented patterns
-- Architectural drift
-
-## Output Schema
-
-The generated JSON contains:
-
-```typescript
-{
-  nodes: {
-    folders: Record<string, FolderNode>;
-    modules: Record<string, ModuleNode>;
-    exports: Record<string, ExportNode>;
-    terms: Record<string, TermNode>;
-    docs: Record<string, DocNode>;
-  },
-  edges: Array<{
-    from: string;
-    to: string;
-    type: "references" | "contains" | "belongs-to";
-  }>,
-  metadata: {
-    generatedAt: string;
-    version: string;
-    stats: { ... }
-  }
-}
-```
-
-### Edge Types
-
-The knowledge graph uses three types of relationships:
-
-**`references`** - Documentation references architectural entities
-
-- Doc → Module: Documentation describes this module
-- Doc → Export: Documentation describes this export
-- Doc → Folder: Documentation describes this folder
-- Doc → Term: Documentation uses this term
-
-**`contains`** - Hierarchical folder nesting based on filesystem paths
-
-- Folder → Folder: Parent folder contains child folder (e.g., `src/server` contains `src/server/services`)
-- Determined by path prefix matching: if child path starts with parent path + `/`, parent contains child
-
-**`belongs-to`** - Module and export ownership based on resolved file paths
-
-- Module → Folder: Module file is located within folder path
-- Export → Module: Export is from the same source file as module
-- Export → Folder: Export file is within folder path (when no matching module exists)
-- Determined by comparing resolved filesystem paths to find the most specific container
-
-## Advanced
-
-### Export<> primitive
-
-The `Export<>` primitive creates type-safe references to actual code exports using TypeScript's `typeof import()` syntax:
-
-```tsx
-import type { Export } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Exports {
-      // Reference a class export
-      TaskRepository: Export<{
-        desc: "Data access layer for task persistence with pagination and filtering";
-        type: typeof import("../src/server/database/repositories/task.repository.js").TaskRepository;
-      }>;
-
-      // Reference a function export
-      AuthMiddleware: Export<{
-        desc: "Authentication middleware for protected routes";
-        type: typeof import("../src/server/middleware/auth.middleware.js").authenticate;
-      }>;
-
-      // Reference React Context
-      TaskContext: Export<{
-        desc: "React Context managing task state and CRUD operations";
-        type: typeof import("../src/client/contexts/TaskContext.js").TaskContext;
-      }>;
-    }
-  }
-}
-```
-
-TypeScript validates import paths and export names at compile time. Refactoring tools can update references automatically.
-
-### Distributed vocabulary
-
-Vocabulary declarations merge across files using TypeScript's declaration merging:
-
-```tsx
-// In vocabulary/server-vocabulary.tskb.tsx
-import type { Export } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Exports {
-      TaskService: Export<{
-        desc: "Manages task CRUD operations and business logic";
-        type: typeof import("../../src/server/services/task.service.js").TaskService;
-      }>;
-      TaskRepository: Export<{
-        desc: "Data access layer for task persistence";
-        type: typeof import("../../src/server/database/repositories/task.repository.js").TaskRepository;
-      }>;
-    }
-  }
-}
-
-// In vocabulary/client-vocabulary.tskb.tsx
-import type { Export } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Exports {
-      TaskContext: Export<{
-        desc: "React Context managing task state";
-        type: typeof import("../../src/client/contexts/TaskContext.js").TaskContext;
-      }>;
-    }
-  }
-}
-
-// Both are available in any .tskb.tsx file after declaration merging
-const TaskServiceExport = ref as tskb.Exports["TaskService"];
-const TaskContextExport = ref as tskb.Exports["TaskContext"];
-```
-
-### JSX runtime configuration
-
-```json
-// tsconfig.json
-{
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "tskb"
-  }
-}
-```
-
-### Path resolution
-
-For accurate path resolution, set `rootDir` in your tsconfig:
-
-```json
-{
-  "compilerOptions": {
-    "rootDir": ".",
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
-  }
-}
-```
-
-## Examples
-
-See [Sample demo app docs](https://github.com/mitk0936/tskb/tree/main/docs/taskflow-app) for a full-stack TypeScript app with ADRs, design constraints, and layer documentation.
-
-See [Meta docs of the library itself](https://github.com/mitk0936/tskb/tree/main/docs/tskb-package) for self-documenting the tskb package itself ([visualization](https://github.com/mitk0936/tskb/blob/main/references/tskb-doc-diagram.svg)).
-
-## Troubleshooting
-
-**Import paths not resolving?**
-
-Check your `tsconfig.json` settings:
-
-- `baseUrl` should point to your repo root
-- `rootDir` should include parent directories to access source files
-- Path aliases in `paths` should match your source code configuration
-- Verify `.js` extensions are used for imports with `moduleResolution: "NodeNext"`
-
-**TypeScript errors in .tskb.tsx files?**
-
-- Ensure `jsxImportSource: "tskb"` is set in tsconfig
-- Verify `tskb` is installed in the docs package
-- Check that `include` array contains `["**/*.tskb.tsx"]`
-- Make sure vocabulary files have `export {};` to enable declaration merging
-
-**Monorepo path issues?**
-
-- Set `rootDir` to the workspace root containing all packages
-- Use relative imports `../../../packages/...` or configure workspace path aliases
-- Install tskb at workspace level or in the docs package
-- Verify TypeScript can resolve imports from all documented packages
-
-**Build output missing nodes or edges?**
-
-- Check that folder paths exist and are relative to `rootDir`
-- Verify module imports resolve correctly (use TypeScript's "Go to Definition")
-- Ensure vocabulary declarations use `typeof import()` correctly
-- Check console output for validation warnings about missing paths
-
-## FAQ
-
-**How is this different from JSDoc?**
-
-JSDoc documents individual functions/classes in source files - what parameters they take, what they return. tskb documents architecture - how modules relate, where functionality lives, what patterns you use. JSDoc comments sit above functions; tskb files sit in a separate docs folder.
-
-|                 | JSDoc                                            | tskb                                                        |
-| --------------- | ------------------------------------------------ | ----------------------------------------------------------- |
-| **Level**       | API-level (function signatures, parameter types) | Architecture-level (module relationships, system structure) |
-| **Type Safety** | No type-safe references to other modules         | `typeof import()` ensures references are compiler-validated |
-| **Output**      | Extracted to HTML/JSON for display               | Builds queryable knowledge graph for AI and analysis        |
-
-**How is this different from MDX?**
-
-MDX lets you write Markdown with embedded JSX components for rich documentation. tskb uses JSX but enforces type safety through TypeScript.
-
-|                | MDX                                                      | tskb                                                         |
-| -------------- | -------------------------------------------------------- | ------------------------------------------------------------ |
-| **Purpose**    | General-purpose documentation with JSX for interactivity | Architecture documentation with type-checked code references |
-| **Validation** | No compiler validation of code references                | TypeScript compiler validates all imports and types          |
-| **Output**     | Renders to HTML/React for display                        | Generates knowledge graph for programmatic analysis          |
-| **Focus**      | Content-focused (guides, tutorials, marketing pages)     | Structure-focused (architecture, relationships, patterns)    |
-
-**How is this different from Markdown?**
-
-Markdown is great for writing documentation, but it has no understanding of your code structure. tskb builds on TypeScript to create type-safe architectural documentation.
-
-|                     | Markdown (.md)                                 | tskb                                                        |
-| ------------------- | ---------------------------------------------- | ----------------------------------------------------------- |
-| **Code References** | Plain text - breaks silently when code changes | Type-checked via `typeof import()` - breaks at compile time |
-| **Structure**       | Free-form text                                 | Structured declarations (Folders, Exports, Terms)           |
-| **Validation**      | None - links and references are just strings   | TypeScript compiler validates all references                |
-| **Output**          | Rendered as HTML/text                          | Knowledge graph + can generate .md files (Agents.md, etc.)  |
-| **AI Integration**  | AI parses raw text                             | AI gets structured graph built from type-safe documentation |
-
-**Note:** tskb can generate specialized Markdown files from your type-safe documentation - like `Agents.md` for AI agent configurations, `claude.md` for Claude-specific context, or `skills.md` for capability documentation. These are built from your validated architecture declarations, ensuring they stay accurate as your code evolves.
-
-**Does this work with JavaScript?**
-
-You need TypeScript for the `.tskb.tsx` files, but you can document JavaScript projects.
-
-**Performance impact on CI?**
-
-Depends on your docs and project size, but shouldn't take more than a normal TypeScript build. The build time is proportional to the number of documentation files and their complexity.
-
-**What if I rename a file?**
-
-Docs fail to compile. Fix the import path and you're done.
-
-**Do I need to document everything?**
-
-No. Start with the most important architecture - what you'd explain to a new team member joining the project. Document the core layers, key modules, and important patterns. Then grow the documentation gradually as needed.
-
-Treat it as living docs: when working with AI assistants on specific features or refactorings, add the architectural insights from those sessions as documentation artifacts. This preserves optimized context for future AI interactions and team members. You can use AI assistants to help write the docs by pointing them at specific files or folders to document.
+---
 
 ## Roadmap
 
-- Knowledge graph optimizations and query capabilities
-- Context layer for better AI integration
-- MCP server implementation
+- Graph querying & optimization
+- AI context layer (MCP)
+- Architectural constraints
+- Plugin system
+
+---
 
 ## License
 
