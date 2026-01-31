@@ -78,6 +78,7 @@ If information is missing or unclear, state that explicitly.
 - Clear explanations of _why_ components exist
 - References to documentation nodes when available
 - Small, bounded architectural context windows
+- **Concise, direct responses** — avoid verbose explanations unless specifically requested
 
 ---
 

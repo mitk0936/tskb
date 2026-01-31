@@ -76,9 +76,9 @@ declare global {
         desc: "Generates a Graphviz DOT file from the knowledge graph JSON";
         type: typeof import("packages/tskb/src/cli/commands/visualize.js").visualize;
       }>;
-      "cli.query": Export<{
-        desc: "Simple demo query command that searches the knowledge graph and returns structured results with context, relationships, and AI suggestions";
-        type: typeof import("packages/tskb/src/cli/commands/query.js").query;
+      "cli.select": Export<{
+        desc: "Selects the single best-matching node from the knowledge graph with confidence score, parent/children context, and alternative suggestions";
+        type: typeof import("packages/tskb/src/cli/commands/select.js").select;
       }>;
       generateDot: Export<{
         desc: "Core function that transforms the knowledge graph into DOT format";
@@ -107,8 +107,8 @@ const CliBuildExport = ref as tskb.Exports["cli.build"];
 const CliVisualizeExport = ref as tskb.Exports["cli.visualize"];
 const GenerateDotExport = ref as tskb.Exports["generateDot"];
 const DotFileTerm = ref as tskb.Terms["dotFile"];
-const CliQueryExport = ref as tskb.Exports["cli.query"];
-const QueryMatchTerm = ref as tskb.Terms["queryMatch"];
+const CliSelectExport = ref as tskb.Exports["cli.select"];
+const SelectResultTerm = ref as tskb.Terms["selectResult"];
 
 export default (
   <Doc>
@@ -208,17 +208,17 @@ export default (
       <Li>AI-optimized: Queryable knowledge graph reduces hallucination</Li>
       <Li>Docs as infrastructure: Compile-time validation, not afterthought</Li>
     </List>
-    <H3>Querying the knowledge graph</H3>
-    <P>Demo query command for programmatic {GraphTerm} access by AI agents and tools</P>
+    <H3>Selecting nodes from the knowledge graph</H3>
+    <P>Focused node lookup command for AI agents - returns single best match with context</P>
     <List>
-      <Li>Run {CliQueryExport}: "tskb query ./dist/taskflow-graph.json auth"</Li>
-      <Li>Searches all node types matching against IDs, descriptions, paths, and content</Li>
+      <Li>Run {CliSelectExport}: "tskb select ./dist/taskflow-graph.json auth"</Li>
+      <Li>Finds best-matching node across IDs, descriptions, paths, and content</Li>
       <Li>
-        Each {QueryMatchTerm} includes: node with relevance score, hierarchy breadcrumb, parent
-        context, related files, relationships, and AI suggestions
+        {SelectResultTerm} includes: match with confidence score (0-1), parent/children context,
+        related docs and files, alternative suggestions when confidence {"<"} 0.7
       </Li>
-      <Li>Sorted by relevance: ID matches highest, then path, description, and content</Li>
-      <Li>Outputs structured JSON for AI consumption and tooling</Li>
+      <Li>Scoring: exact match = 1.0, prefix = 0.85, path = 0.75, substring = 0.5-0.65</Li>
+      <Li>Optimized for token-efficient codebase navigation by AI assistants</Li>
     </List>
     <H3>Documentation Philosophy: Map, Not Manual</H3>
     <P>

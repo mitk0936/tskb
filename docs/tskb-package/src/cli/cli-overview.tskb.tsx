@@ -16,7 +16,7 @@ declare global {
   namespace tskb {
     interface Folders {
       "tskb.cli.commands": Folder<{
-        desc: "Command implementations for build, visualize, and query operations";
+        desc: "Command implementations for build, visualize, and select operations";
         path: "packages/tskb/src/cli/commands";
       }>;
     }
@@ -37,9 +37,9 @@ declare global {
         type: typeof import("packages/tskb/src/cli/commands/visualize.js");
       }>;
 
-      "cli.commands.query": Module<{
-        desc: "Query command module - searches knowledge graph and returns structured results with context";
-        type: typeof import("packages/tskb/src/cli/commands/query.js");
+      "cli.commands.select": Module<{
+        desc: "Select command module - finds single best-matching node with confidence score and context";
+        type: typeof import("packages/tskb/src/cli/commands/select.js");
       }>;
     }
 
@@ -52,7 +52,7 @@ declare global {
 
     interface Terms {
       cliPipeline: Term<"The six-stage build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → JSON output">;
-      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, visualize, or query)">;
+      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, visualize, or select)">;
       globPattern: Term<"File pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing">;
     }
   }
@@ -73,9 +73,9 @@ const CliVisualizeModule = ref as tskb.Modules["cli.commands.visualize"];
 const CliVisualizeExport = ref as tskb.Exports["cli.visualize"];
 const GenerateDotExport = ref as tskb.Exports["generateDot"];
 const DotFileTerm = ref as tskb.Terms["dotFile"];
-const CliQueryModule = ref as tskb.Modules["cli.commands.query"];
-const CliQueryExport = ref as tskb.Exports["cli.query"];
-const QueryMatchTerm = ref as tskb.Terms["queryMatch"];
+const CliSelectModule = ref as tskb.Modules["cli.commands.select"];
+const CliSelectExport = ref as tskb.Exports["cli.select"];
+const SelectResultTerm = ref as tskb.Terms["selectResult"];
 
 export default (
   <Doc>
@@ -128,21 +128,20 @@ export default (
       <Li>Write DOT file</Li>
     </List>
 
-    <H2>Query Command</H2>
+    <H2>Select Command</H2>
 
     <P>
-      {CliQueryModule} ({CliQueryExport})
+      {CliSelectModule} ({CliSelectExport})
     </P>
 
     <List>
       <Li>Load graph JSON</Li>
-      <Li>Search: node IDs, paths, descs, content</Li>
-      <Li>Score: ID=10, path=8, desc=5, content=3</Li>
-      <Li>Build {QueryMatchTerm}: hierarchy, files, relationships, doc excerpts, AI suggestions</Li>
-      <Li>Sort by score, output JSON</Li>
-      <Li>
-        Output modes: concise (default, ~5-10k tokens) or --verbose (full context, ~25k tokens)
-      </Li>
+      <Li>Match: node IDs, paths, descs, content (exact/prefix/substring)</Li>
+      <Li>Score: exact ID=100, exact path=90, prefix ID=80, path substring=60, desc=20-40</Li>
+      <Li>Calculate confidence: exact=1.0, prefix=0.85, path=0.75, substring=0.5-0.65</Li>
+      <Li>Return best match as {SelectResultTerm}: match, parent, children, docs, files</Li>
+      <Li>Include suggestions when confidence {"<"} 0.7</Li>
+      <Li>Concise (5 files, 100-char excerpts) or --verbose (15 files, 200-char excerpts)</Li>
     </List>
   </Doc>
 );

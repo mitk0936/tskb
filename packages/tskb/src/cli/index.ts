@@ -9,7 +9,7 @@
 
 import { build } from "./commands/build.js";
 import { visualize } from "./commands/visualize.js";
-import { query } from "./commands/query.js";
+import { select } from "./commands/select.js";
 
 /**
  * Parse command line arguments
@@ -19,20 +19,20 @@ function parseArgs(
 ):
   | { command: "build"; pattern: string; output: string; tsconfig: string }
   | { command: "visualize"; input: string; output: string }
-  | { command: "query"; input: string; searchTerm: string; verbose: boolean } {
+  | { command: "select"; input: string; searchTerm: string; verbose: boolean } {
   const command = args[0];
 
   if (!command) {
     console.error("Usage:");
     console.error("  tskb build <glob> --out <file> --tsconfig <path>");
     console.error("  tskb visualize <graph.json> --out <file.dot>");
-    console.error("  tskb query <graph.json> <search-term> [--verbose]");
+    console.error("  tskb select <graph.json> <search-term> [--verbose]");
     console.error("");
     console.error("Examples:");
     console.error('  tskb build "src/**/*.tsx" --out graph.json --tsconfig ./tsconfig.json');
     console.error("  tskb visualize tskb.json --out graph.dot");
-    console.error('  tskb query tskb.json "auth"              # Concise output (default)');
-    console.error('  tskb query tskb.json "auth" --verbose    # Full context');
+    console.error('  tskb select tskb.json "auth"              # Concise output (default)');
+    console.error('  tskb select tskb.json "auth" --verbose    # Full context');
     process.exit(1);
   }
 
@@ -78,16 +78,16 @@ function parseArgs(
     };
   }
 
-  if (command === "query") {
+  if (command === "select") {
     const input = args[1];
     const searchTerm = args[2];
     if (!input || !searchTerm) {
-      console.error("Error: query command requires a graph file and search term");
-      console.error('Usage: tskb query <graph.json> "<search-term>" [--verbose]');
+      console.error("Error: select command requires a graph file and search term");
+      console.error('Usage: tskb select <graph.json> "<search-term>" [--verbose]');
       process.exit(1);
     }
     return {
-      command: "query",
+      command: "select",
       input,
       searchTerm,
       verbose: args.includes("--verbose"),
@@ -110,8 +110,8 @@ async function main() {
       await build({ pattern: config.pattern, output: config.output, tsconfig: config.tsconfig });
     } else if (config.command === "visualize") {
       await visualize(config.input, config.output);
-    } else if (config.command === "query") {
-      await query(config.input, config.searchTerm, !config.verbose);
+    } else if (config.command === "select") {
+      await select(config.input, config.searchTerm, !config.verbose);
     }
   } catch (error) {
     console.error("❌ Error:", error instanceof Error ? error.message : String(error));
