@@ -146,7 +146,7 @@ Notes:
 ```json
 {
   "scripts": {
-    "generate": "tskb "**/*.tskb.tsx" --out dist/graph.json --tsconfig tsconfig.json"
+    "generate": "tskb \"**/*.tskb.tsx\" --out dist/graph.json --tsconfig tsconfig.json"
   }
 }
 ```
