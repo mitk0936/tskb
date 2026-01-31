@@ -136,9 +136,14 @@ export default (
 
     <List>
       <Li>Load graph JSON</Li>
-      <Li>Match: node IDs, paths, descs, content (exact/prefix/substring)</Li>
-      <Li>Score: exact ID=100, exact path=90, prefix ID=80, path substring=60, desc=20-40</Li>
-      <Li>Calculate confidence: exact=1.0, prefix=0.85, path=0.75, substring=0.5-0.65</Li>
+      <Li>Support multi-word queries: "edge types", "select command", "confidence score"</Li>
+      <Li>Match modes: exact phrase, prefix, phrase substring, all-words-present (any order)</Li>
+      <Li>Score: exact phrase (boosted +15-20%), phrase substring, all words scattered</Li>
+      <Li>Fields: node IDs, paths (resolvedPath/filePath), descs, content</Li>
+      <Li>
+        Confidence: exact=1.0, prefix=0.85, phrase+path=0.8, phrase=0.7, all-words=0.6,
+        substring=0.5-0.65
+      </Li>
       <Li>Return best match as {SelectResultTerm}: match, parent, children, docs, files</Li>
       <Li>Include suggestions when confidence {"<"} 0.7</Li>
       <Li>Concise (5 files, 100-char excerpts) or --verbose (15 files, 200-char excerpts)</Li>

@@ -142,7 +142,7 @@ function selectBestMatch(
 }
 
 /**
- * Check if a node matches the search term
+ * Check if a node matches the search term (supports multi-word phrases)
  */
 function matchNode(
   id: string,
@@ -154,17 +154,22 @@ function matchNode(
   let score = 0;
 
   const idLower = id.toLowerCase();
+  const searchWords = searchTerm.split(/\s+/).filter((w) => w.length > 0);
+  const isMultiWord = searchWords.length > 1;
 
   // Exact ID match (highest priority)
   if (idLower === searchTerm) {
     matchedFields.push("id:exact");
-    score += 100;
+    score += isMultiWord ? 120 : 100; // Boost multi-word exact matches
   } else if (idLower.startsWith(searchTerm)) {
     matchedFields.push("id:prefix");
-    score += 80;
+    score += isMultiWord ? 95 : 80;
   } else if (idLower.includes(searchTerm)) {
-    matchedFields.push("id:substring");
-    score += 50;
+    matchedFields.push("id:phrase");
+    score += isMultiWord ? 70 : 50;
+  } else if (isMultiWord && allWordsMatch(idLower, searchWords)) {
+    matchedFields.push("id:all-words");
+    score += 40; // Lower than phrase, higher than single word substring
   }
 
   // Search in description
@@ -172,10 +177,13 @@ function matchNode(
     const descLower = node.desc.toLowerCase();
     if (descLower === searchTerm) {
       matchedFields.push("desc:exact");
-      score += 40;
+      score += isMultiWord ? 50 : 40;
     } else if (descLower.includes(searchTerm)) {
-      matchedFields.push("desc:substring");
-      score += 20;
+      matchedFields.push("desc:phrase");
+      score += isMultiWord ? 30 : 20;
+    } else if (isMultiWord && allWordsMatch(descLower, searchWords)) {
+      matchedFields.push("desc:all-words");
+      score += 15;
     }
   }
 
@@ -184,18 +192,24 @@ function matchNode(
     const pathLower = node.resolvedPath.toLowerCase();
     if (pathLower === searchTerm) {
       matchedFields.push("resolvedPath:exact");
-      score += 90;
+      score += isMultiWord ? 105 : 90;
     } else if (pathLower.includes(searchTerm)) {
-      matchedFields.push("resolvedPath:substring");
-      score += 60;
+      matchedFields.push("resolvedPath:phrase");
+      score += isMultiWord ? 75 : 60;
+    } else if (isMultiWord && allWordsMatch(pathLower, searchWords)) {
+      matchedFields.push("resolvedPath:all-words");
+      score += 45;
     }
   }
 
   if ("path" in node && node.path) {
     const pathLower = node.path.toLowerCase();
     if (pathLower.includes(searchTerm)) {
-      matchedFields.push("path:substring");
-      score += 55;
+      matchedFields.push("path:phrase");
+      score += isMultiWord ? 65 : 55;
+    } else if (isMultiWord && allWordsMatch(pathLower, searchWords)) {
+      matchedFields.push("path:all-words");
+      score += 40;
     }
   }
 
@@ -203,10 +217,13 @@ function matchNode(
     const filePathLower = node.filePath.toLowerCase();
     if (filePathLower === searchTerm) {
       matchedFields.push("filePath:exact");
-      score += 90;
+      score += isMultiWord ? 105 : 90;
     } else if (filePathLower.includes(searchTerm)) {
-      matchedFields.push("filePath:substring");
-      score += 60;
+      matchedFields.push("filePath:phrase");
+      score += isMultiWord ? 75 : 60;
+    } else if (isMultiWord && allWordsMatch(filePathLower, searchWords)) {
+      matchedFields.push("filePath:all-words");
+      score += 45;
     }
   }
 
@@ -214,15 +231,24 @@ function matchNode(
   if ("importPath" in node && node.importPath) {
     const importLower = node.importPath.toLowerCase();
     if (importLower.includes(searchTerm)) {
-      matchedFields.push("importPath:substring");
-      score += 55;
+      matchedFields.push("importPath:phrase");
+      score += isMultiWord ? 65 : 55;
+    } else if (isMultiWord && allWordsMatch(importLower, searchWords)) {
+      matchedFields.push("importPath:all-words");
+      score += 40;
     }
   }
 
   // Search in doc content (lowest priority)
-  if (node.type === "doc" && node.content.toLowerCase().includes(searchTerm)) {
-    matchedFields.push("content:substring");
-    score += 10;
+  if (node.type === "doc") {
+    const contentLower = node.content.toLowerCase();
+    if (contentLower.includes(searchTerm)) {
+      matchedFields.push("content:phrase");
+      score += isMultiWord ? 15 : 10;
+    } else if (isMultiWord && allWordsMatch(contentLower, searchWords)) {
+      matchedFields.push("content:all-words");
+      score += 8;
+    }
   }
 
   if (matchedFields.length === 0) {
@@ -241,11 +267,20 @@ function matchNode(
 }
 
 /**
+ * Check if all words in the search term appear in the text (in any order)
+ */
+function allWordsMatch(text: string, words: string[]): boolean {
+  return words.every((word) => text.includes(word));
+}
+
+/**
  * Calculate match confidence (0-1)
  */
 function calculateConfidence(candidate: MatchCandidate): number {
   const hasExactMatch = candidate.matchedFields.some((f) => f.includes(":exact"));
   const hasPrefixMatch = candidate.matchedFields.some((f) => f.includes(":prefix"));
+  const hasPhraseMatch = candidate.matchedFields.some((f) => f.includes(":phrase"));
+  const hasAllWordsMatch = candidate.matchedFields.some((f) => f.includes(":all-words"));
   const hasPathMatch = candidate.matchedFields.some(
     (f) => f.startsWith("resolvedPath") || f.startsWith("filePath") || f.startsWith("path")
   );
@@ -254,8 +289,14 @@ function calculateConfidence(candidate: MatchCandidate): number {
     return 1.0;
   } else if (hasPrefixMatch) {
     return 0.85;
+  } else if (hasPhraseMatch && hasPathMatch) {
+    return 0.8; // Multi-word phrase in path
   } else if (hasPathMatch) {
     return 0.75;
+  } else if (hasPhraseMatch) {
+    return 0.7; // Multi-word phrase match
+  } else if (hasAllWordsMatch) {
+    return 0.6; // All words present but not as phrase
   } else if (candidate.score >= 50) {
     return 0.65;
   } else if (candidate.score >= 20) {
