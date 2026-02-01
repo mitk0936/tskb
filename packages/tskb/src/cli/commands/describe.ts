@@ -109,25 +109,25 @@ function findClosestMatch(
   parent: { id: string; type: string; desc?: string; path?: string } | null;
   children: Array<{ id: string; type: string; desc?: string; path?: string }>;
 } {
-  // Normalize the input path the same way findFolderByPath does
-  let resolvedPath = inputPath;
-  if (inputPath.startsWith(".")) {
-    resolvedPath = path.resolve(process.cwd(), inputPath);
-  }
+  let normalizedInput: string;
 
-  let normalizedInput = normalizePath(resolvedPath);
-
-  // If input is an absolute path, try to convert it to relative
-  if (path.isAbsolute(resolvedPath)) {
+  // If absolute path, convert to repo-relative
+  if (path.isAbsolute(inputPath)) {
     try {
       const repoRoot = getRepoRoot();
-      if (repoRoot) {
-        const relativePath = path.relative(repoRoot, resolvedPath);
+      if (!repoRoot) {
+        // If not in git repo, just normalize the absolute path
+        normalizedInput = normalizePath(inputPath);
+      } else {
+        const relativePath = path.relative(repoRoot, inputPath);
         normalizedInput = normalizePath(relativePath);
       }
     } catch (e) {
-      // Continue with absolute path
+      normalizedInput = normalizePath(inputPath);
     }
+  } else {
+    // Treat as repo-relative path
+    normalizedInput = normalizePath(inputPath);
   }
 
   // Find closest parent by walking up the path
@@ -196,33 +196,30 @@ function findClosestMatch(
 }
 
 /**
- * Find a folder node by filesystem path
+ * Find a folder node by filesystem path (repo-relative or absolute)
  */
 function findFolderByPath(
   graph: KnowledgeGraph,
   inputPath: string
 ): { id: string; node: any } | null {
-  // First resolve relative paths to absolute
-  let resolvedPath = inputPath;
-  if (inputPath.startsWith(".")) {
-    resolvedPath = path.resolve(process.cwd(), inputPath);
-  }
+  let normalizedInput: string;
 
-  // Normalize the input path
-  let normalizedInput = normalizePath(resolvedPath);
-
-  // If input is an absolute path, try to convert it to relative
-  if (path.isAbsolute(resolvedPath)) {
+  // If absolute path, convert to repo-relative
+  if (path.isAbsolute(inputPath)) {
     try {
-      // Try to find the repo root and make the path relative to it
       const repoRoot = getRepoRoot();
-      if (repoRoot) {
-        const relativePath = path.relative(repoRoot, resolvedPath);
-        normalizedInput = normalizePath(relativePath);
+      if (!repoRoot) {
+        console.error("Error: Cannot resolve absolute path - not in a git repository");
+        return null;
       }
+      const relativePath = path.relative(repoRoot, inputPath);
+      normalizedInput = normalizePath(relativePath);
     } catch (e) {
-      // If we can't find repo root, just use the normalized absolute path
+      return null;
     }
+  } else {
+    // Treat as repo-relative path
+    normalizedInput = normalizePath(inputPath);
   }
 
   // Get all possible path variants to check

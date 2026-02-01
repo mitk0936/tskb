@@ -41,8 +41,14 @@ Use `describe` to see **what exists here**.
 
 ```bash
 cd ../../docs/tskb-package
-node ../../packages/tskb/dist/cli/index.js describe ./dist/taskflow-graph.json "<path-from-root-of-the-repo>"
+node ../../packages/tskb/dist/cli/index.js describe ./dist/taskflow-graph.json "<repo-relative-path>"
 ```
+
+**Path format:**
+
+- Paths are relative to the git repository root (e.g., `"packages/tskb/src/cli"`)
+- Absolute paths are automatically converted to repo-relative
+- Partial paths work too (e.g., `"src/cli"` matches `"packages/tskb/src/cli"`)
 
 You get:
 
@@ -76,6 +82,12 @@ node ../../packages/tskb/dist/cli/index.js select ./dist/taskflow-graph.json "<c
 - The `<folder-scope>` parameter is **mandatory**
 - Results are filtered to only include nodes within that folder and its descendants
 - Use `describe` first to identify the correct scope
+
+**Path format (same as describe):**
+
+- Paths are relative to the git repository root (e.g., `"packages/tskb/src/cli"`)
+- Absolute paths are automatically converted to repo-relative
+- Partial paths work too (e.g., `"src/cli"` matches `"packages/tskb/src/cli"`)
 
 Use results to decide **where to describe next**.
 
