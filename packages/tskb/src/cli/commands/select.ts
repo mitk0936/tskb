@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import path from "node:path";
+import { execSync } from "node:child_process";
 import type { KnowledgeGraph, AnyNode, GraphEdge } from "../../core/graph/types.js";
 
 /**
@@ -45,15 +47,17 @@ interface MatchCandidate {
 }
 
 /**
- * Select a single best-matching node from the knowledge graph
+ * Select a single best-matching node from the knowledge graph within a specified scope
  *
  * @param graphPath - Path to the knowledge graph JSON file
  * @param searchTerm - Search term to match against nodes
+ * @param scopePath - Folder path to scope the search
  * @param concise - Output concise format optimized for AI consumption (default: true)
  */
 export async function select(
   graphPath: string,
   searchTerm: string,
+  scopePath: string,
   concise: boolean = true
 ): Promise<void> {
   // Load the knowledge graph
@@ -65,15 +69,36 @@ export async function select(
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
 
-  const result = selectBestMatch(graph, searchTerm, concise);
+  // Find the scope folder
+  const scopeFolder = findFolderByPath(graph, scopePath);
+
+  if (!scopeFolder) {
+    console.error(
+      JSON.stringify(
+        {
+          error: "Scope folder not found in graph",
+          scopePath,
+          suggestion:
+            "Verify the folder path exists in the graph. Use 'describe' to explore the structure.",
+        },
+        null,
+        2
+      )
+    );
+    process.exit(1);
+  }
+
+  const result = selectBestMatch(graph, searchTerm, scopeFolder.id, concise);
 
   if (!result) {
     console.error(
       JSON.stringify(
         {
-          error: "No matching node found",
+          error: "No matching node found in scope",
           searchTerm,
-          suggestion: "Try a different search term or check the graph contents",
+          scopePath,
+          scopeId: scopeFolder.id,
+          suggestion: "Try a different search term or expand the scope",
         },
         null,
         2
@@ -86,38 +111,47 @@ export async function select(
 }
 
 /**
- * Search across all nodes and return the best match
+ * Search across nodes within a scope and return the best match
  */
 function selectBestMatch(
   graph: KnowledgeGraph,
   searchTerm: string,
+  scopeFolderId: string,
   concise: boolean
 ): SelectResult | null {
   const candidates: MatchCandidate[] = [];
   const lowerSearchTerm = searchTerm.toLowerCase();
 
-  // Collect all matching candidates
+  // Get the scope folder and build the scope set (folder + all descendants)
+  const scopeNodeIds = buildScopeSet(graph, scopeFolderId);
+
+  // Collect all matching candidates within scope
   for (const [id, node] of Object.entries(graph.nodes.folders)) {
+    if (!isInScope(id, node, scopeNodeIds, graph)) continue;
     const candidate = matchNode(id, node, lowerSearchTerm, graph.edges);
     if (candidate) candidates.push(candidate);
   }
 
   for (const [id, node] of Object.entries(graph.nodes.modules)) {
+    if (!isInScope(id, node, scopeNodeIds, graph)) continue;
     const candidate = matchNode(id, node, lowerSearchTerm, graph.edges);
     if (candidate) candidates.push(candidate);
   }
 
   for (const [id, node] of Object.entries(graph.nodes.terms)) {
+    if (!isInScope(id, node, scopeNodeIds, graph)) continue;
     const candidate = matchNode(id, node, lowerSearchTerm, graph.edges);
     if (candidate) candidates.push(candidate);
   }
 
   for (const [id, node] of Object.entries(graph.nodes.exports)) {
+    if (!isInScope(id, node, scopeNodeIds, graph)) continue;
     const candidate = matchNode(id, node, lowerSearchTerm, graph.edges);
     if (candidate) candidates.push(candidate);
   }
 
   for (const [id, node] of Object.entries(graph.nodes.docs)) {
+    if (!isInScope(id, node, scopeNodeIds, graph)) continue;
     const candidate = matchNode(id, node, lowerSearchTerm, graph.edges);
     if (candidate) candidates.push(candidate);
   }
@@ -550,4 +584,145 @@ function findNodeById(id: string, graph: KnowledgeGraph): AnyNode | null {
     graph.nodes.docs[id] ||
     null
   );
+}
+
+/**
+ * Find a folder node by filesystem path
+ */
+function findFolderByPath(
+  graph: KnowledgeGraph,
+  inputPath: string
+): { id: string; node: any } | null {
+  // First resolve relative paths to absolute
+  let resolvedPath = inputPath;
+  if (inputPath.startsWith(".")) {
+    resolvedPath = path.resolve(process.cwd(), inputPath);
+  }
+
+  // Normalize the input path
+  let normalizedInput = normalizePath(resolvedPath);
+
+  // If input is an absolute path, try to convert it to relative
+  if (path.isAbsolute(resolvedPath)) {
+    try {
+      const repoRoot = getRepoRoot();
+      if (repoRoot) {
+        const relativePath = path.relative(repoRoot, resolvedPath);
+        normalizedInput = normalizePath(relativePath);
+      }
+    } catch (e) {
+      // Continue with absolute path
+    }
+  }
+
+  // Get all possible path variants to check
+  const pathVariants = [
+    normalizedInput,
+    // Remove common prefixes
+    normalizedInput.replace(/^packages\/[^\/]+\//, ""),
+    normalizedInput.replace(/^src\//, ""),
+  ];
+
+  // Search through all folder nodes
+  for (const [id, node] of Object.entries(graph.nodes.folders)) {
+    const nodePath = node.resolvedPath || node.path;
+    if (!nodePath) continue;
+
+    const normalizedNodePath = normalizePath(nodePath);
+
+    // Try each variant
+    for (const variant of pathVariants) {
+      // Exact match
+      if (normalizedNodePath === variant) {
+        return { id, node };
+      }
+
+      // Node path ends with the variant
+      if (normalizedNodePath.endsWith("/" + variant) || normalizedNodePath.endsWith(variant)) {
+        return { id, node };
+      }
+
+      // Variant ends with node path
+      if (variant.endsWith("/" + normalizedNodePath) || variant.endsWith(normalizedNodePath)) {
+        return { id, node };
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Get the git repository root
+ */
+function getRepoRoot(): string | null {
+  try {
+    const root = execSync("git rev-parse --show-toplevel", { encoding: "utf-8" }).trim();
+    return root;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Normalize a path for comparison
+ */
+function normalizePath(p: string): string {
+  return p
+    .replace(/\\/g, "/")
+    .replace(/^\/+|\/+$/g, "")
+    .toLowerCase();
+}
+
+/**
+ * Build a set of all folder IDs within the scope (scope folder + all descendants)
+ */
+function buildScopeSet(graph: KnowledgeGraph, scopeFolderId: string): Set<string> {
+  const scopeSet = new Set<string>();
+  scopeSet.add(scopeFolderId);
+
+  // Add all descendant folders
+  const toVisit = [scopeFolderId];
+  while (toVisit.length > 0) {
+    const currentId = toVisit.pop()!;
+
+    // Find all folders that belong to or are contained by the current folder
+    for (const edge of graph.edges) {
+      if (edge.from === currentId && edge.type === "contains") {
+        const childNode = graph.nodes.folders[edge.to];
+        if (childNode && !scopeSet.has(edge.to)) {
+          scopeSet.add(edge.to);
+          toVisit.push(edge.to);
+        }
+      }
+    }
+  }
+
+  return scopeSet;
+}
+
+/**
+ * Check if a node is within the scope
+ */
+function isInScope(
+  nodeId: string,
+  node: AnyNode,
+  scopeFolderIds: Set<string>,
+  graph: KnowledgeGraph
+): boolean {
+  // If the node itself is a folder in scope, it's in scope
+  if (node.type === "folder" && scopeFolderIds.has(nodeId)) {
+    return true;
+  }
+
+  // For non-folder nodes, check if they belong to a folder in scope
+  for (const edge of graph.edges) {
+    if (edge.from === nodeId && edge.type === "belongs-to") {
+      if (scopeFolderIds.has(edge.to)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }

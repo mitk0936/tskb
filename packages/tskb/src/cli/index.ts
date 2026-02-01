@@ -20,7 +20,7 @@ function parseArgs(
 ):
   | { command: "build"; pattern: string; output: string; tsconfig: string }
   | { command: "visualize"; input: string; output: string }
-  | { command: "select"; input: string; searchTerm: string; verbose: boolean }
+  | { command: "select"; input: string; searchTerm: string; scope: string; verbose: boolean }
   | { command: "describe"; input: string; folderPath: string } {
   const command = args[0];
 
@@ -28,14 +28,14 @@ function parseArgs(
     console.error("Usage:");
     console.error("  tskb build <glob> --out <file> --tsconfig <path>");
     console.error("  tskb visualize <graph.json> --out <file.dot>");
-    console.error("  tskb select <graph.json> <search-term> [--verbose]");
+    console.error("  tskb select <graph.json> <search-term> <folder-path> [--verbose]");
     console.error("  tskb describe <graph.json> <folder-path>");
     console.error("");
     console.error("Examples:");
     console.error('  tskb build "src/**/*.tsx" --out graph.json --tsconfig ./tsconfig.json');
     console.error("  tskb visualize tskb.json --out graph.dot");
-    console.error('  tskb select tskb.json "auth"              # Concise output (default)');
-    console.error('  tskb select tskb.json "auth" --verbose    # Full context');
+    console.error('  tskb select tskb.json "auth" "src/cli"    # Scoped select (concise)');
+    console.error('  tskb select tskb.json "auth" "src/cli" --verbose # Full context');
     console.error('  tskb describe tskb.json "src/cli"         # Describe folder by path');
     console.error('  tskb describe tskb.json "packages/tskb/src/cli" # Full path from repo root');
     process.exit(1);
@@ -86,15 +86,17 @@ function parseArgs(
   if (command === "select") {
     const input = args[1];
     const searchTerm = args[2];
-    if (!input || !searchTerm) {
-      console.error("Error: select command requires a graph file and search term");
-      console.error('Usage: tskb select <graph.json> "<search-term>" [--verbose]');
+    const scope = args[3];
+    if (!input || !searchTerm || !scope) {
+      console.error("Error: select command requires a graph file, search term, and scope folder");
+      console.error('Usage: tskb select <graph.json> "<search-term>" "<folder-path>" [--verbose]');
       process.exit(1);
     }
     return {
       command: "select",
       input,
       searchTerm,
+      scope,
       verbose: args.includes("--verbose"),
     };
   }
@@ -131,7 +133,7 @@ async function main() {
     } else if (config.command === "visualize") {
       await visualize(config.input, config.output);
     } else if (config.command === "select") {
-      await select(config.input, config.searchTerm, !config.verbose);
+      await select(config.input, config.searchTerm, config.scope, !config.verbose);
     } else if (config.command === "describe") {
       await describe(config.input, config.folderPath);
     }

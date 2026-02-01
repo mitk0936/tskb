@@ -1,224 +1,156 @@
-# Claude Instructions — TSKB Package
+# CLAUDE.md — TSKB Navigation Guide
 
-This package uses **TSKB (TypeScript Semantic Knowledge Base)** to encode
-architectural intent as a structured knowledge graph.
+This repository uses **TSKB (TypeScript Knowledge Base)** to expose **structure and intent** of the codebase.
 
-This is the main package in the monorepo. Everything around it (docs, examples) is supplementary.
-Do not query other parts of the repo unless explicitly requested.
-
----
-
-## Navigation Strategy: Describe First, Select Second, Then Read Files
-
-**IMPORTANT**: Use the TSKB CLI to understand **structure and intent** before reading source files.
-The graph provides the **map**; source files provide the **details**.
-
-Reading source code is allowed, but **only after** you understand where things live and how they relate.
-
-### Knowledge Graph Location
-
-```bash
-../../docs/tskb-package/dist/taskflow-graph.json
-```
+TSKB is a **map**, not a replacement for source code.
+Use it to orient yourself **before** reading files.
 
 ---
 
-## Available Commands
+## Core Rule
 
-### 1. `describe` — Inspect Folder Structure (PRIMARY)
+> **Structure first → concepts second → source last.**
 
-**Use when:** You need to understand what exists in a folder and how it is organized.
-
-`describe` is intentionally **shallow and scoped** — it shows only direct structure.
-
-**Syntax:**
-
-```bash
-node node ../../packages/tskb/dist/cli/index.js describe "<graph.json>" "<folder-path>"
-```
-
-**Path formats supported:**
-
-- Relative from repo root: `"src/cli"` or `"packages/tskb/src/cli"`
-- Relative from current directory: `"./src/cli"`
-- Absolute path: `"/full/path/to/folder"`
-
-**Examples:**
-
-```bash
-# Describe the CLI folder
-node node ../../packages/tskb/dist/cli/index.js describe "../../docs/tskb-package/dist/taskflow-graph.json" "src/cli"
-
-# Describe the core extraction logic
-node node ../../packages/tskb/dist/cli/index.js describe "../../docs/tskb-package/dist/taskflow-graph.json" "src/core/extraction"
-
-# Use full path from repo root
-node node ../../packages/tskb/dist/cli/index.js describe "../../docs/tskb-package/dist/taskflow-graph.json" "packages/tskb/src/core"
-```
-
-**Returns:**
-
-- **context**: The folder's ID, type, description, and path
-- **parent**: Immediate parent folder
-- **contents**: Direct child folders
-- **modules**: Modules that belong to this folder
-- **exports**: Exports that belong to this folder
-- **referencedInDocs**: Documentation files that reference this folder
+Never read source files until you understand **where you are** and **what the area is responsible for**.
 
 ---
 
-### 2. `select` — Search for Concepts (SECONDARY)
+## Knowledge Graph
 
-**Use when:** You need to locate where a concept, feature, or idea might live.
+The repository provides a prebuilt knowledge graph:
 
-`select` performs a **graph-wide ranked search**. Treat results as **candidates**, not absolute truth.
-
-**Syntax:**
-
-```bash
-node node ../../packages/tskb/dist/cli/index.js select "<graph.json>" "<search-term>" [--verbose]
+```
+<repo-root>/docs/tskb-package/dist/taskflow-graph.json
 ```
 
-**Examples:**
-
-```bash
-# Find CLI-related code
-node node ../../packages/tskb/dist/cli/index.js select "../../docs/tskb-package/dist/taskflow-graph.json" "cli"
-
-# Find extraction logic
-node node ../../packages/tskb/dist/cli/index.js select "../../docs/tskb-package/dist/taskflow-graph.json" "extraction"
-
-# Search for multi-word concepts
-node node ../../packages/tskb/dist/cli/index.js select "../../docs/tskb-package/dist/taskflow-graph.json" "knowledge graph"
-
-# Get verbose output with more context
-node node ../../packages/tskb/dist/cli/index.js select "../../docs/tskb-package/dist/taskflow-graph.json" "registry" --verbose
-```
-
-**Returns:**
-
-- **match**: Best matching node with confidence score
-- **parent**: Parent folder/context
-- **children**: Child nodes (subfolders, modules, exports)
-- **docs**: Documentation references
-- **files**: Related file paths
-- **suggestions**: Alternative matches if confidence is low
+This graph describes folders, modules, exports, and where they are documented.
 
 ---
 
-## Effective Navigation Workflows
+## Commands
 
-### Workflow 1: Understanding a Feature
+### 1. `describe` — Understand Structure (PRIMARY)
 
-1. **Describe** the relevant top-level area to understand structure
-2. **Select** the feature or concept to narrow focus
-3. **Describe** the specific folder where it lives
-4. **Read** the relevant source files
+Use `describe` to see **what exists here**.
 
-**Example: Understanding how commands work**
+- Shallow by design (no deep recursion)
+- Structural only (no interpretation)
+- Safe to use anywhere
+
+**Example:**
 
 ```bash
-# Step 1: Describe CLI area
-node node ../../packages/tskb/dist/cli/index.js describe "../../docs/tskb-package/dist/taskflow-graph.json" "src/cli"
-
-# Step 2: Locate commands
-node node ../../packages/tskb/dist/cli/index.js select "../../docs/tskb-package/dist/taskflow-graph.json" "commands"
-
-# Step 3: Describe commands folder
-node node ../../packages/tskb/dist/cli/index.js describe "../../docs/tskb-package/dist/taskflow-graph.json" "src/cli/commands"
-
-# Step 4: Read specific file
-# src/cli/commands/select.ts
+cd ../../docs/tskb-package
+node ../../packages/tskb/dist/cli/index.js describe ./dist/taskflow-graph.json "<path-from-root-of-the-repo>"
 ```
+
+You get:
+
+- the context (folder)
+- its parent
+- direct children
+- modules and exports
+- docs that mention this area
+
+Use this to orient yourself.
 
 ---
 
-### Workflow 2: Understanding a Folder’s Context
+### 2. `select` — Locate Concepts (SECONDARY)
 
-1. **Describe** the folder
-2. **Describe** its parent to understand placement
-3. **Select** specific modules or exports
-4. **Read** implementation files
+Use `select` only **after** you roughly know the area.
 
-**Example: Understanding extraction logic**
+`select` finds **candidate nodes** related to a concept **within a specific folder scope**.
+This avoids noise from unrelated concepts in other parts of the codebase.
+Treat results as _hints_, not truth.
+
+**Example:**
 
 ```bash
-# Step 1: Describe extraction folder
-node node ../../packages/tskb/dist/cli/index.js describe "../../docs/tskb-package/dist/taskflow-graph.json" "src/core/extraction"
-
-# Step 2: Describe parent context
-node node ../../packages/tskb/dist/cli/index.js describe "../../docs/tskb-package/dist/taskflow-graph.json" "src/core"
-
-# Step 3: Read implementation
-# src/core/extraction/registry.ts
+cd ../../docs/tskb-package
+node ../../packages/tskb/dist/cli/index.js select ./dist/taskflow-graph.json "<concept-keyword>" "<folder-scope>"
 ```
+
+**Important:**
+
+- The `<folder-scope>` parameter is **mandatory**
+- Results are filtered to only include nodes within that folder and its descendants
+- Use `describe` first to identify the correct scope
+
+Use results to decide **where to describe next**.
 
 ---
 
-### Workflow 3: Finding Related Code
+## Recommended Workflow
 
-1. **Describe** likely structural areas
-2. **Select** the concept to find candidate locations
-3. **Describe** parent folders to confirm context
-4. **Read** source files in order of relevance
+### Understanding a feature
+
+1. `describe` the likely area (to identify the scope)
+2. `select` the concept within that scope
+3. `describe` the returned folder from select results
+4. Read source files
+
+---
+
+### Understanding a folder
+
+1. `describe` the folder
+2. `describe` its parent
+3. Inspect listed modules / exports
+4. Read source files if needed
+
+---
+
+## When to Read Source Files
+
+Read source files **only after**:
+
+- you know the folder’s role
+- you know its boundaries
+- you know which files matter
+
+TSKB answers:
+
+- _what exists_
+- _where it lives_
+- _where it is referenced_
+
+Source code answers:
+
+- _how it works_
 
 ---
 
 ## Best Practices
 
-### ✅ DO:
+### DO
 
-- **Use `describe` first** to establish structure
-- Use `select` **after** you know roughly where to look
-- Treat graph results as **navigation aids**, not full truth
-- Explicitly switch to source code only after forming a hypothesis
-- Check **parent** and **children** to understand hierarchy
-- Use `--verbose` on `select` when refining understanding
+- Use `describe` first
+- Navigate structurally
+- Treat the graph as a map
+- Form a hypothesis before reading code
 
-### ❌ DON’T:
+### DON’T
 
-- Don’t read source files without structural context
-- Don’t assume missing graph nodes mean missing functionality
-- Don’t over-specify implementation details without source confirmation
-- Don’t query outside `packages/tskb/` unless explicitly asked
+- Don’t jump straight into files
+- Don’t assume missing graph data means missing functionality
+- Don’t treat graph output as implementation truth
 
 ---
 
-## Quick Reference
+## Mental Model
 
-| Task                | Command      | Example                          |
-| ------------------- | ------------ | -------------------------------- |
-| Explore structure   | `describe`   | `describe graph.json "src/cli"`  |
-| Locate concept      | `select`     | `select graph.json "extraction"` |
-| Refine context      | `describe`   | `describe graph.json "src/core"` |
-| Read implementation | Source files | After graph navigation           |
+- **Folders** = responsibility boundaries
+- **Modules** = implementation units
+- **Exports** = public surface
+- **Docs** = human-declared context
 
----
-
-## Graph Structure Overview
-
-The knowledge graph contains:
-
-- **Folders** — Logical contexts and boundaries
-- **Modules** — TypeScript files with descriptions
-- **Exports** — Public APIs
-- **Terms** — Domain concepts
-- **Docs** — Documentation bound to code
-
-**Edges (relationships):**
-
-- `belongs-to`
-- `contains`
-- `references`
-- `related-to`
+TSKB keeps reasoning **local, cautious, and intentional**.
 
 ---
 
 ## Remember
 
-> **Structure first, concepts second, source last.**
+> **If you don’t know where you are, don’t act.**
 >
-> The graph answers _what exists and why_.
-> Source files answer _how it works_.
->
-> Use both — in the right order.
+> Use structure to earn understanding before touching code.
