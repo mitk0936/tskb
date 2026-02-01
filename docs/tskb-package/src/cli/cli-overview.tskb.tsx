@@ -16,7 +16,7 @@ declare global {
   namespace tskb {
     interface Folders {
       "tskb.cli.commands": Folder<{
-        desc: "Command implementations for build, visualize, and select operations";
+        desc: "Command implementations for build, visualize, select, and describe operations";
         path: "packages/tskb/src/cli/commands";
       }>;
     }
@@ -41,6 +41,11 @@ declare global {
         desc: "Select command module - finds single best-matching node with confidence score and context";
         type: typeof import("packages/tskb/src/cli/commands/select.js");
       }>;
+
+      "cli.commands.describe": Module<{
+        desc: "Describe command module - inspects folder structure and returns closest parent/children when path not found";
+        type: typeof import("packages/tskb/src/cli/commands/describe.js");
+      }>;
     }
 
     interface Exports {
@@ -52,7 +57,7 @@ declare global {
 
     interface Terms {
       cliPipeline: Term<"The six-stage build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → JSON output">;
-      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, visualize, or select)">;
+      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, visualize, select, or describe)">;
       globPattern: Term<"File pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing">;
     }
   }
@@ -76,6 +81,7 @@ const DotFileTerm = ref as tskb.Terms["dotFile"];
 const CliSelectModule = ref as tskb.Modules["cli.commands.select"];
 const CliSelectExport = ref as tskb.Exports["cli.select"];
 const SelectResultTerm = ref as tskb.Terms["selectResult"];
+const CliDescribeModule = ref as tskb.Modules["cli.commands.describe"];
 
 export default (
   <Doc>

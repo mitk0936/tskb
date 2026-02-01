@@ -10,6 +10,7 @@
 import { build } from "./commands/build.js";
 import { visualize } from "./commands/visualize.js";
 import { select } from "./commands/select.js";
+import { describe } from "./commands/describe.js";
 
 /**
  * Parse command line arguments
@@ -19,7 +20,8 @@ function parseArgs(
 ):
   | { command: "build"; pattern: string; output: string; tsconfig: string }
   | { command: "visualize"; input: string; output: string }
-  | { command: "select"; input: string; searchTerm: string; verbose: boolean } {
+  | { command: "select"; input: string; searchTerm: string; verbose: boolean }
+  | { command: "describe"; input: string; folderPath: string } {
   const command = args[0];
 
   if (!command) {
@@ -27,12 +29,15 @@ function parseArgs(
     console.error("  tskb build <glob> --out <file> --tsconfig <path>");
     console.error("  tskb visualize <graph.json> --out <file.dot>");
     console.error("  tskb select <graph.json> <search-term> [--verbose]");
+    console.error("  tskb describe <graph.json> <folder-path>");
     console.error("");
     console.error("Examples:");
     console.error('  tskb build "src/**/*.tsx" --out graph.json --tsconfig ./tsconfig.json');
     console.error("  tskb visualize tskb.json --out graph.dot");
     console.error('  tskb select tskb.json "auth"              # Concise output (default)');
     console.error('  tskb select tskb.json "auth" --verbose    # Full context');
+    console.error('  tskb describe tskb.json "src/cli"         # Describe folder by path');
+    console.error('  tskb describe tskb.json "packages/tskb/src/cli" # Full path from repo root');
     process.exit(1);
   }
 
@@ -94,6 +99,21 @@ function parseArgs(
     };
   }
 
+  if (command === "describe") {
+    const input = args[1];
+    const folderPath = args[2];
+    if (!input || !folderPath) {
+      console.error("Error: describe command requires a graph file and folder path");
+      console.error('Usage: tskb describe <graph.json> "<folder-path>"');
+      process.exit(1);
+    }
+    return {
+      command: "describe",
+      input,
+      folderPath,
+    };
+  }
+
   console.error(`Unknown command: ${command}`);
   process.exit(1);
 }
@@ -112,6 +132,8 @@ async function main() {
       await visualize(config.input, config.output);
     } else if (config.command === "select") {
       await select(config.input, config.searchTerm, !config.verbose);
+    } else if (config.command === "describe") {
+      await describe(config.input, config.folderPath);
     }
   } catch (error) {
     console.error("❌ Error:", error instanceof Error ? error.message : String(error));
