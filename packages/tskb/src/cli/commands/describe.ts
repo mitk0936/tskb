@@ -1,6 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
-import { execSync } from "node:child_process";
 import type { KnowledgeGraph, AnyNode, GraphEdge } from "../../core/graph/types.js";
 
 /**
@@ -44,9 +42,9 @@ interface DescribeResult {
  * Describe a folder context from the knowledge graph
  *
  * @param graphPath - Path to the knowledge graph JSON file
- * @param folderPath - Filesystem path to the folder (relative, absolute, or from repo root)
+ * @param folderId - Folder ID from the knowledge graph (e.g., "tskb.cli", "Package.Root")
  */
-export async function describe(graphPath: string, folderPath: string): Promise<void> {
+export async function describe(graphPath: string, folderId: string): Promise<void> {
   // Load the knowledge graph
   if (!fs.existsSync(graphPath)) {
     console.error(`Error: Graph file not found: ${graphPath}`);
@@ -56,22 +54,17 @@ export async function describe(graphPath: string, folderPath: string): Promise<v
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
 
-  // Find the folder node by path
-  const folderNode = findFolderByPath(graph, folderPath);
+  // Find the folder node by ID
+  const folderNode = graph.nodes.folders[folderId];
 
   if (!folderNode) {
-    // Find closest parent and children
-    const closestMatch = findClosestMatch(graph, folderPath);
     console.log(
       JSON.stringify(
         {
           error: "Folder not found in graph",
-          path: folderPath,
-          closestParent: closestMatch.parent,
-          closestChildren: closestMatch.children,
-          suggestion: closestMatch.parent
-            ? `The closest defined parent is "${closestMatch.parent.path}". Try describing that instead.`
-            : "No parent folder found in graph. Try using a path relative to the repository root.",
+          folderId,
+          suggestion:
+            "Use a valid folder ID from the knowledge graph. Folder IDs are shown in the 'id' field when describing other folders.",
         },
         null,
         2
@@ -80,14 +73,14 @@ export async function describe(graphPath: string, folderPath: string): Promise<v
     process.exit(1);
   }
 
-  const result = describeContext(graph, folderNode.id);
+  const result = describeContext(graph, folderId);
 
   if (!result) {
     console.error(
       JSON.stringify(
         {
           error: "Failed to describe folder context",
-          path: folderPath,
+          folderId,
         },
         null,
         2
@@ -97,189 +90,6 @@ export async function describe(graphPath: string, folderPath: string): Promise<v
   }
 
   console.log(JSON.stringify(result, null, 2));
-}
-
-/**
- * Find the closest parent and children when exact path doesn't exist
- */
-function findClosestMatch(
-  graph: KnowledgeGraph,
-  inputPath: string
-): {
-  parent: { id: string; type: string; desc?: string; path?: string } | null;
-  children: Array<{ id: string; type: string; desc?: string; path?: string }>;
-} {
-  let normalizedInput: string;
-
-  // If absolute path, convert to repo-relative
-  if (path.isAbsolute(inputPath)) {
-    try {
-      const repoRoot = getRepoRoot();
-      if (!repoRoot) {
-        // If not in git repo, just normalize the absolute path
-        normalizedInput = normalizePath(inputPath);
-      } else {
-        const relativePath = path.relative(repoRoot, inputPath);
-        normalizedInput = normalizePath(relativePath);
-      }
-    } catch (e) {
-      normalizedInput = normalizePath(inputPath);
-    }
-  } else {
-    // Treat as repo-relative path
-    normalizedInput = normalizePath(inputPath);
-  }
-
-  // Find closest parent by walking up the path
-  let closestParent: { id: string; type: string; desc?: string; path?: string } | null = null;
-  const pathSegments = normalizedInput.split("/").filter(Boolean);
-
-  // Try progressively shorter paths by removing segments from the end
-  for (let i = pathSegments.length - 1; i > 0; i--) {
-    const parentPath = pathSegments.slice(0, i).join("/");
-    const parentNode = findFolderByPath(graph, parentPath);
-
-    if (parentNode) {
-      const node = parentNode.node;
-      closestParent = {
-        id: parentNode.id,
-        type: node.type,
-        desc: node.desc,
-        path: node.resolvedPath || node.path,
-      };
-      break;
-    }
-  }
-
-  // Find closest children by comparing all folders in the graph
-  const descendants: Array<{
-    id: string;
-    type: string;
-    desc?: string;
-    path?: string;
-    depth: number;
-  }> = [];
-
-  for (const [id, node] of Object.entries(graph.nodes.folders)) {
-    const nodePath = node.resolvedPath || node.path;
-    if (!nodePath) continue;
-
-    const normalizedNodePath = normalizePath(nodePath);
-    const nodeSegments = normalizedNodePath.split("/").filter(Boolean);
-
-    // Check if this node is a descendant by comparing path segments
-    if (nodeSegments.length > pathSegments.length) {
-      const isDescendant = pathSegments.every((seg, idx) => nodeSegments[idx] === seg);
-
-      if (isDescendant) {
-        const depth = nodeSegments.length - pathSegments.length;
-        descendants.push({
-          id,
-          type: node.type,
-          desc: node.desc,
-          path: node.resolvedPath || node.path,
-          depth,
-        });
-      }
-    }
-  }
-
-  // Find the minimum depth among all descendants
-  const minDepth = descendants.length > 0 ? Math.min(...descendants.map((d) => d.depth)) : 0;
-
-  // Return only descendants at the minimum depth (closest children)
-  const closestChildren = descendants
-    .filter((d) => d.depth === minDepth)
-    .map(({ id, type, desc, path }) => ({ id, type, desc, path }));
-
-  return { parent: closestParent, children: closestChildren };
-}
-
-/**
- * Find a folder node by filesystem path (repo-relative or absolute)
- */
-function findFolderByPath(
-  graph: KnowledgeGraph,
-  inputPath: string
-): { id: string; node: any } | null {
-  let normalizedInput: string;
-
-  // If absolute path, convert to repo-relative
-  if (path.isAbsolute(inputPath)) {
-    try {
-      const repoRoot = getRepoRoot();
-      if (!repoRoot) {
-        console.error("Error: Cannot resolve absolute path - not in a git repository");
-        return null;
-      }
-      const relativePath = path.relative(repoRoot, inputPath);
-      normalizedInput = normalizePath(relativePath);
-    } catch (e) {
-      return null;
-    }
-  } else {
-    // Treat as repo-relative path
-    normalizedInput = normalizePath(inputPath);
-  }
-
-  // Get all possible path variants to check
-  const pathVariants = [
-    normalizedInput,
-    // Remove common prefixes
-    normalizedInput.replace(/^packages\/[^\/]+\//, ""),
-    normalizedInput.replace(/^src\//, ""),
-  ];
-
-  // Search through all folder nodes
-  for (const [id, node] of Object.entries(graph.nodes.folders)) {
-    const nodePath = node.resolvedPath || node.path;
-    if (!nodePath) continue;
-
-    const normalizedNodePath = normalizePath(nodePath);
-
-    // Try each variant
-    for (const variant of pathVariants) {
-      // Exact match
-      if (normalizedNodePath === variant) {
-        return { id, node };
-      }
-
-      // Node path ends with the variant (e.g., "packages/tskb/src/cli" ends with "src/cli")
-      if (normalizedNodePath.endsWith("/" + variant) || normalizedNodePath.endsWith(variant)) {
-        return { id, node };
-      }
-
-      // Variant ends with node path (e.g., variant might be longer)
-      if (variant.endsWith("/" + normalizedNodePath) || variant.endsWith(normalizedNodePath)) {
-        return { id, node };
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
- * Get the git repository root
- */
-function getRepoRoot(): string | null {
-  try {
-    const root = execSync("git rev-parse --show-toplevel", { encoding: "utf-8" }).trim();
-    return root;
-  } catch (e) {
-    return null;
-  }
-}
-
-/**
- * Normalize a path for comparison
- */
-function normalizePath(p: string): string {
-  // Remove leading/trailing slashes and normalize separators
-  return p
-    .replace(/\\/g, "/")
-    .replace(/^\/+|\/+$/g, "")
-    .toLowerCase();
 }
 
 /**

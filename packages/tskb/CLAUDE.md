@@ -13,6 +13,13 @@ Use it to orient yourself **before** reading files.
 
 Never read source files until you understand **where you are** and **what the area is responsible for**.
 
+**Recommended workflow:**
+
+1. Use `ls` to see all folders and get oriented
+2. Use `describe` to understand specific areas
+3. Use `select` to find concepts within a scope
+4. Read source files only after understanding the structure
+
 ---
 
 ## Knowledge Graph
@@ -29,6 +36,39 @@ This graph describes folders, modules, exports, and where they are documented.
 
 ## Commands
 
+### 0. `ls` — List All Folders (ORIENTATION)
+
+Use `ls` to get a quick overview of all folders in the codebase.
+
+- Always starts from `Package.Root`
+- Shows folder hierarchy with depth levels
+- Controllable depth (default: 1 level)
+- Returns flat JSON list
+
+**Example:**
+
+```bash
+cd ../../docs/tskb-package
+node ../../packages/tskb/dist/cli/index.js ls ./dist/taskflow-graph.json [--depth <n>]
+```
+
+**Depth options:**
+
+- No flag: depth=1 (immediate children only)
+- `--depth 2`: Show 2 levels deep
+- `--depth -1`: Show all folders (unlimited)
+
+You get a flat list with:
+
+- `id`: Folder ID in the registry
+- `depth`: How deep in the hierarchy (0 = root)
+- `desc`: Folder description
+- `path`: Filesystem path
+
+Use this for initial orientation or to find folder IDs.
+
+---
+
 ### 1. `describe` — Understand Structure (PRIMARY)
 
 Use `describe` to see **what exists here**.
@@ -41,14 +81,14 @@ Use `describe` to see **what exists here**.
 
 ```bash
 cd ../../docs/tskb-package
-node ../../packages/tskb/dist/cli/index.js describe ./dist/taskflow-graph.json "<repo-relative-path>"
+node ../../packages/tskb/dist/cli/index.js describe ./dist/taskflow-graph.json "<folder-id>"
 ```
 
-**Path format:**
+**Folder ID format:**
 
-- Paths are relative to the git repository root (e.g., `"packages/tskb/src/cli"`)
-- Absolute paths are automatically converted to repo-relative
-- Partial paths work too (e.g., `"src/cli"` matches `"packages/tskb/src/cli"`)
+- Use folder IDs from the knowledge graph (e.g., `"tskb.cli"`, `"Package.Root"`)
+- Folder IDs are shown in the `id` field when describing folders
+- Start with `"Package.Root"` to explore from the top level
 
 You get:
 
@@ -74,52 +114,24 @@ Treat results as _hints_, not truth.
 
 ```bash
 cd ../../docs/tskb-package
-node ../../packages/tskb/dist/cli/index.js select ./dist/taskflow-graph.json "<concept-keyword>" "<folder-scope>"
+node ../../packages/tskb/dist/cli/index.js select ./dist/taskflow-graph.json "<concept-keyword>" "<folder-id>"
 ```
 
 **Important:**
 
-- The `<folder-scope>` parameter is **mandatory**
+- The `<folder-id>` parameter is **mandatory**
 - Results are filtered to only include nodes within that folder and its descendants
-- Use `describe` first to identify the correct scope
+- Use `describe` first to identify the correct scope folder ID
 
-**Path format (same as describe):**
+**Folder ID format (same as describe):**
 
-- Paths are relative to the git repository root (e.g., `"packages/tskb/src/cli"`)
-- Absolute paths are automatically converted to repo-relative
-- Partial paths work too (e.g., `"src/cli"` matches `"packages/tskb/src/cli"`)
+- Use folder IDs from the knowledge graph (e.g., `"tskb.cli"`, `"Package.Root"`)
+- Folder IDs are shown in the `id` field when describing folders
+- Use broader IDs (like `"Package.Root"`) for wider searches, or specific IDs (like `"tskb.cli.commands"`) for narrower searches
 
 Use results to decide **where to describe next**.
 
 ---
-
-## Recommended Workflow
-
-### Understanding a feature
-
-1. `describe` the likely area (to identify the scope)
-2. `select` the concept within that scope
-3. `describe` the returned folder from select results
-4. Read source files
-
----
-
-### Understanding a folder
-
-1. `describe` the folder
-2. `describe` its parent
-3. Inspect listed modules / exports
-4. Read source files if needed
-
----
-
-## When to Read Source Files
-
-Read source files **only after**:
-
-- you know the folder’s role
-- you know its boundaries
-- you know which files matter
 
 TSKB answers:
 
@@ -133,31 +145,12 @@ Source code answers:
 
 ---
 
-## Best Practices
-
-### DO
-
-- Use `describe` first
-- Navigate structurally
-- Treat the graph as a map
-- Form a hypothesis before reading code
-
-### DON’T
-
-- Don’t jump straight into files
-- Don’t assume missing graph data means missing functionality
-- Don’t treat graph output as implementation truth
-
----
-
 ## Mental Model
 
 - **Folders** = responsibility boundaries
 - **Modules** = implementation units
 - **Exports** = public surface
 - **Docs** = human-declared context
-
-TSKB keeps reasoning **local, cautious, and intentional**.
 
 ---
 

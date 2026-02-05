@@ -77,8 +77,16 @@ declare global {
         type: typeof import("packages/tskb/src/cli/commands/visualize.js").visualize;
       }>;
       "cli.select": Export<{
-        desc: "Selects the single best-matching node from the knowledge graph with confidence score, parent/children context, and alternative suggestions";
+        desc: "Selects the single best-matching node from the knowledge graph within a folder scope using folder IDs, with confidence score, parent/children context, and alternative suggestions";
         type: typeof import("packages/tskb/src/cli/commands/select.js").select;
+      }>;
+      "cli.describe": Export<{
+        desc: "Describes a folder's structure by folder ID, returning parent, children, modules, exports, and referencing docs";
+        type: typeof import("packages/tskb/src/cli/commands/describe.js").describe;
+      }>;
+      "cli.ls": Export<{
+        desc: "Lists all folders in the knowledge graph from Package.Root with controllable depth, returning flat JSON hierarchy";
+        type: typeof import("packages/tskb/src/cli/commands/ls.js").ls;
       }>;
       generateDot: Export<{
         desc: "Core function that transforms the knowledge graph into DOT format";
@@ -108,6 +116,8 @@ const CliVisualizeExport = ref as tskb.Exports["cli.visualize"];
 const GenerateDotExport = ref as tskb.Exports["generateDot"];
 const DotFileTerm = ref as tskb.Terms["dotFile"];
 const CliSelectExport = ref as tskb.Exports["cli.select"];
+const CliDescribeExport = ref as tskb.Exports["cli.describe"];
+const CliLsExport = ref as tskb.Exports["cli.ls"];
 const SelectResultTerm = ref as tskb.Terms["selectResult"];
 
 export default (
@@ -208,17 +218,44 @@ export default (
       <Li>AI-optimized: Queryable knowledge graph reduces hallucination</Li>
       <Li>Docs as infrastructure: Compile-time validation, not afterthought</Li>
     </List>
-    <H3>Selecting nodes from the knowledge graph</H3>
-    <P>Focused node lookup command for AI agents - returns single best match with context</P>
+    <H3>Navigating the knowledge graph</H3>
+    <P>Three commands for exploring and querying the knowledge graph - optimized for AI agents</P>
+    <H3>List all folders</H3>
     <List>
-      <Li>Run {CliSelectExport}: "tskb select ./dist/taskflow-graph.json auth"</Li>
-      <Li>Finds best-matching node across IDs, descriptions, paths, and content</Li>
+      <Li>
+        Run {CliLsExport}: "tskb ls ./dist/taskflow-graph.json" or "tskb ls
+        ./dist/taskflow-graph.json --depth 2"
+      </Li>
+      <Li>Always starts from Package.Root, lists all folders hierarchically</Li>
+      <Li>Controllable depth: default 1 (immediate children), -1 for unlimited</Li>
+      <Li>Returns flat JSON with folder ID, depth level, description, and path</Li>
+      <Li>Use for initial orientation and discovering folder IDs</Li>
+    </List>
+    <H3>Describe folder structure</H3>
+    <List>
+      <Li>
+        Run {CliDescribeExport}: "tskb describe ./dist/taskflow-graph.json tskb.cli" (using folder
+        ID)
+      </Li>
+      <Li>Returns detailed view of a single folder: parent, direct children, modules, exports</Li>
+      <Li>Shows documentation that references this folder</Li>
+      <Li>Structural only - no deep recursion, safe to use anywhere</Li>
+    </List>
+    <H3>Select best-matching node</H3>
+    <List>
+      <Li>
+        Run {CliSelectExport}: "tskb select ./dist/taskflow-graph.json auth tskb.cli" (keyword +
+        folder scope)
+      </Li>
+      <Li>
+        Finds best-matching node within folder scope across IDs, descriptions, paths, and content
+      </Li>
       <Li>
         {SelectResultTerm} includes: match with confidence score (0-1), parent/children context,
         related docs and files, alternative suggestions when confidence {"<"} 0.7
       </Li>
       <Li>Scoring: exact match = 1.0, prefix = 0.85, path = 0.75, substring = 0.5-0.65</Li>
-      <Li>Optimized for token-efficient codebase navigation by AI assistants</Li>
+      <Li>Scoped to folder ID to avoid noise from unrelated concepts</Li>
     </List>
     <H3>Documentation Philosophy: Map, Not Manual</H3>
     <P>

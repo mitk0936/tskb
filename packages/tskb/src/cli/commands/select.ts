@@ -1,6 +1,4 @@
 import fs from "node:fs";
-import path from "node:path";
-import { execSync } from "node:child_process";
 import type { KnowledgeGraph, AnyNode, GraphEdge } from "../../core/graph/types.js";
 
 /**
@@ -51,13 +49,13 @@ interface MatchCandidate {
  *
  * @param graphPath - Path to the knowledge graph JSON file
  * @param searchTerm - Search term to match against nodes
- * @param scopePath - Folder path to scope the search
+ * @param folderId - Folder ID to scope the search (e.g., "tskb.cli", "Package.Root")
  * @param concise - Output concise format optimized for AI consumption (default: true)
  */
 export async function select(
   graphPath: string,
   searchTerm: string,
-  scopePath: string,
+  folderId: string,
   concise: boolean = true
 ): Promise<void> {
   // Load the knowledge graph
@@ -69,17 +67,17 @@ export async function select(
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
 
-  // Find the scope folder
-  const scopeFolder = findFolderByPath(graph, scopePath);
+  // Find the scope folder by ID
+  const scopeFolder = graph.nodes.folders[folderId];
 
   if (!scopeFolder) {
     console.error(
       JSON.stringify(
         {
           error: "Scope folder not found in graph",
-          scopePath,
+          folderId,
           suggestion:
-            "Verify the folder path exists in the graph. Use 'describe' to explore the structure.",
+            "Verify the folder ID exists in the graph. Use 'describe' to explore the structure and find folder IDs.",
         },
         null,
         2
@@ -88,7 +86,7 @@ export async function select(
     process.exit(1);
   }
 
-  const result = selectBestMatch(graph, searchTerm, scopeFolder.id, concise);
+  const result = selectBestMatch(graph, searchTerm, folderId, concise);
 
   if (!result) {
     console.error(
@@ -96,8 +94,7 @@ export async function select(
         {
           error: "No matching node found in scope",
           searchTerm,
-          scopePath,
-          scopeId: scopeFolder.id,
+          folderId,
           suggestion: "Try a different search term or expand the scope",
         },
         null,
@@ -584,92 +581,6 @@ function findNodeById(id: string, graph: KnowledgeGraph): AnyNode | null {
     graph.nodes.docs[id] ||
     null
   );
-}
-
-/**
- * Find a folder node by filesystem path (repo-relative or absolute)
- */
-function findFolderByPath(
-  graph: KnowledgeGraph,
-  inputPath: string
-): { id: string; node: any } | null {
-  let normalizedInput: string;
-
-  // If absolute path, convert to repo-relative
-  if (path.isAbsolute(inputPath)) {
-    try {
-      const repoRoot = getRepoRoot();
-      if (!repoRoot) {
-        console.error("Error: Cannot resolve absolute path - not in a git repository");
-        return null;
-      }
-      const relativePath = path.relative(repoRoot, inputPath);
-      normalizedInput = normalizePath(relativePath);
-    } catch (e) {
-      return null;
-    }
-  } else {
-    // Treat as repo-relative path
-    normalizedInput = normalizePath(inputPath);
-  }
-
-  // Get all possible path variants to check
-  const pathVariants = [
-    normalizedInput,
-    // Remove common prefixes
-    normalizedInput.replace(/^packages\/[^\/]+\//, ""),
-    normalizedInput.replace(/^src\//, ""),
-  ];
-
-  // Search through all folder nodes
-  for (const [id, node] of Object.entries(graph.nodes.folders)) {
-    const nodePath = node.resolvedPath || node.path;
-    if (!nodePath) continue;
-
-    const normalizedNodePath = normalizePath(nodePath);
-
-    // Try each variant
-    for (const variant of pathVariants) {
-      // Exact match
-      if (normalizedNodePath === variant) {
-        return { id, node };
-      }
-
-      // Node path ends with the variant
-      if (normalizedNodePath.endsWith("/" + variant) || normalizedNodePath.endsWith(variant)) {
-        return { id, node };
-      }
-
-      // Variant ends with node path
-      if (variant.endsWith("/" + normalizedNodePath) || variant.endsWith(normalizedNodePath)) {
-        return { id, node };
-      }
-    }
-  }
-
-  return null;
-}
-
-/**
- * Get the git repository root
- */
-function getRepoRoot(): string | null {
-  try {
-    const root = execSync("git rev-parse --show-toplevel", { encoding: "utf-8" }).trim();
-    return root;
-  } catch (e) {
-    return null;
-  }
-}
-
-/**
- * Normalize a path for comparison
- */
-function normalizePath(p: string): string {
-  return p
-    .replace(/\\/g, "/")
-    .replace(/^\/+|\/+$/g, "")
-    .toLowerCase();
 }
 
 /**
