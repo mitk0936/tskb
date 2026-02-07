@@ -1,280 +1,81 @@
 import fs from "node:fs";
-import { getHelpText } from "./help.js";
 import { REPO_ROOT_FOLDER_NAME } from "../../core/constants.js";
 
 /**
- * Get the AGENTS.md template with dynamic values
+ * Get the AGENTS.md template.
+ * This file is written for AI agents, not humans.
+ * Keep it short, procedural, and enforce behavior.
  */
-function getAgentsTemplate(cliUsage: string): string {
+function getAgentsTemplate(): string {
   return `# AGENTS.md
 
-## What this is
+## Purpose
 
-This repository uses **TSKB** — a structure-first map of the codebase.
+This repository uses **TSKB** as a structure-first map of the codebase.
 
-**tskb** is a tool for documenting complex codebases and passing architectural intent and structure to ai code assistants
-
-TSKB helps you understand:
-
+TSKB defines:
 - what exists
-- how parts relate
-- why certain areas exist
+- where things live
+- how areas relate
 
-It is a **navigator**, not a full description of the code.
-
----
-
-## Getting oriented
-
-**When you're new to this codebase or exploring unfamiliar areas, consider starting with TSKB.**
-
-TSKB is particularly useful for:
-
-- **Initial orientation** — Understanding the high-level structure before diving into code
-- **Finding the right area** — Locating where specific functionality lives
-- **Understanding relationships** — Seeing how different parts connect
-
-### Quick start:
-
-\`\`\`bash
-# Start with structure
-npx tskb ls --depth 2
-
-# Find a specific area
-npx tskb select "your-search-term" "${REPO_ROOT_FOLDER_NAME}"
-
-# Understand a specific folder
-npx tskb describe "folder-id"
-\`\`\`
-
-Once you have architectural context, use normal tools (Grep, Read, etc.) to explore specific files.
-
-**TSKB is most valuable at the beginning** — it reduces time spent searching and helps build accurate mental models.
+It is the primary tool for orientation.
 
 ---
 
-## CLI
+## Mandatory workflow
 
-\`\`\`bash
-${cliUsage}
-\`\`\`
+Before reading or editing code, try to undestand the project structure, intent and architecture, by using tskb cli tools:
 
----
-
-## Typical workflow
-
-### 1. Start with \`ls\` to see the structure
-
+**Inspect structure**
 \`\`\`bash
 npx tskb ls --depth 2
 \`\`\`
 
-This shows you all folders up to depth 2, ordered by depth (root → top-level → children).
 
-**What to look for:**
-- High-level organization (packages, apps, services)
-- Naming patterns that hint at purpose
-- Folder descriptions that explain intent
-
-### 2. Use \`select\` to find specific items
-
+**Understand the area**
 \`\`\`bash
-npx tskb select "authentication" "${REPO_ROOT_FOLDER_NAME}"
+npx tskb describe "<id>"
 \`\`\`
 
-This searches within a scope (folder) for the best match.
-
-**Returns:**
-- **match**: The best matching node (with confidence score)
-- **parent**: What contains this node
-- **children**: What this node contains
-- **docs**: Documentation that references this node
-- **files**: Relevant file paths
-- **suggestions**: Alternative matches if confidence is low
-
-**Scoping:**
-- Start with \`${REPO_ROOT_FOLDER_NAME}\` to search the entire repo
-- Narrow to a specific folder ID (e.g., "tskb.cli") to search within that area
-- Use \`--verbose\` for more detailed output
-
-### 3. Use \`describe\` to understand a specific area
-
+**Locate the relevant area, search for keywords, concepts in a scope (folder)**
 \`\`\`bash
-npx tskb describe "TSKB.Package.Root"
+npx tskb select "<concept or feature>" "<folderId>"
 \`\`\`
 
-This shows:
-- **context**: The folder itself (id, type, desc, path)
-- **parent**: What contains this folder
-- **contents**: Child folders within this folder
-- **modules**: Files/modules that belong to this folder
-- **exports**: Public exports from this folder
-- **referencedInDocs**: Which .tskb.tsx docs reference this folder
-
-**What to look for:**
-- Parent/child relationships to understand hierarchy
-- Modules to find actual implementation files
-- Docs that explain architectural decisions
-
-### 4. Then read specific files
-
-Once TSKB has pointed you to the right area, use Read, Grep, or other tools to examine specific files.
+It might be helpfull to have a broader picture, before jumping into reading files
 
 ---
 
-## Understanding the output
+## Rules
 
-### Node types
-
-- **folder**: Architectural context (like "CLI", "Core", "Runtime")
-- **module**: A file (e.g., "cli.index" → packages/tskb/src/cli/index.ts)
-- **export**: A public symbol (class, function, type) from a module
-- **term**: A vocabulary term (like "repository-pattern", "jwt")
-- **doc**: A .tskb.tsx documentation file
-
-### Edge types
-
-- **contains**: Folder A contains Folder B (hierarchical structure)
-- **belongs-to**: Module/Export belongs to a Folder (ownership)
-- **references**: Doc references a Folder/Module/Export/Term (semantic relation)
-
-### Confidence scores
-
-When using \`select\`:
-- **1.0**: Exact match (ID or path matches exactly)
-- **0.85**: Prefix match (ID starts with search term)
-- **0.7-0.8**: Phrase match in path or description
-- **< 0.7**: Partial match (check suggestions for alternatives)
+- Prefer **TSKB CLI** over blind search
+- Use **TSKB to decide where**, then Read/Grep to inspect how
+- If something is not in TSKB, it is likely not architecturally important
+- If structure or architectural intent changes, update \`.tskb.tsx\` docs
 
 ---
 
-## Extending TSKB docs
+## Updating TSKB docs
 
-TSKB documentation (.tskb.tsx files) should be extended by **both humans and AI assistants**.
+Update documentation when:
+- New folders, packages, or major modules are added
+- Responsibilities or boundaries change
+- New core concepts are introduced
 
-### When to extend docs
-
-Extend documentation when:
-
-1. **Structural changes**: New packages, folders, or modules are added
-2. **Architectural decisions**: New patterns, constraints, or design choices
-3. **Breaking changes**: Code changes broke the tskb build (type errors in docs)
-4. **Important additions**: New core functionality that affects system understanding
-5. **Clarification needed**: Existing docs are unclear or outdated
-
-### When NOT to extend docs
-
-Don't extend for:
-
-- Minor implementation details (small bug fixes, refactoring)
-- Temporary code or experiments
-- Changes that are self-explanatory from the code
-- Private/internal implementation details
-
-### How to extend docs
-
-When creating or updating .tskb.tsx files:
-
-1. **Describe intent and structure** (not implementation details)
-2. **Explain why things exist** (architectural rationale)
-3. **Reference code, don't restate it** (use imports and types)
-4. **Use type-checked snippets** (via \`<Snippet code={...} />\`)
-5. **Define vocabulary** (use the global tskb namespace)
-
-**Example scenario:**
-
-If you add a new folder \`packages/tskb/templates/\` with template files:
-
-1. Update the vocabulary to declare the folder:
-   \`\`\`tsx
-   interface Folders {
-     "tskb.templates": Folder<{
-       desc: "Template files used for generating output (e.g., AGENTS.md)";
-       path: "packages/tskb/templates";
-     }>;
-   }
-   \`\`\`
-
-2. Create or update a doc to explain its purpose:
-   \`\`\`tsx
-   <P>
-     The {TemplatesFolder} contains template files that are processed
-     during the build. The AGENTS.md template is used to generate
-     agent guidance with injected CLI help text.
-   </P>
-   \`\`\`
-
-3. Run \`tskb build\` to regenerate the graph
+Do **not** document minor implementation details.
 
 ---
 
-## When to use TSKB
+## Note
 
-### Good use cases:
-
-- **"Where does X live?"** — Use \`select\` to find it
-- **"What's in this codebase?"** — Use \`ls\` to see structure
-- **"How is this organized?"** — Use \`describe\` to understand areas
-- **Starting a new task** — Get oriented before diving into code
-
-### When to use other tools:
-
-- **Reading specific files** — Use Read once you know what to read
-- **Searching within files** — Use Grep after you know which areas matter
-- **Making changes** — Use Edit/Write on files TSKB helped you find
-
-**TSKB reduces exploration time**, especially when:
-- You're unfamiliar with the codebase
-- The repository is large or complex
-- You need to understand relationships between parts
-
----
-
-## Best practices
-
-### For exploration
-
-- **Consider TSKB for initial orientation** — It's faster than exploring randomly
-- **Use TSKB to narrow scope** — Find the right area, then dive into files
-- **Combine tools appropriately** — TSKB for structure, Read/Grep for details
-- **Check confidence scores** — Low confidence? Try different search terms or scopes
-
-### For understanding
-
-- **Look for patterns**: Similar folder structures often indicate similar purposes
-- **Check parent folders**: Understanding the parent helps understand the child
-- **Read docs first**: .tskb.tsx docs explain the "why" behind the "what"
-- **Trace dependencies**: Follow \`belongs-to\` edges to understand ownership
-
-### For making changes
-
-- **Verify with describe**: After adding code, check if it appears in the graph
-- **Update docs if needed**: If structure changed significantly, update .tskb.tsx
-- **Run build to validate**: TSKB will fail if docs reference non-existent code
-- **Keep docs semantic**: Focus on architecture, not implementation
-
----
-
-## Guidelines
-
-1. **Consider TSKB first** — It's often faster than searching blindly
-2. **Let TSKB guide exploration** — Use it to find the right areas, then read files
-3. **Combine tools effectively** — TSKB for structure, Read/Grep for details
-4. **Trust the graph** — If something's not in TSKB, it might not be architecturally significant
-5. **Extend when appropriate** — Update .tskb.tsx docs when structure or architecture changes
+TSKB is a navigator, not a replacement for source code.
 `;
 }
 
 /**
- * Generate AGENTS.md file from template
+ * Generate AGENTS.md file
  */
 export function generateAgentsFile(outputPath: string): void {
-  // Get CLI usage text
-  const cliUsage = getHelpText();
-
-  // Generate content from template
-  const content = getAgentsTemplate(cliUsage);
-
-  // Write the file
+  const content = getAgentsTemplate();
   fs.writeFileSync(outputPath, content, "utf-8");
 }
