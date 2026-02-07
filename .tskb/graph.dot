@@ -4,7 +4,7 @@ digraph KnowledgeGraph {
   node [fontname="Arial", fontsize=10];
   edge [fontname="Arial", fontsize=8];
 
-  subgraph cluster___TSKB_REPO_ROOT__ {
+  subgraph "cluster___TSKB_REPO_ROOT__" {
     label="__TSKB.REPO.ROOT__";
     style=filled;
     fillcolor="#E3F2FD";
@@ -12,7 +12,7 @@ digraph KnowledgeGraph {
 
     "__TSKB.REPO.ROOT__" [label="Folder\<\"__TSKB.REPO.ROOT__\"\>\nThe root directory of the repository (automatically added by tskb)\n📁 .", shape=box, fillcolor="#BBDEFB", style=filled];
 
-    subgraph cluster_docs {
+    subgraph "cluster_docs" {
       label="docs";
       style=filled;
       fillcolor="#E3F2FD";
@@ -25,7 +25,7 @@ digraph KnowledgeGraph {
 
     }
 
-    subgraph cluster_examples_taskflow-app {
+    subgraph "cluster_examples_taskflow_app" {
       label="examples.taskflow-app";
       style=filled;
       fillcolor="#E3F2FD";
@@ -33,7 +33,7 @@ digraph KnowledgeGraph {
 
       "examples.taskflow-app" [label="Folder\<\"examples.taskflow-app\"\>\nExample application, not meant to be run, but used as reference for example docs\n📁 examples/taskflow-app", shape=box, fillcolor="#BBDEFB", style=filled];
 
-      subgraph cluster_Client {
+      subgraph "cluster_Client" {
         label="Client";
         style=filled;
         fillcolor="#E3F2FD";
@@ -41,7 +41,7 @@ digraph KnowledgeGraph {
 
         "Client" [label="Folder\<\"Client\"\>\nReact frontend application with components, pages, and state management\n📁 examples/taskflow-app/src/client", shape=box, fillcolor="#BBDEFB", style=filled];
 
-        subgraph cluster_Components {
+        subgraph "cluster_Components" {
           label="Components";
           style=filled;
           fillcolor="#E3F2FD";
@@ -51,7 +51,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_Pages {
+        subgraph "cluster_Pages" {
           label="Pages";
           style=filled;
           fillcolor="#E3F2FD";
@@ -61,7 +61,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_Contexts {
+        subgraph "cluster_Contexts" {
           label="Contexts";
           style=filled;
           fillcolor="#E3F2FD";
@@ -78,7 +78,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_Hooks {
+        subgraph "cluster_Hooks" {
           label="Hooks";
           style=filled;
           fillcolor="#E3F2FD";
@@ -88,7 +88,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_ClientServices {
+        subgraph "cluster_ClientServices" {
           label="ClientServices";
           style=filled;
           fillcolor="#E3F2FD";
@@ -104,7 +104,7 @@ digraph KnowledgeGraph {
 
       }
 
-      subgraph cluster_Server {
+      subgraph "cluster_Server" {
         label="Server";
         style=filled;
         fillcolor="#E3F2FD";
@@ -112,7 +112,7 @@ digraph KnowledgeGraph {
 
         "Server" [label="Folder\<\"Server\"\>\nNode.js backend API with services, controllers, and middleware\n📁 examples/taskflow-app/src/server", shape=box, fillcolor="#BBDEFB", style=filled];
 
-        subgraph cluster_Services {
+        subgraph "cluster_Services" {
           label="Services";
           style=filled;
           fillcolor="#E3F2FD";
@@ -131,7 +131,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_Controllers {
+        subgraph "cluster_Controllers" {
           label="Controllers";
           style=filled;
           fillcolor="#E3F2FD";
@@ -141,7 +141,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_Middleware {
+        subgraph "cluster_Middleware" {
           label="Middleware";
           style=filled;
           fillcolor="#E3F2FD";
@@ -155,7 +155,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_Database {
+        subgraph "cluster_Database" {
           label="Database";
           style=filled;
           fillcolor="#E3F2FD";
@@ -166,7 +166,7 @@ digraph KnowledgeGraph {
           // Exports in Database
           "Database" [label="Export\<\"Database\"\>\nDatabase connection manager with query execution and transaction support\n📁 examples/taskflow-app/src/server/database/connection.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
-          subgraph cluster_Repositories {
+          subgraph "cluster_Repositories" {
             label="Repositories";
             style=filled;
             fillcolor="#E3F2FD";
@@ -187,7 +187,7 @@ digraph KnowledgeGraph {
 
       }
 
-      subgraph cluster_Shared {
+      subgraph "cluster_Shared" {
         label="Shared";
         style=filled;
         fillcolor="#E3F2FD";
@@ -195,7 +195,7 @@ digraph KnowledgeGraph {
 
         "Shared" [label="Folder\<\"Shared\"\>\nShared TypeScript types and utilities used by both client and server\n📁 examples/taskflow-app/src/shared", shape=box, fillcolor="#BBDEFB", style=filled];
 
-        subgraph cluster_Types {
+        subgraph "cluster_Types" {
           label="Types";
           style=filled;
           fillcolor="#E3F2FD";
@@ -214,7 +214,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_Utils {
+        subgraph "cluster_Utils" {
           label="Utils";
           style=filled;
           fillcolor="#E3F2FD";
@@ -224,7 +224,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_Config {
+        subgraph "cluster_Config" {
           label="Config";
           style=filled;
           fillcolor="#E3F2FD";
@@ -238,7 +238,7 @@ digraph KnowledgeGraph {
 
     }
 
-    subgraph cluster_packages {
+    subgraph "cluster_packages" {
       label="packages";
       style=filled;
       fillcolor="#E3F2FD";
@@ -246,7 +246,7 @@ digraph KnowledgeGraph {
 
       "packages" [label="Folder\<\"packages\"\>\nA folder that contains independent packages in the repo (npm worskspace)\n📁 packages", shape=box, fillcolor="#BBDEFB", style=filled];
 
-      subgraph cluster_TSKB_Package_Root {
+      subgraph "cluster_TSKB_Package_Root" {
         label="TSKB.Package.Root";
         style=filled;
         fillcolor="#E3F2FD";
@@ -259,7 +259,7 @@ digraph KnowledgeGraph {
         "Main.index.js" [label="Module\<\"Main.index.js\"\>\nThe main package export\n📁 packages/tskb/src/index.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
           "ref" [label="Export\<\"ref\"\>\nA placeholder for referencing anything from the global tskb registry into jsx tags\n📁 packages/tskb/src/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
-        subgraph cluster_tskb_cli {
+        subgraph "cluster_tskb_cli" {
           label="tskb.cli";
           style=filled;
           fillcolor="#E3F2FD";
@@ -270,7 +270,7 @@ digraph KnowledgeGraph {
           // Modules in tskb.cli
           "cli.index" [label="Module\<\"cli.index\"\>\nCLI entry point - handles argument parsing, command routing, and error handling\n📁 packages/tskb/src/cli/index.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
-          subgraph cluster_tskb_cli_commands {
+          subgraph "cluster_tskb_cli_commands" {
             label="tskb.cli.commands";
             style=filled;
             fillcolor="#E3F2FD";
@@ -293,7 +293,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_tskb_core {
+        subgraph "cluster_tskb_core" {
           label="tskb.core";
           style=filled;
           fillcolor="#E3F2FD";
@@ -304,7 +304,7 @@ digraph KnowledgeGraph {
           // Exports in tskb.core
           "generateDot" [label="Export\<\"generateDot\"\>\nCore function that transforms the knowledge graph into DOT format\n📁 packages/tskb/src/core/visualization/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
-          subgraph cluster_core_extraction {
+          subgraph "cluster_core_extraction" {
             label="core.extraction";
             style=filled;
             fillcolor="#E3F2FD";
@@ -324,7 +324,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_tskb_runtime {
+        subgraph "cluster_tskb_runtime" {
           label="tskb.runtime";
           style=filled;
           fillcolor="#E3F2FD";
@@ -352,7 +352,7 @@ digraph KnowledgeGraph {
 
         }
 
-        subgraph cluster_tskb_typescript {
+        subgraph "cluster_tskb_typescript" {
           label="tskb.typescript";
           style=filled;
           fillcolor="#E3F2FD";
@@ -371,7 +371,7 @@ digraph KnowledgeGraph {
 
     }
 
-    subgraph cluster_references {
+    subgraph "cluster_references" {
       label="references";
       style=filled;
       fillcolor="#E3F2FD";
@@ -384,7 +384,7 @@ digraph KnowledgeGraph {
   }
 
   // Terms
-  subgraph cluster_terms {
+  subgraph "cluster_terms" {
     label="Terms";
     style=dashed;
     color=gray;
@@ -421,7 +421,7 @@ digraph KnowledgeGraph {
   }
 
   // Documentation
-  subgraph cluster_docs {
+  subgraph "cluster_documentation" {
     label="Documentation";
     style=dashed;
     color=gray;
