@@ -19,13 +19,12 @@ Core tskb package that provides:
 
 Demonstration boilerplate showing a full-stack task management application. This is **not meant to be built or run** - it exists purely as a reference for documentation purposes.
 
-### `docs/taskflow-app/`
+### `docs/`
 
-Real-world documentation examples using tskb to document the TaskFlow app architecture, including ADRs, constraints, and system design.
+Documentation of the repo containing:
 
-### `docs/tskb-package/`
-
-Documentation for the tskb package itself, demonstrating how to document CLI tools, core functionality, and runtime systems.
+- Documentation for the tskb package itself, demonstrating how to document CLI tools, core functionality, and runtime systems.
+- Real-world documentation examples using tskb to document the TaskFlow app architecture, including ADRs, constraints, and system design.
 
 ## Getting Started
 
@@ -53,27 +52,16 @@ This will automatically:
 npm run clean
 
 # Build all workspace packages
-npm run build:all
+npm run build
+
+# Build tskb docs (meta documentation of the repo)
+npm run build:docs
 
 # Format all code with Prettier
 npm run format
 
 # Check code formatting
 npm run format:check
-```
-
-### Working with Documentation
-
-Navigate to either documentation folder to see examples:
-
-```bash
-# TaskFlow app documentation
-cd docs/taskflow-app
-npm run generate
-
-# tskb package documentation
-cd docs/tskb-package
-npm run generate
 ```
 
 This creates a knowledge graph and visualization in the `dist/` folder.
@@ -86,15 +74,13 @@ tskb/
 │   └── tskb/              # Core package
 ├── examples/
 │   └── taskflow-app/      # Demo application (reference only)
-├── docs/
-│   ├── taskflow-app/      # TaskFlow app documentation examples
-│   └── tskb-package/      # tskb package documentation examples
+├── docs/                  # Repo documentation (tskb)
 └── package.json           # Workspace root
 ```
 
 ## Development
 
-The workspace uses npm workspaces for monorepo management. The build order ensures `packages/tskb` is built first, as other packages depend on it.
+The workspace uses npm workspaces for monorepo management
 
 ## License
 

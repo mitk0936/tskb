@@ -1,2 +1,2 @@
-npm run format:check
-npm run build:all
+npm run format
+npm run build:docs

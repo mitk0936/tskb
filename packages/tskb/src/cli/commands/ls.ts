@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import type { KnowledgeGraph, FolderNode, GraphEdge } from "../../core/graph/types.js";
+import { REPO_ROOT_FOLDER_NAME } from "../../core/constants.js";
+import { findGraphFile } from "../utils/graph-finder.js";
 
 /**
  * Result from listing folders in the knowledge graph
@@ -18,21 +20,16 @@ interface LsResult {
 /**
  * List all folders in the knowledge graph from the root
  *
- * @param graphPath - Path to the knowledge graph JSON file
  * @param maxDepth - Maximum depth to traverse (-1 for unlimited, default: 1)
  */
-export async function ls(graphPath: string, maxDepth: number = 1): Promise<void> {
-  // Load the knowledge graph
-  if (!fs.existsSync(graphPath)) {
-    console.error(`Error: Graph file not found: ${graphPath}`);
-    process.exit(1);
-  }
-
+export async function ls(maxDepth: number = 1): Promise<void> {
+  // Find and load the knowledge graph
+  const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
 
   // Find the root folder (Package.Root)
-  const rootId = "Package.Root";
+  const rootId = REPO_ROOT_FOLDER_NAME;
   const rootFolder = graph.nodes.folders[rootId];
 
   if (!rootFolder) {
@@ -93,6 +90,9 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
 
   // Start traversal from root at depth 0
   traverse(rootId, 0);
+
+  // Sort folders by depth (ascending) to ensure root elements appear first
+  folders.sort((a, b) => a.depth - b.depth);
 
   return {
     root: rootId,

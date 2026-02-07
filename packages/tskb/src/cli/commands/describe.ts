@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import type { KnowledgeGraph, AnyNode, GraphEdge } from "../../core/graph/types.js";
+import { findGraphFile } from "../utils/graph-finder.js";
 
 /**
  * Result from describing a folder context in the knowledge graph
@@ -41,16 +42,11 @@ interface DescribeResult {
 /**
  * Describe a folder context from the knowledge graph
  *
- * @param graphPath - Path to the knowledge graph JSON file
  * @param folderId - Folder ID from the knowledge graph (e.g., "tskb.cli", "Package.Root")
  */
-export async function describe(graphPath: string, folderId: string): Promise<void> {
-  // Load the knowledge graph
-  if (!fs.existsSync(graphPath)) {
-    console.error(`Error: Graph file not found: ${graphPath}`);
-    process.exit(1);
-  }
-
+export async function describe(folderId: string): Promise<void> {
+  // Find and load the knowledge graph
+  const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
 

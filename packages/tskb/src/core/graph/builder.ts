@@ -10,6 +10,7 @@ import type {
 import type { ExtractedRegistry } from "../extraction/registry.js";
 import type { ExtractedDoc } from "../extraction/documentation.js";
 import path from "node:path";
+import { REPO_ROOT_FOLDER_NAME } from "../constants.js";
 
 /**
  * Builds a knowledge graph from extracted registry and documentation data.
@@ -60,6 +61,7 @@ export function buildGraph(
     metadata: {
       generatedAt: new Date().toISOString(),
       version: "1.0.0",
+      rootPath: baseDir,
       stats: {
         folderCount: 0,
         moduleCount: 0,
@@ -70,6 +72,9 @@ export function buildGraph(
       },
     },
   };
+
+  // Add system root folder node
+  addSystemRootFolder(graph, baseDir);
 
   // Build nodes from registry
   buildFolderNodes(registry, graph);
@@ -92,6 +97,22 @@ export function buildGraph(
   updateStats(graph);
 
   return graph;
+}
+
+/**
+ * Add system root folder representing the repository root directory.
+ * This is automatically injected and represents the base directory from tsconfig.
+ */
+function addSystemRootFolder(graph: KnowledgeGraph, baseDir: string): void {
+  const node: FolderNode = {
+    id: REPO_ROOT_FOLDER_NAME,
+    type: "folder",
+    desc: "The root directory of the repository (automatically added by tskb)",
+    path: ".",
+    resolvedPath: ".",
+    pathExists: true,
+  };
+  graph.nodes.folders[REPO_ROOT_FOLDER_NAME] = node;
 }
 
 /**

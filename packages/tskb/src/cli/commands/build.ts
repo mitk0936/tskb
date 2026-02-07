@@ -4,6 +4,7 @@ import path from "node:path";
 import { createProgram } from "../../typescript/index.js";
 import { extractRegistry, extractDocs } from "../../core/extraction/index.js";
 import { buildGraph } from "../../core/graph/index.js";
+import { generateDot } from "../../core/visualization/index.js";
 
 /**
  * Configuration for the extract command
@@ -13,10 +14,6 @@ export interface ExtractConfig {
    * Glob pattern to match documentation files
    */
   pattern: string;
-  /**
-   * Output file path for the generated graph JSON
-   */
-  output: string;
   /**
    * Path to tsconfig.json
    */
@@ -50,14 +47,17 @@ export interface ExtractConfig {
  *    Merges registry and documentation into a unified graph structure with
  *    nodes (entities) and edges (relationships), creating a queryable network.
  *
- * 6. SERIALIZATION
- *    Writes the graph to JSON format for consumption by AI tools and documentation systems.
+ * 6. OUTPUT GENERATION
+ *    Creates a .tskb directory containing:
+ *    - graph.json: The knowledge graph in JSON format
+ *    - graph.dot: Graphviz visualization
+ *    - AGENTS.md: Agent guidance documentation
  *
  * OUTPUT:
- * A comprehensive knowledge graph mapping your codebase's architecture, entities,
- * and their interconnections—enabling AI to understand your project structure.
+ * A .tskb directory with complete knowledge graph artifacts for AI tools,
+ * documentation systems, and visualization.
  *
- * @param config - Extract configuration (pattern, output, tsconfig)
+ * @param config - Extract configuration (pattern, tsconfig)
  */
 export async function build(config: ExtractConfig): Promise<void> {
   console.log("tskb build");
@@ -84,9 +84,9 @@ export async function build(config: ExtractConfig): Promise<void> {
 
   // Use rootDir from tsconfig if available, otherwise use tsconfig directory
   const compilerOptions = program.getCompilerOptions();
-  const baseDir = compilerOptions.rootDir
-    ? path.resolve(tsconfigDir, compilerOptions.rootDir)
-    : tsconfigDir;
+
+  // compilerOptions.rootDir is already an absolute path resolved by TypeScript
+  const baseDir = compilerOptions.rootDir || tsconfigDir;
 
   console.log(`   Base directory: ${baseDir}`);
 
@@ -136,11 +136,35 @@ export async function build(config: ExtractConfig): Promise<void> {
   console.log(`   ├─ ${graph.metadata.stats.docCount} doc nodes`);
   console.log(`   └─ ${graph.metadata.stats.edgeCount} edges`);
 
-  // Write output
-  console.log(`Writing graph to ${config.output}...`);
-  fs.mkdirSync(path.dirname(config.output), { recursive: true });
-  fs.writeFileSync(config.output, JSON.stringify(graph, null, 2), "utf-8");
+  // Create .tskb output directory
+  const outputDir = path.resolve(process.cwd(), ".tskb");
+  console.log(`Creating output directory: ${outputDir}`);
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  // Write graph.json
+  const graphPath = path.join(outputDir, "graph.json");
+  console.log(`Writing graph to ${graphPath}...`);
+  fs.writeFileSync(graphPath, JSON.stringify(graph, null, 2), "utf-8");
+
+  // Generate and write graph.dot
+  const dotPath = path.join(outputDir, "graph.dot");
+  console.log(`Generating visualization: ${dotPath}...`);
+  const dot = generateDot(graph);
+  fs.writeFileSync(dotPath, dot, "utf-8");
+
+  // Generate AGENTS.md from template
+  const agentsMdPath = path.join(outputDir, "AGENTS.md");
+  console.log(`Writing agent guide: ${agentsMdPath}...`);
+  const { generateAgentsFile } = await import("../utils/agents-generator.js");
+  generateAgentsFile(agentsMdPath);
 
   console.log("");
-  console.log("Done!");
+  console.log("✓ Done!");
+  console.log("");
+  console.log("Output directory: .tskb/");
+  console.log("   ├─ graph.json     Knowledge graph data");
+  console.log("   ├─ graph.dot      Graphviz visualization");
+  console.log("   └─ AGENTS.md      Agent guidance");
+  console.log("");
+  console.log(`Visualize with: dot -Tpng .tskb/graph.dot -o .tskb/graph.png`);
 }

@@ -129,6 +129,10 @@ export interface KnowledgeGraph {
   metadata: {
     generatedAt: string;
     version: string;
+    /**
+     * Absolute path to the root directory (from tsconfig rootDir or tsconfig directory)
+     */
+    rootPath: string;
     stats: {
       folderCount: number;
       moduleCount: number;

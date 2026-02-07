@@ -60,49 +60,50 @@ tskb addresses this by making architecture documentation:
 - Architecture as code using TSX
 - Compiler-verified references via `typeof import()`
 - **Type-checked code snippets** (not copied text)
-- Native IDE support (autocomplete, refactors)
+- Native IDE support (autocomplete, refactoring, go-to-definition)
 - Zero runtime impact (pure build-time tooling)
+- **CLI for querying** (`ls`, `describe`, `select` commands)
 - JSON knowledge graph output
 - Graphviz visualization
 - Monorepo-friendly by design
-- Optimized for AI context & RAG pipelines
+- Optimized for AI assistants & programmatic consumption
 
 ---
 
 ## Quick start (recommended setup)
 
-### 0) Create a dedicated docs package
+### 0) Install and setup
 
-Keep docs isolated from production dependencies while still “seeing” your source code.
+**Install tskb:**
+
+```bash
+npm install --save-dev tskb
+```
+
+**Create docs folder with config:**
+
+```bash
+mkdir docs
+```
 
 **Repo structure:**
 
 ```
 your-repo/
 ├── src/              # Your source code
-├── docs/             # tskb docs package (created below)
-│   ├── package.json
-│   ├── tsconfig.json
-│   └── *.tskb.tsx
-└── package.json
+├── docs/             # Architecture documentation
+│   ├── tsconfig.json # TypeScript config for docs
+│   └── *.tskb.tsx    # Documentation files
+└── package.json      # Add tskb script here
 ```
 
-**Create it:**
-
-```bash
-mkdir docs
-cd docs
-npm init -y
-npm install --save-dev tskb
-```
-
-> For monorepos: put `docs/` at workspace root (or as a workspace), and ensure `rootDir` / `baseUrl` point to the workspace root that contains all packages you want to document.
+> For monorepos: create `docs/` at workspace root, and ensure `tsconfig.json` can resolve all packages you want to document.
 
 ---
 
 ### 1) Configure TypeScript for docs
 
-`docs/tsconfig.json` should be able to type-check your real code.
+Create `docs/tsconfig.json` that can type-check your real code:
 
 ```json
 {
@@ -121,8 +122,8 @@ npm install --save-dev tskb
     "jsx": "react-jsx",
     "jsxImportSource": "tskb",
 
-    "rootDir": "../",
     "baseUrl": "../",
+    "rootDir": "../",
 
     "paths": {
       "@/*": ["src/*"]
@@ -132,30 +133,52 @@ npm install --save-dev tskb
 }
 ```
 
-Notes:
+**Key settings:**
 
-- `moduleResolution: "NodeNext"` means ESM-style imports with **explicit extensions** (often `.js`).
-- `rootDir` / `baseUrl` typically point to repo root so the docs program can resolve your code.
+- `baseUrl: "../"` - Points to repo root so docs can import from `src/`
+- `jsxImportSource: "tskb"` - Enables TSX syntax for documentation
+- `moduleResolution: "NodeNext"` - Use ESM-style imports with explicit extensions (`.js`)
 
 ---
 
 ### 2) Add a build script
 
-`docs/package.json`:
+Add to your root `package.json`:
 
 ```json
 {
   "scripts": {
-    "generate": "tskb \"**/*.tskb.tsx\" --out dist/graph.json --tsconfig tsconfig.json"
+    "docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json"
   }
 }
 ```
 
-Run it:
+> **Note:** `tskb <pattern>` is shorthand for `tskb build <pattern>`
+
+Run it from repo root:
 
 ```bash
-cd docs
-npm run generate
+npm run docs
+```
+
+This creates a `.tskb/` directory in your repo root containing:
+
+- `graph.json` - the knowledge graph (queryable via CLI)
+- `graph.dot` - Graphviz visualization
+- `AGENTS.md` - auto-generated guidance for AI assistants
+
+**Pointing AI assistants to TSKB:**
+
+Create `CLAUDE.md` (for Claude) or `.github/copilot-instructions.md` (for GitHub Copilot):
+
+```markdown
+# Codebase Navigation
+
+This repository uses TSKB for architectural documentation.
+
+Before exploring:
+
+- Read `.tskb/AGENTS.md` for complete usage instructions
 ```
 
 ---
@@ -440,35 +463,152 @@ tskb build
    Pattern: **/*.tskb.tsx
    Tsconfig: tsconfig.json
 
-Found 7 documentation files
+Found 19 documentation files
 Creating TypeScript program...
 Extracting registry (Folders, Modules, Terms)...
-   Base directory: D:\tskb
-   ├─ 7 folders
-   │  └─ Paths: 7 valid, 0 missing
-   ├─ 14 modules
-   │  └─ Imports: 14 valid, 0 missing
-   └─ 19 terms
+   Base directory: /home/user/project
+   ├─ 27 folders
+   │  └─ Paths: 27 valid, 0 missing
+   ├─ 18 modules
+   │  └─ Imports: 18 valid, 0 missing
+   └─ 30 terms
 Extracting documentation...
-└─ 4 docs
+└─ 11 docs
 Building knowledge graph...
-   ├─ 7 folder nodes
-   ├─ 14 module nodes
-   ├─ 24 export nodes
-   ├─ 19 term nodes
-   ├─ 4 doc nodes
-   └─ 90 edges
-Writing graph to ./dist/graph.json...
+   ├─ 28 folder nodes
+   ├─ 18 module nodes
+   ├─ 48 export nodes
+   ├─ 30 term nodes
+   ├─ 11 doc nodes
+   └─ 201 edges
+Creating output directory: /home/user/project/.tskb
+Writing graph to /home/user/project/.tskb/graph.json...
+Generating visualization: /home/user/project/.tskb/graph.dot...
+Writing agent guide: /home/user/project/.tskb/AGENTS.md...
+
+✓ Done!
+
+Output directory: .tskb/
+   ├─ graph.json     Knowledge graph data
+   ├─ graph.dot      Graphviz visualization
+   └─ AGENTS.md      Agent guidance
+
+Visualize with: dot -Tpng .tskb/graph.dot -o .tskb/graph.png
 ```
+
+---
+
+## Querying the graph
+
+Once built, query the knowledge graph using the CLI:
+
+### List folder structure
+
+```bash
+npx tskb ls              # List top-level folders (depth=1)
+npx tskb ls --depth 2    # List folders up to depth 2
+npx tskb ls --depth -1   # List all folders (unlimited depth)
+```
+
+Output is ordered by depth (root → children), making it easy to understand hierarchy.
+
+### Describe a folder
+
+```bash
+npx tskb describe "ServiceLayer"
+```
+
+Returns:
+
+- The folder's context (description, path)
+- Parent folder
+- Child folders and modules
+- Exports belonging to this folder
+- Documentation referencing this folder
+
+### Search for items
+
+```bash
+npx tskb select "auth" "ServiceLayer"              # Search within ServiceLayer
+npx tskb select "auth" "__TSKB.REPO.ROOT__" --verbose  # Search entire repo
+```
+
+Returns the best match with:
+
+- Confidence score
+- Parent/child relationships
+- Related documentation
+- Relevant file paths
+
+All commands output JSON, making them ideal for programmatic consumption and AI assistants.
 
 ---
 
 ## Visualize
 
+The `build` command automatically generates a Graphviz DOT file in `.tskb/graph.dot`.
+
+To render it as an image:
+
 ```bash
-npx tskb visualize ./dist/graph.json --out ./dist/architecture.dot
-dot -Tpng ./dist/architecture.dot -o ./dist/architecture.png
+dot -Tpng .tskb/graph.dot -o .tskb/graph.png
 ```
+
+Or view it interactively:
+
+```bash
+xdot .tskb/graph.dot
+```
+
+---
+
+## Workflow integration
+
+### Pre-commit hook
+
+Validate docs on every commit:
+
+```bash
+npm install --save-dev husky
+npx husky init
+echo "npm run docs" > .husky/pre-commit
+```
+
+### CI/CD (GitHub Actions)
+
+```yaml
+- name: Validate architecture docs
+  run: npm run docs
+
+- name: Upload graph artifact
+  uses: actions/upload-artifact@v3
+  with:
+    name: architecture-graph
+    path: .tskb/
+```
+
+This ensures documentation stays synchronized with code changes.
+
+---
+
+## AI assistant integration
+
+TSKB is designed to help AI assistants understand codebases efficiently:
+
+- **Structured queries**: AI can use `ls`, `describe`, and `select` to navigate architecture
+- **JSON output**: Machine-readable format optimized for programmatic consumption
+- **AGENTS.md**: Auto-generated guidance file explaining how to use TSKB commands
+- **Semantic graph**: Relationships between folders, modules, and exports are explicit
+- **Type-safe references**: AI can trust that referenced paths and imports are valid
+
+Instead of blindly exploring files, AI assistants can:
+
+1. Use `ls --depth 2` to understand high-level structure
+2. Use `describe` to dive into specific areas
+3. Use `select` to find relevant code for a task
+4. Read only the files that matter
+
+This dramatically reduces tokens spent on exploration and increases accuracy.
 
 ---
 
@@ -484,18 +624,20 @@ dot -Tpng ./dist/architecture.dot -o ./dist/architecture.png
 
 - Type-checks architecture docs at compile time
 - Validates against actual code via `typeof import()`
-- Documents whole systems (multiple packages, monorepos, microservices)
+- CLI for querying the graph (no file scanning needed)
+- Documents whole systems (multiple packages, monorepos)
 - Type-checked code snippets (not string literals)
-- Semantic knowledge graph optimized for AI/RAG
+- Optimized for AI assistants with structured queries
 
 ---
 
 ## Roadmap
 
-- Graph querying & optimization
-- AI context layer (MCP)
-- Architectural constraints
-- Plugin system
+- Enhanced graph querying & filtering
+- Architectural constraints validation
+- Interactive visualization (beyond Graphviz)
+- Plugin system for custom node types
+- Integration helpers (pre-commit hooks, CI templates)
 
 ---
 

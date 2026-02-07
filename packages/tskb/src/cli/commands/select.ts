@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import type { KnowledgeGraph, AnyNode, GraphEdge } from "../../core/graph/types.js";
+import { findGraphFile } from "../utils/graph-finder.js";
 
 /**
  * Result from selecting a node in the knowledge graph
@@ -47,23 +48,17 @@ interface MatchCandidate {
 /**
  * Select a single best-matching node from the knowledge graph within a specified scope
  *
- * @param graphPath - Path to the knowledge graph JSON file
  * @param searchTerm - Search term to match against nodes
  * @param folderId - Folder ID to scope the search (e.g., "tskb.cli", "Package.Root")
  * @param concise - Output concise format optimized for AI consumption (default: true)
  */
 export async function select(
-  graphPath: string,
   searchTerm: string,
   folderId: string,
   concise: boolean = true
 ): Promise<void> {
-  // Load the knowledge graph
-  if (!fs.existsSync(graphPath)) {
-    console.error(`Error: Graph file not found: ${graphPath}`);
-    process.exit(1);
-  }
-
+  // Find and load the knowledge graph
+  const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
 
@@ -191,10 +186,21 @@ function matchNode(
   // Exact ID match (highest priority)
   if (idLower === searchTerm) {
     matchedFields.push("id:exact");
-    score += isMultiWord ? 120 : 100; // Boost multi-word exact matches
+    score += isMultiWord ? 200 : 150; // Much higher for exact matches
   } else if (idLower.startsWith(searchTerm)) {
-    matchedFields.push("id:prefix");
-    score += isMultiWord ? 95 : 80;
+    // Check if it's a word boundary (not just substring)
+    const afterMatch = idLower[searchTerm.length];
+    const isWordBoundary =
+      !afterMatch || /[^a-z0-9]/.test(afterMatch) || /[A-Z]/.test(id[searchTerm.length]);
+
+    if (isWordBoundary) {
+      matchedFields.push("id:prefix");
+      score += isMultiWord ? 95 : 80;
+    } else {
+      // Partial prefix (like "cli" in "client") - lower score
+      matchedFields.push("id:partial-prefix");
+      score += isMultiWord ? 40 : 30;
+    }
   } else if (idLower.includes(searchTerm)) {
     matchedFields.push("id:phrase");
     score += isMultiWord ? 70 : 50;
@@ -489,6 +495,7 @@ function extractDocs(
 ): Array<{ id: string; filePath: string; excerpt: string }> {
   const docs: Array<{ id: string; filePath: string; excerpt: string }> = [];
   const excerptLength = concise ? 100 : 200;
+  const seenDocs = new Set<string>();
 
   // If this is a doc node, include it
   if (node.type === "doc") {
@@ -498,12 +505,14 @@ function extractDocs(
       filePath: node.filePath,
       excerpt: excerpt + (node.content.length > excerptLength ? "..." : ""),
     });
+    seenDocs.add(id);
   }
 
-  // Find related doc nodes (docs that reference this node)
   const maxDocs = concise ? 3 : 10;
+
+  // Find docs that reference this node directly
   for (const edge of edges.incoming) {
-    if (edge.type === "references" && docs.length < maxDocs) {
+    if (edge.type === "references" && docs.length < maxDocs && !seenDocs.has(edge.from)) {
       const docNode = graph.nodes.docs[edge.from];
       if (docNode) {
         const excerpt = docNode.content.substring(0, excerptLength).replace(/\s+/g, " ").trim();
@@ -512,6 +521,61 @@ function extractDocs(
           filePath: docNode.filePath,
           excerpt: excerpt + (docNode.content.length > excerptLength ? "..." : ""),
         });
+        seenDocs.add(edge.from);
+      }
+    }
+  }
+
+  // For folders: also find docs that reference children (modules, exports, sub-folders)
+  if (node.type === "folder" && docs.length < maxDocs) {
+    const childIds = new Set<string>();
+
+    // Find all children of this folder
+    for (const edge of edges.outgoing) {
+      if (edge.type === "contains") {
+        childIds.add(edge.to);
+      }
+    }
+
+    // Find modules and exports that belong to this folder
+    for (const edge of edges.incoming) {
+      if (edge.type === "belongs-to") {
+        childIds.add(edge.from);
+      }
+    }
+
+    // Also find exports that belong to modules that belong to this folder
+    const moduleIds = Array.from(childIds).filter((cid) => {
+      const childNode = findNodeById(cid, graph);
+      return childNode?.type === "module";
+    });
+
+    for (const moduleId of moduleIds) {
+      for (const edge of graph.edges) {
+        if (edge.type === "belongs-to" && edge.to === moduleId) {
+          childIds.add(edge.from); // Add exports that belong to this module
+        }
+      }
+    }
+
+    // Find docs that reference any child
+    for (const childId of childIds) {
+      if (docs.length >= maxDocs) break;
+
+      for (const edge of graph.edges) {
+        if (edge.type === "references" && edge.to === childId && !seenDocs.has(edge.from)) {
+          const docNode = graph.nodes.docs[edge.from];
+          if (docNode) {
+            const excerpt = docNode.content.substring(0, excerptLength).replace(/\s+/g, " ").trim();
+            docs.push({
+              id: edge.from,
+              filePath: docNode.filePath,
+              excerpt: excerpt + (docNode.content.length > excerptLength ? "..." : ""),
+            });
+            seenDocs.add(edge.from);
+            if (docs.length >= maxDocs) break;
+          }
+        }
       }
     }
   }
@@ -619,6 +683,11 @@ function isInScope(
   scopeFolderIds: Set<string>,
   graph: KnowledgeGraph
 ): boolean {
+  // Terms are global vocabulary - always in scope
+  if (node.type === "term") {
+    return true;
+  }
+
   // If the node itself is a folder in scope, it's in scope
   if (node.type === "folder" && scopeFolderIds.has(nodeId)) {
     return true;

@@ -3,7 +3,7 @@ import { type Folder, type Module, type Export, Doc, H1, ref, P, H2, H3, Li, Lis
 declare global {
   namespace tskb {
     interface Folders {
-      "Package.Root": Folder<{
+      "TSKB.Package.Root": Folder<{
         desc: "The root folder of the package, with its package.json";
         path: "packages/tskb";
       }>;
@@ -41,7 +41,7 @@ declare global {
 
       "sample.tsconfig.json": Module<{
         desc: "An example of required tsconfig.json for building <TSKB> docs";
-        type: typeof import("../tsconfig.json");
+        type: typeof import("../../tsconfig.json");
       }>;
     }
 
@@ -68,14 +68,10 @@ declare global {
       }>;
 
       "cli.build": Export<{
-        desc: "The control flow function for building the docs";
+        desc: "The control flow function for building the docs, graph, and visualization output to .tskb/ directory";
         type: typeof import("packages/tskb/src/cli/commands/build.js").build;
       }>;
 
-      "cli.visualize": Export<{
-        desc: "Generates a Graphviz DOT file from the knowledge graph JSON";
-        type: typeof import("packages/tskb/src/cli/commands/visualize.js").visualize;
-      }>;
       "cli.select": Export<{
         desc: "Selects the single best-matching node from the knowledge graph within a folder scope using folder IDs, with confidence score, parent/children context, and alternative suggestions";
         type: typeof import("packages/tskb/src/cli/commands/select.js").select;
@@ -85,7 +81,7 @@ declare global {
         type: typeof import("packages/tskb/src/cli/commands/describe.js").describe;
       }>;
       "cli.ls": Export<{
-        desc: "Lists all folders in the knowledge graph from Package.Root with controllable depth, returning flat JSON hierarchy";
+        desc: "Lists all folders in the knowledge graph from TSKB.Package.Root with controllable depth, returning flat JSON hierarchy";
         type: typeof import("packages/tskb/src/cli/commands/ls.js").ls;
       }>;
       generateDot: Export<{
@@ -96,7 +92,7 @@ declare global {
   }
 }
 
-const RootFolder = ref as tskb.Folders["Package.Root"];
+const TSKBRootFolder = ref as tskb.Folders["TSKB.Package.Root"];
 const PackageJson = ref as tskb.Modules["package.json"];
 const CliTerm = ref as tskb.Terms["cli"];
 const MainIndexModule = ref as tskb.Modules["Main.index.js"];
@@ -112,7 +108,6 @@ const TsProgramTerm = ref as tskb.Terms["tsProgram"];
 const RegistryTerm = ref as tskb.Terms["registry"];
 const GraphTerm = ref as tskb.Terms["graph"];
 const CliBuildExport = ref as tskb.Exports["cli.build"];
-const CliVisualizeExport = ref as tskb.Exports["cli.visualize"];
 const GenerateDotExport = ref as tskb.Exports["generateDot"];
 const DotFileTerm = ref as tskb.Terms["dotFile"];
 const CliSelectExport = ref as tskb.Exports["cli.select"];
@@ -123,7 +118,7 @@ const SelectResultTerm = ref as tskb.Terms["selectResult"];
 export default (
   <Doc>
     <H1>Architecture and implementation docs for the {"<TSKB>"} library </H1>
-    <P>The package is located in {RootFolder}</P>
+    <P>The package is located in {TSKBRootFolder}</P>
     <H2>What is {"<TSKB>"}?</H2>
     <P>
       A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge
@@ -131,7 +126,7 @@ export default (
     </P>
     <H3>What it provides in terms of interfaces (API's) and tools</H3>
     <P>
-      In the root folder: {RootFolder}. In the
+      In the root folder: {TSKBRootFolder}. In the
       {PackageJson} file, it declares a bin command named 'tskb' that runs the {CliTerm}
     </P>
     <P>
@@ -181,8 +176,7 @@ export default (
       </Li>
 
       <Li>
-        Run {CliBuildExport}:
-        <P>"tskb \"**/*.tskb.tsx\" --out ./dist/taskflow-graph.json --tsconfig tsconfig.json"</P>
+        Run {CliBuildExport}:<P>"tskb \"**/*.tskb.tsx\" --tsconfig tsconfig.json"</P>
       </Li>
 
       <Li>
@@ -197,14 +191,14 @@ export default (
     <P>Generating a visual representation:</P>
     <List>
       <Li>
-        Run {CliVisualizeExport}: "tskb visualize ./dist/taskflow-graph.json --out
-        ./dist/architecture.dot"
+        {CliBuildExport} automatically generates a {DotFileTerm} in .tskb/graph.dot using{" "}
+        {GenerateDotExport}
       </Li>
       <Li>
         {GenerateDotExport} transforms the {GraphTerm} into a {DotFileTerm} with nodes and
         relationship edges
       </Li>
-      <Li>Render with Graphviz: "dot -Tpng architecture.dot -o architecture.png"</Li>
+      <Li>Render with Graphviz: "dot -Tpng .tskb/graph.dot -o .tskb/graph.png"</Li>
       <Li>Or use interactive viewers like xdot or online Graphviz tools</Li>
     </List>
     <H3>Key Benefits</H3>
