@@ -506,7 +506,7 @@ Once built, query the knowledge graph using the CLI:
 
 ```bash
 npx tskb ls              # List top-level folders (depth=1)
-npx tskb ls --depth 2    # List folders up to depth 2
+npx tskb ls --depth 4    # List folders up to depth 4
 npx tskb ls --depth -1   # List all folders (unlimited depth)
 ```
 
@@ -603,7 +603,7 @@ TSKB is designed to help AI assistants understand codebases efficiently:
 
 Instead of blindly exploring files, AI assistants can:
 
-1. Use `ls --depth 2` to understand high-level structure
+1. Use `ls --depth 4` to understand high-level structure
 2. Use `describe` to dive into specific areas
 3. Use `select` to find relevant code for a task
 4. Read only the files that matter
