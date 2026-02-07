@@ -9,53 +9,55 @@ import { REPO_ROOT_FOLDER_NAME } from "../../core/constants.js";
 function getAgentsTemplate(): string {
   return `# AGENTS.md
 
-## Purpose
+## CRITICAL: Structure-First Analysis
 
-This repository uses **TSKB** as a structure-first map of the codebase.
+This codebase uses **TSKB** - a semantic map of the repository's architecture.
 
-TSKB defines:
-- what exists
-- where things live
-- how areas relate
+### Before ANY code changes or deep file inspection:
 
-It is the primary tool for orientation.
+1. **Map the territory** - Understand what exists and where
+   \`\`\`bash
+   npx tskb ls --depth 4
+   \`\`\`
+   Returns folder hierarchy with architectural descriptions (not file listings)
 
----
+2. **Understand context** - Get the architectural intent of relevant areas
+   \`\`\`bash
+   npx tskb describe "<folder-id>"
+   \`\`\`
+   Returns ADRs, constraints, design decisions, and domain vocabulary
 
-## Mandatory workflow
+3. **Locate precisely** - Find where concepts/keywords live in the structure
+   \`\`\`bash
+   npx tskb select "<keyword>" "<folderId>"
+   \`\`\`
+   Returns modules and docs related to the concept within architectural boundaries
 
-Before reading or editing code, try to undestand the project structure, intent and architecture, by using tskb cli tools:
+### Why this matters
 
-**Inspect structure**
-\`\`\`bash
-npx tskb ls --depth 2
-\`\`\`
+**Pattern matching breaks down in large codebases.**
+- Glob returns thousands of files (tests, configs, generated code, examples)
+- Grep finds implementations but misses architectural context
+- You read the right files in the wrong order, missing key constraints
 
+**TSKB is faster because:**
+- No noise: Only architecturally significant nodes, not every file
+- Context first: Understand design decisions before reading implementation
+- Precise targeting: Find the 3 relevant files instead of scanning 50 matches
 
-**Understand the area**
-\`\`\`bash
-npx tskb describe "<id>"
-\`\`\`
+### Decision Framework
 
-**Locate the relevant area, search for keywords, concepts in a scope (folder)**
-\`\`\`bash
-npx tskb select "<concept or feature>" "<folderId>"
-\`\`\`
+**WRONG**: See a feature request → Grep for keywords → Read files → Make localized change
 
-It might be helpfull to have a broader picture, before jumping into reading files
+**RIGHT**: See a feature request → \`tskb ls\` (where does this belong?) → \`tskb describe\` (what's the design?) → \`tskb select\` (existing patterns?) → Read specific files → Make architecturally coherent change
 
----
+### Enforcement
 
-## Rules
+- If you find yourself using Glob/Grep without first consulting TSKB, **stop**
+- If a change affects multiple areas, verify with \`tskb ls\` that you understand all impact zones
+- If architectural intent is unclear from TSKB, the \`.tskb.tsx\` config likely needs updating
 
-- Prefer **TSKB CLI** over blind search
-- Use **TSKB to decide where**, then Read/Grep to inspect how
-- If something is not in TSKB, it is likely not architecturally important
-- If structure or architectural intent changes, update \`.tskb.tsx\` docs
-
----
-
-## Updating TSKB docs
+### Updating TSKB docs
 
 Update documentation when:
 - New folders, packages, or major modules are added
@@ -64,11 +66,11 @@ Update documentation when:
 
 Do **not** document minor implementation details.
 
----
+### Note
 
-## Note
+TSKB is not a replacement for source code. It's a map that tells you WHERE to look and WHY it's designed that way. Then use Read/Grep to understand HOW it works.
 
-TSKB is a navigator, not a replacement for source code.
+**Don't skip the map because you think pattern matching is faster. It's not. Use TSKB first.**
 `;
 }
 

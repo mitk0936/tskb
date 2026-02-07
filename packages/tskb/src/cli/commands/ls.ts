@@ -52,13 +52,22 @@ export async function ls(maxDepth: number = 1): Promise<void> {
 }
 
 /**
+ * Calculate the actual filesystem depth based on the path
+ */
+function calculatePathDepth(path: string | undefined): number {
+  if (!path || path === ".") return 0;
+  // Count the number of path separators
+  return path.split("/").filter((segment) => segment.length > 0).length;
+}
+
+/**
  * Recursively list all folders up to the specified depth
  */
 function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): LsResult {
   const folders: Array<{ id: string; depth: number; desc?: string; path?: string }> = [];
   const visited = new Set<string>();
 
-  function traverse(folderId: string, currentDepth: number) {
+  function traverse(folderId: string) {
     // Avoid cycles
     if (visited.has(folderId)) return;
     visited.add(folderId);
@@ -66,16 +75,20 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
     const folder = graph.nodes.folders[folderId];
     if (!folder) return;
 
+    // Calculate actual filesystem depth from the path
+    const folderPath = folder.resolvedPath || folder.path;
+    const actualDepth = calculatePathDepth(folderPath);
+
     // Add this folder to results
     folders.push({
       id: folderId,
-      depth: currentDepth,
+      depth: actualDepth,
       desc: folder.desc,
-      path: folder.resolvedPath || folder.path,
+      path: folderPath,
     });
 
     // Stop if we've reached max depth (unless maxDepth is -1 for unlimited)
-    if (maxDepth !== -1 && currentDepth >= maxDepth) {
+    if (maxDepth !== -1 && actualDepth >= maxDepth) {
       return;
     }
 
@@ -84,12 +97,12 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
 
     // Traverse each child
     for (const childId of childFolders) {
-      traverse(childId, currentDepth + 1);
+      traverse(childId);
     }
   }
 
-  // Start traversal from root at depth 0
-  traverse(rootId, 0);
+  // Start traversal from root
+  traverse(rootId);
 
   // Sort folders by depth (ascending) to ensure root elements appear first
   folders.sort((a, b) => a.depth - b.depth);
