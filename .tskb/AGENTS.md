@@ -4,6 +4,8 @@
 
 This repository uses **TSKB** — a structure-first map of the codebase.
 
+**tskb** is a tool for documenting complex codebases and passing architectural intent and structure to ai code assistants
+
 TSKB helps you understand:
 
 - what exists
@@ -14,19 +16,32 @@ It is a **navigator**, not a full description of the code.
 
 ---
 
-## How to use it
+## Getting oriented
 
-Start with TSKB before reading code.
+**When you're new to this codebase or exploring unfamiliar areas, consider starting with TSKB.**
 
-Use it to:
+TSKB is particularly useful for:
 
-- orient yourself
-- narrow the scope
-- decide where to look next
+- **Initial orientation** — Understanding the high-level structure before diving into code
+- **Finding the right area** — Locating where specific functionality lives
+- **Understanding relationships** — Seeing how different parts connect
 
-If something is not documented, it does **not** mean it is unimportant.
+### Quick start:
 
-TSKB reduces exploration cost, not thinking.
+```bash
+# Start with structure
+npx tskb ls --depth 2
+
+# Find a specific area
+npx tskb select "your-search-term" "__TSKB.REPO.ROOT__"
+
+# Understand a specific folder
+npx tskb describe "folder-id"
+```
+
+Once you have architectural context, use normal tools (Grep, Read, etc.) to explore specific files.
+
+**TSKB is most valuable at the beginning** — it reduces time spent searching and helps build accurate mental models.
 
 ---
 
@@ -72,26 +87,7 @@ This shows you all folders up to depth 2, ordered by depth (root → top-level �
 - Naming patterns that hint at purpose
 - Folder descriptions that explain intent
 
-### 2. Use `describe` to understand a specific area
-
-```bash
-npx tskb describe "TSKB.Package.Root"
-```
-
-This shows:
-- **context**: The folder itself (id, type, desc, path)
-- **parent**: What contains this folder
-- **contents**: Child folders within this folder
-- **modules**: Files/modules that belong to this folder
-- **exports**: Public exports from this folder
-- **referencedInDocs**: Which .tskb.tsx docs reference this folder
-
-**What to look for:**
-- Parent/child relationships to understand hierarchy
-- Modules to find actual implementation files
-- Docs that explain architectural decisions
-
-### 3. Use `select` to find specific items
+### 2. Use `select` to find specific items
 
 ```bash
 npx tskb select "authentication" "__TSKB.REPO.ROOT__"
@@ -111,6 +107,29 @@ This searches within a scope (folder) for the best match.
 - Start with `__TSKB.REPO.ROOT__` to search the entire repo
 - Narrow to a specific folder ID (e.g., "tskb.cli") to search within that area
 - Use `--verbose` for more detailed output
+
+### 3. Use `describe` to understand a specific area
+
+```bash
+npx tskb describe "TSKB.Package.Root"
+```
+
+This shows:
+- **context**: The folder itself (id, type, desc, path)
+- **parent**: What contains this folder
+- **contents**: Child folders within this folder
+- **modules**: Files/modules that belong to this folder
+- **exports**: Public exports from this folder
+- **referencedInDocs**: Which .tskb.tsx docs reference this folder
+
+**What to look for:**
+- Parent/child relationships to understand hierarchy
+- Modules to find actual implementation files
+- Docs that explain architectural decisions
+
+### 4. Then read specific files
+
+Once TSKB has pointed you to the right area, use Read, Grep, or other tools to examine specific files.
 
 ---
 
@@ -200,14 +219,36 @@ If you add a new folder `packages/tskb/templates/` with template files:
 
 ---
 
+## When to use TSKB
+
+### Good use cases:
+
+- **"Where does X live?"** — Use `select` to find it
+- **"What's in this codebase?"** — Use `ls` to see structure
+- **"How is this organized?"** — Use `describe` to understand areas
+- **Starting a new task** — Get oriented before diving into code
+
+### When to use other tools:
+
+- **Reading specific files** — Use Read once you know what to read
+- **Searching within files** — Use Grep after you know which areas matter
+- **Making changes** — Use Edit/Write on files TSKB helped you find
+
+**TSKB reduces exploration time**, especially when:
+- You're unfamiliar with the codebase
+- The repository is large or complex
+- You need to understand relationships between parts
+
+---
+
 ## Best practices
 
 ### For exploration
 
-- **Start broad, narrow down**: Use `ls` → `describe` → `select`
-- **Follow references**: If a doc mentions a folder, `describe` it
-- **Check confidence**: Low confidence? Try different search terms or scopes
-- **Read actual code**: TSKB points you to files, but you still need to read them
+- **Consider TSKB for initial orientation** — It's faster than exploring randomly
+- **Use TSKB to narrow scope** — Find the right area, then dive into files
+- **Combine tools appropriately** — TSKB for structure, Read/Grep for details
+- **Check confidence scores** — Low confidence? Try different search terms or scopes
 
 ### For understanding
 
@@ -225,10 +266,10 @@ If you add a new folder `packages/tskb/templates/` with template files:
 
 ---
 
-## Rules
+## Guidelines
 
-1. **TSKB is the starting point** — use it before exploring code
-2. **Do not explore blindly** — let TSKB guide your file reading
-3. **Combine with normal tools** — use TSKB for structure, then read files directly
-4. **Trust the graph** — if something's not in TSKB, it might not be architecturally significant
-5. **Update when appropriate** — extend docs when structure or architecture changes
+1. **Consider TSKB first** — It's often faster than searching blindly
+2. **Let TSKB guide exploration** — Use it to find the right areas, then read files
+3. **Combine tools effectively** — TSKB for structure, Read/Grep for details
+4. **Trust the graph** — If something's not in TSKB, it might not be architecturally significant
+5. **Extend when appropriate** — Update .tskb.tsx docs when structure or architecture changes

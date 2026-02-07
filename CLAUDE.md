@@ -1,11 +1,5 @@
 # CLAUDE.md
 
-This monorepo uses **TSKB** for architectural navigation.
+This is the main repo of thhe **TSKB** package and it uses the package internally for (meta) documentation.
 
-Before exploring the codebase:
-
-- read `.tskb/AGENTS.md`
-- use TSKB to understand structure and relations
-
-Do not scan the repository blindly.  
-Use TSKB first, then inspect code selectively.
+read `.tskb/AGENTS.md`
