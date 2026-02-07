@@ -81,7 +81,7 @@ export function generateDot(graph: KnowledgeGraph): string {
 
   // Terms (outside folder hierarchy)
   lines.push("  // Terms");
-  lines.push("  subgraph cluster_terms {");
+  lines.push('  subgraph "cluster_terms" {');
   lines.push('    label="Terms";');
   lines.push("    style=dashed;");
   lines.push("    color=gray;");
@@ -94,7 +94,7 @@ export function generateDot(graph: KnowledgeGraph): string {
 
   // Docs (outside folder hierarchy)
   lines.push("  // Documentation");
-  lines.push("  subgraph cluster_docs {");
+  lines.push('  subgraph "cluster_documentation" {');
   lines.push('    label="Documentation";');
   lines.push("    style=dashed;");
   lines.push("    color=gray;");
@@ -164,9 +164,9 @@ function generateFolderSubgraph(
   if (!folder) return;
 
   const indent = "  ".repeat(depth);
-  const clusterId = `cluster_${folderId.replace(/\./g, "_")}`;
+  const clusterId = `cluster_${folderId.replace(/\./g, "_").replace(/-/g, "_")}`;
 
-  lines.push(`${indent}subgraph ${clusterId} {`);
+  lines.push(`${indent}subgraph "${clusterId}" {`);
   lines.push(`${indent}  label="${folderId}";`);
   lines.push(`${indent}  style=filled;`);
   lines.push(`${indent}  fillcolor="#E3F2FD";`);

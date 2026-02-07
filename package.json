@@ -4,17 +4,20 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "examples/*",
-    "docs/*"
+    "examples/*"
   ],
   "scripts": {
-    "postinstall": "npm run build:all",
-    "build:all": "npm run build --workspace=packages/tskb && npm run build --workspaces --if-present",
-    "clean": "npx rimraf --glob node_modules **/node_modules **/dist",
+    "postinstall": "npm run build",
+    "build": "npm run build --workspaces --if-present && npm run build:docs",
+    "build:docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json",
+    "clean": "npx rimraf --glob node_modules **/node_modules **/dist **/.tskb",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "prepare": "husky"
+  },
+  "dependencies": {
+    "tskb": "workspace:*"
   },
   "devDependencies": {
     "husky": "^9.1.7",

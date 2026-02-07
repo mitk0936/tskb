@@ -1,0 +1,1 @@
+export const REPO_ROOT_FOLDER_NAME = "__TSKB.REPO.ROOT__";

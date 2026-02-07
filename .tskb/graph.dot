@@ -1,0 +1,552 @@
+digraph KnowledgeGraph {
+  rankdir=TB;
+  compound=true;
+  node [fontname="Arial", fontsize=10];
+  edge [fontname="Arial", fontsize=8];
+
+  subgraph "cluster___TSKB_REPO_ROOT__" {
+    label="__TSKB.REPO.ROOT__";
+    style=filled;
+    fillcolor="#E3F2FD";
+    color="#1976D2";
+
+    "__TSKB.REPO.ROOT__" [label="Folder\<\"__TSKB.REPO.ROOT__\"\>\nThe root directory of the repository (automatically added by tskb)\n📁 .", shape=box, fillcolor="#BBDEFB", style=filled];
+
+    subgraph "cluster_docs" {
+      label="docs";
+      style=filled;
+      fillcolor="#E3F2FD";
+      color="#1976D2";
+
+      "docs" [label="Folder\<\"docs\"\>\nA folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration.\n📁 docs/", shape=box, fillcolor="#BBDEFB", style=filled];
+
+      // Modules in docs
+      "sample.tsconfig.json" [label="Module\<\"sample.tsconfig.json\"\>\nAn example of required tsconfig.json for building <TSKB> docs\n📁 docs/tsconfig.json", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
+    }
+
+    subgraph "cluster_examples_taskflow_app" {
+      label="examples.taskflow-app";
+      style=filled;
+      fillcolor="#E3F2FD";
+      color="#1976D2";
+
+      "examples.taskflow-app" [label="Folder\<\"examples.taskflow-app\"\>\nExample application, not meant to be run, but used as reference for example docs\n📁 examples/taskflow-app", shape=box, fillcolor="#BBDEFB", style=filled];
+
+      subgraph "cluster_Client" {
+        label="Client";
+        style=filled;
+        fillcolor="#E3F2FD";
+        color="#1976D2";
+
+        "Client" [label="Folder\<\"Client\"\>\nReact frontend application with components, pages, and state management\n📁 examples/taskflow-app/src/client", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        subgraph "cluster_Components" {
+          label="Components";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Components" [label="Folder\<\"Components\"\>\nReusable React components organized by feature\n📁 examples/taskflow-app/src/client/components", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        }
+
+        subgraph "cluster_Pages" {
+          label="Pages";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Pages" [label="Folder\<\"Pages\"\>\nTop-level page components mapped to routes\n📁 examples/taskflow-app/src/client/pages", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        }
+
+        subgraph "cluster_Contexts" {
+          label="Contexts";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Contexts" [label="Folder\<\"Contexts\"\>\nReact Context providers for global state management\n📁 examples/taskflow-app/src/client/contexts", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Modules in Contexts
+          "AuthContext" [label="Module\<\"AuthContext\"\>\nReact Context providing authentication state and login/logout methods\n📁 examples/taskflow-app/src/client/contexts/AuthContext.tsx", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
+          // Exports in Contexts
+          "TaskContext" [label="Export\<\"TaskContext\"\>\nReact Context managing task state and CRUD operations\n📁 examples/taskflow-app/src/client/contexts/TaskContext.tsx", shape=component, fillcolor="#C5E1A5", style=filled];
+          "ProjectContext" [label="Export\<\"ProjectContext\"\>\nReact Context for project selection and management\n📁 examples/taskflow-app/src/client/contexts/ProjectContext.tsx", shape=component, fillcolor="#C5E1A5", style=filled];
+
+        }
+
+        subgraph "cluster_Hooks" {
+          label="Hooks";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Hooks" [label="Folder\<\"Hooks\"\>\nCustom React hooks for shared logic\n📁 examples/taskflow-app/src/client/hooks", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        }
+
+        subgraph "cluster_ClientServices" {
+          label="ClientServices";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "ClientServices" [label="Folder\<\"ClientServices\"\>\nAPI client services for backend communication\n📁 examples/taskflow-app/src/client/services", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Exports in ClientServices
+          "WebSocketService" [label="Export\<\"WebSocketService\"\>\nReal-time communication service for live updates\n📁 examples/taskflow-app/src/client/services/websocket.service.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "ApiClient" [label="Export\<\"ApiClient\"\>\nBase HTTP client for API communication with authentication\n📁 examples/taskflow-app/src/client/services/api.service.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+        }
+
+      }
+
+      subgraph "cluster_Server" {
+        label="Server";
+        style=filled;
+        fillcolor="#E3F2FD";
+        color="#1976D2";
+
+        "Server" [label="Folder\<\"Server\"\>\nNode.js backend API with services, controllers, and middleware\n📁 examples/taskflow-app/src/server", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        subgraph "cluster_Services" {
+          label="Services";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Services" [label="Folder\<\"Services\"\>\nBusiness logic layer handling core application operations\n📁 examples/taskflow-app/src/server/services", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Modules in Services
+          "AuthService" [label="Module\<\"AuthService\"\>\nHandles user authentication, registration, and token management\n📁 examples/taskflow-app/src/server/services/auth.service.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
+          // Exports in Services
+          "TaskService" [label="Export\<\"TaskService\"\>\nManages task CRUD operations, status updates, and assignments\n📁 examples/taskflow-app/src/server/services/task.service.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "ProjectService" [label="Export\<\"ProjectService\"\>\nHandles project lifecycle, team assignments, and member management\n📁 examples/taskflow-app/src/server/services/project.service.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "UserService" [label="Export\<\"UserService\"\>\nManages user profiles and team memberships\n📁 examples/taskflow-app/src/server/services/user.service.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "NotificationService" [label="Export\<\"NotificationService\"\>\nCreates and delivers notifications for task updates and mentions\n📁 examples/taskflow-app/src/server/services/notification.service.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+        }
+
+        subgraph "cluster_Controllers" {
+          label="Controllers";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Controllers" [label="Folder\<\"Controllers\"\>\nHTTP request handlers that coordinate between routes and services\n📁 examples/taskflow-app/src/server/controllers", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        }
+
+        subgraph "cluster_Middleware" {
+          label="Middleware";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Middleware" [label="Folder\<\"Middleware\"\>\nExpress middleware for authentication, validation, and error handling\n📁 examples/taskflow-app/src/server/middleware", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Exports in Middleware
+          "ErrorHandler" [label="Export\<\"ErrorHandler\"\>\nGlobal error handling middleware for consistent API responses\n📁 examples/taskflow-app/src/server/middleware/error.middleware.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "AuthMiddleware" [label="Export\<\"AuthMiddleware\"\>\nAuthentication and authorization middleware for protected routes\n📁 examples/taskflow-app/src/server/middleware/auth.middleware.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+        }
+
+        subgraph "cluster_Database" {
+          label="Database";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Database" [label="Folder\<\"Database\"\>\nDatabase connection and repository layer for data persistence\n📁 examples/taskflow-app/src/server/database", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Exports in Database
+          "Database" [label="Export\<\"Database\"\>\nDatabase connection manager with query execution and transaction support\n📁 examples/taskflow-app/src/server/database/connection.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+          subgraph "cluster_Repositories" {
+            label="Repositories";
+            style=filled;
+            fillcolor="#E3F2FD";
+            color="#1976D2";
+
+            "Repositories" [label="Folder\<\"Repositories\"\>\nData access layer abstracting database operations\n📁 examples/taskflow-app/src/server/database/repositories", shape=box, fillcolor="#BBDEFB", style=filled];
+
+            // Modules in Repositories
+            "TaskRepository" [label="Module\<\"TaskRepository\"\>\nData access layer for task persistence with pagination and filtering\n📁 examples/taskflow-app/src/server/database/repositories/task.repository.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
+            // Exports in Repositories
+            "UserRepository" [label="Export\<\"UserRepository\"\>\nData access layer for user CRUD operations\n📁 examples/taskflow-app/src/server/database/repositories/user.repository.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "ProjectRepository" [label="Export\<\"ProjectRepository\"\>\nData access layer for project data persistence\n📁 examples/taskflow-app/src/server/database/repositories/project.repository.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+          }
+
+        }
+
+      }
+
+      subgraph "cluster_Shared" {
+        label="Shared";
+        style=filled;
+        fillcolor="#E3F2FD";
+        color="#1976D2";
+
+        "Shared" [label="Folder\<\"Shared\"\>\nShared TypeScript types and utilities used by both client and server\n📁 examples/taskflow-app/src/shared", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        subgraph "cluster_Types" {
+          label="Types";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Types" [label="Folder\<\"Types\"\>\nTypeScript type definitions shared across the application\n📁 examples/taskflow-app/src/shared/types", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Exports in Types
+          "Task" [label="Export\<\"Task\"\>\nTask entity type with status, priority, and assignment properties\n📁 examples/taskflow-app/src/shared/types/task.types.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "Project" [label="Export\<\"Project\"\>\nProject entity type with team and status information\n📁 examples/taskflow-app/src/shared/types/project.types.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "PaginationParams" [label="Export\<\"PaginationParams\"\>\nPagination parameters for list queries (page, limit, sorting)\n📁 examples/taskflow-app/src/shared/types/api.types.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "FilterParams" [label="Export\<\"FilterParams\"\>\nFilter parameters for querying tasks by status, priority, date range, etc.\n📁 examples/taskflow-app/src/shared/types/api.types.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "ApiResponse" [label="Export\<\"ApiResponse\"\>\nStandard API response wrapper with data, error, and metadata fields\n📁 examples/taskflow-app/src/shared/types/api.types.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "PaginatedResponse" [label="Export\<\"PaginatedResponse\"\>\nGeneric paginated response with items, total count, and page metadata\n📁 examples/taskflow-app/src/shared/types/api.types.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "User" [label="Export\<\"User\"\>\nUser entity type with authentication and profile information\n📁 examples/taskflow-app/src/shared/types/user.types.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+        }
+
+        subgraph "cluster_Utils" {
+          label="Utils";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Utils" [label="Folder\<\"Utils\"\>\nUtility functions for validation, formatting, and common operations\n📁 examples/taskflow-app/src/shared/utils", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        }
+
+        subgraph "cluster_Config" {
+          label="Config";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "Config" [label="Folder\<\"Config\"\>\nConfiguration constants and environment variables\n📁 examples/taskflow-app/src/shared/config", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        }
+
+      }
+
+    }
+
+    subgraph "cluster_packages" {
+      label="packages";
+      style=filled;
+      fillcolor="#E3F2FD";
+      color="#1976D2";
+
+      "packages" [label="Folder\<\"packages\"\>\nA folder that contains independent packages in the repo (npm worskspace)\n📁 packages", shape=box, fillcolor="#BBDEFB", style=filled];
+
+      subgraph "cluster_TSKB_Package_Root" {
+        label="TSKB.Package.Root";
+        style=filled;
+        fillcolor="#E3F2FD";
+        color="#1976D2";
+
+        "TSKB.Package.Root" [label="Folder\<\"TSKB.Package.Root\"\>\nThe root folder of the package, with its package.json\n📁 packages/tskb", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        // Modules in TSKB.Package.Root
+        "package.json" [label="Module\<\"package.json\"\>\nLibrary's package.json file\n📁 packages/tskb/package.json", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+        "Main.index.js" [label="Module\<\"Main.index.js\"\>\nThe main package export\n📁 packages/tskb/src/index.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+          "ref" [label="Export\<\"ref\"\>\nA placeholder for referencing anything from the global tskb registry into jsx tags\n📁 packages/tskb/src/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+        subgraph "cluster_tskb_cli" {
+          label="tskb.cli";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "tskb.cli" [label="Folder\<\"tskb.cli\"\>\nSource code for the cli\n📁 packages/tskb/src/cli", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Modules in tskb.cli
+          "cli.index" [label="Module\<\"cli.index\"\>\nCLI entry point - handles argument parsing, command routing, and error handling\n📁 packages/tskb/src/cli/index.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
+          subgraph "cluster_tskb_cli_commands" {
+            label="tskb.cli.commands";
+            style=filled;
+            fillcolor="#E3F2FD";
+            color="#1976D2";
+
+            "tskb.cli.commands" [label="Folder\<\"tskb.cli.commands\"\>\nCommand implementations for build, select, describe, and ls operations\n📁 packages/tskb/src/cli/commands", shape=box, fillcolor="#BBDEFB", style=filled];
+
+            // Modules in tskb.cli.commands
+            "cli.commands.build" [label="Module\<\"cli.commands.build\"\>\nBuild command module - orchestrates the complete pipeline from source files to knowledge graph, DOT visualization, and agent guidance\n📁 packages/tskb/src/cli/commands/build.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "cli.build" [label="Export\<\"cli.build\"\>\nThe control flow function for building the docs, graph, and visualization output to .tskb/ directory\n📁 packages/tskb/src/cli/commands/build.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "cli.build.ExtractConfig" [label="Export\<\"cli.build.ExtractConfig\"\>\nConfiguration interface for the build command containing glob pattern and tsconfig path\n📁 packages/tskb/src/cli/commands/build.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "cli.commands.select" [label="Module\<\"cli.commands.select\"\>\nSelect command module - finds single best-matching node within a folder scope using folder IDs, with confidence score and context\n📁 packages/tskb/src/cli/commands/select.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "cli.select" [label="Export\<\"cli.select\"\>\nSelects the single best-matching node from the knowledge graph within a folder scope using folder IDs, with confidence score, parent/children context, and alternative suggestions\n📁 packages/tskb/src/cli/commands/select.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "cli.commands.describe" [label="Module\<\"cli.commands.describe\"\>\nDescribe command module - inspects folder structure by folder ID, returning parent, children, modules, exports, and docs\n📁 packages/tskb/src/cli/commands/describe.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "cli.describe" [label="Export\<\"cli.describe\"\>\nDescribes a folder's structure by folder ID, returning parent, children, modules, exports, and referencing docs\n📁 packages/tskb/src/cli/commands/describe.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "cli.commands.ls" [label="Module\<\"cli.commands.ls\"\>\nList command module - recursively lists all folders from root with controllable depth, returning flat JSON hierarchy\n📁 packages/tskb/src/cli/commands/ls.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "cli.ls" [label="Export\<\"cli.ls\"\>\nLists all folders in the knowledge graph from TSKB.Package.Root with controllable depth, returning flat JSON hierarchy\n📁 packages/tskb/src/cli/commands/ls.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+          }
+
+        }
+
+        subgraph "cluster_tskb_core" {
+          label="tskb.core";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "tskb.core" [label="Folder\<\"tskb.core\"\>\nSource code for the core - extraction logic for registry (interfaces) and doc processing <Doc></Doc>\n📁 packages/tskb/src/core", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Exports in tskb.core
+          "generateDot" [label="Export\<\"generateDot\"\>\nCore function that transforms the knowledge graph into DOT format\n📁 packages/tskb/src/core/visualization/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+          subgraph "cluster_core_extraction" {
+            label="core.extraction";
+            style=filled;
+            fillcolor="#E3F2FD";
+            color="#1976D2";
+
+            "core.extraction" [label="Folder\<\"core.extraction\"\>\nContains the logic for extracting registry and documentation from TypeScript AST\n📁 packages/tskb/src/core/extraction", shape=box, fillcolor="#BBDEFB", style=filled];
+
+            // Modules in core.extraction
+            "extraction.registry" [label="Module\<\"extraction.registry\"\>\nMain registry extraction module that traverses TypeScript AST to extract Folders, Modules, Terms, and Exports from the global tskb namespace\n📁 packages/tskb/src/core/extraction/registry.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "extractRegistry" [label="Export\<\"extractRegistry\"\>\nMain function that extracts the vocabulary (Folders, Modules, Terms, Exports) from TypeScript's type system using the compiler API\n📁 packages/tskb/src/core/extraction/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "ExtractedRegistry" [label="Export\<\"ExtractedRegistry\"\>\nType definition for the registry data structure containing Maps of folders, modules, terms, and exports\n📁 packages/tskb/src/core/extraction/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "extraction.documentation" [label="Module\<\"extraction.documentation\"\>\nDocumentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "extractDocs" [label="Export\<\"extractDocs\"\>\nMain function that extracts documentation content and references from TSX files by traversing JSX AST\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "ExtractedDoc" [label="Export\<\"ExtractedDoc\"\>\nType definition for extracted documentation containing file path, content, and all references to vocabulary items\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+          }
+
+        }
+
+        subgraph "cluster_tskb_runtime" {
+          label="tskb.runtime";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "tskb.runtime" [label="Folder\<\"tskb.runtime\"\>\nSource code for the runtime, the lib does not have an actual runtime, but this folder contains the registry interfaces and jsx runtime primitives\n📁 packages/tskb/src/runtime", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Modules in tskb.runtime
+          "Jsx.runtime.js" [label="Module\<\"Jsx.runtime.js\"\>\nThe JSX runtime, provided by the package. Includes all available jsx tags in tskb as functions.\n📁 packages/tskb/src/runtime/jsx.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "jsx.Doc" [label="Export\<\"jsx.Doc\"\>\nDocumentation container component\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.H1" [label="Export\<\"jsx.H1\"\>\nHeading level 1\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.H2" [label="Export\<\"jsx.H2\"\>\nHeading level 2\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.H3" [label="Export\<\"jsx.H3\"\>\nHeading level 3\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.P" [label="Export\<\"jsx.P\"\>\nParagraph\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.List" [label="Export\<\"jsx.List\"\>\nList container\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.Li" [label="Export\<\"jsx.Li\"\>\nList item\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.Snippet" [label="Export\<\"jsx.Snippet\"\>\nCode snippet component\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.ref" [label="Export\<\"jsx.ref\"\>\nReference placeholder for type assertions to registry items\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "runtime.jsx" [label="Module\<\"runtime.jsx\"\>\nJSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper\n📁 packages/tskb/src/runtime/jsx.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+          "runtime.registry" [label="Module\<\"runtime.registry\"\>\nRegistry type definitions - Folder, Module, Export, Term interfaces for global namespace augmentation\n📁 packages/tskb/src/runtime/registry.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "Folder" [label="Export\<\"Folder\"\>\nA generic helper to reference folders inside doc files\n📁 packages/tskb/src/runtime/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "Module" [label="Export\<\"Module\"\>\nA generic helper to reference modules inside doc files\n📁 packages/tskb/src/runtime/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "Export" [label="Export\<\"Export\"\>\nA generic helper to reference exports inside doc files\n📁 packages/tskb/src/runtime/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "Term" [label="Export\<\"Term\"\>\nA generic helper to reference terms inside doc files\n📁 packages/tskb/src/runtime/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+        }
+
+        subgraph "cluster_tskb_typescript" {
+          label="tskb.typescript";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "tskb.typescript" [label="Folder\<\"tskb.typescript\"\>\nCreates a TypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output\n📁 packages/tskb/src/typescript", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          // Modules in tskb.typescript
+          "typescript.program" [label="Module\<\"typescript.program\"\>\nCreates TypeScript Program from files and tsconfig for static analysis\n📁 packages/tskb/src/typescript/program.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "ts.createProgram" [label="Export\<\"ts.createProgram\"\>\nCreates a TypeScript Program for analyzing code structure, types, and symbols without emitting output\n📁 packages/tskb/src/typescript/program.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "typescript.index" [label="Module\<\"typescript.index\"\>\nTypeScript module exports\n📁 packages/tskb/src/typescript/index.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
+        }
+
+      }
+
+    }
+
+    subgraph "cluster_references" {
+      label="references";
+      style=filled;
+      fillcolor="#E3F2FD";
+      color="#1976D2";
+
+      "references" [label="Folder\<\"references\"\>\nA folder that contains git tracked references used for documentation illustration purposes, referenced on npm\n📁 references", shape=box, fillcolor="#BBDEFB", style=filled];
+
+    }
+
+  }
+
+  // Terms
+  subgraph "cluster_terms" {
+    label="Terms";
+    style=dashed;
+    color=gray;
+    "library" [label="Term\<\"library\"\>\nRefers to the <TSKB> package with all of its capabilities, interfaces and commands", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "cli" [label="Term\<\"cli\"\>\nThe library exposes a command line interface for main actions - build docs to json graph, generate visualization, select nodes from the graph by search term", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "jsxRuntime" [label="Term\<\"jsxRuntime\"\>\nTSKB provides a custom JSX runtime (jsx-runtime module) that transforms TSX documentation syntax into a knowledge graph. Configured via tsconfig's jsxImportSource option, it processes JSX elements differently from React - instead of DOM rendering, it extracts documentation structure, references, and code snippets for analysis and visualization.", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "tsProgram" [label="Term\<\"tsProgram\"\>\nTypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output.", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "registry" [label="Term\<\"registry\"\>\nThe global namespace (declare global { namespace tskb }) containing typed interfaces (Folders, Modules, Exports, Terms) that serve as a type-safe vocabulary registry, enabling autocomplete and type-checked references across all .tskb.tsx documentation files.", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "graph" [label="Term\<\"graph\"\>\nRefers to th raw output of the library, where it constructs all the relations and connections between folders, modules, exports, terms, docs, etc. In its raw form it is a json file", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "dotFile" [label="Term\<\"dotFile\"\>\nA Graphviz DOT format file that describes the graph structure with nodes and edges, used for rendering visual diagrams of the architecture", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "selectResult" [label="Term\<\"selectResult\"\>\nResult from selecting a node in the knowledge graph - includes the best match with confidence score, parent/children context, related docs and files, and alternative suggestions when match confidence is low", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "ast" [label="Term\<\"ast\"\>\nAbstract Syntax Tree - TypeScript's tree representation of source code, used by the compiler API to analyze code structure", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "declarationMerging" [label="Term\<\"declarationMerging\"\>\nTypeScript feature that allows multiple declarations with the same name to be merged into a single definition, enabling distributed vocabulary across files", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "typeChecker" [label="Term\<\"typeChecker\"\>\nTypeScript compiler component that resolves types, validates code, and provides type information for symbols in the AST", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "literalType" [label="Term\<\"literalType\"\>\nA TypeScript type that represents a specific literal value (e.g., string literal 'hello' or number literal 42), used to extract constant values from type definitions", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "jsxElement" [label="Term\<\"jsxElement\"\>\nA JSX syntax node in the TypeScript AST representing an element like <Doc> or <P>, containing opening tag, children, and closing tag", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "jsxExpression" [label="Term\<\"jsxExpression\"\>\nA TypeScript AST node representing an embedded expression in JSX curly braces like {ref as tskb.Folders['Auth']}", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "typeAssertion" [label="Term\<\"typeAssertion\"\>\nTypeScript 'as' syntax that casts a value to a specific type, used in tskb to reference vocabulary items: {ref as tskb.Modules['X']}", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "depthFirstTraversal" [label="Term\<\"depthFirstTraversal\"\>\nTree traversal algorithm that explores as far as possible along each branch before backtracking, used to visit all JSX nodes in order", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "cliPipeline" [label="Term\<\"cliPipeline\"\>\nThe build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, AGENTS.md)", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "commandRouting" [label="Term\<\"commandRouting\"\>\nThe CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, select, describe, or ls)", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "globPattern" [label="Term\<\"globPattern\"\>\nFile pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "folderIdNavigation" [label="Term\<\"folderIdNavigation\"\>\nNavigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "tskbOutputDir" [label="Term\<\"tskbOutputDir\"\>\nThe .tskb/ directory containing all build outputs: graph.json, graph.dot, and AGENTS.md", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "repositoryPattern" [label="Term\<\"repositoryPattern\"\>\nData access abstraction layer that separates business logic from database operations", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "serviceLayer" [label="Term\<\"serviceLayer\"\>\nBusiness logic layer that orchestrates operations between controllers and repositories", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "contextProvider" [label="Term\<\"contextProvider\"\>\nReact pattern for managing and sharing state across component tree without prop drilling", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "jwt" [label="Term\<\"jwt\"\>\nJSON Web Token - stateless authentication mechanism using signed tokens", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "pagination" [label="Term\<\"pagination\"\>\nTechnique for splitting large datasets into smaller pages for efficient data transfer", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "middlewareChain" [label="Term\<\"middlewareChain\"\>\nSequential processing pattern where request passes through multiple handlers", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "dependencyInjection" [label="Term\<\"dependencyInjection\"\>\nDesign pattern where dependencies are provided to a class rather than created internally", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "crudOperations" [label="Term\<\"crudOperations\"\>\nCreate, Read, Update, Delete - fundamental data operations", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "typeGuards" [label="Term\<\"typeGuards\"\>\nTypeScript runtime checks that narrow types within conditional blocks", shape=diamond, fillcolor="#F0F4C3", style=filled];
+  }
+
+  // Documentation
+  subgraph "cluster_documentation" {
+    label="Documentation";
+    style=dashed;
+    color=gray;
+    "docs/src/tskb/main.tskb.tsx" [label="docs/src/tskb/main.tskb.tsx\nArchitecture and implementation docs for the  library The package is located in [Folder: TSKB.Packag...\n📄 docs/src/tskb/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/typescript/typescript.tskb.tsx" [label="docs/src/tskb/typescript/typescript.tskb.tsx\nTypeScript Program Located in [Folder: tskb.typescript]. Creates [Term: tsProgram]for analyzing code...\n📄 docs/src/tskb/typescript/typescript.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/runtime/runtime.tskb.tsx" [label="docs/src/tskb/runtime/runtime.tskb.tsx\nRuntime Located in [Folder: tskb.runtime]. Contains registry type definitions and JSX primitives - n...\n📄 docs/src/tskb/runtime/runtime.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/main.tskb.tsx" [label="docs/src/taskflow-app/main.tskb.tsx\nTaskFlow Application Full-stack task management application demonstrating modern web architecture pa...\n📄 docs/src/taskflow-app/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/data-layer.tskb.tsx" [label="docs/src/taskflow-app/data-layer.tskb.tsx\nData Layer Architecture The data layer implements the [Term: repositoryPattern]to separate database ...\n📄 docs/src/taskflow-app/data-layer.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/authentication-system.tskb.tsx" [label="docs/src/taskflow-app/authentication-system.tskb.tsx\nAuthentication System The authentication system provides secure user login, registration, and sessio...\n📄 docs/src/taskflow-app/authentication-system.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/architecture-overview.tskb.tsx" [label="docs/src/taskflow-app/architecture-overview.tskb.tsx\nTaskFlow Architecture Overview TaskFlow is a full-stack task management application demonstrating mo...\n📄 docs/src/taskflow-app/architecture-overview.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx" [label="docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx\nConstraint: Service Layer Isolation Services in [Folder: Services]MUST NOT directly access the datab...\n📄 docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx" [label="docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx\nConstraint: API Response Structure All API endpoints MUST return responses following the ApiResponse...\n📄 docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" [label="docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx\nADR: Repository Pattern Over Direct Database Access Status Accepted Context We needed to decide how ...\n📄 docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" [label="docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx\nADR: React Context Over Redux for State Management Status Accepted Context The [Folder: Client]neede...\n📄 docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+  }
+
+  // Relationships
+  // references edges
+  "docs/src/tskb/main.tskb.tsx" -> "package.json" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "Main.index.js" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "Jsx.runtime.js" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "sample.tsconfig.json" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "cli" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "jsxRuntime" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "tsProgram" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "registry" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "graph" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "dotFile" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "selectResult" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "TSKB.Package.Root" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "Folder" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "Module" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "Export" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "Term" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "ref" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "cli.build" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "generateDot" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "cli.ls" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "cli.describe" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "cli.select" [color=grey, style=dashed];
+  "docs/src/tskb/typescript/typescript.tskb.tsx" -> "typescript.program" [color=grey, style=dashed];
+  "docs/src/tskb/typescript/typescript.tskb.tsx" -> "tsProgram" [color=grey, style=dashed];
+  "docs/src/tskb/typescript/typescript.tskb.tsx" -> "tskb.typescript" [color=grey, style=dashed];
+  "docs/src/tskb/typescript/typescript.tskb.tsx" -> "ts.createProgram" [color=grey, style=dashed];
+  "docs/src/tskb/runtime/runtime.tskb.tsx" -> "runtime.jsx" [color=grey, style=dashed];
+  "docs/src/tskb/runtime/runtime.tskb.tsx" -> "runtime.registry" [color=grey, style=dashed];
+  "docs/src/tskb/runtime/runtime.tskb.tsx" -> "tskb.runtime" [color=grey, style=dashed];
+  "docs/src/tskb/runtime/runtime.tskb.tsx" -> "jsx.Doc" [color=grey, style=dashed];
+  "docs/src/tskb/runtime/runtime.tskb.tsx" -> "jsx.ref" [color=grey, style=dashed];
+  "docs/src/taskflow-app/main.tskb.tsx" -> "contextProvider" [color=grey, style=dashed];
+  "docs/src/taskflow-app/main.tskb.tsx" -> "serviceLayer" [color=grey, style=dashed];
+  "docs/src/taskflow-app/main.tskb.tsx" -> "repositoryPattern" [color=grey, style=dashed];
+  "docs/src/taskflow-app/main.tskb.tsx" -> "jwt" [color=grey, style=dashed];
+  "docs/src/taskflow-app/main.tskb.tsx" -> "Client" [color=grey, style=dashed];
+  "docs/src/taskflow-app/main.tskb.tsx" -> "Server" [color=grey, style=dashed];
+  "docs/src/taskflow-app/main.tskb.tsx" -> "Shared" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "repositoryPattern" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "crudOperations" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "pagination" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "dependencyInjection" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "Repositories" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "Database" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "Types" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "TaskRepository" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "PaginationParams" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "FilterParams" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "TaskService" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "Task" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "Database" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "PaginatedResponse" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "User" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "Project" [color=grey, style=dashed];
+  "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "jwt" [color=grey, style=dashed];
+  "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "middlewareChain" [color=grey, style=dashed];
+  "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "contextProvider" [color=grey, style=dashed];
+  "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "Services" [color=grey, style=dashed];
+  "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "AuthService" [color=grey, style=dashed];
+  "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "AuthMiddleware" [color=grey, style=dashed];
+  "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "AuthContext" [color=grey, style=dashed];
+  "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "ApiClient" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "contextProvider" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "serviceLayer" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "repositoryPattern" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "middlewareChain" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "crudOperations" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "pagination" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "jwt" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Client" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Server" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Shared" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Controllers" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Services" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Repositories" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Middleware" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Pages" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Components" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Contexts" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Hooks" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "ClientServices" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "Types" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "TaskService" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "AuthContext" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "ApiClient" [color=grey, style=dashed];
+  "docs/src/taskflow-app/architecture-overview.tskb.tsx" -> "AuthMiddleware" [color=grey, style=dashed];
+  "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx" -> "dependencyInjection" [color=grey, style=dashed];
+  "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx" -> "Services" [color=grey, style=dashed];
+  "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx" -> "Repositories" [color=grey, style=dashed];
+  "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx" -> "TaskService" [color=grey, style=dashed];
+  "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx" -> "pagination" [color=grey, style=dashed];
+  "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx" -> "Types" [color=grey, style=dashed];
+  "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx" -> "ErrorHandler" [color=grey, style=dashed];
+  "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx" -> "ApiClient" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" -> "serviceLayer" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" -> "repositoryPattern" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" -> "crudOperations" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" -> "dependencyInjection" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" -> "Services" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" -> "Repositories" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" -> "TaskService" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" -> "TaskRepository" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "contextProvider" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "Client" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "Contexts" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "AuthContext" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "TaskContext" [color=grey, style=dashed];
+  "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "ProjectContext" [color=grey, style=dashed];
+
+}

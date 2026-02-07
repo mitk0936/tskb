@@ -3,7 +3,7 @@ import { type Folder, type Module, type Export, Doc, H1, ref, P, H2, H3, Li, Lis
 declare global {
   namespace tskb {
     interface Folders {
-      "Package.Root": Folder<{
+      "TSKB.Package.Root": Folder<{
         desc: "The root folder of the package, with its package.json";
         path: "packages/tskb";
       }>;
@@ -41,7 +41,7 @@ declare global {
 
       "sample.tsconfig.json": Module<{
         desc: "An example of required tsconfig.json for building <TSKB> docs";
-        type: typeof import("../tsconfig.json");
+        type: typeof import("../../tsconfig.json");
       }>;
     }
 
@@ -68,17 +68,21 @@ declare global {
       }>;
 
       "cli.build": Export<{
-        desc: "The control flow function for building the docs";
+        desc: "The control flow function for building the docs, graph, and visualization output to .tskb/ directory";
         type: typeof import("packages/tskb/src/cli/commands/build.js").build;
       }>;
 
-      "cli.visualize": Export<{
-        desc: "Generates a Graphviz DOT file from the knowledge graph JSON";
-        type: typeof import("packages/tskb/src/cli/commands/visualize.js").visualize;
+      "cli.select": Export<{
+        desc: "Selects the single best-matching node from the knowledge graph within a folder scope using folder IDs, with confidence score, parent/children context, and alternative suggestions";
+        type: typeof import("packages/tskb/src/cli/commands/select.js").select;
       }>;
-      "cli.query": Export<{
-        desc: "Simple demo query command that searches the knowledge graph and returns structured results with context, relationships, and AI suggestions";
-        type: typeof import("packages/tskb/src/cli/commands/query.js").query;
+      "cli.describe": Export<{
+        desc: "Describes a folder's structure by folder ID, returning parent, children, modules, exports, and referencing docs";
+        type: typeof import("packages/tskb/src/cli/commands/describe.js").describe;
+      }>;
+      "cli.ls": Export<{
+        desc: "Lists all folders in the knowledge graph from TSKB.Package.Root with controllable depth, returning flat JSON hierarchy";
+        type: typeof import("packages/tskb/src/cli/commands/ls.js").ls;
       }>;
       generateDot: Export<{
         desc: "Core function that transforms the knowledge graph into DOT format";
@@ -88,7 +92,7 @@ declare global {
   }
 }
 
-const RootFolder = ref as tskb.Folders["Package.Root"];
+const TSKBRootFolder = ref as tskb.Folders["TSKB.Package.Root"];
 const PackageJson = ref as tskb.Modules["package.json"];
 const CliTerm = ref as tskb.Terms["cli"];
 const MainIndexModule = ref as tskb.Modules["Main.index.js"];
@@ -104,16 +108,17 @@ const TsProgramTerm = ref as tskb.Terms["tsProgram"];
 const RegistryTerm = ref as tskb.Terms["registry"];
 const GraphTerm = ref as tskb.Terms["graph"];
 const CliBuildExport = ref as tskb.Exports["cli.build"];
-const CliVisualizeExport = ref as tskb.Exports["cli.visualize"];
 const GenerateDotExport = ref as tskb.Exports["generateDot"];
 const DotFileTerm = ref as tskb.Terms["dotFile"];
-const CliQueryExport = ref as tskb.Exports["cli.query"];
-const QueryMatchTerm = ref as tskb.Terms["queryMatch"];
+const CliSelectExport = ref as tskb.Exports["cli.select"];
+const CliDescribeExport = ref as tskb.Exports["cli.describe"];
+const CliLsExport = ref as tskb.Exports["cli.ls"];
+const SelectResultTerm = ref as tskb.Terms["selectResult"];
 
 export default (
   <Doc>
     <H1>Architecture and implementation docs for the {"<TSKB>"} library </H1>
-    <P>The package is located in {RootFolder}</P>
+    <P>The package is located in {TSKBRootFolder}</P>
     <H2>What is {"<TSKB>"}?</H2>
     <P>
       A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge
@@ -121,7 +126,7 @@ export default (
     </P>
     <H3>What it provides in terms of interfaces (API's) and tools</H3>
     <P>
-      In the root folder: {RootFolder}. In the
+      In the root folder: {TSKBRootFolder}. In the
       {PackageJson} file, it declares a bin command named 'tskb' that runs the {CliTerm}
     </P>
     <P>
@@ -171,8 +176,7 @@ export default (
       </Li>
 
       <Li>
-        Run {CliBuildExport}:
-        <P>"tskb \"**/*.tskb.tsx\" --out ./dist/taskflow-graph.json --tsconfig tsconfig.json"</P>
+        Run {CliBuildExport}:<P>"tskb \"**/*.tskb.tsx\" --tsconfig tsconfig.json"</P>
       </Li>
 
       <Li>
@@ -187,14 +191,14 @@ export default (
     <P>Generating a visual representation:</P>
     <List>
       <Li>
-        Run {CliVisualizeExport}: "tskb visualize ./dist/taskflow-graph.json --out
-        ./dist/architecture.dot"
+        {CliBuildExport} automatically generates a {DotFileTerm} in .tskb/graph.dot using{" "}
+        {GenerateDotExport}
       </Li>
       <Li>
         {GenerateDotExport} transforms the {GraphTerm} into a {DotFileTerm} with nodes and
         relationship edges
       </Li>
-      <Li>Render with Graphviz: "dot -Tpng architecture.dot -o architecture.png"</Li>
+      <Li>Render with Graphviz: "dot -Tpng .tskb/graph.dot -o .tskb/graph.png"</Li>
       <Li>Or use interactive viewers like xdot or online Graphviz tools</Li>
     </List>
     <H3>Key Benefits</H3>
@@ -208,17 +212,44 @@ export default (
       <Li>AI-optimized: Queryable knowledge graph reduces hallucination</Li>
       <Li>Docs as infrastructure: Compile-time validation, not afterthought</Li>
     </List>
-    <H3>Querying the knowledge graph</H3>
-    <P>Demo query command for programmatic {GraphTerm} access by AI agents and tools</P>
+    <H3>Navigating the knowledge graph</H3>
+    <P>Three commands for exploring and querying the knowledge graph - optimized for AI agents</P>
+    <H3>List all folders</H3>
     <List>
-      <Li>Run {CliQueryExport}: "tskb query ./dist/taskflow-graph.json auth"</Li>
-      <Li>Searches all node types matching against IDs, descriptions, paths, and content</Li>
       <Li>
-        Each {QueryMatchTerm} includes: node with relevance score, hierarchy breadcrumb, parent
-        context, related files, relationships, and AI suggestions
+        Run {CliLsExport}: "tskb ls ./dist/taskflow-graph.json" or "tskb ls
+        ./dist/taskflow-graph.json --depth 2"
       </Li>
-      <Li>Sorted by relevance: ID matches highest, then path, description, and content</Li>
-      <Li>Outputs structured JSON for AI consumption and tooling</Li>
+      <Li>Always starts from Package.Root, lists all folders hierarchically</Li>
+      <Li>Controllable depth: default 1 (immediate children), -1 for unlimited</Li>
+      <Li>Returns flat JSON with folder ID, depth level, description, and path</Li>
+      <Li>Use for initial orientation and discovering folder IDs</Li>
+    </List>
+    <H3>Describe folder structure</H3>
+    <List>
+      <Li>
+        Run {CliDescribeExport}: "tskb describe ./dist/taskflow-graph.json tskb.cli" (using folder
+        ID)
+      </Li>
+      <Li>Returns detailed view of a single folder: parent, direct children, modules, exports</Li>
+      <Li>Shows documentation that references this folder</Li>
+      <Li>Structural only - no deep recursion, safe to use anywhere</Li>
+    </List>
+    <H3>Select best-matching node</H3>
+    <List>
+      <Li>
+        Run {CliSelectExport}: "tskb select ./dist/taskflow-graph.json auth tskb.cli" (keyword +
+        folder scope)
+      </Li>
+      <Li>
+        Finds best-matching node within folder scope across IDs, descriptions, paths, and content
+      </Li>
+      <Li>
+        {SelectResultTerm} includes: match with confidence score (0-1), parent/children context,
+        related docs and files, alternative suggestions when confidence {"<"} 0.7
+      </Li>
+      <Li>Scoring: exact match = 1.0, prefix = 0.85, path = 0.75, substring = 0.5-0.65</Li>
+      <Li>Scoped to folder ID to avoid noise from unrelated concepts</Li>
     </List>
     <H3>Documentation Philosophy: Map, Not Manual</H3>
     <P>
