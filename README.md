@@ -2,6 +2,10 @@
 
 A TypeScript-based system for documenting software architecture using TSX syntax. Write architectural documentation as code with type-safe, structured components.
 
+## For Ai Assistants
+
+Read this before querying the codebase: [AGENTS.md](./.tskb/AGENTS.md)
+
 ## Workspace Structure
 
 This monorepo contains:

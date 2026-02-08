@@ -172,13 +172,11 @@ This creates a `.tskb/` directory in your repo root containing:
 Create `CLAUDE.md` (for Claude) or `.github/copilot-instructions.md` (for GitHub Copilot):
 
 ```markdown
-# Codebase Navigation
+**MANDATORY FIRST STEP: Read `.tskb/AGENTS.md` immediately when starting ANY work in this repository**
 
-This repository uses TSKB for architectural documentation.
+This repo uses TSKB for semantic architecture mapping. AGENTS.md contains the complete workflow you MUST follow before reading source files or making changes.
 
-Before exploring:
-
-- Read `.tskb/AGENTS.md` for complete usage instructions
+**Do not skip this. AGENTS.md prevents reading wrong files and missing architectural constraints.**
 ```
 
 ---
