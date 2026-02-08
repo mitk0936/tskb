@@ -1,5 +1,3 @@
-# CLAUDE.md
-
 **MANDATORY FIRST ACTION**:
 Read this before querying the codebase: [AGENTS.md](./.tskb/AGENTS.md)
 
