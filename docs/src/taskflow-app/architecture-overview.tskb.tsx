@@ -38,7 +38,7 @@ const ApiClientExport = ref as tskb.Exports["ApiClient"];
 const AuthMiddlewareExport = ref as tskb.Exports["AuthMiddleware"];
 
 export default (
-  <Doc>
+  <Doc explains="Full architectural overview of TaskFlow: layers, data flow, and type safety">
     <H1>TaskFlow Architecture Overview</H1>
 
     <P>

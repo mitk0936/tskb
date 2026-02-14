@@ -13,7 +13,7 @@ const TaskContextExport = ref as tskb.Exports["TaskContext"];
 const ProjectContextExport = ref as tskb.Exports["ProjectContext"];
 
 export default (
-  <Doc>
+  <Doc explains="ADR: choosing React Context API over Redux for state management">
     <H1>ADR: React Context Over Redux for State Management</H1>
 
     <H2>Status</H2>

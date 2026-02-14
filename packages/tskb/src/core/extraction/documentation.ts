@@ -8,6 +8,8 @@ export interface ExtractedDoc {
   /** Relative file path from baseDir (tsconfig root), using forward slashes */
   filePath: string;
   format: "tsx";
+  /** What this documentation explains (from the Doc explains prop) */
+  explains: string;
   content: string;
   references: {
     modules: string[];
@@ -67,6 +69,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile, baseDir: string): Extract
   };
 
   let content = "";
+  const docMeta = { explains: "" };
 
   // Build a map of constant declarations to their type assertions
   const constantReferences = buildConstantReferencesMap(sourceFile);
@@ -76,7 +79,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile, baseDir: string): Extract
   if (!defaultExport) return null;
 
   // Extract content and references from JSX
-  content = extractJsxContent(defaultExport, references, constantReferences);
+  content = extractJsxContent(defaultExport, references, constantReferences, docMeta);
 
   // Convert absolute path to relative path (for portability across repos/machines)
   const relativePath = path.relative(baseDir, sourceFile.fileName).replace(/\\/g, "/");
@@ -84,6 +87,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile, baseDir: string): Extract
   return {
     filePath: relativePath,
     format: "tsx",
+    explains: docMeta.explains,
     content,
     references: {
       modules: Array.from(new Set(references.modules)),
@@ -191,7 +195,8 @@ function extractTypeAssertionMetadata(
 function extractJsxContent(
   node: ts.Node,
   references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] },
-  constantReferences: Map<string, { category: string; name: string }>
+  constantReferences: Map<string, { category: string; name: string }>,
+  docMeta: { explains: string }
 ): string {
   let content = "";
 
@@ -203,6 +208,14 @@ function extractJsxContent(
       if (ts.isIdentifier(tagName)) {
         const name = tagName.text;
         const attributes = ts.isJsxElement(n) ? n.openingElement.attributes : n.attributes;
+
+        // Extract explains from <Doc explains="...">
+        if (name === "Doc") {
+          const explains = getStringAttribute(attributes, "explains");
+          if (explains) {
+            docMeta.explains = explains;
+          }
+        }
 
         // Handle Snippet component specially
         if (name === "Snippet") {
@@ -341,14 +354,14 @@ function createReferenceContent(
 }
 
 /**
- * Get the value of a "name" attribute from JSX attributes
+ * Get the value of a string attribute from JSX attributes by name
  */
-function getNameAttribute(attributes: ts.JsxAttributes): string | undefined {
+function getStringAttribute(attributes: ts.JsxAttributes, attrName: string): string | undefined {
   for (const prop of attributes.properties) {
     if (
       ts.isJsxAttribute(prop) &&
       ts.isIdentifier(prop.name) &&
-      prop.name.text === "name" &&
+      prop.name.text === attrName &&
       prop.initializer &&
       ts.isStringLiteral(prop.initializer)
     ) {
@@ -356,6 +369,13 @@ function getNameAttribute(attributes: ts.JsxAttributes): string | undefined {
     }
   }
   return undefined;
+}
+
+/**
+ * Get the value of a "name" attribute from JSX attributes
+ */
+function getNameAttribute(attributes: ts.JsxAttributes): string | undefined {
+  return getStringAttribute(attributes, "name");
 }
 
 /**

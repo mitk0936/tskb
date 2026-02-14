@@ -9,7 +9,7 @@ const ErrorHandlerExport = ref as tskb.Exports["ErrorHandler"];
 const ApiClientExport = ref as tskb.Exports["ApiClient"];
 
 export default (
-  <Doc>
+  <Doc explains="Constraint: all API endpoints must follow the ApiResponse type structure">
     <H1>Constraint: API Response Structure</H1>
 
     <P>

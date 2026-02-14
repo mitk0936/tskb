@@ -16,7 +16,7 @@ declare global {
   namespace tskb {
     interface Folders {
       "tskb.cli.commands": Folder<{
-        desc: "Command implementations for build, select, describe, and ls operations";
+        desc: "Command implementations for build, search, pick, and ls operations";
         path: "packages/tskb/src/cli/commands";
       }>;
     }
@@ -32,14 +32,14 @@ declare global {
         type: typeof import("packages/tskb/src/cli/commands/build.js");
       }>;
 
-      "cli.commands.select": Module<{
-        desc: "Select command module - finds single best-matching node within a folder scope using folder IDs, with confidence score and context";
-        type: typeof import("packages/tskb/src/cli/commands/select.js");
+      "cli.commands.search": Module<{
+        desc: "Search command module - fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results";
+        type: typeof import("packages/tskb/src/cli/commands/search.js");
       }>;
 
-      "cli.commands.describe": Module<{
-        desc: "Describe command module - inspects folder structure by folder ID, returning parent, children, modules, exports, and docs";
-        type: typeof import("packages/tskb/src/cli/commands/describe.js");
+      "cli.commands.pick": Module<{
+        desc: "Pick command module - resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs";
+        type: typeof import("packages/tskb/src/cli/commands/pick.js");
       }>;
 
       "cli.commands.ls": Module<{
@@ -57,7 +57,7 @@ declare global {
 
     interface Terms {
       cliPipeline: Term<"The build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, AGENTS.md)">;
-      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, select, describe, or ls)">;
+      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, search, pick, or ls)">;
       globPattern: Term<"File pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing">;
       folderIdNavigation: Term<"Navigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths">;
       tskbOutputDir: Term<"The .tskb/ directory containing all build outputs: graph.json, graph.dot, and AGENTS.md">;

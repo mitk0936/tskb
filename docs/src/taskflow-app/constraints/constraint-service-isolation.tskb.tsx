@@ -8,7 +8,7 @@ const DependencyInjectionTerm = ref as tskb.Terms["dependencyInjection"];
 const TaskServiceExport = ref as tskb.Exports["TaskService"];
 
 export default (
-  <Doc>
+  <Doc explains="Constraint: services must access data only through repositories, never directly">
     <H1>Constraint: Service Layer Isolation</H1>
 
     <P>

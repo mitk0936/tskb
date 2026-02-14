@@ -18,7 +18,7 @@ digraph KnowledgeGraph {
       fillcolor="#E3F2FD";
       color="#1976D2";
 
-      "docs" [label="Folder\<\"docs\"\>\nA folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration.\n📁 docs/", shape=box, fillcolor="#BBDEFB", style=filled];
+      "docs" [label="Folder\<\"docs\"\>\nA folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration.\n📁 docs", shape=box, fillcolor="#BBDEFB", style=filled];
 
       // Modules in docs
       "sample.tsconfig.json" [label="Module\<\"sample.tsconfig.json\"\>\nAn example of required tsconfig.json for building <TSKB> docs\n📁 docs/tsconfig.json", shape=ellipse, fillcolor="#FFF9C4", style=filled];
@@ -252,12 +252,12 @@ digraph KnowledgeGraph {
         fillcolor="#E3F2FD";
         color="#1976D2";
 
-        "TSKB.Package.Root" [label="Folder\<\"TSKB.Package.Root\"\>\nThe root folder of the package, with its package.json\n📁 packages/tskb", shape=box, fillcolor="#BBDEFB", style=filled];
+        "TSKB.Package.Root" [label="Folder\<\"TSKB.Package.Root\"\>\nThe root folder of the package, with its package.json and main npm README.md\n📁 packages/tskb", shape=box, fillcolor="#BBDEFB", style=filled];
 
         // Modules in TSKB.Package.Root
         "package.json" [label="Module\<\"package.json\"\>\nLibrary's package.json file\n📁 packages/tskb/package.json", shape=ellipse, fillcolor="#FFF9C4", style=filled];
         "Main.index.js" [label="Module\<\"Main.index.js\"\>\nThe main package export\n📁 packages/tskb/src/index.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-          "ref" [label="Export\<\"ref\"\>\nA placeholder for referencing anything from the global tskb registry into jsx tags\n📁 packages/tskb/src/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          "ref" [label="Export\<\"ref\"\>\nA placeholder for referencing anything from the global tskb registry into jsx documentation tags\n📁 packages/tskb/src/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
         subgraph "cluster_tskb_cli" {
           label="tskb.cli";
@@ -276,16 +276,16 @@ digraph KnowledgeGraph {
             fillcolor="#E3F2FD";
             color="#1976D2";
 
-            "tskb.cli.commands" [label="Folder\<\"tskb.cli.commands\"\>\nCommand implementations for build, select, describe, and ls operations\n📁 packages/tskb/src/cli/commands", shape=box, fillcolor="#BBDEFB", style=filled];
+            "tskb.cli.commands" [label="Folder\<\"tskb.cli.commands\"\>\nCommand implementations for build, search, pick, and ls operations\n📁 packages/tskb/src/cli/commands", shape=box, fillcolor="#BBDEFB", style=filled];
 
             // Modules in tskb.cli.commands
             "cli.commands.build" [label="Module\<\"cli.commands.build\"\>\nBuild command module - orchestrates the complete pipeline from source files to knowledge graph, DOT visualization, and agent guidance\n📁 packages/tskb/src/cli/commands/build.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-              "cli.build" [label="Export\<\"cli.build\"\>\nThe control flow function for building the docs, graph, and visualization output to .tskb/ directory\n📁 packages/tskb/src/cli/commands/build.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "cli.build" [label="Export\<\"cli.build\"\>\nThe control flow function for the cli, building the docs, graph, and visualization outputing to the .tskb/ directory\n📁 packages/tskb/src/cli/commands/build.ts", shape=component, fillcolor="#C5E1A5", style=filled];
               "cli.build.ExtractConfig" [label="Export\<\"cli.build.ExtractConfig\"\>\nConfiguration interface for the build command containing glob pattern and tsconfig path\n📁 packages/tskb/src/cli/commands/build.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-            "cli.commands.select" [label="Module\<\"cli.commands.select\"\>\nSelect command module - finds single best-matching node within a folder scope using folder IDs, with confidence score and context\n📁 packages/tskb/src/cli/commands/select.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-              "cli.select" [label="Export\<\"cli.select\"\>\nSelects the single best-matching node from the knowledge graph within a folder scope using folder IDs, with confidence score, parent/children context, and alternative suggestions\n📁 packages/tskb/src/cli/commands/select.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-            "cli.commands.describe" [label="Module\<\"cli.commands.describe\"\>\nDescribe command module - inspects folder structure by folder ID, returning parent, children, modules, exports, and docs\n📁 packages/tskb/src/cli/commands/describe.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-              "cli.describe" [label="Export\<\"cli.describe\"\>\nDescribes a folder's structure by folder ID, returning parent, children, modules, exports, and referencing docs\n📁 packages/tskb/src/cli/commands/describe.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "cli.commands.search" [label="Module\<\"cli.commands.search\"\>\nSearch command module - fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results\n📁 packages/tskb/src/cli/commands/search.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "cli.search" [label="Export\<\"cli.search\"\>\nFuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results with scores across IDs, descriptions, and paths\n📁 packages/tskb/src/cli/commands/search.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "cli.commands.pick" [label="Module\<\"cli.commands.pick\"\>\nPick command module - resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs\n📁 packages/tskb/src/cli/commands/pick.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "cli.pick" [label="Export\<\"cli.pick\"\>\nResolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs\n📁 packages/tskb/src/cli/commands/pick.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "cli.commands.ls" [label="Module\<\"cli.commands.ls\"\>\nList command module - recursively lists all folders from root with controllable depth, returning flat JSON hierarchy\n📁 packages/tskb/src/cli/commands/ls.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "cli.ls" [label="Export\<\"cli.ls\"\>\nLists all folders in the knowledge graph from TSKB.Package.Root with controllable depth, returning flat JSON hierarchy\n📁 packages/tskb/src/cli/commands/ls.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
@@ -299,7 +299,7 @@ digraph KnowledgeGraph {
           fillcolor="#E3F2FD";
           color="#1976D2";
 
-          "tskb.core" [label="Folder\<\"tskb.core\"\>\nSource code for the core - extraction logic for registry (interfaces) and doc processing <Doc></Doc>\n📁 packages/tskb/src/core", shape=box, fillcolor="#BBDEFB", style=filled];
+          "tskb.core" [label="Folder\<\"tskb.core\"\>\nSource code for the core - extraction logic for registry (TS interfaces used as a registry) and 'doc' processing <Doc>...</Doc>\n📁 packages/tskb/src/core", shape=box, fillcolor="#BBDEFB", style=filled];
 
           // Exports in tskb.core
           "generateDot" [label="Export\<\"generateDot\"\>\nCore function that transforms the knowledge graph into DOT format\n📁 packages/tskb/src/core/visualization/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
@@ -322,6 +322,19 @@ digraph KnowledgeGraph {
 
           }
 
+          subgraph "cluster_core_extraction_graph" {
+            label="core.extraction.graph";
+            style=filled;
+            fillcolor="#E3F2FD";
+            color="#1976D2";
+
+            "core.extraction.graph" [label="Folder\<\"core.extraction.graph\"\>\nPart of the core of the library responsible for building the graph structure, mapping nodes and relations between them into nodes - edges\n📁 packages/tskb/src/core/graph", shape=box, fillcolor="#BBDEFB", style=filled];
+
+            // Modules in core.extraction.graph
+            "graph.builder" [label="Module\<\"graph.builder\"\>\nModule containing utility functions for constructing the graph\n📁 packages/tskb/src/core/graph/builder", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
+          }
+
         }
 
         subgraph "cluster_tskb_runtime" {
@@ -330,11 +343,11 @@ digraph KnowledgeGraph {
           fillcolor="#E3F2FD";
           color="#1976D2";
 
-          "tskb.runtime" [label="Folder\<\"tskb.runtime\"\>\nSource code for the runtime, the lib does not have an actual runtime, but this folder contains the registry interfaces and jsx runtime primitives\n📁 packages/tskb/src/runtime", shape=box, fillcolor="#BBDEFB", style=filled];
+          "tskb.runtime" [label="Folder\<\"tskb.runtime\"\>\nSource code for the runtime, the lib does not have an actual runtime, but this folder contains the base registry interfaces and jsx primitives\n📁 packages/tskb/src/runtime", shape=box, fillcolor="#BBDEFB", style=filled];
 
           // Modules in tskb.runtime
           "Jsx.runtime.js" [label="Module\<\"Jsx.runtime.js\"\>\nThe JSX runtime, provided by the package. Includes all available jsx tags in tskb as functions.\n📁 packages/tskb/src/runtime/jsx.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-            "jsx.Doc" [label="Export\<\"jsx.Doc\"\>\nDocumentation container component\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.Doc" [label="Export\<\"jsx.Doc\"\>\nDocumentation container component. Requires an 'explains' prop that describes what the doc covers - used as the doc's description in search results and referencing doc lists\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "jsx.H1" [label="Export\<\"jsx.H1\"\>\nHeading level 1\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "jsx.H2" [label="Export\<\"jsx.H2\"\>\nHeading level 2\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "jsx.H3" [label="Export\<\"jsx.H3\"\>\nHeading level 3\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
@@ -389,13 +402,13 @@ digraph KnowledgeGraph {
     style=dashed;
     color=gray;
     "library" [label="Term\<\"library\"\>\nRefers to the <TSKB> package with all of its capabilities, interfaces and commands", shape=diamond, fillcolor="#F0F4C3", style=filled];
-    "cli" [label="Term\<\"cli\"\>\nThe library exposes a command line interface for main actions - build docs to json graph, generate visualization, select nodes from the graph by search term", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "cli" [label="Term\<\"cli\"\>\nThe library exposes a command line interface for main actions - build docs to json graph, generate visualization, search nodes from the graph by query", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "jsxRuntime" [label="Term\<\"jsxRuntime\"\>\nTSKB provides a custom JSX runtime (jsx-runtime module) that transforms TSX documentation syntax into a knowledge graph. Configured via tsconfig's jsxImportSource option, it processes JSX elements differently from React - instead of DOM rendering, it extracts documentation structure, references, and code snippets for analysis and visualization.", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "tsProgram" [label="Term\<\"tsProgram\"\>\nTypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output.", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "registry" [label="Term\<\"registry\"\>\nThe global namespace (declare global { namespace tskb }) containing typed interfaces (Folders, Modules, Exports, Terms) that serve as a type-safe vocabulary registry, enabling autocomplete and type-checked references across all .tskb.tsx documentation files.", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "graph" [label="Term\<\"graph\"\>\nRefers to th raw output of the library, where it constructs all the relations and connections between folders, modules, exports, terms, docs, etc. In its raw form it is a json file", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "dotFile" [label="Term\<\"dotFile\"\>\nA Graphviz DOT format file that describes the graph structure with nodes and edges, used for rendering visual diagrams of the architecture", shape=diamond, fillcolor="#F0F4C3", style=filled];
-    "selectResult" [label="Term\<\"selectResult\"\>\nResult from selecting a node in the knowledge graph - includes the best match with confidence score, parent/children context, related docs and files, and alternative suggestions when match confidence is low", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "searchResult" [label="Term\<\"searchResult\"\>\nResult from searching the knowledge graph - includes ranked matches with scores across the entire graph, found via fuzzy matching on IDs, descriptions, and paths", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "ast" [label="Term\<\"ast\"\>\nAbstract Syntax Tree - TypeScript's tree representation of source code, used by the compiler API to analyze code structure", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "declarationMerging" [label="Term\<\"declarationMerging\"\>\nTypeScript feature that allows multiple declarations with the same name to be merged into a single definition, enabling distributed vocabulary across files", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "typeChecker" [label="Term\<\"typeChecker\"\>\nTypeScript compiler component that resolves types, validates code, and provides type information for symbols in the AST", shape=diamond, fillcolor="#F0F4C3", style=filled];
@@ -405,7 +418,7 @@ digraph KnowledgeGraph {
     "typeAssertion" [label="Term\<\"typeAssertion\"\>\nTypeScript 'as' syntax that casts a value to a specific type, used in tskb to reference vocabulary items: {ref as tskb.Modules['X']}", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "depthFirstTraversal" [label="Term\<\"depthFirstTraversal\"\>\nTree traversal algorithm that explores as far as possible along each branch before backtracking, used to visit all JSX nodes in order", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "cliPipeline" [label="Term\<\"cliPipeline\"\>\nThe build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, AGENTS.md)", shape=diamond, fillcolor="#F0F4C3", style=filled];
-    "commandRouting" [label="Term\<\"commandRouting\"\>\nThe CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, select, describe, or ls)", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "commandRouting" [label="Term\<\"commandRouting\"\>\nThe CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, search, pick, or ls)", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "globPattern" [label="Term\<\"globPattern\"\>\nFile pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "folderIdNavigation" [label="Term\<\"folderIdNavigation\"\>\nNavigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "tskbOutputDir" [label="Term\<\"tskbOutputDir\"\>\nThe .tskb/ directory containing all build outputs: graph.json, graph.dot, and AGENTS.md", shape=diamond, fillcolor="#F0F4C3", style=filled];
@@ -450,7 +463,7 @@ digraph KnowledgeGraph {
   "docs/src/tskb/main.tskb.tsx" -> "registry" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "graph" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "dotFile" [color=grey, style=dashed];
-  "docs/src/tskb/main.tskb.tsx" -> "selectResult" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "searchResult" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "TSKB.Package.Root" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "Folder" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "Module" [color=grey, style=dashed];
@@ -460,8 +473,8 @@ digraph KnowledgeGraph {
   "docs/src/tskb/main.tskb.tsx" -> "cli.build" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "generateDot" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "cli.ls" [color=grey, style=dashed];
-  "docs/src/tskb/main.tskb.tsx" -> "cli.describe" [color=grey, style=dashed];
-  "docs/src/tskb/main.tskb.tsx" -> "cli.select" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "cli.pick" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "cli.search" [color=grey, style=dashed];
   "docs/src/tskb/typescript/typescript.tskb.tsx" -> "typescript.program" [color=grey, style=dashed];
   "docs/src/tskb/typescript/typescript.tskb.tsx" -> "tsProgram" [color=grey, style=dashed];
   "docs/src/tskb/typescript/typescript.tskb.tsx" -> "tskb.typescript" [color=grey, style=dashed];

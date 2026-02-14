@@ -1,5 +1,4 @@
 import fs from "node:fs";
-import { REPO_ROOT_FOLDER_NAME } from "../../core/constants.js";
 
 /**
  * Get the AGENTS.md template.
@@ -17,21 +16,27 @@ This codebase uses **TSKB** - a semantic map of the repository's architecture.
 
 1. **Map the territory** - Understand what exists and where
    \`\`\`bash
-   npx tskb ls --depth 4
+   npx tskb ls --depth=4
    \`\`\`
    Returns folder hierarchy with architectural descriptions (not file listings)
 
-2. **Understand context** - Get the architectural intent of relevant areas
+2. **Locate precisely** - Find where concepts/keywords live in the structure
    \`\`\`bash
-   npx tskb describe "<folder-id>"
+   npx tskb search "<query>"
    \`\`\`
-   Returns ADRs, constraints, design decisions, and domain vocabulary
+   Fuzzy search across the entire graph — returns ranked results matching IDs, descriptions, and paths
 
-3. **Locate precisely** - Find where concepts/keywords live in the structure
+3. **Understand context** - Get the architectural intent of relevant areas
    \`\`\`bash
-   npx tskb select "<keyword>" "<folderId>"
+   npx tskb pick "<identifier>"
    \`\`\`
-   Returns modules and docs related to the concept within architectural boundaries
+   Accepts any node ID (folder, module, export, term, doc) or a filesystem path. Returns type-specific data for the matched node.
+
+4. **Explore beyond the map** - TSKB documents architectural intent, not every detail                                                              
+   - When the graph doesn't cover what you need, use your own tools (Glob, Grep, Read) to explore                                                  
+   - Implementation details, edge cases, and lower-level code may not be documented                                                                
+   - Use TSKB to orient yourself first, then dive into source code for the full picture
+   - if you can think of a case that is not specified, feel free to explore
 
 ### Why this matters
 
@@ -49,7 +54,7 @@ This codebase uses **TSKB** - a semantic map of the repository's architecture.
 
 **WRONG**: See a feature request → Grep for keywords → Read files → Make localized change
 
-**RIGHT**: See a feature request → \`tskb ls\` (where does this belong?) → \`tskb describe\` (what's the design?) → \`tskb select\` (existing patterns?) → Read specific files → Make architecturally coherent change
+**RIGHT**: See a feature request → \`tskb ls\` (where does this belong?) → \`tskb pick\` (what's the design?) → \`tskb select\` (existing patterns?) → Read specific files → Make architecturally coherent change
 
 ### Enforcement
 

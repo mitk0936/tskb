@@ -62,6 +62,7 @@
     "code-graph"
   ],
   "dependencies": {
+    "fuse.js": "^7.1.0",
     "glob": "^13.0.0"
   },
   "peerDependencies": {
