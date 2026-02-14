@@ -49,7 +49,7 @@ const ApiClientExport = ref as tskb.Exports["ApiClient"];
 const ServicesFolder = ref as tskb.Folders["Services"];
 
 export default (
-  <Doc>
+  <Doc explains="Authentication system: login, registration, JWT tokens, and session management">
     <H1>Authentication System</H1>
 
     <P>

@@ -16,7 +16,7 @@ declare global {
 
     interface Exports {
       "jsx.Doc": Export<{
-        desc: "Documentation container component";
+        desc: "Documentation container component. Requires an 'explains' prop that describes what the doc covers - used as the doc's description in search results and referencing doc lists";
         type: typeof import("packages/tskb/src/runtime/jsx.js").Doc;
       }>;
       "jsx.H1": Export<{
@@ -62,7 +62,7 @@ const DocExport = ref as tskb.Exports["jsx.Doc"];
 const RefExport = ref as tskb.Exports["jsx.ref"];
 
 export default (
-  <Doc>
+  <Doc explains="Runtime module structure: JSX primitives and registry type definitions">
     <H1>Runtime</H1>
     <P>
       Located in {RuntimeFolder}. Contains registry type definitions and JSX primitives - no actual
@@ -72,8 +72,9 @@ export default (
     <H2>Modules</H2>
     <List>
       <Li>
-        {JsxModule}: JSX runtime with {DocExport} and heading/paragraph/list components. Includes{" "}
-        {RefExport} for type-safe registry references.
+        {JsxModule}: JSX runtime with {DocExport} (requires explains prop - a short description of
+        what the doc covers, used for search and identification) and heading/paragraph/list
+        components. Includes {RefExport} for type-safe registry references.
       </Li>
       <Li>
         {RegistryModule}: Type definitions for Folder, Module, Export, Term interfaces used in

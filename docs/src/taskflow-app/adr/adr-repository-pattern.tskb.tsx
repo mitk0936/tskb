@@ -14,7 +14,7 @@ const TaskServiceExport = ref as tskb.Exports["TaskService"];
 const TaskRepositoryExport = ref as tskb.Exports["TaskRepository"];
 
 export default (
-  <Doc>
+  <Doc explains="ADR: choosing repository pattern over direct database access or full ORM">
     <H1>ADR: Repository Pattern Over Direct Database Access</H1>
 
     <H2>Status</H2>

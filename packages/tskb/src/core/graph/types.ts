@@ -14,15 +14,10 @@ export interface GraphNode {
 export interface FolderNode extends GraphNode {
   type: "folder";
   desc: string;
-  path?: string;
   /**
    * Resolved path relative to tsconfig directory (portable across machines)
    */
-  resolvedPath?: string;
-  /**
-   * Whether the resolved path actually exists on disk
-   */
-  pathExists?: boolean;
+  path?: string;
 }
 
 export interface ModuleNode extends GraphNode {
@@ -33,17 +28,9 @@ export interface ModuleNode extends GraphNode {
    */
   typeSignature?: string;
   /**
-   * Import path from typeof import("...")
-   */
-  importPath?: string;
-  /**
    * Resolved path relative to tsconfig directory (portable across machines)
    */
   resolvedPath?: string;
-  /**
-   * Whether the resolved path actually exists on disk
-   */
-  pathExists?: boolean;
 }
 
 export interface TermNode extends GraphNode {
@@ -59,21 +46,17 @@ export interface ExportNode extends GraphNode {
    */
   typeSignature?: string;
   /**
-   * Import path from typeof import("...")
-   */
-  importPath?: string;
-  /**
    * Resolved path relative to tsconfig directory (portable across machines)
    */
   resolvedPath?: string;
-  /**
-   * Whether the resolved path actually exists on disk
-   */
-  pathExists?: boolean;
 }
 
 export interface DocNode extends GraphNode {
   type: "doc";
+  /**
+   * What this documentation explains
+   */
+  explains: string;
   /**
    * File path relative to project root
    */

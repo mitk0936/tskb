@@ -101,7 +101,7 @@ const FilterParamsExport = ref as tskb.Exports["FilterParams"];
 const PaginatedResponseExport = ref as tskb.Exports["PaginatedResponse"];
 
 export default (
-  <Doc>
+  <Doc explains="Data layer architecture using the repository pattern for database abstraction">
     <H1>Data Layer Architecture</H1>
 
     <P>

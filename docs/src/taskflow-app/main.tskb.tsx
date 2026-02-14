@@ -10,7 +10,7 @@ const ContextProviderTerm = ref as tskb.Terms["contextProvider"];
 const JwtTerm = ref as tskb.Terms["jwt"];
 
 export default (
-  <Doc>
+  <Doc explains="TaskFlow application overview: architecture layers, patterns, and tech stack">
     <H1>TaskFlow Application</H1>
 
     <P>

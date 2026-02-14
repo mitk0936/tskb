@@ -33,7 +33,7 @@ export const ref: ReactNode = Symbol("tskb.ref") as any;
 /**
  * Documentation container - just renders children
  */
-export function Doc({ children }: { children: any }): any {
+export function Doc({ explains, children }: { explains: string; children: any }): any {
   return children;
 }
 

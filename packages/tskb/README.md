@@ -62,7 +62,7 @@ tskb addresses this by making architecture documentation:
 - **Type-checked code snippets** (not copied text)
 - Native IDE support (autocomplete, refactoring, go-to-definition)
 - Zero runtime impact (pure build-time tooling)
-- **CLI for querying** (`ls`, `describe`, `select` commands)
+- **CLI for querying** (`ls`, `pick`, `search` commands)
 - JSON knowledge graph output
 - Graphviz visualization
 - Monorepo-friendly by design
@@ -165,19 +165,20 @@ This creates a `.tskb/` directory in your repo root containing:
 
 - `graph.json` - the knowledge graph (queryable via CLI)
 - `graph.dot` - Graphviz visualization
-- `AGENTS.md` - auto-generated guidance for AI assistants
 
-**Pointing AI assistants to TSKB:**
+**AI assistant integrations (auto-generated on build):**
 
-Create `CLAUDE.md` (for Claude) or `.github/copilot-instructions.md` (for GitHub Copilot):
+- `.claude/skills/tskb/SKILL.md` - Claude Code skill with baked-in folder tree and doc summaries (generated when `.claude/skills/` exists)
+- `.github/instructions/tskb.instructions.md` - GitHub Copilot instructions (generated when `.github/` exists)
 
-```markdown
-**MANDATORY FIRST STEP: Read `.tskb/AGENTS.md` immediately when starting ANY work in this repository**
+Create the directories to opt in:
 
-This repo uses TSKB for semantic architecture mapping. AGENTS.md contains the complete workflow you MUST follow before reading source files or making changes.
-
-**Do not skip this. AGENTS.md prevents reading wrong files and missing architectural constraints.**
+```bash
+mkdir -p .claude/skills   # For Claude Code
+mkdir -p .github          # For GitHub Copilot
 ```
+
+Then re-run `npm run docs` to generate the integration files.
 
 ---
 
@@ -209,7 +210,7 @@ declare global {
     interface Modules {
       AuthServiceModule: Module<{
         desc: "Authentication service module";
-        path: typeof import("../src/server/services/auth.service.js");
+        type: typeof import("../src/server/services/auth.service.js");
       }>;
     }
 
@@ -255,7 +256,7 @@ const Jwt = ref as tskb.Terms["jwt"];
 const RepositoryPattern = ref as tskb.Terms["repository-pattern"];
 
 export default (
-  <Doc>
+  <Doc explains="Authentication architecture: login flow, JWT tokens, and service-repository interaction">
     <H1>Authentication Architecture</H1>
 
     <P>
@@ -298,7 +299,7 @@ import type { User } from "../src/shared/types/user.types.js";
 import type { Database } from "../src/server/database/connection.js";
 
 export default (
-  <Doc>
+  <Doc explains="Repository pattern implementation for data access abstraction">
     <H1>Repository Pattern Example</H1>
 
     <P>The UserRepository demonstrates the repository pattern for data access abstraction.</P>
@@ -482,14 +483,16 @@ Building knowledge graph...
 Creating output directory: /home/user/project/.tskb
 Writing graph to /home/user/project/.tskb/graph.json...
 Generating visualization: /home/user/project/.tskb/graph.dot...
-Writing agent guide: /home/user/project/.tskb/AGENTS.md...
+Writing Claude Code skill: /home/user/project/.claude/skills/tskb/SKILL.md...
+Writing Copilot instructions: /home/user/project/.github/instructions/tskb.instructions.md...
 
 ✓ Done!
 
 Output directory: .tskb/
    ├─ graph.json     Knowledge graph data
-   ├─ graph.dot      Graphviz visualization
-   └─ AGENTS.md      Agent guidance
+   └─ graph.dot      Graphviz visualization
+   └─ .claude/skills/tskb/SKILL.md  Claude Code skill
+   └─ .github/instructions/tskb.instructions.md  Copilot instructions
 
 Visualize with: dot -Tpng .tskb/graph.dot -o .tskb/graph.png
 ```
@@ -510,33 +513,24 @@ npx tskb ls --depth -1   # List all folders (unlimited depth)
 
 Output is ordered by depth (root → children), making it easy to understand hierarchy.
 
-### Describe a folder
+### Pick a node
 
 ```bash
-npx tskb describe "ServiceLayer"
+npx tskb pick "ServiceLayer"              # Pick a folder by ID
+npx tskb pick "src/server/services"       # Pick by filesystem path
+npx tskb pick "auth.AuthService"          # Pick a module by ID
 ```
 
-Returns:
+Returns type-specific data: parent, children, modules, exports, and referencing docs.
 
-- The folder's context (description, path)
-- Parent folder
-- Child folders and modules
-- Exports belonging to this folder
-- Documentation referencing this folder
-
-### Search for items
+### Search the graph
 
 ```bash
-npx tskb select "auth" "ServiceLayer"              # Search within ServiceLayer
-npx tskb select "auth" "__TSKB.REPO.ROOT__" --verbose  # Search entire repo
+npx tskb search "auth"                    # Single keyword
+npx tskb search "build command"           # Multi-word fuzzy search
 ```
 
-Returns the best match with:
-
-- Confidence score
-- Parent/child relationships
-- Related documentation
-- Relevant file paths
+Returns ranked results with scores across all node types (folders, modules, exports, terms, docs).
 
 All commands output JSON, making them ideal for programmatic consumption and AI assistants.
 
@@ -593,17 +587,18 @@ This ensures documentation stays synchronized with code changes.
 
 TSKB is designed to help AI assistants understand codebases efficiently:
 
-- **Structured queries**: AI can use `ls`, `describe`, and `select` to navigate architecture
+- **Auto-generated integrations**: Build produces a Claude Code skill (`.claude/skills/tskb/SKILL.md`) and Copilot instructions (`.github/instructions/tskb.instructions.md`) with the folder tree and doc summaries baked in
+- **Doc explains**: Every `<Doc explains="...">` provides a concise purpose statement, so assistants know which docs to read without opening them
+- **Structured queries**: AI can use `ls`, `pick`, and `search` to navigate architecture
 - **JSON output**: Machine-readable format optimized for programmatic consumption
-- **AGENTS.md**: Auto-generated guidance file explaining how to use TSKB commands
 - **Semantic graph**: Relationships between folders, modules, and exports are explicit
 - **Type-safe references**: AI can trust that referenced paths and imports are valid
 
 Instead of blindly exploring files, AI assistants can:
 
-1. Use `ls --depth 4` to understand high-level structure
-2. Use `describe` to dive into specific areas
-3. Use `select` to find relevant code for a task
+1. Read the baked-in folder tree and doc summaries from the generated skill/instructions
+2. Use `search` to find relevant nodes for a task
+3. Use `pick` to get full context on specific areas
 4. Read only the files that matter
 
 This dramatically reduces tokens spent on exploration and increases accuracy.

@@ -51,11 +51,13 @@ export interface ExtractConfig {
  *    Creates a .tskb directory containing:
  *    - graph.json: The knowledge graph in JSON format
  *    - graph.dot: Graphviz visualization
- *    - AGENTS.md: Agent guidance documentation
+ *    Optionally generates:
+ *    - .claude/skills/tskb/SKILL.md: Claude Code skill (if .claude/skills/ exists)
+ *    - .github/instructions/tskb.instructions.md: Copilot instructions (if .github/ exists)
  *
  * OUTPUT:
- * A .tskb directory with complete knowledge graph artifacts for AI tools,
- * documentation systems, and visualization.
+ * A .tskb directory with knowledge graph artifacts, plus optional AI tool
+ * integrations for Claude Code and GitHub Copilot.
  *
  * @param config - Extract configuration (pattern, tsconfig)
  */
@@ -152,19 +154,33 @@ export async function build(config: ExtractConfig): Promise<void> {
   const dot = generateDot(graph);
   fs.writeFileSync(dotPath, dot, "utf-8");
 
-  // Generate AGENTS.md from template
-  const agentsMdPath = path.join(outputDir, "AGENTS.md");
-  console.log(`Writing agent guide: ${agentsMdPath}...`);
-  const { generateAgentsFile } = await import("../utils/agents-generator.js");
-  generateAgentsFile(agentsMdPath);
+  // Generate Claude Code skill if .claude/skills/ exists
+  const { generateSkillFile } = await import("../utils/skill-generator.js");
+  const skillPath = generateSkillFile(graph);
+  if (skillPath) {
+    console.log(`Writing Claude Code skill: ${skillPath}...`);
+  }
+
+  // Generate Copilot instructions if .github/ exists
+  const { generateCopilotInstructions } =
+    await import("../utils/copilot-instructions-generator.js");
+  const copilotPath = generateCopilotInstructions(graph);
+  if (copilotPath) {
+    console.log(`Writing Copilot instructions: ${copilotPath}...`);
+  }
 
   console.log("");
   console.log("✓ Done!");
   console.log("");
   console.log("Output directory: .tskb/");
   console.log("   ├─ graph.json     Knowledge graph data");
-  console.log("   ├─ graph.dot      Graphviz visualization");
-  console.log("   └─ AGENTS.md      Agent guidance");
+  console.log("   └─ graph.dot      Graphviz visualization");
+  if (skillPath) {
+    console.log("   └─ .claude/skills/tskb/SKILL.md  Claude Code skill");
+  }
+  if (copilotPath) {
+    console.log("   └─ .github/instructions/tskb.instructions.md  Copilot instructions");
+  }
   console.log("");
   console.log(`Visualize with: dot -Tpng .tskb/graph.dot -o .tskb/graph.png`);
 }

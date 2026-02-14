@@ -4,17 +4,17 @@ declare global {
   namespace tskb {
     interface Folders {
       "TSKB.Package.Root": Folder<{
-        desc: "The root folder of the package, with its package.json";
+        desc: "The root folder of the package, with its package.json and main npm README.md";
         path: "packages/tskb";
       }>;
 
       "tskb.cli": Folder<{ desc: "Source code for the cli"; path: "packages/tskb/src/cli" }>;
       "tskb.core": Folder<{
-        desc: "Source code for the core - extraction logic for registry (interfaces) and doc processing <Doc></Doc>";
+        desc: "Source code for the core - extraction logic for registry (TS interfaces used as a registry) and 'doc' processing <Doc>...</Doc>";
         path: "packages/tskb/src/core";
       }>;
       "tskb.runtime": Folder<{
-        desc: "Source code for the runtime, the lib does not have an actual runtime, but this folder contains the registry interfaces and jsx runtime primitives";
+        desc: "Source code for the runtime, the lib does not have an actual runtime, but this folder contains the base registry interfaces and jsx primitives";
         path: "packages/tskb/src/runtime";
       }>;
       "tskb.typescript": Folder<{
@@ -63,22 +63,22 @@ declare global {
         type: import("packages/tskb/src/runtime/registry.js").Term<any>;
       }>;
       ref: Export<{
-        desc: "A placeholder for referencing anything from the global tskb registry into jsx tags";
+        desc: "A placeholder for referencing anything from the global tskb registry into jsx documentation tags";
         type: typeof import("packages/tskb/src/index.js").ref;
       }>;
 
       "cli.build": Export<{
-        desc: "The control flow function for building the docs, graph, and visualization output to .tskb/ directory";
+        desc: "The control flow function for the cli, building the docs, graph, and visualization outputing to the .tskb/ directory";
         type: typeof import("packages/tskb/src/cli/commands/build.js").build;
       }>;
 
-      "cli.select": Export<{
-        desc: "Selects the single best-matching node from the knowledge graph within a folder scope using folder IDs, with confidence score, parent/children context, and alternative suggestions";
-        type: typeof import("packages/tskb/src/cli/commands/select.js").select;
+      "cli.search": Export<{
+        desc: "Fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results with scores across IDs, descriptions, and paths";
+        type: typeof import("packages/tskb/src/cli/commands/search.js").search;
       }>;
-      "cli.describe": Export<{
-        desc: "Describes a folder's structure by folder ID, returning parent, children, modules, exports, and referencing docs";
-        type: typeof import("packages/tskb/src/cli/commands/describe.js").describe;
+      "cli.pick": Export<{
+        desc: "Resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs";
+        type: typeof import("packages/tskb/src/cli/commands/pick.js").pick;
       }>;
       "cli.ls": Export<{
         desc: "Lists all folders in the knowledge graph from TSKB.Package.Root with controllable depth, returning flat JSON hierarchy";
@@ -110,15 +110,17 @@ const GraphTerm = ref as tskb.Terms["graph"];
 const CliBuildExport = ref as tskb.Exports["cli.build"];
 const GenerateDotExport = ref as tskb.Exports["generateDot"];
 const DotFileTerm = ref as tskb.Terms["dotFile"];
-const CliSelectExport = ref as tskb.Exports["cli.select"];
-const CliDescribeExport = ref as tskb.Exports["cli.describe"];
+const CliSearchExport = ref as tskb.Exports["cli.search"];
+const CliPickExport = ref as tskb.Exports["cli.pick"];
 const CliLsExport = ref as tskb.Exports["cli.ls"];
-const SelectResultTerm = ref as tskb.Terms["selectResult"];
+const SearchResultTerm = ref as tskb.Terms["searchResult"];
 
 export default (
-  <Doc>
+  <Doc explains="Architecture, API surface, and usage flow of the TSKB library">
     <H1>Architecture and implementation docs for the {"<TSKB>"} library </H1>
-    <P>The package is located in {TSKBRootFolder}</P>
+    <P>
+      The package is located in {TSKBRootFolder}, with its {PackageJson} and README.md for npm.
+    </P>
     <H2>What is {"<TSKB>"}?</H2>
     <P>
       A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge
@@ -225,31 +227,25 @@ export default (
       <Li>Returns flat JSON with folder ID, depth level, description, and path</Li>
       <Li>Use for initial orientation and discovering folder IDs</Li>
     </List>
-    <H3>Describe folder structure</H3>
+    <H3>Pick any node</H3>
     <List>
       <Li>
-        Run {CliDescribeExport}: "tskb describe ./dist/taskflow-graph.json tskb.cli" (using folder
-        ID)
+        Run {CliPickExport}: "tskb pick tskb.cli" (by ID) or "tskb pick packages/tskb/src/cli" (by
+        path)
       </Li>
-      <Li>Returns detailed view of a single folder: parent, direct children, modules, exports</Li>
-      <Li>Shows documentation that references this folder</Li>
-      <Li>Structural only - no deep recursion, safe to use anywhere</Li>
+      <Li>Resolves any node type: folder, module, export, term, or doc</Li>
+      <Li>Returns type-specific data: parent, children, modules, exports, referencing docs</Li>
+      <Li>Falls back to nearest parent folder when no exact match is found</Li>
     </List>
-    <H3>Select best-matching node</H3>
+    <H3>Search the graph</H3>
     <List>
+      <Li>Run {CliSearchExport}: "tskb search auth" or "tskb search build command"</Li>
+      <Li>Fuzzy searches the entire graph across IDs, descriptions, and paths using Fuse.js</Li>
       <Li>
-        Run {CliSelectExport}: "tskb select ./dist/taskflow-graph.json auth tskb.cli" (keyword +
-        folder scope)
+        {SearchResultTerm} includes: top 10 ranked results with score (0-1, higher = better match)
       </Li>
-      <Li>
-        Finds best-matching node within folder scope across IDs, descriptions, paths, and content
-      </Li>
-      <Li>
-        {SelectResultTerm} includes: match with confidence score (0-1), parent/children context,
-        related docs and files, alternative suggestions when confidence {"<"} 0.7
-      </Li>
-      <Li>Scoring: exact match = 1.0, prefix = 0.85, path = 0.75, substring = 0.5-0.65</Li>
-      <Li>Scoped to folder ID to avoid noise from unrelated concepts</Li>
+      <Li>Searches across all node types: folders, modules, exports, terms, and docs</Li>
+      <Li>Use pick to get full details on any result</Li>
     </List>
     <H3>Documentation Philosophy: Map, Not Manual</H3>
     <P>

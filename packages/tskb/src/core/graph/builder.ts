@@ -109,8 +109,6 @@ function addSystemRootFolder(graph: KnowledgeGraph, baseDir: string): void {
     type: "folder",
     desc: "The root directory of the repository (automatically added by tskb)",
     path: ".",
-    resolvedPath: ".",
-    pathExists: true,
   };
   graph.nodes.folders[REPO_ROOT_FOLDER_NAME] = node;
 }
@@ -124,9 +122,7 @@ function buildFolderNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
       id: name,
       type: "folder",
       desc: data.desc,
-      path: data.path,
-      resolvedPath: data.resolvedPath,
-      pathExists: data.pathExists,
+      path: data.resolvedPath ?? data.path,
     };
     graph.nodes.folders[name] = node;
   }
@@ -142,9 +138,7 @@ function buildModuleNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
       type: "module",
       desc: data.desc,
       typeSignature: data.type,
-      importPath: data.importPath,
       resolvedPath: data.resolvedPath,
-      pathExists: data.pathExists,
     };
     graph.nodes.modules[name] = node;
   }
@@ -174,9 +168,7 @@ function buildExportNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
       type: "export",
       desc: data.desc,
       typeSignature: data.type,
-      importPath: data.importPath,
       resolvedPath: data.resolvedPath,
-      pathExists: data.pathExists,
     };
     graph.nodes.exports[name] = node;
   }
@@ -193,6 +185,7 @@ function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: str
     const node: DocNode = {
       id,
       type: "doc",
+      explains: doc.explains,
       filePath: doc.filePath, // Now relative, not absolute
       content: doc.content,
       format: doc.format,
@@ -362,11 +355,11 @@ function buildModuleFolderMembership(graph: KnowledgeGraph): void {
     let bestFolderPathLength = 0;
 
     for (const folder of folders) {
-      if (!folder.resolvedPath) continue;
+      if (!folder.path) continue;
 
       // Both paths are already relative to baseDir, just check prefix
       // Normalize to forward slashes for consistent comparison
-      const folderPath = folder.resolvedPath.replace(/\\/g, "/");
+      const folderPath = folder.path.replace(/\\/g, "/");
       const modulePath = module.resolvedPath.replace(/\\/g, "/");
 
       // Check if module path starts with folder path
@@ -450,9 +443,9 @@ function buildExportMembership(graph: KnowledgeGraph): void {
       let bestFolderPathLength = 0;
 
       for (const folder of folders) {
-        if (!folder.resolvedPath) continue;
+        if (!folder.path) continue;
 
-        const folderPath = folder.resolvedPath.replace(/\\/g, "/");
+        const folderPath = folder.path.replace(/\\/g, "/");
 
         // Check if export path starts with folder path
         const isExportInFolder =
