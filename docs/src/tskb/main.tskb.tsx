@@ -116,7 +116,10 @@ const CliLsExport = ref as tskb.Exports["cli.ls"];
 const SearchResultTerm = ref as tskb.Terms["searchResult"];
 
 export default (
-  <Doc explains="Architecture, API surface, and usage flow of the TSKB library">
+  <Doc
+    explains="Architecture, API surface, and usage flow of the TSKB library"
+    priority="essential"
+  >
     <H1>Architecture and implementation docs for the {"<TSKB>"} library </H1>
     <P>
       The package is located in {TSKBRootFolder}, with its {PackageJson} and README.md for npm.

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
+import { buildBody } from "./content-builder.js";
 
 /**
  * Generate a Claude Code skill file at .claude/skills/tskb/SKILL.md
@@ -34,9 +35,6 @@ export function generateSkillFile(graph: KnowledgeGraph): string | null {
 }
 
 function buildSkillContent(graph: KnowledgeGraph): string {
-  const folderTree = buildFolderTree(graph);
-  const docSummaries = buildDocSummaries(graph);
-
   return `---
 name: tskb
 description: "IMPORTANT: Always invoke this skill BEFORE planning, exploring, or making code changes. Uses the tskb knowledge graph to understand codebase structure, locate concepts, and find relevant files."
@@ -56,67 +54,6 @@ This project uses **TSKB**, a semantic knowledge graph of the codebase.
 
 Use the commands below to query the graph — do NOT skip this and jump straight to reading files.
 
-## Commands
-
-Search for concepts, modules, or folders:
-\`\`\`bash
-npx tskb search "$ARGUMENTS"
-\`\`\`
-
-Get detailed info on any node (by ID or path):
-\`\`\`bash
-npx tskb pick "<identifier>"
-\`\`\`
-
-List folder hierarchy:
-\`\`\`bash
-npx tskb ls --depth=4
-\`\`\`
-
-## Folder Structure
-
-${folderTree}
-
-## Documentation
-
-Each doc has an \`explains\` field describing its purpose. Use this to decide which docs to read.
-
-${docSummaries}
-
-## Workflow
-
-Always follow this order — do not skip to step 4 or 5 without completing earlier steps:
-
-1. **Orient** — Scan the folder structure above to find the relevant area
-2. **Search** — Run \`npx tskb search "<query>"\` to find specific nodes
-3. **Pick** — Run \`npx tskb pick "<id>"\` for full context on a node
-4. **Explore** — Only then use Read/Grep for implementation details not covered by the graph
-5. **Act** — Make architecturally coherent changes based on what you learned
+${buildBody(graph)}
 `;
-}
-
-function buildFolderTree(graph: KnowledgeGraph): string {
-  const folders = Object.values(graph.nodes.folders)
-    .filter((f) => f.path)
-    .sort((a, b) => (a.path ?? "").localeCompare(b.path ?? ""));
-
-  if (folders.length === 0) return "_No folders in graph._";
-
-  return folders
-    .map((f) => {
-      const depth = f.path === "." ? 0 : (f.path?.split("/").length ?? 0);
-      const indent = "  ".repeat(depth);
-      return `${indent}- **${f.id}** (\`${f.path}\`) — ${f.desc}`;
-    })
-    .join("\n");
-}
-
-function buildDocSummaries(graph: KnowledgeGraph): string {
-  const docs = Object.values(graph.nodes.docs).sort((a, b) => a.filePath.localeCompare(b.filePath));
-
-  if (docs.length === 0) return "_No docs in graph._";
-
-  return docs
-    .map((d) => `- \`${d.filePath}\` — ${d.explains || "_no explains provided_"}`)
-    .join("\n");
 }

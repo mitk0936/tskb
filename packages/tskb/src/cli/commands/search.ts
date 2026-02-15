@@ -8,6 +8,7 @@ interface SearchableNode {
   type: AnyNode["type"];
   desc: string;
   path: string;
+  priority?: string;
 }
 
 interface SearchResult {
@@ -18,6 +19,7 @@ interface SearchResult {
     desc: string;
     path: string;
     score: number;
+    priority?: string;
   }>;
 }
 
@@ -69,6 +71,7 @@ export async function search(query: string): Promise<void> {
       desc: r.item.desc,
       path: r.item.path,
       score: Math.round((1 - (r.score ?? 1)) * 100) / 100,
+      ...(r.item.priority ? { priority: r.item.priority } : {}),
     })),
   };
 
@@ -88,6 +91,7 @@ function buildSearchableNodes(graph: KnowledgeGraph): SearchableNode[] {
         type: node.type,
         desc: getDesc(node),
         path: getPath(node),
+        ...(node.type === "doc" ? { priority: node.priority } : {}),
       });
     }
   }

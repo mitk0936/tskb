@@ -31,9 +31,25 @@ export type ReactNode =
 export const ref: ReactNode = Symbol("tskb.ref") as any;
 
 /**
+ * Importance level for documentation.
+ * - "essential": included in generated skill/instructions files
+ * - "constraint": architectural constraint — rules and invariants that MUST be followed when working on related modules/folders
+ * - "supplementary": graph-only, queryable via search/pick but not in generated files
+ */
+export type DocPriority = "essential" | "constraint" | "supplementary";
+
+/**
  * Documentation container - just renders children
  */
-export function Doc({ explains, children }: { explains: string; children: any }): any {
+export function Doc({
+  explains,
+  priority,
+  children,
+}: {
+  explains: string;
+  priority?: DocPriority;
+  children: any;
+}): any {
   return children;
 }
 

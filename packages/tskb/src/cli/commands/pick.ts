@@ -14,7 +14,7 @@ interface DocRef {
   id: string;
   explains: string;
   filePath: string;
-  excerpt: string;
+  priority: string;
 }
 
 interface FolderPickResult {
@@ -55,7 +55,7 @@ interface TermPickResult {
 interface DocPickResult {
   type: "doc";
   resolvedVia: ResolvedVia;
-  node: { id: string; explains: string; filePath: string; format: string; contentExcerpt: string };
+  node: { id: string; explains: string; filePath: string; format: string; priority: string };
   referencedNodes: Array<{ id: string; type: string; desc: string }>;
 }
 
@@ -163,20 +163,17 @@ function getNodeEdges(allEdges: GraphEdge[], nodeId: string): NodeEdges {
   return { incoming, outgoing };
 }
 
-const EXCERPT_LENGTH = 100;
-
 function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): DocRef[] {
   const docs: DocRef[] = [];
   for (const edge of edges.incoming) {
     if (edge.type === "references") {
       const doc = graph.nodes.docs[edge.from];
       if (doc) {
-        const excerpt = doc.content.substring(0, EXCERPT_LENGTH).replace(/\s+/g, " ").trim();
         docs.push({
           id: edge.from,
           explains: doc.explains,
           filePath: doc.filePath,
-          excerpt: excerpt + (doc.content.length > EXCERPT_LENGTH ? "..." : ""),
+          priority: doc.priority,
         });
       }
     }
@@ -351,10 +348,6 @@ function resolveDoc(
     }
   }
 
-  const contentExcerpt =
-    doc.content.substring(0, EXCERPT_LENGTH).replace(/\s+/g, " ").trim() +
-    (doc.content.length > EXCERPT_LENGTH ? "..." : "");
-
   return {
     type: "doc",
     resolvedVia: "id",
@@ -363,7 +356,7 @@ function resolveDoc(
       explains: doc.explains,
       filePath: doc.filePath,
       format: doc.format,
-      contentExcerpt,
+      priority: doc.priority,
     },
     referencedNodes,
   };

@@ -60,6 +60,7 @@ tskb addresses this by making architecture documentation:
 - Architecture as code using TSX
 - Compiler-verified references via `typeof import()`
 - **Type-checked code snippets** (not copied text)
+- **Doc priority** (`essential`, `constraint`, `supplementary`) to control AI guidance and enforce architectural rules
 - Native IDE support (autocomplete, refactoring, go-to-definition)
 - Zero runtime impact (pure build-time tooling)
 - **CLI for querying** (`ls`, `pick`, `search` commands)
@@ -256,7 +257,10 @@ const Jwt = ref as tskb.Terms["jwt"];
 const RepositoryPattern = ref as tskb.Terms["repository-pattern"];
 
 export default (
-  <Doc explains="Authentication architecture: login flow, JWT tokens, and service-repository interaction">
+  <Doc
+    explains="Authentication architecture: login flow, JWT tokens, and service-repository interaction"
+    priority="essential"
+  >
     <H1>Authentication Architecture</H1>
 
     <P>
@@ -346,31 +350,30 @@ This graph is the primary output. Everything else (diagrams, markdown, AI contex
 ```ts
 {
   nodes: {
-    folders: Record<string, FolderNode>;
-    modules: Record<string, ModuleNode>;
-    exports: Record<string, ExportNode>;
-    terms: Record<string, TermNode>;
-    docs: Record<string, DocNode>;
+    folders: Record<string, FolderNode>;   // id, desc, path
+    modules: Record<string, ModuleNode>;   // id, desc, resolvedPath, typeSignature
+    exports: Record<string, ExportNode>;   // id, desc, resolvedPath, typeSignature
+    terms:   Record<string, TermNode>;     // id, desc
+    docs:    Record<string, DocNode>;       // id, explains, priority, filePath, content
   },
   edges: Array<{
     from: string;
     to: string;
-    type: "references" | "contains" | "belongs-to";
+    type: "references" | "contains" | "belongs-to" | "related-to";
   }>,
   metadata: {
     generatedAt: string;
     version: string;
-    stats: {
-      folders: number;
-      modules: number;
-      exports: number;
-      terms: number;
-      docs: number;
-      edges: number;
-    };
+    stats: { folderCount, moduleCount, exportCount, termCount, docCount, edgeCount };
   }
 }
 ```
+
+**DocNode.priority** controls visibility:
+
+- `"essential"` — included in generated skill/instructions files and `ls` output
+- `"constraint"` — architectural rule shown in `pick` and `search` results, must be followed when working on referenced areas
+- `"supplementary"` — graph-only (default), queryable via `search`/`pick`
 
 The schema is intentionally **graph-first** and machine-oriented.
 
@@ -511,7 +514,7 @@ npx tskb ls --depth 4    # List folders up to depth 4
 npx tskb ls --depth -1   # List all folders (unlimited depth)
 ```
 
-Output is ordered by depth (root → children), making it easy to understand hierarchy.
+Returns folders ordered by depth, plus all essential docs in a separate `docs` array.
 
 ### Pick a node
 
@@ -521,7 +524,7 @@ npx tskb pick "src/server/services"       # Pick by filesystem path
 npx tskb pick "auth.AuthService"          # Pick a module by ID
 ```
 
-Returns type-specific data: parent, children, modules, exports, and referencing docs.
+Returns type-specific data: parent, children, modules, exports, and referencing docs with their `priority`. Constraint docs in the results indicate rules that must be followed.
 
 ### Search the graph
 
@@ -530,7 +533,7 @@ npx tskb search "auth"                    # Single keyword
 npx tskb search "build command"           # Multi-word fuzzy search
 ```
 
-Returns ranked results with scores across all node types (folders, modules, exports, terms, docs).
+Returns ranked results with scores across all node types. Doc results include `priority` so constraint and essential docs are immediately visible.
 
 All commands output JSON, making them ideal for programmatic consumption and AI assistants.
 
@@ -587,18 +590,16 @@ This ensures documentation stays synchronized with code changes.
 
 TSKB is designed to help AI assistants understand codebases efficiently:
 
-- **Auto-generated integrations**: Build produces a Claude Code skill (`.claude/skills/tskb/SKILL.md`) and Copilot instructions (`.github/instructions/tskb.instructions.md`) with the folder tree and doc summaries baked in
-- **Doc explains**: Every `<Doc explains="...">` provides a concise purpose statement, so assistants know which docs to read without opening them
-- **Structured queries**: AI can use `ls`, `pick`, and `search` to navigate architecture
-- **JSON output**: Machine-readable format optimized for programmatic consumption
-- **Semantic graph**: Relationships between folders, modules, and exports are explicit
-- **Type-safe references**: AI can trust that referenced paths and imports are valid
+- **Auto-generated integrations**: Build produces a Claude Code skill (`.claude/skills/tskb/SKILL.md`) and Copilot instructions (`.github/instructions/tskb.instructions.md`) with folder tree, essential doc summaries, command response shapes, and workflow guidance baked in
+- **Doc priority**: Controls what AI assistants see — `essential` docs appear in generated files and `ls` output, `constraint` docs surface in `pick`/`search` with their priority visible, `supplementary` docs are graph-only
+- **Constraint docs**: Mark docs with `priority="constraint"` to define architectural rules. When an AI picks a node, constraint docs referencing that area appear in the results — signaling rules that must be followed before making changes
+- **Structured queries**: AI can use `ls`, `pick`, and `search` to navigate architecture — all return JSON with priority metadata on doc results
 
 Instead of blindly exploring files, AI assistants can:
 
-1. Read the baked-in folder tree and doc summaries from the generated skill/instructions
+1. Read the baked-in folder tree and essential doc summaries from the generated skill/instructions
 2. Use `search` to find relevant nodes for a task
-3. Use `pick` to get full context on specific areas
+3. Use `pick` to get full context — check for constraint docs before changing code
 4. Read only the files that matter
 
 This dramatically reduces tokens spent on exploration and increases accuracy.
@@ -620,7 +621,8 @@ This dramatically reduces tokens spent on exploration and increases accuracy.
 - CLI for querying the graph (no file scanning needed)
 - Documents whole systems (multiple packages, monorepos)
 - Type-checked code snippets (not string literals)
-- Optimized for AI assistants with structured queries
+- Doc priority system (essential, constraint, supplementary) for AI guidance
+- Optimized for AI assistants with structured queries and constraint enforcement
 
 ---
 

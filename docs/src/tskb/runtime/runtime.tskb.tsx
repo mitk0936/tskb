@@ -47,9 +47,17 @@ declare global {
         desc: "Code snippet component";
         type: typeof import("packages/tskb/src/runtime/jsx.js").Snippet;
       }>;
+      "jsx.Adr": Export<{
+        desc: "Architecture Decision Record component with id, title, status, date, and deciders metadata";
+        type: typeof import("packages/tskb/src/runtime/jsx.js").Adr;
+      }>;
       "jsx.ref": Export<{
         desc: "Reference placeholder for type assertions to registry items";
         type: typeof import("packages/tskb/src/runtime/jsx.js").ref;
+      }>;
+      DocPriority: Export<{
+        desc: "Type for doc importance level: 'essential' (included in generated skill/instructions), 'constraint' (architectural rules for related areas), or 'supplementary' (graph-only, default)";
+        type: import("packages/tskb/src/runtime/jsx.js").DocPriority;
       }>;
     }
   }
@@ -59,10 +67,15 @@ const RuntimeFolder = ref as tskb.Folders["tskb.runtime"];
 const JsxModule = ref as tskb.Modules["runtime.jsx"];
 const RegistryModule = ref as tskb.Modules["runtime.registry"];
 const DocExport = ref as tskb.Exports["jsx.Doc"];
+const AdrExport = ref as tskb.Exports["jsx.Adr"];
 const RefExport = ref as tskb.Exports["jsx.ref"];
+const DocPriorityExport = ref as tskb.Exports["DocPriority"];
 
 export default (
-  <Doc explains="Runtime module structure: JSX primitives and registry type definitions">
+  <Doc
+    explains="Runtime module structure: JSX primitives and registry type definitions"
+    priority="essential"
+  >
     <H1>Runtime</H1>
     <P>
       Located in {RuntimeFolder}. Contains registry type definitions and JSX primitives - no actual
@@ -72,9 +85,10 @@ export default (
     <H2>Modules</H2>
     <List>
       <Li>
-        {JsxModule}: JSX runtime with {DocExport} (requires explains prop - a short description of
-        what the doc covers, used for search and identification) and heading/paragraph/list
-        components. Includes {RefExport} for type-safe registry references.
+        {JsxModule}: JSX runtime with {DocExport} (requires explains prop and optional priority via{" "}
+        {DocPriorityExport}: essential, constraint, or supplementary). Includes
+        heading/paragraph/list components, {AdrExport} for Architecture Decision Records, and{" "}
+        {RefExport} for type-safe registry references.
       </Li>
       <Li>
         {RegistryModule}: Type definitions for Folder, Module, Export, Term interfaces used in

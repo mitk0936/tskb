@@ -19,6 +19,11 @@ declare global {
         desc: "Command implementations for build, search, pick, and ls operations";
         path: "packages/tskb/src/cli/commands";
       }>;
+
+      "tskb.cli.utils": Folder<{
+        desc: "CLI utilities - output generators (skill, copilot instructions), shared content builder, graph file finder";
+        path: "packages/tskb/src/cli/utils";
+      }>;
     }
 
     interface Modules {
@@ -46,6 +51,26 @@ declare global {
         desc: "List command module - recursively lists all folders from root with controllable depth, returning flat JSON hierarchy";
         type: typeof import("packages/tskb/src/cli/commands/ls.js");
       }>;
+
+      "cli.utils.content-builder": Module<{
+        desc: "Shared markdown content builder - produces the body used by both skill and instructions generators (commands, response shapes, folder tree, docs, constraints, workflow)";
+        type: typeof import("packages/tskb/src/cli/utils/content-builder.js");
+      }>;
+
+      "cli.utils.skill-generator": Module<{
+        desc: "Generates .claude/skills/tskb/SKILL.md - Claude Code skill file with frontmatter and shared body";
+        type: typeof import("packages/tskb/src/cli/utils/skill-generator.js");
+      }>;
+
+      "cli.utils.copilot-instructions": Module<{
+        desc: "Generates .github/instructions/tskb.instructions.md - GitHub Copilot instructions with frontmatter and shared body";
+        type: typeof import("packages/tskb/src/cli/utils/copilot-instructions-generator.js");
+      }>;
+
+      "cli.utils.graph-finder": Module<{
+        desc: "Locates .tskb/graph.json from the current working directory, used by search/pick/ls commands";
+        type: typeof import("packages/tskb/src/cli/utils/graph-finder.js");
+      }>;
     }
 
     interface Exports {
@@ -56,11 +81,63 @@ declare global {
     }
 
     interface Terms {
-      cliPipeline: Term<"The build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, AGENTS.md)">;
+      cliPipeline: Term<"The build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, skill/instructions)">;
       commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, search, pick, or ls)">;
       globPattern: Term<"File pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing">;
       folderIdNavigation: Term<"Navigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths">;
-      tskbOutputDir: Term<"The .tskb/ directory containing all build outputs: graph.json, graph.dot, and AGENTS.md">;
+      tskbOutputDir: Term<"The .tskb/ directory containing all build outputs: graph.json and graph.dot">;
     }
   }
 }
+
+const CliFolder = ref as tskb.Folders["tskb.cli"];
+const CommandsFolder = ref as tskb.Folders["tskb.cli.commands"];
+const UtilsFolder = ref as tskb.Folders["tskb.cli.utils"];
+const IndexModule = ref as tskb.Modules["cli.index"];
+const BuildModule = ref as tskb.Modules["cli.commands.build"];
+const SearchModule = ref as tskb.Modules["cli.commands.search"];
+const PickModule = ref as tskb.Modules["cli.commands.pick"];
+const LsModule = ref as tskb.Modules["cli.commands.ls"];
+const ContentBuilderModule = ref as tskb.Modules["cli.utils.content-builder"];
+const SkillGenModule = ref as tskb.Modules["cli.utils.skill-generator"];
+const CopilotGenModule = ref as tskb.Modules["cli.utils.copilot-instructions"];
+const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
+
+export default (
+  <Doc explains="CLI structure: commands (build, search, pick, ls) and utils (output generators, content builder)">
+    <H1>CLI</H1>
+    <P>
+      Located in {CliFolder}. Entry point: {IndexModule} — parses arguments, routes to command
+      handlers.
+    </P>
+
+    <H2>Commands</H2>
+    <P>In {CommandsFolder}:</P>
+    <List>
+      <Li>
+        {BuildModule}: Full pipeline — files → TypeScript program → extraction → graph → outputs
+      </Li>
+      <Li>{SearchModule}: Fuzzy search across all node types, returns ranked JSON results</Li>
+      <Li>{PickModule}: Resolve any node by ID or path, returns type-specific context</Li>
+      <Li>{LsModule}: List folder hierarchy with depth control, includes essential docs</Li>
+    </List>
+
+    <H2>Utils</H2>
+    <P>In {UtilsFolder}:</P>
+    <List>
+      <Li>
+        {ContentBuilderModule}: Shared markdown body for generated files — commands, response
+        shapes, folder tree, doc summaries, constraints section, and workflow steps
+      </Li>
+      <Li>
+        {SkillGenModule}: Wraps shared body with Claude Code skill frontmatter →
+        .claude/skills/tskb/SKILL.md
+      </Li>
+      <Li>
+        {CopilotGenModule}: Wraps shared body with Copilot frontmatter →
+        .github/instructions/tskb.instructions.md
+      </Li>
+      <Li>{GraphFinderModule}: Finds .tskb/graph.json from cwd, used by search/pick/ls</Li>
+    </List>
+  </Doc>
+);
