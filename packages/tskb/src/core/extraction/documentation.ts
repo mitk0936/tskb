@@ -1,5 +1,6 @@
 import ts from "typescript";
 import path from "node:path";
+import type { DocPriority } from "../../runtime/jsx.js";
 
 /**
  * Extracted documentation data from a single file
@@ -10,6 +11,8 @@ export interface ExtractedDoc {
   format: "tsx";
   /** What this documentation explains (from the Doc explains prop) */
   explains: string;
+  /** Importance level - essential docs are included in generated skill/instructions files */
+  priority: DocPriority;
   content: string;
   references: {
     modules: string[];
@@ -69,7 +72,10 @@ function extractFromTsxFile(sourceFile: ts.SourceFile, baseDir: string): Extract
   };
 
   let content = "";
-  const docMeta = { explains: "" };
+  const docMeta: { explains: string; priority: DocPriority } = {
+    explains: "",
+    priority: "supplementary",
+  };
 
   // Build a map of constant declarations to their type assertions
   const constantReferences = buildConstantReferencesMap(sourceFile);
@@ -88,6 +94,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile, baseDir: string): Extract
     filePath: relativePath,
     format: "tsx",
     explains: docMeta.explains,
+    priority: docMeta.priority,
     content,
     references: {
       modules: Array.from(new Set(references.modules)),
@@ -196,7 +203,7 @@ function extractJsxContent(
   node: ts.Node,
   references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] },
   constantReferences: Map<string, { category: string; name: string }>,
-  docMeta: { explains: string }
+  docMeta: { explains: string; priority: DocPriority }
 ): string {
   let content = "";
 
@@ -209,11 +216,19 @@ function extractJsxContent(
         const name = tagName.text;
         const attributes = ts.isJsxElement(n) ? n.openingElement.attributes : n.attributes;
 
-        // Extract explains from <Doc explains="...">
+        // Extract explains and priority from <Doc explains="..." priority="...">
         if (name === "Doc") {
           const explains = getStringAttribute(attributes, "explains");
           if (explains) {
             docMeta.explains = explains;
+          }
+          const priority = getStringAttribute(attributes, "priority");
+          if (
+            priority === "essential" ||
+            priority === "constraint" ||
+            priority === "supplementary"
+          ) {
+            docMeta.priority = priority;
           }
         }
 

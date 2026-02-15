@@ -6,6 +6,8 @@
  * - Edges: Relationships between nodes (references, belongs-to, etc.)
  */
 
+import type { DocPriority } from "../../runtime/jsx.js";
+
 export interface GraphNode {
   id: string;
   type: "folder" | "module" | "term" | "export" | "doc";
@@ -57,6 +59,10 @@ export interface DocNode extends GraphNode {
    * What this documentation explains
    */
   explains: string;
+  /**
+   * Importance level - essential docs appear in generated skill/instructions files
+   */
+  priority: DocPriority;
   /**
    * File path relative to project root
    */

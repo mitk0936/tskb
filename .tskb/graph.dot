@@ -291,6 +291,22 @@ digraph KnowledgeGraph {
 
           }
 
+          subgraph "cluster_tskb_cli_utils" {
+            label="tskb.cli.utils";
+            style=filled;
+            fillcolor="#E3F2FD";
+            color="#1976D2";
+
+            "tskb.cli.utils" [label="Folder\<\"tskb.cli.utils\"\>\nCLI utilities - output generators (skill, copilot instructions), shared content builder, graph file finder\n📁 packages/tskb/src/cli/utils", shape=box, fillcolor="#BBDEFB", style=filled];
+
+            // Modules in tskb.cli.utils
+            "cli.utils.content-builder" [label="Module\<\"cli.utils.content-builder\"\>\nShared markdown content builder - produces the body used by both skill and instructions generators (commands, response shapes, folder tree, docs, constraints, workflow)\n📁 packages/tskb/src/cli/utils/content-builder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.skill-generator" [label="Module\<\"cli.utils.skill-generator\"\>\nGenerates .claude/skills/tskb/SKILL.md - Claude Code skill file with frontmatter and shared body\n📁 packages/tskb/src/cli/utils/skill-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.copilot-instructions" [label="Module\<\"cli.utils.copilot-instructions\"\>\nGenerates .github/instructions/tskb.instructions.md - GitHub Copilot instructions with frontmatter and shared body\n📁 packages/tskb/src/cli/utils/copilot-instructions-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.graph-finder" [label="Module\<\"cli.utils.graph-finder\"\>\nLocates .tskb/graph.json from the current working directory, used by search/pick/ls commands\n📁 packages/tskb/src/cli/utils/graph-finder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
+          }
+
         }
 
         subgraph "cluster_tskb_core" {
@@ -301,8 +317,21 @@ digraph KnowledgeGraph {
 
           "tskb.core" [label="Folder\<\"tskb.core\"\>\nSource code for the core - extraction logic for registry (TS interfaces used as a registry) and 'doc' processing <Doc>...</Doc>\n📁 packages/tskb/src/core", shape=box, fillcolor="#BBDEFB", style=filled];
 
-          // Exports in tskb.core
-          "generateDot" [label="Export\<\"generateDot\"\>\nCore function that transforms the knowledge graph into DOT format\n📁 packages/tskb/src/core/visualization/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+          subgraph "cluster_core_visualization" {
+            label="core.visualization";
+            style=filled;
+            fillcolor="#E3F2FD";
+            color="#1976D2";
+
+            "core.visualization" [label="Folder\<\"core.visualization\"\>\nGraphviz DOT visualization generator - transforms the knowledge graph into a hierarchical diagram\n📁 packages/tskb/src/core/visualization", shape=box, fillcolor="#BBDEFB", style=filled];
+
+            // Modules in core.visualization
+            "visualization.dot-generator" [label="Module\<\"visualization.dot-generator\"\>\nDOT file generator - renders folders as nested subgraphs, modules as ellipses, terms as diamonds, docs as notes, with colored edges for relationship types\n📁 packages/tskb/src/core/visualization/dot-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
+            // Exports in core.visualization
+            "generateDot" [label="Export\<\"generateDot\"\>\nCore function that transforms the knowledge graph into DOT format\n📁 packages/tskb/src/core/visualization/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+
+          }
 
           subgraph "cluster_core_extraction" {
             label="core.extraction";
@@ -331,7 +360,10 @@ digraph KnowledgeGraph {
             "core.extraction.graph" [label="Folder\<\"core.extraction.graph\"\>\nPart of the core of the library responsible for building the graph structure, mapping nodes and relations between them into nodes - edges\n📁 packages/tskb/src/core/graph", shape=box, fillcolor="#BBDEFB", style=filled];
 
             // Modules in core.extraction.graph
-            "graph.builder" [label="Module\<\"graph.builder\"\>\nModule containing utility functions for constructing the graph\n📁 packages/tskb/src/core/graph/builder", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "graph.builder" [label="Module\<\"graph.builder\"\>\nModule containing utility functions for constructing the graph\n📁 packages/tskb/src/core/graph/builder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "buildGraph" [label="Export\<\"buildGraph\"\>\nMain entry point for graph construction - takes extracted registry and docs, produces a complete KnowledgeGraph\n📁 packages/tskb/src/core/graph/builder.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "graph.types" [label="Module\<\"graph.types\"\>\nType definitions for the knowledge graph data model - all node types, edge types, and the KnowledgeGraph structure\n📁 packages/tskb/src/core/graph/types.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "KnowledgeGraph" [label="Export\<\"KnowledgeGraph\"\>\nThe top-level graph structure containing all nodes (folders, modules, terms, exports, docs), edges, and metadata\n📁 packages/tskb/src/core/graph/types.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
           }
 
@@ -355,7 +387,9 @@ digraph KnowledgeGraph {
             "jsx.List" [label="Export\<\"jsx.List\"\>\nList container\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "jsx.Li" [label="Export\<\"jsx.Li\"\>\nList item\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "jsx.Snippet" [label="Export\<\"jsx.Snippet\"\>\nCode snippet component\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.Adr" [label="Export\<\"jsx.Adr\"\>\nArchitecture Decision Record component with id, title, status, date, and deciders metadata\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "jsx.ref" [label="Export\<\"jsx.ref\"\>\nReference placeholder for type assertions to registry items\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "DocPriority" [label="Export\<\"DocPriority\"\>\nType for doc importance level: 'essential' (included in generated skill/instructions), 'constraint' (architectural rules for related areas), or 'supplementary' (graph-only, default)\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
           "runtime.jsx" [label="Module\<\"runtime.jsx\"\>\nJSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper\n📁 packages/tskb/src/runtime/jsx.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
           "runtime.registry" [label="Module\<\"runtime.registry\"\>\nRegistry type definitions - Folder, Module, Export, Term interfaces for global namespace augmentation\n📁 packages/tskb/src/runtime/registry.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "Folder" [label="Export\<\"Folder\"\>\nA generic helper to reference folders inside doc files\n📁 packages/tskb/src/runtime/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
@@ -417,11 +451,11 @@ digraph KnowledgeGraph {
     "jsxExpression" [label="Term\<\"jsxExpression\"\>\nA TypeScript AST node representing an embedded expression in JSX curly braces like {ref as tskb.Folders['Auth']}", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "typeAssertion" [label="Term\<\"typeAssertion\"\>\nTypeScript 'as' syntax that casts a value to a specific type, used in tskb to reference vocabulary items: {ref as tskb.Modules['X']}", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "depthFirstTraversal" [label="Term\<\"depthFirstTraversal\"\>\nTree traversal algorithm that explores as far as possible along each branch before backtracking, used to visit all JSX nodes in order", shape=diamond, fillcolor="#F0F4C3", style=filled];
-    "cliPipeline" [label="Term\<\"cliPipeline\"\>\nThe build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, AGENTS.md)", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "cliPipeline" [label="Term\<\"cliPipeline\"\>\nThe build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, skill/instructions)", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "commandRouting" [label="Term\<\"commandRouting\"\>\nThe CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, search, pick, or ls)", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "globPattern" [label="Term\<\"globPattern\"\>\nFile pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "folderIdNavigation" [label="Term\<\"folderIdNavigation\"\>\nNavigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths", shape=diamond, fillcolor="#F0F4C3", style=filled];
-    "tskbOutputDir" [label="Term\<\"tskbOutputDir\"\>\nThe .tskb/ directory containing all build outputs: graph.json, graph.dot, and AGENTS.md", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "tskbOutputDir" [label="Term\<\"tskbOutputDir\"\>\nThe .tskb/ directory containing all build outputs: graph.json and graph.dot", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "repositoryPattern" [label="Term\<\"repositoryPattern\"\>\nData access abstraction layer that separates business logic from database operations", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "serviceLayer" [label="Term\<\"serviceLayer\"\>\nBusiness logic layer that orchestrates operations between controllers and repositories", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "contextProvider" [label="Term\<\"contextProvider\"\>\nReact pattern for managing and sharing state across component tree without prop drilling", shape=diamond, fillcolor="#F0F4C3", style=filled];
@@ -441,6 +475,10 @@ digraph KnowledgeGraph {
     "docs/src/tskb/main.tskb.tsx" [label="docs/src/tskb/main.tskb.tsx\nArchitecture and implementation docs for the  library The package is located in [Folder: TSKB.Packag...\n📄 docs/src/tskb/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/typescript/typescript.tskb.tsx" [label="docs/src/tskb/typescript/typescript.tskb.tsx\nTypeScript Program Located in [Folder: tskb.typescript]. Creates [Term: tsProgram]for analyzing code...\n📄 docs/src/tskb/typescript/typescript.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/runtime/runtime.tskb.tsx" [label="docs/src/tskb/runtime/runtime.tskb.tsx\nRuntime Located in [Folder: tskb.runtime]. Contains registry type definitions and JSX primitives - n...\n📄 docs/src/tskb/runtime/runtime.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/core/visualization.tskb.tsx" [label="docs/src/tskb/core/visualization.tskb.tsx\nVisualization Located in [Folder: core.visualization]. Contains [Module: visualization.dot-generator...\n📄 docs/src/tskb/core/visualization.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/core/graph-builder.tskb.tsx" [label="docs/src/tskb/core/graph-builder.tskb.tsx\nGraph Module Located in [Folder: core.extraction.graph]. Takes extracted registry and documentation,...\n📄 docs/src/tskb/core/graph-builder.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" [label="docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx\nThe package in [Folder: TSKB.Package.Root]is published to npm. The README.md is the primary document...\n📄 docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/cli/cli-overview.tskb.tsx" [label="docs/src/tskb/cli/cli-overview.tskb.tsx\nCLI Located in [Folder: tskb.cli]. Entry point: [Module: cli.index]— parses arguments, routes to com...\n📄 docs/src/tskb/cli/cli-overview.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/main.tskb.tsx" [label="docs/src/taskflow-app/main.tskb.tsx\nTaskFlow Application Full-stack task management application demonstrating modern web architecture pa...\n📄 docs/src/taskflow-app/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/data-layer.tskb.tsx" [label="docs/src/taskflow-app/data-layer.tskb.tsx\nData Layer Architecture The data layer implements the [Term: repositoryPattern]to separate database ...\n📄 docs/src/taskflow-app/data-layer.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/authentication-system.tskb.tsx" [label="docs/src/taskflow-app/authentication-system.tskb.tsx\nAuthentication System The authentication system provides secure user login, registration, and sessio...\n📄 docs/src/taskflow-app/authentication-system.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
@@ -483,7 +521,36 @@ digraph KnowledgeGraph {
   "docs/src/tskb/runtime/runtime.tskb.tsx" -> "runtime.registry" [color=grey, style=dashed];
   "docs/src/tskb/runtime/runtime.tskb.tsx" -> "tskb.runtime" [color=grey, style=dashed];
   "docs/src/tskb/runtime/runtime.tskb.tsx" -> "jsx.Doc" [color=grey, style=dashed];
+  "docs/src/tskb/runtime/runtime.tskb.tsx" -> "DocPriority" [color=grey, style=dashed];
+  "docs/src/tskb/runtime/runtime.tskb.tsx" -> "jsx.Adr" [color=grey, style=dashed];
   "docs/src/tskb/runtime/runtime.tskb.tsx" -> "jsx.ref" [color=grey, style=dashed];
+  "docs/src/tskb/core/visualization.tskb.tsx" -> "visualization.dot-generator" [color=grey, style=dashed];
+  "docs/src/tskb/core/visualization.tskb.tsx" -> "core.visualization" [color=grey, style=dashed];
+  "docs/src/tskb/core/visualization.tskb.tsx" -> "generateDot" [color=grey, style=dashed];
+  "docs/src/tskb/core/graph-builder.tskb.tsx" -> "graph.types" [color=grey, style=dashed];
+  "docs/src/tskb/core/graph-builder.tskb.tsx" -> "graph.builder" [color=grey, style=dashed];
+  "docs/src/tskb/core/graph-builder.tskb.tsx" -> "core.extraction.graph" [color=grey, style=dashed];
+  "docs/src/tskb/core/graph-builder.tskb.tsx" -> "KnowledgeGraph" [color=grey, style=dashed];
+  "docs/src/tskb/core/graph-builder.tskb.tsx" -> "buildGraph" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "runtime.jsx" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "runtime.registry" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "cli.utils.skill-generator" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "cli.utils.copilot-instructions" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "TSKB.Package.Root" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "tskb.cli" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "tskb.runtime" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.index" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.build" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.search" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.pick" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.ls" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.content-builder" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.skill-generator" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.copilot-instructions" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.graph-finder" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "tskb.cli" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "tskb.cli.commands" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "tskb.cli.utils" [color=grey, style=dashed];
   "docs/src/taskflow-app/main.tskb.tsx" -> "contextProvider" [color=grey, style=dashed];
   "docs/src/taskflow-app/main.tskb.tsx" -> "serviceLayer" [color=grey, style=dashed];
   "docs/src/taskflow-app/main.tskb.tsx" -> "repositoryPattern" [color=grey, style=dashed];

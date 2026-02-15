@@ -13,6 +13,11 @@ interface LsResult {
     desc?: string;
     path?: string;
   }>;
+  docs: Array<{
+    id: string;
+    explains: string;
+    filePath: string;
+  }>;
 }
 
 /**
@@ -116,8 +121,14 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
 
   folders.sort((a, b) => (a.path ?? "").localeCompare(b.path ?? ""));
 
+  const docs = Object.values(graph.nodes.docs)
+    .filter((d) => d.priority === "essential")
+    .sort((a, b) => a.filePath.localeCompare(b.filePath))
+    .map((d) => ({ id: d.id, explains: d.explains, filePath: d.filePath }));
+
   return {
     root: rootId,
     folders,
+    docs,
   };
 }

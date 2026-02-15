@@ -29,7 +29,10 @@ const CreateProgramExport = ref as tskb.Exports["ts.createProgram"];
 const TsProgramTerm = ref as tskb.Terms["tsProgram"];
 
 export default (
-  <Doc explains="TypeScript Program creation for static analysis without compilation">
+  <Doc
+    explains="TypeScript Program creation for static analysis without compilation"
+    priority="essential"
+  >
     <H1>TypeScript Program</H1>
     <P>
       Located in {TypescriptFolder}. Creates {TsProgramTerm} for analyzing code without compilation.

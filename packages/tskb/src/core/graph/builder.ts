@@ -186,6 +186,7 @@ function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: str
       id,
       type: "doc",
       explains: doc.explains,
+      priority: doc.priority,
       filePath: doc.filePath, // Now relative, not absolute
       content: doc.content,
       format: doc.format,
