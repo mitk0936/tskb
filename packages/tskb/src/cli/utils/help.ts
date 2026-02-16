@@ -7,6 +7,7 @@ export function getHelpText(): string {
   tskb ls [--depth <n>]
   tskb pick <identifier>
   tskb search <query>
+  tskb context <identifier> [--depth <n>]
 
 Examples:
   # Build command - typically run on pre-commit hooks, post-install scripts, or CI pipelines
@@ -22,7 +23,9 @@ Examples:
   tskb pick "auth.AuthService"                            # Pick a module by ID
   tskb pick "jsxRuntime"                                  # Pick a term by ID
   tskb search "auth"                                      # Fuzzy search across entire graph
-  tskb search "build command"                             # Multi-word search`;
+  tskb search "build command"                             # Multi-word search
+  tskb context "tskb.cli"                                 # Get full context for an area (depth 1)
+  tskb context "tskb.cli" --depth 2                       # Deeper traversal with docs`;
 }
 
 /**

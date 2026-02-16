@@ -35,6 +35,11 @@ Search for concepts, modules, or folders:
 npx tskb search "<query>"
 ```
 
+Get full context for an area (node + neighborhood + docs):
+```bash
+npx tskb context "<identifier>" --depth=2
+```
+
 ## Command Response Shapes
 
 **search** returns ranked results across all node types:
@@ -50,6 +55,15 @@ Use `pick` on any result ID to get full details.
   "exports": [...], "referencingDocs": [{ "id": "...", "explains": "...", "priority": "..." }] }
 ```
 Follow `referencingDocs` to find related documentation. Constraint docs in this list MUST be read.
+
+**context** returns a node's full neighborhood with inline doc content:
+```json
+{ "root": { "id": "...", "type": "folder", "desc": "...", "resolvedVia": "id" },
+  "nodes": [{ "id": "...", "type": "module", "desc": "...", "depth": 1 }],
+  "docs": [{ "id": "...", "explains": "...", "priority": "...", "content": "...", "filePath": "..." }],
+  "constraints": ["constraint-doc-id"] }
+```
+Use `context` to get everything about an area in one call. Constraints are surfaced at the top level.
 
 **ls** returns the folder hierarchy and essential docs:
 ```json
