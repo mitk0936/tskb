@@ -12,6 +12,7 @@ import { build } from "./commands/build.js";
 import { search } from "./commands/search.js";
 import { pick } from "./commands/pick.js";
 import { ls } from "./commands/ls.js";
+import { context } from "./commands/context.js";
 import { printHelpAndExit } from "./utils/help.js";
 
 /**
@@ -65,6 +66,16 @@ async function main() {
       }
       case "ls": {
         await ls(parseInt(values.depth!, 10));
+        break;
+      }
+      case "context": {
+        const identifier = positionals[1];
+        if (!identifier) {
+          console.error("Error: context command requires an identifier");
+          console.error('Usage: tskb context "<identifier>" [--depth <n>]');
+          process.exit(1);
+        }
+        await context(identifier, parseInt(values.depth!, 10));
         break;
       }
       default:

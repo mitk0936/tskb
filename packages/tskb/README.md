@@ -63,7 +63,7 @@ tskb addresses this by making architecture documentation:
 - **Doc priority** (`essential`, `constraint`, `supplementary`) to control AI guidance and enforce architectural rules
 - Native IDE support (autocomplete, refactoring, go-to-definition)
 - Zero runtime impact (pure build-time tooling)
-- **CLI for querying** (`ls`, `pick`, `search` commands)
+- **CLI for querying** (`ls`, `pick`, `search`, `context` commands)
 - JSON knowledge graph output
 - Graphviz visualization
 - Monorepo-friendly by design
@@ -535,6 +535,18 @@ npx tskb search "build command"           # Multi-word fuzzy search
 
 Returns ranked results with scores across all node types. Doc results include `priority` so constraint and essential docs are immediately visible.
 
+### Get full context for an area
+
+```bash
+npx tskb context "ServiceLayer"          # Depth 1 (default): node + immediate children + docs
+npx tskb context "ServiceLayer" --depth 2 # Deeper: includes grandchildren and their docs
+npx tskb context "src/server/services"   # Also works with filesystem paths
+```
+
+Returns the target node, all neighborhood nodes (child folders, modules, exports) up to the specified depth, and all referencing docs with their full content — deduplicated and sorted by priority. Constraint doc IDs are surfaced at the top level so they can't be missed.
+
+This replaces the common `pick` → read doc → `pick` child → read doc multi-step workflow with a single call.
+
 All commands output JSON, making them ideal for programmatic consumption and AI assistants.
 
 ---
@@ -593,14 +605,16 @@ TSKB is designed to help AI assistants understand codebases efficiently:
 - **Auto-generated integrations**: Build produces a Claude Code skill (`.claude/skills/tskb/SKILL.md`) and Copilot instructions (`.github/instructions/tskb.instructions.md`) with folder tree, essential doc summaries, command response shapes, and workflow guidance baked in
 - **Doc priority**: Controls what AI assistants see — `essential` docs appear in generated files and `ls` output, `constraint` docs surface in `pick`/`search` with their priority visible, `supplementary` docs are graph-only
 - **Constraint docs**: Mark docs with `priority="constraint"` to define architectural rules. When an AI picks a node, constraint docs referencing that area appear in the results — signaling rules that must be followed before making changes
-- **Structured queries**: AI can use `ls`, `pick`, and `search` to navigate architecture — all return JSON with priority metadata on doc results
+- **Context command**: `context` returns a node's full neighborhood (children, modules, exports) with all doc content inline — replacing multi-step `pick` → read → `pick` workflows with a single call
+- **Structured queries**: AI can use `ls`, `pick`, `search`, and `context` to navigate architecture — all return JSON with priority metadata on doc results
 
 Instead of blindly exploring files, AI assistants can:
 
 1. Read the baked-in folder tree and essential doc summaries from the generated skill/instructions
 2. Use `search` to find relevant nodes for a task
-3. Use `pick` to get full context — check for constraint docs before changing code
-4. Read only the files that matter
+3. Use `context` to get the full neighborhood — nodes, docs, and constraints in one call
+4. Use `pick` for targeted single-node lookups when needed
+5. Read only the files that matter
 
 This dramatically reduces tokens spent on exploration and increases accuracy.
 
@@ -628,7 +642,8 @@ This dramatically reduces tokens spent on exploration and increases accuracy.
 
 ## Roadmap
 
-- Enhanced graph querying & filtering
+- ~~Enhanced graph querying & filtering~~ ✅ (`context` command)
+- Automatic documentation scaffolding from codebase analysis
 - Architectural constraints validation
 - Interactive visualization (beyond Graphviz)
 - Plugin system for custom node types
