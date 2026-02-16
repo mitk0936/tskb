@@ -209,5 +209,6 @@ export async function context(identifier: string, depth: number = 1): Promise<vo
     constraints,
   };
 
-  console.log(JSON.stringify(result, null, 2));
+  const output = { rootPath: graph.metadata.rootPath, ...result };
+  console.log(JSON.stringify(output, null, 2));
 }

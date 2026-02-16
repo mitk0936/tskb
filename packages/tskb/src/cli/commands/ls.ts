@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import type { KnowledgeGraph, GraphEdge } from "../../core/graph/types.js";
-import { REPO_ROOT_FOLDER_NAME } from "../../core/constants.js";
+import { ROOT_FOLDER_NAME } from "../../core/constants.js";
 import { findGraphFile } from "../utils/graph-finder.js";
 
 /**
@@ -32,7 +32,7 @@ export async function ls(maxDepth: number = 1): Promise<void> {
   const graph: KnowledgeGraph = JSON.parse(graphJson);
 
   // Find the root folder (Package.Root)
-  const rootId = REPO_ROOT_FOLDER_NAME;
+  const rootId = ROOT_FOLDER_NAME;
   const rootFolder = graph.nodes.folders[rootId];
 
   if (!rootFolder) {
@@ -51,7 +51,8 @@ export async function ls(maxDepth: number = 1): Promise<void> {
   }
 
   const result = listFolders(graph, rootId, maxDepth);
-  console.log(JSON.stringify(result, null, 2));
+  const output = { rootPath: graph.metadata.rootPath, ...result };
+  console.log(JSON.stringify(output, null, 2));
 }
 
 /**

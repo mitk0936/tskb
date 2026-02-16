@@ -119,7 +119,7 @@ export interface KnowledgeGraph {
     generatedAt: string;
     version: string;
     /**
-     * Absolute path to the root directory (from tsconfig rootDir or tsconfig directory)
+     * Path to the root directory relative to where the build was run (from tsconfig rootDir or tsconfig directory)
      */
     rootPath: string;
     stats: {

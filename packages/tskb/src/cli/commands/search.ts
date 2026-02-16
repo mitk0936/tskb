@@ -75,7 +75,8 @@ export async function search(query: string): Promise<void> {
     })),
   };
 
-  console.log(JSON.stringify(result, null, 2));
+  const output = { rootPath: graph.metadata.rootPath, ...result };
+  console.log(JSON.stringify(output, null, 2));
 }
 
 /**

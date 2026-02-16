@@ -42,15 +42,19 @@ npx tskb context "<identifier>" --depth=2
 
 ## Command Response Shapes
 
+All commands include a `rootPath` field — the path (relative to where the build was run) that all other paths in the graph are relative to (derived from tsconfig `rootDir`). To resolve any path in the response, join it with `rootPath`.
+
 **search** returns ranked results across all node types:
 ```json
-[{ "type": "folder|module|export|term|doc", "id": "...", "desc": "...", "score": 0.85 }]
+{ "rootPath": ".", "query": "...",
+  "results": [{ "type": "folder|module|export|term|doc", "id": "...", "desc": "...", "score": 0.85 }] }
 ```
 Use `pick` on any result ID to get full details.
 
 **pick** returns type-specific context for any node:
 ```json
-{ "type": "folder", "node": { "id": "...", "desc": "...", "path": "..." },
+{ "rootPath": ".",
+  "type": "folder", "node": { "id": "...", "desc": "...", "path": "..." },
   "parent": { ... }, "childFolders": [...], "modules": [...],
   "exports": [...], "referencingDocs": [{ "id": "...", "explains": "...", "priority": "..." }] }
 ```
@@ -58,7 +62,8 @@ Follow `referencingDocs` to find related documentation. Constraint docs in this 
 
 **context** returns a node's full neighborhood with inline doc content:
 ```json
-{ "root": { "id": "...", "type": "folder", "desc": "...", "resolvedVia": "id" },
+{ "rootPath": ".",
+  "root": { "id": "...", "type": "folder", "desc": "...", "resolvedVia": "id" },
   "nodes": [{ "id": "...", "type": "module", "desc": "...", "depth": 1 }],
   "docs": [{ "id": "...", "explains": "...", "priority": "...", "content": "...", "filePath": "..." }],
   "constraints": ["constraint-doc-id"] }
@@ -67,13 +72,14 @@ Use `context` to get everything about an area in one call. Constraints are surfa
 
 **ls** returns the folder hierarchy and essential docs:
 ```json
-{ "root": "...", "folders": [{ "id": "...", "desc": "...", "path": "..." }],
+{ "rootPath": ".",
+  "root": "...", "folders": [{ "id": "...", "desc": "...", "path": "..." }],
   "docs": [{ "id": "...", "explains": "...", "filePath": "..." }] }
 ```
 
 ## Folder Structure
 
-- **__TSKB.REPO.ROOT__** (`.`) — The root directory of the repository (automatically added by tskb)
+- **__TSKB.ROOT__** (`.`) — The root directory (automatically added by tskb)
   - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration.
     - **examples.taskflow-app** (`examples/taskflow-app`) — Example application, not meant to be run, but used as reference for example docs
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace)

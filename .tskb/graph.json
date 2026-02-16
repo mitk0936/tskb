@@ -1,10 +1,10 @@
 {
   "nodes": {
     "folders": {
-      "__TSKB.REPO.ROOT__": {
-        "id": "__TSKB.REPO.ROOT__",
+      "__TSKB.ROOT__": {
+        "id": "__TSKB.ROOT__",
         "type": "folder",
-        "desc": "The root directory of the repository (automatically added by tskb)",
+        "desc": "The root directory (automatically added by tskb)",
         "path": "."
       },
       "docs": {
@@ -1708,22 +1708,22 @@
       "type": "references"
     },
     {
-      "from": "__TSKB.REPO.ROOT__",
+      "from": "__TSKB.ROOT__",
       "to": "docs",
       "type": "contains"
     },
     {
-      "from": "__TSKB.REPO.ROOT__",
+      "from": "__TSKB.ROOT__",
       "to": "examples.taskflow-app",
       "type": "contains"
     },
     {
-      "from": "__TSKB.REPO.ROOT__",
+      "from": "__TSKB.ROOT__",
       "to": "packages",
       "type": "contains"
     },
     {
-      "from": "__TSKB.REPO.ROOT__",
+      "from": "__TSKB.ROOT__",
       "to": "references",
       "type": "contains"
     },
@@ -2244,7 +2244,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-02-16T15:35:51.600Z",
+    "generatedAt": "2026-02-16T15:52:44.211Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {

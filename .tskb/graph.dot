@@ -4,13 +4,13 @@ digraph KnowledgeGraph {
   node [fontname="Arial", fontsize=10];
   edge [fontname="Arial", fontsize=8];
 
-  subgraph "cluster___TSKB_REPO_ROOT__" {
-    label="__TSKB.REPO.ROOT__";
+  subgraph "cluster___TSKB_ROOT__" {
+    label="__TSKB.ROOT__";
     style=filled;
     fillcolor="#E3F2FD";
     color="#1976D2";
 
-    "__TSKB.REPO.ROOT__" [label="Folder\<\"__TSKB.REPO.ROOT__\"\>\nThe root directory of the repository (automatically added by tskb)\n📁 .", shape=box, fillcolor="#BBDEFB", style=filled];
+    "__TSKB.ROOT__" [label="Folder\<\"__TSKB.ROOT__\"\>\nThe root directory (automatically added by tskb)\n📁 .", shape=box, fillcolor="#BBDEFB", style=filled];
 
     subgraph "cluster_docs" {
       label="docs";
