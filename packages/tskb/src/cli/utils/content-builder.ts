@@ -46,19 +46,18 @@ npx tskb context "<identifier>" --depth=2
 
 ## Command Response Shapes
 
-All commands include a \`rootPath\` field — the path (relative to where the build was run) that all other paths in the graph are relative to (derived from tsconfig \`rootDir\`). To resolve any path in the response, join it with \`rootPath\`.
+All paths in responses are relative to where \`tskb build\` was run. They can be used directly to read files or navigate the filesystem.
 
 **search** returns ranked results across all node types:
 \`\`\`json
-{ "rootPath": ".", "query": "...",
+{ "query": "...",
   "results": [{ "type": "folder|module|export|term|doc", "id": "...", "desc": "...", "score": 0.85 }] }
 \`\`\`
 Use \`pick\` on any result ID to get full details.
 
 **pick** returns type-specific context for any node:
 \`\`\`json
-{ "rootPath": ".",
-  "type": "folder", "node": { "id": "...", "desc": "...", "path": "..." },
+{ "type": "folder", "node": { "id": "...", "desc": "...", "path": "..." },
   "parent": { ... }, "childFolders": [...], "modules": [...],
   "exports": [...], "referencingDocs": [{ "id": "...", "explains": "...", "priority": "..." }] }
 \`\`\`
@@ -66,8 +65,7 @@ Follow \`referencingDocs\` to find related documentation. Constraint docs in thi
 
 **context** returns a node's full neighborhood with inline doc content:
 \`\`\`json
-{ "rootPath": ".",
-  "root": { "id": "...", "type": "folder", "desc": "...", "resolvedVia": "id" },
+{ "root": { "id": "...", "type": "folder", "desc": "...", "resolvedVia": "id" },
   "nodes": [{ "id": "...", "type": "module", "desc": "...", "depth": 1 }],
   "docs": [{ "id": "...", "explains": "...", "priority": "...", "content": "...", "filePath": "..." }],
   "constraints": ["constraint-doc-id"] }
@@ -76,8 +74,7 @@ Use \`context\` to get everything about an area in one call. Constraints are sur
 
 **ls** returns the folder hierarchy and essential docs:
 \`\`\`json
-{ "rootPath": ".",
-  "root": "...", "folders": [{ "id": "...", "desc": "...", "path": "..." }],
+{ "root": "...", "folders": [{ "id": "...", "desc": "...", "path": "..." }],
   "docs": [{ "id": "...", "explains": "...", "filePath": "..." }] }
 \`\`\`
 

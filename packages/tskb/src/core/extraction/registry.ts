@@ -205,7 +205,7 @@ function extractFolders(
 
         if (fileExistsCheck || dirExistsCheck) {
           // Store as relative path from baseUrl
-          resolvedPath = path.relative(baseUrl, absoluteFromBaseUrl).replace(/\\/g, "/");
+          resolvedPath = path.relative(process.cwd(), absoluteFromBaseUrl).replace(/\\/g, "/");
           pathExists = true;
         } else {
           // Try relative to the source file where Folder was declared
@@ -216,7 +216,7 @@ function extractFolders(
             ts.sys.directoryExists(absoluteFromSourceFile)
           ) {
             // Store as relative path from baseUrl
-            resolvedPath = path.relative(baseUrl, absoluteFromSourceFile).replace(/\\/g, "/");
+            resolvedPath = path.relative(process.cwd(), absoluteFromSourceFile).replace(/\\/g, "/");
             pathExists = true;
           } else {
             // Path doesn't exist - throw error
@@ -348,7 +348,9 @@ function extractModules(
 
           if (checkBaseUrl.exists) {
             // Store as relative path from baseUrl
-            resolvedPath = path.relative(baseUrl, checkBaseUrl.actualPath).replace(/\\/g, "/");
+            resolvedPath = path
+              .relative(process.cwd(), checkBaseUrl.actualPath)
+              .replace(/\\/g, "/");
             pathExists = true;
           } else {
             // Try relative to the source file where Module was declared
@@ -366,7 +368,9 @@ function extractModules(
                 pathExists = true;
               } else {
                 // Path doesn't exist, store relative to baseUrl
-                resolvedPath = path.relative(baseUrl, absoluteFromBaseUrl).replace(/\\/g, "/");
+                resolvedPath = path
+                  .relative(process.cwd(), absoluteFromBaseUrl)
+                  .replace(/\\/g, "/");
               }
             }
           }
@@ -556,7 +560,9 @@ function extractExports(
 
           if (checkBaseUrl.exists) {
             // Store as relative path from baseUrl
-            resolvedPath = path.relative(baseUrl, checkBaseUrl.actualPath).replace(/\\/g, "/");
+            resolvedPath = path
+              .relative(process.cwd(), checkBaseUrl.actualPath)
+              .replace(/\\/g, "/");
             pathExists = true;
           } else {
             // Try relative to the source file where Export was declared
@@ -574,7 +580,9 @@ function extractExports(
                 pathExists = true;
               } else {
                 // Path doesn't exist, store relative to baseUrl
-                resolvedPath = path.relative(baseUrl, absoluteFromBaseUrl).replace(/\\/g, "/");
+                resolvedPath = path
+                  .relative(process.cwd(), absoluteFromBaseUrl)
+                  .replace(/\\/g, "/");
               }
             }
           }

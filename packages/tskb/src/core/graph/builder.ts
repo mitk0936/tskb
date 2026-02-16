@@ -83,10 +83,10 @@ export function buildGraph(
   buildExportNodes(registry, graph);
 
   // Build nodes from docs
-  buildDocNodes(docs, graph, baseDir);
+  buildDocNodes(docs, graph);
 
   // Build edges (relationships)
-  buildEdges(docs, graph, baseDir);
+  buildEdges(docs, graph);
 
   // Build hierarchical edges
   buildFolderHierarchy(graph);
@@ -108,7 +108,7 @@ function addSystemRootFolder(graph: KnowledgeGraph, baseDir: string): void {
     id: ROOT_FOLDER_NAME,
     type: "folder",
     desc: "The root directory (automatically added by tskb)",
-    path: ".",
+    path: path.relative(process.cwd(), baseDir) || ".",
   };
   graph.nodes.folders[ROOT_FOLDER_NAME] = node;
 }
@@ -177,7 +177,7 @@ function buildExportNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
 /**
  * Create Doc nodes from extracted documentation
  */
-function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string): void {
+function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
   for (const doc of docs) {
     // doc.filePath is already relative from extraction, use it directly as both id and filePath
     const id = doc.filePath;
@@ -219,7 +219,7 @@ function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: str
  *
  * Right now we just do "references" which is the most important.
  */
-function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string): void {
+function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
   for (const doc of docs) {
     // doc.filePath is already relative from extraction
     const docId = doc.filePath;
@@ -483,14 +483,4 @@ function updateStats(graph: KnowledgeGraph): void {
   graph.metadata.stats.exportCount = Object.keys(graph.nodes.exports).length;
   graph.metadata.stats.docCount = Object.keys(graph.nodes.docs).length;
   graph.metadata.stats.edgeCount = graph.edges.length;
-}
-
-/**
- * Normalize file path to use as node ID
- * Converts absolute paths to relative from the base directory
- */
-function normalizeFilePath(filePath: string, baseDir: string): string {
-  // Make path relative to base directory and use forward slashes
-  const relativePath = path.relative(baseDir, filePath);
-  return relativePath.replace(/\\/g, "/");
 }

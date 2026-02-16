@@ -274,6 +274,5 @@ export async function pick(identifier: string): Promise<void> {
   const result = resolver(resolved.id, resolved.node, edges, graph);
   result.resolvedVia = resolved.resolvedVia;
 
-  const output = { rootPath: graph.metadata.rootPath, ...result };
-  console.log(JSON.stringify(output, null, 2));
+  console.log(JSON.stringify(result, null, 2));
 }

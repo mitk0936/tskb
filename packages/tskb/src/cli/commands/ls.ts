@@ -51,8 +51,7 @@ export async function ls(maxDepth: number = 1): Promise<void> {
   }
 
   const result = listFolders(graph, rootId, maxDepth);
-  const output = { rootPath: graph.metadata.rootPath, ...result };
-  console.log(JSON.stringify(output, null, 2));
+  console.log(JSON.stringify(result, null, 2));
 }
 
 /**
