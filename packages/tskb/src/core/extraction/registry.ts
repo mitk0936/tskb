@@ -363,7 +363,7 @@ function extractModules(
               if (checkSourceFile.exists) {
                 // Store as relative path from baseUrl
                 resolvedPath = path
-                  .relative(baseUrl, checkSourceFile.actualPath)
+                  .relative(process.cwd(), checkSourceFile.actualPath)
                   .replace(/\\/g, "/");
                 pathExists = true;
               } else {
@@ -575,7 +575,7 @@ function extractExports(
               if (checkSourceFile.exists) {
                 // Store as relative path from baseUrl
                 resolvedPath = path
-                  .relative(baseUrl, checkSourceFile.actualPath)
+                  .relative(process.cwd(), checkSourceFile.actualPath)
                   .replace(/\\/g, "/");
                 pathExists = true;
               } else {
