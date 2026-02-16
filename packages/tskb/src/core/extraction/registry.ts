@@ -738,17 +738,13 @@ function checkPathExists(absolutePath: string): {
   exists: boolean;
   actualPath: string;
 } {
-  // Check if it exists as-is (file or directory)
-  if (ts.sys.fileExists(absolutePath) || ts.sys.directoryExists(absolutePath)) {
-    return { exists: true, actualPath: absolutePath };
-  }
-
-  // If it has an extension, try replacing with TypeScript extensions
   const ext = path.extname(absolutePath);
-  if (ext) {
-    const basePath = absolutePath.slice(0, -ext.length);
-    const tsExtensions = [".ts", ".tsx", ".mts", ".cts"];
+  const jsExtensions = [".js", ".jsx", ".mjs", ".cjs"];
+  const tsExtensions = [".ts", ".tsx", ".mts", ".cts"];
 
+  // If path has a JS extension, prefer TypeScript source over compiled output
+  if (ext && jsExtensions.includes(ext)) {
+    const basePath = absolutePath.slice(0, -ext.length);
     for (const tsExt of tsExtensions) {
       const tsPath = basePath + tsExt;
       if (ts.sys.fileExists(tsPath)) {
@@ -757,9 +753,20 @@ function checkPathExists(absolutePath: string): {
     }
   }
 
-  // Try as a directory
-  if (ts.sys.directoryExists(absolutePath)) {
+  // Check if it exists as-is (file or directory)
+  if (ts.sys.fileExists(absolutePath) || ts.sys.directoryExists(absolutePath)) {
     return { exists: true, actualPath: absolutePath };
+  }
+
+  // If it has a non-JS extension, try replacing with TypeScript extensions
+  if (ext && !jsExtensions.includes(ext)) {
+    const basePath = absolutePath.slice(0, -ext.length);
+    for (const tsExt of tsExtensions) {
+      const tsPath = basePath + tsExt;
+      if (ts.sys.fileExists(tsPath)) {
+        return { exists: true, actualPath: tsPath };
+      }
+    }
   }
 
   return { exists: false, actualPath: absolutePath };
