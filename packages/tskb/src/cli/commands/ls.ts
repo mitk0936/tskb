@@ -121,10 +121,18 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
 
   folders.sort((a, b) => (a.path ?? "").localeCompare(b.path ?? ""));
 
-  const docs = Object.values(graph.nodes.docs)
+  // Collect essential docs and deduplicate by ID
+  const docsMap = new Map<string, { id: string; explains: string; filePath: string }>();
+  Object.values(graph.nodes.docs)
     .filter((d) => d.priority === "essential")
-    .sort((a, b) => a.filePath.localeCompare(b.filePath))
-    .map((d) => ({ id: d.id, explains: d.explains, filePath: d.filePath }));
+    .forEach((d) => {
+      // Use doc ID as the unique key to prevent duplicates
+      if (!docsMap.has(d.id)) {
+        docsMap.set(d.id, { id: d.id, explains: d.explains, filePath: d.filePath });
+      }
+    });
+
+  const docs = Array.from(docsMap.values()).sort((a, b) => a.filePath.localeCompare(b.filePath));
 
   return {
     root: rootId,
