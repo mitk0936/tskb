@@ -367,11 +367,25 @@ function extractModules(
                   .replace(/\\/g, "/");
                 pathExists = true;
               } else {
-                // Path doesn't exist, store relative to baseUrl
-                resolvedPath = path
-                  .relative(process.cwd(), absoluteFromBaseUrl)
-                  .replace(/\\/g, "/");
+                // Path doesn't exist - throw error
+                throw new Error(
+                  `Module import path not found for "${moduleName}" in ${sourceFile.fileName}:\n` +
+                    `  Import path: "${moduleData.importPath}"\n` +
+                    `  Tried resolving from:\n` +
+                    `    - Repository root (${baseUrl}): ${absoluteFromBaseUrl}\n` +
+                    `    - Source file directory (${sourceFileDir}): ${absoluteFromSourceFile}\n` +
+                    `  Neither path exists. Please check the import path is correct.`
+                );
               }
+            } else {
+              // Path doesn't exist and no source file fallback - throw error
+              throw new Error(
+                `Module import path not found for "${moduleName}" in ${sourceFile.fileName}:\n` +
+                  `  Import path: "${moduleData.importPath}"\n` +
+                  `  Tried resolving from:\n` +
+                  `    - Repository root (${baseUrl}): ${absoluteFromBaseUrl}\n` +
+                  `  Path does not exist. Please check the import path is correct.`
+              );
             }
           }
         }
@@ -579,11 +593,25 @@ function extractExports(
                   .replace(/\\/g, "/");
                 pathExists = true;
               } else {
-                // Path doesn't exist, store relative to baseUrl
-                resolvedPath = path
-                  .relative(process.cwd(), absoluteFromBaseUrl)
-                  .replace(/\\/g, "/");
+                // Path doesn't exist - throw error
+                throw new Error(
+                  `Export import path not found for "${exportName}" in ${sourceFile.fileName}:\n` +
+                    `  Import path: "${exportData.importPath}"\n` +
+                    `  Tried resolving from:\n` +
+                    `    - Repository root (${baseUrl}): ${absoluteFromBaseUrl}\n` +
+                    `    - Source file directory (${sourceFileDir}): ${absoluteFromSourceFile}\n` +
+                    `  Neither path exists. Please check the import path is correct.`
+                );
               }
+            } else {
+              // Path doesn't exist and no source file fallback - throw error
+              throw new Error(
+                `Export import path not found for "${exportName}" in ${sourceFile.fileName}:\n` +
+                  `  Import path: "${exportData.importPath}"\n` +
+                  `  Tried resolving from:\n` +
+                  `    - Repository root (${baseUrl}): ${absoluteFromBaseUrl}\n` +
+                  `  Path does not exist. Please check the import path is correct.`
+              );
             }
           }
         }

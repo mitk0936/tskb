@@ -305,6 +305,9 @@ function extractJsxContent(
           if (refContent) {
             content += refContent;
           }
+        } else {
+          // Not a primitive — likely a type-checked variable referencing a graph node
+          content += `{${varName}} `;
         }
       }
       // Handle type assertions: {ref as tskb.Folders['Name']}

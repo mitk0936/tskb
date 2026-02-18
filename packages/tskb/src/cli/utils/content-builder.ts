@@ -102,7 +102,29 @@ Some docs are marked as **constraints** (\`priority="constraint"\`). These defin
 
 ## Updating Documentation
 
-Documentation lives in \`${docsPath}/\` as \`.tskb.tsx\` files. When adding new structural areas or significant functionality, update the relevant doc file — declare new folders or modules in the \`declare global { namespace tskb { ... } }\` block and rebuild with \`npx tskb build\`.`;
+Documentation lives in \`${docsPath}/\` as \`.tskb.tsx\` files. When you notice structural elements (new folders, modules, services, important exports) that aren't captured in the graph, suggest adding them to the relevant doc file.
+
+**When to update docs:**
+
+- You discover a folder, module, or export that plays a structural role but isn't in the graph
+- A new feature area is added that warrants its own folder/module declarations
+- An architectural decision is made that should be recorded as an ADR or constraint
+
+**How to update docs:**
+
+- Declare new items in the \`declare global { namespace tskb { ... } }\` block using the type-safe primitives: \`Folder<{ desc: "..."; path: "..." }>\`, \`Module<{ desc: "..."; type: typeof import("...") }>\`, \`Export<{ desc: "..."; type: typeof import("...").Name }>\`, \`Term<"...">\`
+- Import code elements directly and bind them to typed variables — use \`typeof\` to reference actual code rather than describing it in prose
+- Reference graph nodes in JSX via type assertions: \`{ref as tskb.Modules['Name']}\` or \`{ref as tskb.Folders['Name']}\`
+- Avoid free-text prose — let the type-safe bindings and structural primitives describe the architecture
+- After editing, rebuild with \`npx tskb build\` — the build will throw if any path or reference doesn't resolve
+
+**Best Practices:**
+
+- **Keep it minimal** — Document structure and relationships, not implementation details. Let the code speak for itself.
+- **Bind via primitives** — Use \`Folder<>\`, \`Module<>\`, and \`Export<>\` to declare structural elements. Reference them in JSX with \`{ref as tskb.X['Name']}\`. This keeps docs anchored to the codebase and resistant to decay.
+- **Avoid implementation details** — Don't describe how functions work internally. Instead, explain what role they play in the architecture and how they relate to other components.
+- **Focus on "why" and "what"** — Explain architectural decisions, responsibilities, and relationships. Code diffs show the "how."
+- **Mark constraints** — Use \`priority="constraint"\` for rules that must be followed. Use \`priority="essential"\` for orientation docs that provide architectural overview.`;
 }
 
 /**

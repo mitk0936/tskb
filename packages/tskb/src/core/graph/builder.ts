@@ -209,7 +209,7 @@ function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
  *
  * VALIDATION:
  * We only create edges if the target node actually exists in the graph.
- * If doc references "NonExistentModule", we skip it (could log a warning).
+ * If doc references a non-existent node, we throw an error to catch broken references early.
  *
  * FUTURE EDGE TYPES:
  * Could add more relationship types:
@@ -232,6 +232,12 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
           to: moduleName,
           type: "references",
         });
+      } else {
+        throw new Error(
+          `Unresolved module reference "${moduleName}" in doc "${docId}":\n` +
+            `  The doc references a module that does not exist in the registry.\n` +
+            `  Make sure "${moduleName}" is declared in a \`namespace tskb { interface Modules { ... } }\` block.`
+        );
       }
     }
 
@@ -242,6 +248,12 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
           to: termName,
           type: "references",
         });
+      } else {
+        throw new Error(
+          `Unresolved term reference "${termName}" in doc "${docId}":\n` +
+            `  The doc references a term that does not exist in the registry.\n` +
+            `  Make sure "${termName}" is declared in a \`namespace tskb { interface Terms { ... } }\` block.`
+        );
       }
     }
 
@@ -252,6 +264,12 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
           to: folderName,
           type: "references",
         });
+      } else {
+        throw new Error(
+          `Unresolved folder reference "${folderName}" in doc "${docId}":\n` +
+            `  The doc references a folder that does not exist in the registry.\n` +
+            `  Make sure "${folderName}" is declared in a \`namespace tskb { interface Folders { ... } }\` block.`
+        );
       }
     }
 
@@ -262,6 +280,12 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
           to: exportName,
           type: "references",
         });
+      } else {
+        throw new Error(
+          `Unresolved export reference "${exportName}" in doc "${docId}":\n` +
+            `  The doc references an export that does not exist in the registry.\n` +
+            `  Make sure "${exportName}" is declared in a \`namespace tskb { interface Exports { ... } }\` block.`
+        );
       }
     }
   }
