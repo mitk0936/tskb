@@ -125,7 +125,7 @@ export async function build(config: ExtractConfig): Promise<void> {
 
   // Extract documentation
   console.log("Extracting documentation...");
-  const docs = extractDocs(program, new Set(files), baseDir);
+  const docs = extractDocs(program, new Set(files));
   console.log(`└─ ${docs.length} docs`);
 
   // Build knowledge graph

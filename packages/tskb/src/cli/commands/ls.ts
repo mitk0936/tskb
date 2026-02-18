@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import type { KnowledgeGraph, GraphEdge } from "../../core/graph/types.js";
-import { REPO_ROOT_FOLDER_NAME } from "../../core/constants.js";
+import { ROOT_FOLDER_NAME } from "../../core/constants.js";
 import { findGraphFile } from "../utils/graph-finder.js";
 
 /**
@@ -32,7 +32,7 @@ export async function ls(maxDepth: number = 1): Promise<void> {
   const graph: KnowledgeGraph = JSON.parse(graphJson);
 
   // Find the root folder (Package.Root)
-  const rootId = REPO_ROOT_FOLDER_NAME;
+  const rootId = ROOT_FOLDER_NAME;
   const rootFolder = graph.nodes.folders[rootId];
 
   if (!rootFolder) {
@@ -121,10 +121,18 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
 
   folders.sort((a, b) => (a.path ?? "").localeCompare(b.path ?? ""));
 
-  const docs = Object.values(graph.nodes.docs)
+  // Collect essential docs and deduplicate by ID
+  const docsMap = new Map<string, { id: string; explains: string; filePath: string }>();
+  Object.values(graph.nodes.docs)
     .filter((d) => d.priority === "essential")
-    .sort((a, b) => a.filePath.localeCompare(b.filePath))
-    .map((d) => ({ id: d.id, explains: d.explains, filePath: d.filePath }));
+    .forEach((d) => {
+      // Use doc ID as the unique key to prevent duplicates
+      if (!docsMap.has(d.id)) {
+        docsMap.set(d.id, { id: d.id, explains: d.explains, filePath: d.filePath });
+      }
+    });
+
+  const docs = Array.from(docsMap.values()).sort((a, b) => a.filePath.localeCompare(b.filePath));
 
   return {
     root: rootId,

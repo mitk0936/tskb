@@ -205,7 +205,7 @@ function extractFolders(
 
         if (fileExistsCheck || dirExistsCheck) {
           // Store as relative path from baseUrl
-          resolvedPath = path.relative(baseUrl, absoluteFromBaseUrl).replace(/\\/g, "/");
+          resolvedPath = path.relative(process.cwd(), absoluteFromBaseUrl).replace(/\\/g, "/");
           pathExists = true;
         } else {
           // Try relative to the source file where Folder was declared
@@ -216,7 +216,7 @@ function extractFolders(
             ts.sys.directoryExists(absoluteFromSourceFile)
           ) {
             // Store as relative path from baseUrl
-            resolvedPath = path.relative(baseUrl, absoluteFromSourceFile).replace(/\\/g, "/");
+            resolvedPath = path.relative(process.cwd(), absoluteFromSourceFile).replace(/\\/g, "/");
             pathExists = true;
           } else {
             // Path doesn't exist - throw error
@@ -348,7 +348,9 @@ function extractModules(
 
           if (checkBaseUrl.exists) {
             // Store as relative path from baseUrl
-            resolvedPath = path.relative(baseUrl, checkBaseUrl.actualPath).replace(/\\/g, "/");
+            resolvedPath = path
+              .relative(process.cwd(), checkBaseUrl.actualPath)
+              .replace(/\\/g, "/");
             pathExists = true;
           } else {
             // Try relative to the source file where Module was declared
@@ -361,13 +363,29 @@ function extractModules(
               if (checkSourceFile.exists) {
                 // Store as relative path from baseUrl
                 resolvedPath = path
-                  .relative(baseUrl, checkSourceFile.actualPath)
+                  .relative(process.cwd(), checkSourceFile.actualPath)
                   .replace(/\\/g, "/");
                 pathExists = true;
               } else {
-                // Path doesn't exist, store relative to baseUrl
-                resolvedPath = path.relative(baseUrl, absoluteFromBaseUrl).replace(/\\/g, "/");
+                // Path doesn't exist - throw error
+                throw new Error(
+                  `Module import path not found for "${moduleName}" in ${sourceFile.fileName}:\n` +
+                    `  Import path: "${moduleData.importPath}"\n` +
+                    `  Tried resolving from:\n` +
+                    `    - Repository root (${baseUrl}): ${absoluteFromBaseUrl}\n` +
+                    `    - Source file directory (${sourceFileDir}): ${absoluteFromSourceFile}\n` +
+                    `  Neither path exists. Please check the import path is correct.`
+                );
               }
+            } else {
+              // Path doesn't exist and no source file fallback - throw error
+              throw new Error(
+                `Module import path not found for "${moduleName}" in ${sourceFile.fileName}:\n` +
+                  `  Import path: "${moduleData.importPath}"\n` +
+                  `  Tried resolving from:\n` +
+                  `    - Repository root (${baseUrl}): ${absoluteFromBaseUrl}\n` +
+                  `  Path does not exist. Please check the import path is correct.`
+              );
             }
           }
         }
@@ -556,7 +574,9 @@ function extractExports(
 
           if (checkBaseUrl.exists) {
             // Store as relative path from baseUrl
-            resolvedPath = path.relative(baseUrl, checkBaseUrl.actualPath).replace(/\\/g, "/");
+            resolvedPath = path
+              .relative(process.cwd(), checkBaseUrl.actualPath)
+              .replace(/\\/g, "/");
             pathExists = true;
           } else {
             // Try relative to the source file where Export was declared
@@ -569,13 +589,29 @@ function extractExports(
               if (checkSourceFile.exists) {
                 // Store as relative path from baseUrl
                 resolvedPath = path
-                  .relative(baseUrl, checkSourceFile.actualPath)
+                  .relative(process.cwd(), checkSourceFile.actualPath)
                   .replace(/\\/g, "/");
                 pathExists = true;
               } else {
-                // Path doesn't exist, store relative to baseUrl
-                resolvedPath = path.relative(baseUrl, absoluteFromBaseUrl).replace(/\\/g, "/");
+                // Path doesn't exist - throw error
+                throw new Error(
+                  `Export import path not found for "${exportName}" in ${sourceFile.fileName}:\n` +
+                    `  Import path: "${exportData.importPath}"\n` +
+                    `  Tried resolving from:\n` +
+                    `    - Repository root (${baseUrl}): ${absoluteFromBaseUrl}\n` +
+                    `    - Source file directory (${sourceFileDir}): ${absoluteFromSourceFile}\n` +
+                    `  Neither path exists. Please check the import path is correct.`
+                );
               }
+            } else {
+              // Path doesn't exist and no source file fallback - throw error
+              throw new Error(
+                `Export import path not found for "${exportName}" in ${sourceFile.fileName}:\n` +
+                  `  Import path: "${exportData.importPath}"\n` +
+                  `  Tried resolving from:\n` +
+                  `    - Repository root (${baseUrl}): ${absoluteFromBaseUrl}\n` +
+                  `  Path does not exist. Please check the import path is correct.`
+              );
             }
           }
         }
@@ -730,17 +766,13 @@ function checkPathExists(absolutePath: string): {
   exists: boolean;
   actualPath: string;
 } {
-  // Check if it exists as-is (file or directory)
-  if (ts.sys.fileExists(absolutePath) || ts.sys.directoryExists(absolutePath)) {
-    return { exists: true, actualPath: absolutePath };
-  }
-
-  // If it has an extension, try replacing with TypeScript extensions
   const ext = path.extname(absolutePath);
-  if (ext) {
-    const basePath = absolutePath.slice(0, -ext.length);
-    const tsExtensions = [".ts", ".tsx", ".mts", ".cts"];
+  const jsExtensions = [".js", ".jsx", ".mjs", ".cjs"];
+  const tsExtensions = [".ts", ".tsx", ".mts", ".cts"];
 
+  // If path has a JS extension, prefer TypeScript source over compiled output
+  if (ext && jsExtensions.includes(ext)) {
+    const basePath = absolutePath.slice(0, -ext.length);
     for (const tsExt of tsExtensions) {
       const tsPath = basePath + tsExt;
       if (ts.sys.fileExists(tsPath)) {
@@ -749,9 +781,20 @@ function checkPathExists(absolutePath: string): {
     }
   }
 
-  // Try as a directory
-  if (ts.sys.directoryExists(absolutePath)) {
+  // Check if it exists as-is (file or directory)
+  if (ts.sys.fileExists(absolutePath) || ts.sys.directoryExists(absolutePath)) {
     return { exists: true, actualPath: absolutePath };
+  }
+
+  // If it has a non-JS extension, try replacing with TypeScript extensions
+  if (ext && !jsExtensions.includes(ext)) {
+    const basePath = absolutePath.slice(0, -ext.length);
+    for (const tsExt of tsExtensions) {
+      const tsPath = basePath + tsExt;
+      if (ts.sys.fileExists(tsPath)) {
+        return { exists: true, actualPath: tsPath };
+      }
+    }
   }
 
   return { exists: false, actualPath: absolutePath };

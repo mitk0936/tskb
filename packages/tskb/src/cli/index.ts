@@ -8,7 +8,6 @@
  */
 
 import { parseArgs } from "node:util";
-import { build } from "./commands/build.js";
 import { search } from "./commands/search.js";
 import { pick } from "./commands/pick.js";
 import { ls } from "./commands/ls.js";
@@ -41,6 +40,7 @@ async function main() {
           console.error("Error: build command requires a glob pattern");
           process.exit(1);
         }
+        const { build } = await import("./commands/build.js");
         await build({ pattern, tsconfig: values.tsconfig! });
         break;
       }

@@ -29,14 +29,9 @@ export interface ExtractedDoc {
  *
  * @param program - TypeScript program
  * @param filePaths - Set of absolute file paths to process (from glob match)
- * @param baseDir - Base directory (from tsconfig) to make paths relative to
  * @returns Array of extracted documentation
  */
-export function extractDocs(
-  program: ts.Program,
-  filePaths: Set<string>,
-  baseDir: string
-): ExtractedDoc[] {
+export function extractDocs(program: ts.Program, filePaths: Set<string>): ExtractedDoc[] {
   const docs: ExtractedDoc[] = [];
 
   // Normalize file paths for comparison (handle different path separators)
@@ -50,7 +45,7 @@ export function extractDocs(
 
     // Only process files that were explicitly matched by the glob pattern
     if (normalizedFilePaths.has(normalizedSourcePath) && sourceFile.fileName.endsWith(".tsx")) {
-      const doc = extractFromTsxFile(sourceFile, baseDir);
+      const doc = extractFromTsxFile(sourceFile);
       if (doc) {
         docs.push(doc);
       }
@@ -63,7 +58,7 @@ export function extractDocs(
 /**
  * Extract documentation from TSX file (JSX style)
  */
-function extractFromTsxFile(sourceFile: ts.SourceFile, baseDir: string): ExtractedDoc | null {
+function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
   const references = {
     modules: [] as string[],
     terms: [] as string[],
@@ -88,7 +83,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile, baseDir: string): Extract
   content = extractJsxContent(defaultExport, references, constantReferences, docMeta);
 
   // Convert absolute path to relative path (for portability across repos/machines)
-  const relativePath = path.relative(baseDir, sourceFile.fileName).replace(/\\/g, "/");
+  const relativePath = path.relative(process.cwd(), sourceFile.fileName).replace(/\\/g, "/");
 
   return {
     filePath: relativePath,
@@ -310,6 +305,9 @@ function extractJsxContent(
           if (refContent) {
             content += refContent;
           }
+        } else {
+          // Not a primitive — likely a type-checked variable referencing a graph node
+          content += `{${varName}} `;
         }
       }
       // Handle type assertions: {ref as tskb.Folders['Name']}

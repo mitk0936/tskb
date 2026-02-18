@@ -10,7 +10,7 @@ import type {
 import type { ExtractedRegistry } from "../extraction/registry.js";
 import type { ExtractedDoc } from "../extraction/documentation.js";
 import path from "node:path";
-import { REPO_ROOT_FOLDER_NAME } from "../constants.js";
+import { ROOT_FOLDER_NAME } from "../constants.js";
 
 /**
  * Builds a knowledge graph from extracted registry and documentation data.
@@ -61,7 +61,7 @@ export function buildGraph(
     metadata: {
       generatedAt: new Date().toISOString(),
       version: "1.0.0",
-      rootPath: baseDir,
+      rootPath: path.relative(process.cwd(), baseDir) || ".",
       stats: {
         folderCount: 0,
         moduleCount: 0,
@@ -83,10 +83,10 @@ export function buildGraph(
   buildExportNodes(registry, graph);
 
   // Build nodes from docs
-  buildDocNodes(docs, graph, baseDir);
+  buildDocNodes(docs, graph);
 
   // Build edges (relationships)
-  buildEdges(docs, graph, baseDir);
+  buildEdges(docs, graph);
 
   // Build hierarchical edges
   buildFolderHierarchy(graph);
@@ -100,17 +100,17 @@ export function buildGraph(
 }
 
 /**
- * Add system root folder representing the repository root directory.
+ * Add system root folder representing the root directory (from tsconfig rootDir).
  * This is automatically injected and represents the base directory from tsconfig.
  */
 function addSystemRootFolder(graph: KnowledgeGraph, baseDir: string): void {
   const node: FolderNode = {
-    id: REPO_ROOT_FOLDER_NAME,
+    id: ROOT_FOLDER_NAME,
     type: "folder",
-    desc: "The root directory of the repository (automatically added by tskb)",
-    path: ".",
+    desc: "The root directory (automatically added by tskb)",
+    path: path.relative(process.cwd(), baseDir) || ".",
   };
-  graph.nodes.folders[REPO_ROOT_FOLDER_NAME] = node;
+  graph.nodes.folders[ROOT_FOLDER_NAME] = node;
 }
 
 /**
@@ -177,7 +177,7 @@ function buildExportNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
 /**
  * Create Doc nodes from extracted documentation
  */
-function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string): void {
+function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
   for (const doc of docs) {
     // doc.filePath is already relative from extraction, use it directly as both id and filePath
     const id = doc.filePath;
@@ -209,7 +209,7 @@ function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: str
  *
  * VALIDATION:
  * We only create edges if the target node actually exists in the graph.
- * If doc references "NonExistentModule", we skip it (could log a warning).
+ * If doc references a non-existent node, we throw an error to catch broken references early.
  *
  * FUTURE EDGE TYPES:
  * Could add more relationship types:
@@ -219,7 +219,7 @@ function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: str
  *
  * Right now we just do "references" which is the most important.
  */
-function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string): void {
+function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
   for (const doc of docs) {
     // doc.filePath is already relative from extraction
     const docId = doc.filePath;
@@ -232,6 +232,12 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string
           to: moduleName,
           type: "references",
         });
+      } else {
+        throw new Error(
+          `Unresolved module reference "${moduleName}" in doc "${docId}":\n` +
+            `  The doc references a module that does not exist in the registry.\n` +
+            `  Make sure "${moduleName}" is declared in a \`namespace tskb { interface Modules { ... } }\` block.`
+        );
       }
     }
 
@@ -242,6 +248,12 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string
           to: termName,
           type: "references",
         });
+      } else {
+        throw new Error(
+          `Unresolved term reference "${termName}" in doc "${docId}":\n` +
+            `  The doc references a term that does not exist in the registry.\n` +
+            `  Make sure "${termName}" is declared in a \`namespace tskb { interface Terms { ... } }\` block.`
+        );
       }
     }
 
@@ -252,6 +264,12 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string
           to: folderName,
           type: "references",
         });
+      } else {
+        throw new Error(
+          `Unresolved folder reference "${folderName}" in doc "${docId}":\n` +
+            `  The doc references a folder that does not exist in the registry.\n` +
+            `  Make sure "${folderName}" is declared in a \`namespace tskb { interface Folders { ... } }\` block.`
+        );
       }
     }
 
@@ -262,6 +280,12 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph, baseDir: string
           to: exportName,
           type: "references",
         });
+      } else {
+        throw new Error(
+          `Unresolved export reference "${exportName}" in doc "${docId}":\n` +
+            `  The doc references an export that does not exist in the registry.\n` +
+            `  Make sure "${exportName}" is declared in a \`namespace tskb { interface Exports { ... } }\` block.`
+        );
       }
     }
   }
@@ -483,14 +507,4 @@ function updateStats(graph: KnowledgeGraph): void {
   graph.metadata.stats.exportCount = Object.keys(graph.nodes.exports).length;
   graph.metadata.stats.docCount = Object.keys(graph.nodes.docs).length;
   graph.metadata.stats.edgeCount = graph.edges.length;
-}
-
-/**
- * Normalize file path to use as node ID
- * Converts absolute paths to relative from the base directory
- */
-function normalizeFilePath(filePath: string, baseDir: string): string {
-  // Make path relative to base directory and use forward slashes
-  const relativePath = path.relative(baseDir, filePath);
-  return relativePath.replace(/\\/g, "/");
 }
