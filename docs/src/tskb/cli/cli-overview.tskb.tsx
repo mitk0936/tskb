@@ -53,23 +53,28 @@ declare global {
       }>;
 
       "cli.utils.content-builder": Module<{
-        desc: "Shared markdown content builder - produces the body used by both skill and instructions generators (commands, response shapes, folder tree, docs, constraints, workflow)";
+        desc: "Shared markdown content builder - produces query body (commands, response shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy, primitives, examples, best practices)";
         type: typeof import("packages/tskb/src/cli/utils/content-builder.js");
       }>;
 
       "cli.utils.skill-generator": Module<{
-        desc: "Generates .claude/skills/tskb/SKILL.md - Claude Code skill file with frontmatter and shared body";
+        desc: "Generates two Claude Code skills: .claude/skills/tskb/SKILL.md (query/explore) and .claude/skills/tskb-update/SKILL.md (doc authoring guide)";
         type: typeof import("packages/tskb/src/cli/utils/skill-generator.js");
       }>;
 
       "cli.utils.copilot-instructions": Module<{
-        desc: "Generates .github/instructions/tskb.instructions.md - GitHub Copilot instructions with frontmatter and shared body";
+        desc: "Generates two Copilot instructions files: tskb.instructions.md (query/explore) and tskb-update.instructions.md (doc authoring guide)";
         type: typeof import("packages/tskb/src/cli/utils/copilot-instructions-generator.js");
       }>;
 
       "cli.utils.graph-finder": Module<{
         desc: "Locates .tskb/graph.json from the current working directory, used by search/pick/ls commands";
         type: typeof import("packages/tskb/src/cli/utils/graph-finder.js");
+      }>;
+
+      "cli.utils.logger": Module<{
+        desc: "CLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })";
+        type: typeof import("packages/tskb/src/cli/utils/logger.js");
       }>;
     }
 
@@ -102,9 +107,10 @@ const ContentBuilderModule = ref as tskb.Modules["cli.utils.content-builder"];
 const SkillGenModule = ref as tskb.Modules["cli.utils.skill-generator"];
 const CopilotGenModule = ref as tskb.Modules["cli.utils.copilot-instructions"];
 const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
+const LoggerModule = ref as tskb.Modules["cli.utils.logger"];
 
 export default (
-  <Doc explains="CLI structure: commands (build, search, pick, ls) and utils (output generators, content builder)">
+  <Doc explains="CLI structure: commands (build, search, pick, ls) and utils (output generators, content builder, logger)">
     <H1>CLI</H1>
     <P>
       Located in {CliFolder}. Entry point: {IndexModule} — parses arguments, routes to command
@@ -126,18 +132,23 @@ export default (
     <P>In {UtilsFolder}:</P>
     <List>
       <Li>
-        {ContentBuilderModule}: Shared markdown body for generated files — commands, response
-        shapes, folder tree, doc summaries, constraints section, and workflow steps
+        {ContentBuilderModule}: Produces two markdown bodies — query body (commands, response
+        shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy,
+        primitives, examples, best practices)
       </Li>
       <Li>
-        {SkillGenModule}: Wraps shared body with Claude Code skill frontmatter →
-        .claude/skills/tskb/SKILL.md
+        {SkillGenModule}: Generates two Claude Code skills — tskb (query/explore) and tskb-update
+        (doc authoring guide)
       </Li>
       <Li>
-        {CopilotGenModule}: Wraps shared body with Copilot frontmatter →
-        .github/instructions/tskb.instructions.md
+        {CopilotGenModule}: Generates two Copilot instructions files — tskb (query/explore) and
+        tskb-update (doc authoring guide)
       </Li>
       <Li>{GraphFinderModule}: Finds .tskb/graph.json from cwd, used by search/pick/ls</Li>
+      <Li>
+        {LoggerModule}: Stderr-only logger with info/verbose/error/time — configured once at startup
+        via --verbose flag
+      </Li>
     </List>
   </Doc>
 );

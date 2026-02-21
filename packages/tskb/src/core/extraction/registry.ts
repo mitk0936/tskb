@@ -1,11 +1,22 @@
 import ts from "typescript";
 import path from "node:path";
+import { extractFolderSummary, type FolderSummary } from "./folder-summary.js";
+import { extractModuleMorphology, type ModuleMorphology } from "./module-morphology.js";
 
 /**
  * Registry data extracted from TypeScript declaration merging
  */
 export interface ExtractedRegistry {
-  folders: Map<string, { desc: string; path?: string; resolvedPath?: string; pathExists: boolean }>;
+  folders: Map<
+    string,
+    {
+      desc: string;
+      path?: string;
+      resolvedPath?: string;
+      pathExists: boolean;
+      folderSummary?: FolderSummary;
+    }
+  >;
   modules: Map<
     string,
     {
@@ -14,6 +25,7 @@ export interface ExtractedRegistry {
       importPath?: string;
       resolvedPath?: string;
       pathExists: boolean;
+      morphology?: ModuleMorphology;
     }
   >;
   terms: Map<string, string>; // term name -> description
@@ -69,6 +81,26 @@ export function extractRegistry(
         extractFromGlobalNamespace(node, checker, registry, sourceFile, baseDir, baseUrl);
       }
     });
+  }
+
+  // --- Enrichment pass: folder summaries and module morphology ---
+
+  // Enrich folders with filesystem summary
+  for (const [name, data] of registry.folders.entries()) {
+    if (data.pathExists && data.resolvedPath) {
+      const abs = path.resolve(process.cwd(), data.resolvedPath);
+      const folderSummary = extractFolderSummary(abs);
+      if (folderSummary) registry.folders.set(name, { ...data, folderSummary });
+    }
+  }
+
+  // Enrich modules with morphology
+  for (const [name, data] of registry.modules.entries()) {
+    if (data.pathExists && data.resolvedPath) {
+      const abs = path.resolve(process.cwd(), data.resolvedPath);
+      const morphology = extractModuleMorphology(program, abs);
+      if (morphology) registry.modules.set(name, { ...data, morphology });
+    }
   }
 
   return registry;

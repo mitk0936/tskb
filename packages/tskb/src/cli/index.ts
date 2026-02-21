@@ -12,7 +12,9 @@ import { search } from "./commands/search.js";
 import { pick } from "./commands/pick.js";
 import { ls } from "./commands/ls.js";
 import { context } from "./commands/context.js";
+import { docs } from "./commands/docs.js";
 import { printHelpAndExit } from "./utils/help.js";
+import { configure, error } from "./utils/logger.js";
 
 /**
  * Main CLI entry point
@@ -23,9 +25,12 @@ async function main() {
     options: {
       tsconfig: { type: "string", default: "tsconfig.json" },
       depth: { type: "string", default: "1" },
+      verbose: { type: "boolean", default: false },
     },
     allowPositionals: true,
   });
+
+  configure({ verbose: values.verbose! });
 
   // If first arg looks like a glob, treat it as the old "build" usage
   const command = positionals[0];
@@ -37,7 +42,7 @@ async function main() {
       case "build": {
         const pattern = resolvedCommand === command ? positionals[1] : command;
         if (!pattern) {
-          console.error("Error: build command requires a glob pattern");
+          error("Error: build command requires a glob pattern");
           process.exit(1);
         }
         const { build } = await import("./commands/build.js");
@@ -47,8 +52,8 @@ async function main() {
       case "search": {
         const query = positionals[1];
         if (!query) {
-          console.error("Error: search command requires a query");
-          console.error('Usage: tskb search "<query>"');
+          error("Error: search command requires a query");
+          error('Usage: tskb search "<query>"');
           process.exit(1);
         }
         await search(query);
@@ -57,8 +62,8 @@ async function main() {
       case "pick": {
         const identifier = positionals[1];
         if (!identifier) {
-          console.error("Error: pick command requires an identifier");
-          console.error('Usage: tskb pick "<identifier>"');
+          error("Error: pick command requires an identifier");
+          error('Usage: tskb pick "<identifier>"');
           process.exit(1);
         }
         await pick(identifier);
@@ -71,19 +76,23 @@ async function main() {
       case "context": {
         const identifier = positionals[1];
         if (!identifier) {
-          console.error("Error: context command requires an identifier");
-          console.error('Usage: tskb context "<identifier>" [--depth <n>]');
+          error("Error: context command requires an identifier");
+          error('Usage: tskb context "<identifier>" [--depth <n>]');
           process.exit(1);
         }
         await context(identifier, parseInt(values.depth!, 10));
         break;
       }
+      case "docs": {
+        await docs(positionals[1]);
+        break;
+      }
       default:
-        console.error(`Unknown command: ${command}`);
+        error(`Unknown command: ${command}`);
         process.exit(1);
     }
-  } catch (error) {
-    console.error("❌ Error:", error instanceof Error ? error.message : String(error));
+  } catch (err) {
+    error("❌ Error: " + (err instanceof Error ? err.message : String(err)));
     process.exit(1);
   }
 }

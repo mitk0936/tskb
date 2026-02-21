@@ -300,10 +300,11 @@ digraph KnowledgeGraph {
             "tskb.cli.utils" [label="Folder\<\"tskb.cli.utils\"\>\nCLI utilities - output generators (skill, copilot instructions), shared content builder, graph file finder\n📁 packages/tskb/src/cli/utils", shape=box, fillcolor="#BBDEFB", style=filled];
 
             // Modules in tskb.cli.utils
-            "cli.utils.content-builder" [label="Module\<\"cli.utils.content-builder\"\>\nShared markdown content builder - produces the body used by both skill and instructions generators (commands, response shapes, folder tree, docs, constraints, workflow)\n📁 packages/tskb/src/cli/utils/content-builder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-            "cli.utils.skill-generator" [label="Module\<\"cli.utils.skill-generator\"\>\nGenerates .claude/skills/tskb/SKILL.md - Claude Code skill file with frontmatter and shared body\n📁 packages/tskb/src/cli/utils/skill-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-            "cli.utils.copilot-instructions" [label="Module\<\"cli.utils.copilot-instructions\"\>\nGenerates .github/instructions/tskb.instructions.md - GitHub Copilot instructions with frontmatter and shared body\n📁 packages/tskb/src/cli/utils/copilot-instructions-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.content-builder" [label="Module\<\"cli.utils.content-builder\"\>\nShared markdown content builder - produces query body (commands, response shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy, primitives, examples, best practices)\n📁 packages/tskb/src/cli/utils/content-builder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.skill-generator" [label="Module\<\"cli.utils.skill-generator\"\>\nGenerates two Claude Code skills: .claude/skills/tskb/SKILL.md (query/explore) and .claude/skills/tskb-update/SKILL.md (doc authoring guide)\n📁 packages/tskb/src/cli/utils/skill-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.copilot-instructions" [label="Module\<\"cli.utils.copilot-instructions\"\>\nGenerates two Copilot instructions files: tskb.instructions.md (query/explore) and tskb-update.instructions.md (doc authoring guide)\n📁 packages/tskb/src/cli/utils/copilot-instructions-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "cli.utils.graph-finder" [label="Module\<\"cli.utils.graph-finder\"\>\nLocates .tskb/graph.json from the current working directory, used by search/pick/ls commands\n📁 packages/tskb/src/cli/utils/graph-finder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.logger" [label="Module\<\"cli.utils.logger\"\>\nCLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })\n📁 packages/tskb/src/cli/utils/logger.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
           }
 
@@ -472,21 +473,22 @@ digraph KnowledgeGraph {
     label="Documentation";
     style=dashed;
     color=gray;
-    "docs/src/tskb/main.tskb.tsx" [label="docs/src/tskb/main.tskb.tsx\nArchitecture and implementation docs for the  library The package is located in [Folder: TSKB.Packag...\n📄 docs/src/tskb/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/typescript/typescript.tskb.tsx" [label="docs/src/tskb/typescript/typescript.tskb.tsx\nTypeScript Program Located in [Folder: tskb.typescript]. Creates [Term: tsProgram]for analyzing code...\n📄 docs/src/tskb/typescript/typescript.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/runtime/runtime.tskb.tsx" [label="docs/src/tskb/runtime/runtime.tskb.tsx\nRuntime Located in [Folder: tskb.runtime]. Contains registry type definitions and JSX primitives - n...\n📄 docs/src/tskb/runtime/runtime.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/core/visualization.tskb.tsx" [label="docs/src/tskb/core/visualization.tskb.tsx\nVisualization Located in [Folder: core.visualization]. Contains [Module: visualization.dot-generator...\n📄 docs/src/tskb/core/visualization.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/core/graph-builder.tskb.tsx" [label="docs/src/tskb/core/graph-builder.tskb.tsx\nGraph Module Located in [Folder: core.extraction.graph]. Takes extracted registry and documentation,...\n📄 docs/src/tskb/core/graph-builder.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" [label="docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx\nThe package in [Folder: TSKB.Package.Root]is published to npm. The README.md is the primary document...\n📄 docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/cli/cli-overview.tskb.tsx" [label="docs/src/tskb/cli/cli-overview.tskb.tsx\nCLI Located in [Folder: tskb.cli]. Entry point: [Module: cli.index]— parses arguments, routes to com...\n📄 docs/src/tskb/cli/cli-overview.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/main.tskb.tsx" [label="docs/src/tskb/main.tskb.tsx\nArchitecture and implementation docs for the  library The package is located in , with its and READM...\n📄 docs/src/tskb/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/typescript/typescript.tskb.tsx" [label="docs/src/tskb/typescript/typescript.tskb.tsx\nTypeScript Program Located in . Creates for analyzing code without compilation. Key Module : Exports...\n📄 docs/src/tskb/typescript/typescript.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/runtime/runtime.tskb.tsx" [label="docs/src/tskb/runtime/runtime.tskb.tsx\nRuntime Located in . Contains registry type definitions and JSX primitives - no actual\n      runtime...\n📄 docs/src/tskb/runtime/runtime.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/core/visualization.tskb.tsx" [label="docs/src/tskb/core/visualization.tskb.tsx\nVisualization Located in . Contains which provides . Transforms\n      a KnowledgeGraph into Graphviz...\n📄 docs/src/tskb/core/visualization.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/core/graph-builder.tskb.tsx" [label="docs/src/tskb/core/graph-builder.tskb.tsx\nGraph Module Located in . Takes extracted registry and documentation, produces a   . Modules : Defin...\n📄 docs/src/tskb/core/graph-builder.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" [label="docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx\nThe package in is published to npm. The README.md is the primary documentation\n      users see on th...\n📄 docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/cli/logging.tskb.tsx" [label="docs/src/tskb/cli/logging.tskb.tsx\nCLI Logger is a module-level singleton that routes all CLI output to stderr, keeping\n      stdout cl...\n📄 docs/src/tskb/cli/logging.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/cli/cli-overview.tskb.tsx" [label="docs/src/tskb/cli/cli-overview.tskb.tsx\nCLI Located in . Entry point: — parses arguments, routes to command\n      handlers. Commands In : : ...\n📄 docs/src/tskb/cli/cli-overview.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/main.tskb.tsx" [label="docs/src/taskflow-app/main.tskb.tsx\nTaskFlow Application Full-stack task management application demonstrating modern web architecture pa...\n📄 docs/src/taskflow-app/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/taskflow-app/data-layer.tskb.tsx" [label="docs/src/taskflow-app/data-layer.tskb.tsx\nData Layer Architecture The data layer implements the [Term: repositoryPattern]to separate database ...\n📄 docs/src/taskflow-app/data-layer.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/data-layer.tskb.tsx" [label="docs/src/taskflow-app/data-layer.tskb.tsx\nData Layer Architecture The data layer implements the to separate database operations from\n      bus...\n📄 docs/src/taskflow-app/data-layer.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/authentication-system.tskb.tsx" [label="docs/src/taskflow-app/authentication-system.tskb.tsx\nAuthentication System The authentication system provides secure user login, registration, and sessio...\n📄 docs/src/taskflow-app/authentication-system.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/architecture-overview.tskb.tsx" [label="docs/src/taskflow-app/architecture-overview.tskb.tsx\nTaskFlow Architecture Overview TaskFlow is a full-stack task management application demonstrating mo...\n📄 docs/src/taskflow-app/architecture-overview.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx" [label="docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx\nConstraint: Service Layer Isolation Services in [Folder: Services]MUST NOT directly access the datab...\n📄 docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx" [label="docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx\nConstraint: Service Layer Isolation Services in MUST NOT directly access the database. All data pers...\n📄 docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx" [label="docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx\nConstraint: API Response Structure All API endpoints MUST return responses following the ApiResponse...\n📄 docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" [label="docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx\nADR: Repository Pattern Over Direct Database Access Status Accepted Context We needed to decide how ...\n📄 docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" [label="docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx\nADR: React Context Over Redux for State Management Status Accepted Context The [Folder: Client]neede...\n📄 docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" [label="docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx\nADR: React Context Over Redux for State Management Status Accepted Context The needed a state manage...\n📄 docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
   }
 
   // Relationships
@@ -539,6 +541,9 @@ digraph KnowledgeGraph {
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "TSKB.Package.Root" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "tskb.cli" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "tskb.runtime" [color=grey, style=dashed];
+  "docs/src/tskb/cli/logging.tskb.tsx" -> "cli.utils.logger" [color=grey, style=dashed];
+  "docs/src/tskb/cli/logging.tskb.tsx" -> "cli.index" [color=grey, style=dashed];
+  "docs/src/tskb/cli/logging.tskb.tsx" -> "cli.commands.build" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.index" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.build" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.search" [color=grey, style=dashed];
@@ -548,6 +553,7 @@ digraph KnowledgeGraph {
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.skill-generator" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.copilot-instructions" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.graph-finder" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.logger" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "tskb.cli" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "tskb.cli.commands" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "tskb.cli.utils" [color=grey, style=dashed];

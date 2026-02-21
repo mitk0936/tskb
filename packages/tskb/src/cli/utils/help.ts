@@ -3,11 +3,12 @@
  */
 export function getHelpText(): string {
   return `Usage:
-  tskb build <glob> [--tsconfig <path>]
-  tskb ls [--depth <n>]
-  tskb pick <identifier>
-  tskb search <query>
-  tskb context <identifier> [--depth <n>]
+  tskb build <glob> [--tsconfig <path>] [--verbose]
+  tskb ls [--depth <n>] [--verbose]
+  tskb pick <identifier> [--verbose]
+  tskb search <query> [--verbose]
+  tskb context <identifier> [--depth <n>] [--verbose]
+  tskb docs [<query>] [--verbose]
 
 Examples:
   # Build command - typically run on pre-commit hooks, post-install scripts, or CI pipelines
@@ -25,7 +26,9 @@ Examples:
   tskb search "auth"                                      # Fuzzy search across entire graph
   tskb search "build command"                             # Multi-word search
   tskb context "tskb.cli"                                 # Get full context for an area (depth 1)
-  tskb context "tskb.cli" --depth 2                       # Deeper traversal with docs`;
+  tskb context "tskb.cli" --depth 2                       # Deeper traversal with docs
+  tskb docs                                               # List all docs sorted by priority
+  tskb docs "auth"                                        # Search docs by query`;
 }
 
 /**

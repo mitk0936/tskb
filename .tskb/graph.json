@@ -11,181 +11,825 @@
         "id": "docs",
         "type": "folder",
         "desc": "A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration.",
-        "path": "docs"
+        "path": "docs",
+        "structureSummary": "1 folder, 1 file",
+        "children": {
+          "folders": [
+            {
+              "name": "src"
+            }
+          ],
+          "files": [
+            {
+              "name": "tsconfig.json",
+              "nodeId": "sample.tsconfig.json",
+              "desc": "An example of required tsconfig.json for building <TSKB> docs"
+            }
+          ]
+        }
       },
       "examples.taskflow-app": {
         "id": "examples.taskflow-app",
         "type": "folder",
         "desc": "Example application, not meant to be run, but used as reference for example docs",
-        "path": "examples/taskflow-app"
+        "path": "examples/taskflow-app",
+        "structureSummary": "3 folders, 7 files",
+        "children": {
+          "folders": [
+            {
+              "name": "dist"
+            },
+            {
+              "name": "docker"
+            },
+            {
+              "name": "src"
+            }
+          ],
+          "files": [
+            {
+              "name": "Agents.md"
+            },
+            {
+              "name": "package-lock.json"
+            },
+            {
+              "name": "package.json"
+            },
+            {
+              "name": "README.md"
+            },
+            {
+              "name": "tsconfig.client.json"
+            },
+            {
+              "name": "tsconfig.json"
+            },
+            {
+              "name": "tsconfig.server.json"
+            }
+          ]
+        }
       },
       "packages": {
         "id": "packages",
         "type": "folder",
         "desc": "A folder that contains independent packages in the repo (npm worskspace)",
-        "path": "packages"
+        "path": "packages",
+        "structureSummary": "1 folder",
+        "children": {
+          "folders": [
+            {
+              "name": "tskb",
+              "nodeId": "TSKB.Package.Root",
+              "desc": "The root folder of the package, with its package.json and main npm README.md"
+            }
+          ],
+          "files": []
+        }
       },
       "references": {
         "id": "references",
         "type": "folder",
         "desc": "A folder that contains git tracked references used for documentation illustration purposes, referenced on npm",
-        "path": "references"
+        "path": "references",
+        "structureSummary": "2 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "tskb-doc-diagram.svg"
+            },
+            {
+              "name": "tskb-doc-graph.json"
+            }
+          ]
+        }
       },
       "TSKB.Package.Root": {
         "id": "TSKB.Package.Root",
         "type": "folder",
         "desc": "The root folder of the package, with its package.json and main npm README.md",
-        "path": "packages/tskb"
+        "path": "packages/tskb",
+        "structureSummary": "2 folders, 4 files",
+        "children": {
+          "folders": [
+            {
+              "name": "dist"
+            },
+            {
+              "name": "src"
+            }
+          ],
+          "files": [
+            {
+              "name": "LICENSE"
+            },
+            {
+              "name": "package.json",
+              "nodeId": "package.json",
+              "desc": "Library's package.json file"
+            },
+            {
+              "name": "README.md"
+            },
+            {
+              "name": "tsconfig.json"
+            }
+          ]
+        }
       },
       "tskb.cli": {
         "id": "tskb.cli",
         "type": "folder",
         "desc": "Source code for the cli",
-        "path": "packages/tskb/src/cli"
+        "path": "packages/tskb/src/cli",
+        "structureSummary": "2 folders, 1 file",
+        "children": {
+          "folders": [
+            {
+              "name": "commands",
+              "nodeId": "tskb.cli.commands",
+              "desc": "Command implementations for build, search, pick, and ls operations"
+            },
+            {
+              "name": "utils",
+              "nodeId": "tskb.cli.utils",
+              "desc": "CLI utilities - output generators (skill, copilot instructions), shared content builder, graph file finder"
+            }
+          ],
+          "files": [
+            {
+              "name": "index.ts",
+              "nodeId": "cli.index",
+              "desc": "CLI entry point - handles argument parsing, command routing, and error handling"
+            }
+          ]
+        }
       },
       "tskb.core": {
         "id": "tskb.core",
         "type": "folder",
         "desc": "Source code for the core - extraction logic for registry (TS interfaces used as a registry) and 'doc' processing <Doc>...</Doc>",
-        "path": "packages/tskb/src/core"
+        "path": "packages/tskb/src/core",
+        "structureSummary": "3 folders, 1 file",
+        "children": {
+          "folders": [
+            {
+              "name": "extraction",
+              "nodeId": "core.extraction",
+              "desc": "Contains the logic for extracting registry and documentation from TypeScript AST"
+            },
+            {
+              "name": "graph",
+              "nodeId": "core.extraction.graph",
+              "desc": "Part of the core of the library responsible for building the graph structure, mapping nodes and relations between them into nodes - edges"
+            },
+            {
+              "name": "visualization",
+              "nodeId": "core.visualization",
+              "desc": "Graphviz DOT visualization generator - transforms the knowledge graph into a hierarchical diagram"
+            }
+          ],
+          "files": [
+            {
+              "name": "constants.ts"
+            }
+          ]
+        }
       },
       "tskb.runtime": {
         "id": "tskb.runtime",
         "type": "folder",
         "desc": "Source code for the runtime, the lib does not have an actual runtime, but this folder contains the base registry interfaces and jsx primitives",
-        "path": "packages/tskb/src/runtime"
+        "path": "packages/tskb/src/runtime",
+        "structureSummary": "2 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "jsx.ts",
+              "nodeId": "runtime.jsx",
+              "desc": "JSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper"
+            },
+            {
+              "name": "registry.ts",
+              "nodeId": "runtime.registry",
+              "desc": "Registry type definitions - Folder, Module, Export, Term interfaces for global namespace augmentation"
+            }
+          ]
+        }
       },
       "tskb.typescript": {
         "id": "tskb.typescript",
         "type": "folder",
         "desc": "Creates a TypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output",
-        "path": "packages/tskb/src/typescript"
+        "path": "packages/tskb/src/typescript",
+        "structureSummary": "2 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "index.ts",
+              "nodeId": "typescript.index",
+              "desc": "TypeScript module exports"
+            },
+            {
+              "name": "program.ts",
+              "nodeId": "typescript.program",
+              "desc": "Creates TypeScript Program from files and tsconfig for static analysis"
+            }
+          ]
+        }
       },
       "core.visualization": {
         "id": "core.visualization",
         "type": "folder",
         "desc": "Graphviz DOT visualization generator - transforms the knowledge graph into a hierarchical diagram",
-        "path": "packages/tskb/src/core/visualization"
+        "path": "packages/tskb/src/core/visualization",
+        "structureSummary": "2 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "dot-generator.ts",
+              "nodeId": "visualization.dot-generator",
+              "desc": "DOT file generator - renders folders as nested subgraphs, modules as ellipses, terms as diamonds, docs as notes, with colored edges for relationship types"
+            },
+            {
+              "name": "index.ts"
+            }
+          ]
+        }
       },
       "core.extraction": {
         "id": "core.extraction",
         "type": "folder",
         "desc": "Contains the logic for extracting registry and documentation from TypeScript AST",
-        "path": "packages/tskb/src/core/extraction"
+        "path": "packages/tskb/src/core/extraction",
+        "structureSummary": "5 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "documentation.ts",
+              "nodeId": "extraction.documentation",
+              "desc": "Documentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files"
+            },
+            {
+              "name": "folder-summary.ts"
+            },
+            {
+              "name": "index.ts"
+            },
+            {
+              "name": "module-morphology.ts"
+            },
+            {
+              "name": "registry.ts",
+              "nodeId": "extraction.registry",
+              "desc": "Main registry extraction module that traverses TypeScript AST to extract Folders, Modules, Terms, and Exports from the global tskb namespace"
+            }
+          ]
+        }
       },
       "core.extraction.graph": {
         "id": "core.extraction.graph",
         "type": "folder",
         "desc": "Part of the core of the library responsible for building the graph structure, mapping nodes and relations between them into nodes - edges",
-        "path": "packages/tskb/src/core/graph"
+        "path": "packages/tskb/src/core/graph",
+        "structureSummary": "3 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "builder.ts",
+              "nodeId": "graph.builder",
+              "desc": "Module containing utility functions for constructing the graph"
+            },
+            {
+              "name": "index.ts"
+            },
+            {
+              "name": "types.ts",
+              "nodeId": "graph.types",
+              "desc": "Type definitions for the knowledge graph data model - all node types, edge types, and the KnowledgeGraph structure"
+            }
+          ]
+        }
       },
       "tskb.cli.commands": {
         "id": "tskb.cli.commands",
         "type": "folder",
         "desc": "Command implementations for build, search, pick, and ls operations",
-        "path": "packages/tskb/src/cli/commands"
+        "path": "packages/tskb/src/cli/commands",
+        "structureSummary": "6 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "build.ts",
+              "nodeId": "cli.commands.build",
+              "desc": "Build command module - orchestrates the complete pipeline from source files to knowledge graph, DOT visualization, and agent guidance"
+            },
+            {
+              "name": "context.ts"
+            },
+            {
+              "name": "docs.ts"
+            },
+            {
+              "name": "ls.ts",
+              "nodeId": "cli.commands.ls",
+              "desc": "List command module - recursively lists all folders from root with controllable depth, returning flat JSON hierarchy"
+            },
+            {
+              "name": "pick.ts",
+              "nodeId": "cli.commands.pick",
+              "desc": "Pick command module - resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs"
+            },
+            {
+              "name": "search.ts",
+              "nodeId": "cli.commands.search",
+              "desc": "Search command module - fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results"
+            }
+          ]
+        }
       },
       "tskb.cli.utils": {
         "id": "tskb.cli.utils",
         "type": "folder",
         "desc": "CLI utilities - output generators (skill, copilot instructions), shared content builder, graph file finder",
-        "path": "packages/tskb/src/cli/utils"
+        "path": "packages/tskb/src/cli/utils",
+        "structureSummary": "7 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "content-builder.ts",
+              "nodeId": "cli.utils.content-builder",
+              "desc": "Shared markdown content builder - produces query body (commands, response shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy, primitives, examples, best practices)"
+            },
+            {
+              "name": "copilot-instructions-generator.ts",
+              "nodeId": "cli.utils.copilot-instructions",
+              "desc": "Generates two Copilot instructions files: tskb.instructions.md (query/explore) and tskb-update.instructions.md (doc authoring guide)"
+            },
+            {
+              "name": "graph-finder.ts",
+              "nodeId": "cli.utils.graph-finder",
+              "desc": "Locates .tskb/graph.json from the current working directory, used by search/pick/ls commands"
+            },
+            {
+              "name": "help.ts"
+            },
+            {
+              "name": "logger.ts",
+              "nodeId": "cli.utils.logger",
+              "desc": "CLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })"
+            },
+            {
+              "name": "resolve-node.ts"
+            },
+            {
+              "name": "skill-generator.ts",
+              "nodeId": "cli.utils.skill-generator",
+              "desc": "Generates two Claude Code skills: .claude/skills/tskb/SKILL.md (query/explore) and .claude/skills/tskb-update/SKILL.md (doc authoring guide)"
+            }
+          ]
+        }
       },
       "Client": {
         "id": "Client",
         "type": "folder",
         "desc": "React frontend application with components, pages, and state management",
-        "path": "examples/taskflow-app/src/client"
+        "path": "examples/taskflow-app/src/client",
+        "structureSummary": "5 folders, 2 files",
+        "children": {
+          "folders": [
+            {
+              "name": "components",
+              "nodeId": "Components",
+              "desc": "Reusable React components organized by feature"
+            },
+            {
+              "name": "contexts",
+              "nodeId": "Contexts",
+              "desc": "React Context providers for global state management"
+            },
+            {
+              "name": "hooks",
+              "nodeId": "Hooks",
+              "desc": "Custom React hooks for shared logic"
+            },
+            {
+              "name": "pages",
+              "nodeId": "Pages",
+              "desc": "Top-level page components mapped to routes"
+            },
+            {
+              "name": "services",
+              "nodeId": "ClientServices",
+              "desc": "API client services for backend communication"
+            }
+          ],
+          "files": [
+            {
+              "name": "App.tsx"
+            },
+            {
+              "name": "main.tsx"
+            }
+          ]
+        }
       },
       "Server": {
         "id": "Server",
         "type": "folder",
         "desc": "Node.js backend API with services, controllers, and middleware",
-        "path": "examples/taskflow-app/src/server"
+        "path": "examples/taskflow-app/src/server",
+        "structureSummary": "4 folders",
+        "children": {
+          "folders": [
+            {
+              "name": "controllers",
+              "nodeId": "Controllers",
+              "desc": "HTTP request handlers that coordinate between routes and services"
+            },
+            {
+              "name": "database",
+              "nodeId": "Database",
+              "desc": "Database connection and repository layer for data persistence"
+            },
+            {
+              "name": "middleware",
+              "nodeId": "Middleware",
+              "desc": "Express middleware for authentication, validation, and error handling"
+            },
+            {
+              "name": "services",
+              "nodeId": "Services",
+              "desc": "Business logic layer handling core application operations"
+            }
+          ],
+          "files": []
+        }
       },
       "Shared": {
         "id": "Shared",
         "type": "folder",
         "desc": "Shared TypeScript types and utilities used by both client and server",
-        "path": "examples/taskflow-app/src/shared"
+        "path": "examples/taskflow-app/src/shared",
+        "structureSummary": "3 folders",
+        "children": {
+          "folders": [
+            {
+              "name": "config",
+              "nodeId": "Config",
+              "desc": "Configuration constants and environment variables"
+            },
+            {
+              "name": "types",
+              "nodeId": "Types",
+              "desc": "TypeScript type definitions shared across the application"
+            },
+            {
+              "name": "utils",
+              "nodeId": "Utils",
+              "desc": "Utility functions for validation, formatting, and common operations"
+            }
+          ],
+          "files": []
+        }
       },
       "Components": {
         "id": "Components",
         "type": "folder",
         "desc": "Reusable React components organized by feature",
-        "path": "examples/taskflow-app/src/client/components"
+        "path": "examples/taskflow-app/src/client/components",
+        "structureSummary": "4 folders, 1 file",
+        "children": {
+          "folders": [
+            {
+              "name": "comments"
+            },
+            {
+              "name": "notifications"
+            },
+            {
+              "name": "projects"
+            },
+            {
+              "name": "tasks"
+            }
+          ],
+          "files": [
+            {
+              "name": "Router.tsx"
+            }
+          ]
+        }
       },
       "Pages": {
         "id": "Pages",
         "type": "folder",
         "desc": "Top-level page components mapped to routes",
-        "path": "examples/taskflow-app/src/client/pages"
+        "path": "examples/taskflow-app/src/client/pages",
+        "structureSummary": "3 folders, 1 file",
+        "children": {
+          "folders": [
+            {
+              "name": "auth"
+            },
+            {
+              "name": "projects"
+            },
+            {
+              "name": "tasks"
+            }
+          ],
+          "files": [
+            {
+              "name": "DashboardPage.tsx"
+            }
+          ]
+        }
       },
       "Contexts": {
         "id": "Contexts",
         "type": "folder",
         "desc": "React Context providers for global state management",
-        "path": "examples/taskflow-app/src/client/contexts"
+        "path": "examples/taskflow-app/src/client/contexts",
+        "structureSummary": "4 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "AuthContext.tsx",
+              "nodeId": "AuthContext",
+              "desc": "React Context providing authentication state and login/logout methods"
+            },
+            {
+              "name": "NotificationContext.tsx"
+            },
+            {
+              "name": "ProjectContext.tsx"
+            },
+            {
+              "name": "TaskContext.tsx"
+            }
+          ]
+        }
       },
       "Hooks": {
         "id": "Hooks",
         "type": "folder",
         "desc": "Custom React hooks for shared logic",
-        "path": "examples/taskflow-app/src/client/hooks"
+        "path": "examples/taskflow-app/src/client/hooks",
+        "structureSummary": "4 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "useNotifications.ts"
+            },
+            {
+              "name": "useProjects.ts"
+            },
+            {
+              "name": "useTasks.ts"
+            },
+            {
+              "name": "useWebSocket.ts"
+            }
+          ]
+        }
       },
       "ClientServices": {
         "id": "ClientServices",
         "type": "folder",
         "desc": "API client services for backend communication",
-        "path": "examples/taskflow-app/src/client/services"
+        "path": "examples/taskflow-app/src/client/services",
+        "structureSummary": "5 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "api.service.ts"
+            },
+            {
+              "name": "auth-api.service.ts"
+            },
+            {
+              "name": "project-api.service.ts"
+            },
+            {
+              "name": "task-api.service.ts"
+            },
+            {
+              "name": "websocket.service.ts"
+            }
+          ]
+        }
       },
       "Services": {
         "id": "Services",
         "type": "folder",
         "desc": "Business logic layer handling core application operations",
-        "path": "examples/taskflow-app/src/server/services"
+        "path": "examples/taskflow-app/src/server/services",
+        "structureSummary": "7 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "auth.service.ts",
+              "nodeId": "AuthService",
+              "desc": "Handles user authentication, registration, and token management"
+            },
+            {
+              "name": "comment.service.ts"
+            },
+            {
+              "name": "notification.service.ts"
+            },
+            {
+              "name": "project.service.ts"
+            },
+            {
+              "name": "task.service.ts"
+            },
+            {
+              "name": "team.service.ts"
+            },
+            {
+              "name": "user.service.ts"
+            }
+          ]
+        }
       },
       "Controllers": {
         "id": "Controllers",
         "type": "folder",
         "desc": "HTTP request handlers that coordinate between routes and services",
-        "path": "examples/taskflow-app/src/server/controllers"
+        "path": "examples/taskflow-app/src/server/controllers",
+        "structureSummary": "7 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "auth.controller.ts"
+            },
+            {
+              "name": "comment.controller.ts"
+            },
+            {
+              "name": "notification.controller.ts"
+            },
+            {
+              "name": "project.controller.ts"
+            },
+            {
+              "name": "task.controller.ts"
+            },
+            {
+              "name": "team.controller.ts"
+            },
+            {
+              "name": "user.controller.ts"
+            }
+          ]
+        }
       },
       "Middleware": {
         "id": "Middleware",
         "type": "folder",
         "desc": "Express middleware for authentication, validation, and error handling",
-        "path": "examples/taskflow-app/src/server/middleware"
+        "path": "examples/taskflow-app/src/server/middleware",
+        "structureSummary": "3 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "auth.middleware.ts"
+            },
+            {
+              "name": "error.middleware.ts"
+            },
+            {
+              "name": "validation.middleware.ts"
+            }
+          ]
+        }
       },
       "Database": {
         "id": "Database",
         "type": "folder",
         "desc": "Database connection and repository layer for data persistence",
-        "path": "examples/taskflow-app/src/server/database"
+        "path": "examples/taskflow-app/src/server/database",
+        "structureSummary": "1 folder, 1 file",
+        "children": {
+          "folders": [
+            {
+              "name": "repositories",
+              "nodeId": "Repositories",
+              "desc": "Data access layer abstracting database operations"
+            }
+          ],
+          "files": [
+            {
+              "name": "connection.ts"
+            }
+          ]
+        }
       },
       "Repositories": {
         "id": "Repositories",
         "type": "folder",
         "desc": "Data access layer abstracting database operations",
-        "path": "examples/taskflow-app/src/server/database/repositories"
+        "path": "examples/taskflow-app/src/server/database/repositories",
+        "structureSummary": "3 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "project.repository.ts"
+            },
+            {
+              "name": "task.repository.ts",
+              "nodeId": "TaskRepository",
+              "desc": "Data access layer for task persistence with pagination and filtering"
+            },
+            {
+              "name": "user.repository.ts"
+            }
+          ]
+        }
       },
       "Types": {
         "id": "Types",
         "type": "folder",
         "desc": "TypeScript type definitions shared across the application",
-        "path": "examples/taskflow-app/src/shared/types"
+        "path": "examples/taskflow-app/src/shared/types",
+        "structureSummary": "7 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "api.types.ts"
+            },
+            {
+              "name": "auth.types.ts"
+            },
+            {
+              "name": "index.ts"
+            },
+            {
+              "name": "notification.types.ts"
+            },
+            {
+              "name": "project.types.ts"
+            },
+            {
+              "name": "task.types.ts"
+            },
+            {
+              "name": "user.types.ts"
+            }
+          ]
+        }
       },
       "Utils": {
         "id": "Utils",
         "type": "folder",
         "desc": "Utility functions for validation, formatting, and common operations",
-        "path": "examples/taskflow-app/src/shared/utils"
+        "path": "examples/taskflow-app/src/shared/utils",
+        "structureSummary": "2 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "date.ts"
+            },
+            {
+              "name": "validation.ts"
+            }
+          ]
+        }
       },
       "Config": {
         "id": "Config",
         "type": "folder",
         "desc": "Configuration constants and environment variables",
-        "path": "examples/taskflow-app/src/shared/config"
+        "path": "examples/taskflow-app/src/shared/config",
+        "structureSummary": "1 file",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "constants.ts"
+            }
+          ]
+        }
       }
     },
     "modules": {
@@ -201,14 +845,48 @@
         "type": "module",
         "desc": "The main package export",
         "typeSignature": "typeof import(\"packages/tskb/src/index.js\")",
-        "resolvedPath": "packages/tskb/src/index.ts"
+        "resolvedPath": "packages/tskb/src/index.ts",
+        "morphologySummary": "9 functions, 6 types, 1 variable",
+        "morphology": [
+          "export type Term = ",
+          "export type Module = ",
+          "export type Folder = ",
+          "export type Export = ",
+          "export const ref: ReactNode",
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any",
+          "export function H1({ children }: { children: any; }): any",
+          "export function H2({ children }: { children: any; }): any",
+          "export function H3({ children }: { children: any; }): any",
+          "export function P({ children }: { children: any; }): any",
+          "export function List({ children }: { children: any; }): any",
+          "export function Li({ children }: { children: any; }): any",
+          "export function Snippet({ code }: { code: () => any; }): any",
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any",
+          "export type ReactNode = js\";\nexport { ref } from \"./runtime/jsx.js\";\n",
+          "export type DocPriority = "
+        ]
       },
       "Jsx.runtime.js": {
         "id": "Jsx.runtime.js",
         "type": "module",
         "desc": "The JSX runtime, provided by the package. Includes all available jsx tags in tskb as functions.",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\")",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "9 functions, 2 types, 1 variable",
+        "morphology": [
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any",
+          "export function H1({ children }: { children: any; }): any",
+          "export function H2({ children }: { children: any; }): any",
+          "export function H3({ children }: { children: any; }): any",
+          "export function P({ children }: { children: any; }): any",
+          "export function List({ children }: { children: any; }): any",
+          "export function Li({ children }: { children: any; }): any",
+          "export function Snippet({ code }: { code: () => any; }): any",
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any",
+          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r...",
+          "export const ref: ReactNode",
+          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\""
+        ]
       },
       "sample.tsconfig.json": {
         "id": "sample.tsconfig.json",
@@ -222,63 +900,188 @@
         "type": "module",
         "desc": "Creates TypeScript Program from files and tsconfig for static analysis",
         "typeSignature": "typeof import(\"packages/tskb/src/typescript/program.js\")",
-        "resolvedPath": "packages/tskb/src/typescript/program.ts"
+        "resolvedPath": "packages/tskb/src/typescript/program.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function createProgram(files: string[], tsconfigPath: string): Program"
+        ]
       },
       "typescript.index": {
         "id": "typescript.index",
         "type": "module",
         "desc": "TypeScript module exports",
         "typeSignature": "typeof import(\"packages/tskb/src/typescript/index.js\")",
-        "resolvedPath": "packages/tskb/src/typescript/index.ts"
+        "resolvedPath": "packages/tskb/src/typescript/index.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function createProgram(files: string[], tsconfigPath: string): Program"
+        ]
       },
       "runtime.jsx": {
         "id": "runtime.jsx",
         "type": "module",
         "desc": "JSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\")",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "9 functions, 2 types, 1 variable",
+        "morphology": [
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any",
+          "export function H1({ children }: { children: any; }): any",
+          "export function H2({ children }: { children: any; }): any",
+          "export function H3({ children }: { children: any; }): any",
+          "export function P({ children }: { children: any; }): any",
+          "export function List({ children }: { children: any; }): any",
+          "export function Li({ children }: { children: any; }): any",
+          "export function Snippet({ code }: { code: () => any; }): any",
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any",
+          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r...",
+          "export const ref: ReactNode",
+          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\""
+        ]
       },
       "runtime.registry": {
         "id": "runtime.registry",
         "type": "module",
         "desc": "Registry type definitions - Folder, Module, Export, Term interfaces for global namespace augmentation",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/registry.js\")",
-        "resolvedPath": "packages/tskb/src/runtime/registry.ts"
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "morphologySummary": "12 types",
+        "morphology": [
+          "export type FolderRegistry = NormalizeFolders<tskb.Folders>",
+          "export type ModuleRegistry = NormalizeModules<tskb.Modules>",
+          "export type TermRegistry = NormalizeTerms<tskb.Terms>",
+          "export type ExportRegistry = NormalizeExports<tskb.Exports>",
+          "export type FolderName = keyof tskb.Folders",
+          "export type ModuleName = keyof tskb.Modules",
+          "export type TermName = keyof tskb.Terms",
+          "export type ExportName = keyof tskb.Exports",
+          "export type Folder = Ext",
+          "export type Module = Ext",
+          "export type Term = Ext",
+          "export type Export = Ext"
+        ]
       },
       "visualization.dot-generator": {
         "id": "visualization.dot-generator",
         "type": "module",
         "desc": "DOT file generator - renders folders as nested subgraphs, modules as ellipses, terms as diamonds, docs as notes, with colored edges for relationship types",
         "typeSignature": "typeof import(\"packages/tskb/src/core/visualization/dot-generator.js\")",
-        "resolvedPath": "packages/tskb/src/core/visualization/dot-generator.ts"
+        "resolvedPath": "packages/tskb/src/core/visualization/dot-generator.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function generateDot(graph: KnowledgeGraph): string"
+        ]
       },
       "extraction.registry": {
         "id": "extraction.registry",
         "type": "module",
         "desc": "Main registry extraction module that traverses TypeScript AST to extract Folders, Modules, Terms, and Exports from the global tskb namespace",
         "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/registry.js\")",
-        "resolvedPath": "packages/tskb/src/core/extraction/registry.ts"
+        "resolvedPath": "packages/tskb/src/core/extraction/registry.ts",
+        "morphologySummary": "1 function, 1 interface",
+        "morphology": [
+          "export function extractRegistry(program: Program, baseDir: string, tsconfigPath: string): ExtractedRegistry",
+          "export interface ExtractedRegistry {",
+          "  folders: Map<string, { desc: string; path?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; folderSummary?: FolderSummary | undefined; }>",
+          "  modules: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; morphology?: ModuleMorphology | undefined; }>",
+          "  terms: Map<string, string>",
+          "  exports: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; }>",
+          "}"
+        ]
       },
       "graph.builder": {
         "id": "graph.builder",
         "type": "module",
         "desc": "Module containing utility functions for constructing the graph",
         "typeSignature": "typeof import(\"packages/tskb/src/core/graph/builder.js\")",
-        "resolvedPath": "packages/tskb/src/core/graph/builder.ts"
+        "resolvedPath": "packages/tskb/src/core/graph/builder.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph"
+        ]
       },
       "graph.types": {
         "id": "graph.types",
         "type": "module",
         "desc": "Type definitions for the knowledge graph data model - all node types, edge types, and the KnowledgeGraph structure",
         "typeSignature": "typeof import(\"packages/tskb/src/core/graph/types.js\")",
-        "resolvedPath": "packages/tskb/src/core/graph/types.ts"
+        "resolvedPath": "packages/tskb/src/core/graph/types.ts",
+        "morphologySummary": "8 interfaces, 2 types",
+        "morphology": [
+          "export interface GraphNode {",
+          "  id: string",
+          "  type: \"module\" | \"folder\" | \"term\" | \"export\" | \"doc\"",
+          "}",
+          "export interface FolderNode {",
+          "  type: \"folder\"",
+          "  desc: string",
+          "  path: string | undefined",
+          "  structureSummary: string | undefined",
+          "  children: FolderChildren | undefined",
+          "  id: string",
+          "}",
+          "export interface ModuleNode {",
+          "  type: \"module\"",
+          "  desc: string",
+          "  typeSignature: string | undefined",
+          "  resolvedPath: string | undefined",
+          "  morphologySummary: string | undefined",
+          "  morphology: string[] | undefined",
+          "  id: string",
+          "}",
+          "export interface TermNode {",
+          "  type: \"term\"",
+          "  desc: string",
+          "  id: string",
+          "}",
+          "export interface ExportNode {",
+          "  type: \"export\"",
+          "  desc: string",
+          "  typeSignature: string | undefined",
+          "  resolvedPath: string | undefined",
+          "  id: string",
+          "}",
+          "export interface DocNode {",
+          "  type: \"doc\"",
+          "  explains: string",
+          "  priority: DocPriority",
+          "  filePath: string",
+          "  content: string",
+          "  format: \"tsx\" | \"ts\"",
+          "  id: string",
+          "}",
+          "export type AnyNode = FolderNode | ModuleNode | TermNode | ExportNode | DocNode",
+          "export type EdgeType = | \"references\" // Doc references a Folder/Module/Term/Export\n  | \"belongs-to\" // Module/Export belongs to a Folder or...",
+          "export interface GraphEdge {",
+          "  from: string",
+          "  to: string",
+          "  type: EdgeType",
+          "}",
+          "export interface KnowledgeGraph {",
+          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; docs: Record<...>; }",
+          "  edges: GraphEdge[]",
+          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; docCount: number; edgeCount: number; }; }",
+          "}"
+        ]
       },
       "extraction.documentation": {
         "id": "extraction.documentation",
         "type": "module",
         "desc": "Documentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files",
         "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\")",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts"
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "morphologySummary": "1 function, 1 interface",
+        "morphology": [
+          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[]",
+          "export interface ExtractedDoc {",
+          "  filePath: string",
+          "  format: \"tsx\"",
+          "  explains: string",
+          "  priority: DocPriority",
+          "  content: string",
+          "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; }",
+          "}"
+        ]
       },
       "cli.index": {
         "id": "cli.index",
@@ -292,77 +1095,167 @@
         "type": "module",
         "desc": "Build command module - orchestrates the complete pipeline from source files to knowledge graph, DOT visualization, and agent guidance",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/build.js\")",
-        "resolvedPath": "packages/tskb/src/cli/commands/build.ts"
+        "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
+        "morphologySummary": "1 function, 1 interface",
+        "morphology": [
+          "export function build(config: ExtractConfig): Promise<void>",
+          "export interface ExtractConfig {",
+          "  pattern: string",
+          "  tsconfig: string",
+          "}"
+        ]
       },
       "cli.commands.search": {
         "id": "cli.commands.search",
         "type": "module",
         "desc": "Search command module - fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/search.js\")",
-        "resolvedPath": "packages/tskb/src/cli/commands/search.ts"
+        "resolvedPath": "packages/tskb/src/cli/commands/search.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function search(query: string): Promise<void>"
+        ]
       },
       "cli.commands.pick": {
         "id": "cli.commands.pick",
         "type": "module",
         "desc": "Pick command module - resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/pick.js\")",
-        "resolvedPath": "packages/tskb/src/cli/commands/pick.ts"
+        "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function pick(identifier: string): Promise<void>"
+        ]
       },
       "cli.commands.ls": {
         "id": "cli.commands.ls",
         "type": "module",
         "desc": "List command module - recursively lists all folders from root with controllable depth, returning flat JSON hierarchy",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/ls.js\")",
-        "resolvedPath": "packages/tskb/src/cli/commands/ls.ts"
+        "resolvedPath": "packages/tskb/src/cli/commands/ls.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function ls(maxDepth?: number): Promise<void>"
+        ]
       },
       "cli.utils.content-builder": {
         "id": "cli.utils.content-builder",
         "type": "module",
-        "desc": "Shared markdown content builder - produces the body used by both skill and instructions generators (commands, response shapes, folder tree, docs, constraints, workflow)",
+        "desc": "Shared markdown content builder - produces query body (commands, response shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy, primitives, examples, best practices)",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/content-builder.js\")",
-        "resolvedPath": "packages/tskb/src/cli/utils/content-builder.ts"
+        "resolvedPath": "packages/tskb/src/cli/utils/content-builder.ts",
+        "morphologySummary": "2 functions",
+        "morphology": [
+          "export function buildQueryBody(graph: KnowledgeGraph): string",
+          "export function buildUpdateBody(graph: KnowledgeGraph): string"
+        ]
       },
       "cli.utils.skill-generator": {
         "id": "cli.utils.skill-generator",
         "type": "module",
-        "desc": "Generates .claude/skills/tskb/SKILL.md - Claude Code skill file with frontmatter and shared body",
+        "desc": "Generates two Claude Code skills: .claude/skills/tskb/SKILL.md (query/explore) and .claude/skills/tskb-update/SKILL.md (doc authoring guide)",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/skill-generator.js\")",
-        "resolvedPath": "packages/tskb/src/cli/utils/skill-generator.ts"
+        "resolvedPath": "packages/tskb/src/cli/utils/skill-generator.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function generateSkillFiles(graph: KnowledgeGraph): string[]"
+        ]
       },
       "cli.utils.copilot-instructions": {
         "id": "cli.utils.copilot-instructions",
         "type": "module",
-        "desc": "Generates .github/instructions/tskb.instructions.md - GitHub Copilot instructions with frontmatter and shared body",
+        "desc": "Generates two Copilot instructions files: tskb.instructions.md (query/explore) and tskb-update.instructions.md (doc authoring guide)",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/copilot-instructions-generator.js\")",
-        "resolvedPath": "packages/tskb/src/cli/utils/copilot-instructions-generator.ts"
+        "resolvedPath": "packages/tskb/src/cli/utils/copilot-instructions-generator.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[]"
+        ]
       },
       "cli.utils.graph-finder": {
         "id": "cli.utils.graph-finder",
         "type": "module",
         "desc": "Locates .tskb/graph.json from the current working directory, used by search/pick/ls commands",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/graph-finder.js\")",
-        "resolvedPath": "packages/tskb/src/cli/utils/graph-finder.ts"
+        "resolvedPath": "packages/tskb/src/cli/utils/graph-finder.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function findGraphFile(): string"
+        ]
+      },
+      "cli.utils.logger": {
+        "id": "cli.utils.logger",
+        "type": "module",
+        "desc": "CLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/logger.js\")",
+        "resolvedPath": "packages/tskb/src/cli/utils/logger.ts",
+        "morphologySummary": "6 functions",
+        "morphology": [
+          "export function configure(opts: { verbose: boolean; }): void",
+          "export function info(msg: string): void",
+          "export function verbose(msg: string): void",
+          "export function error(msg: string): void",
+          "export function time(label: string) => (): void",
+          "export function infoTime(label: string) => (): void"
+        ]
       },
       "AuthService": {
         "id": "AuthService",
         "type": "module",
         "desc": "Handles user authentication, registration, and token management",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/services/auth.service.js\")",
-        "resolvedPath": "examples/taskflow-app/src/server/services/auth.service.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/services/auth.service.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class AuthService {",
+          "  login(credentials: LoginCredentials): Promise<AuthResponse>",
+          "  register(data: RegisterData): Promise<AuthResponse>",
+          "  logout(): Promise<void>",
+          "  refreshToken(refreshToken: string): Promise<AuthTokens>",
+          "  validateToken(token: string): Promise<User | null>",
+          "  getCurrentUser(): Promise<User | null>",
+          "}"
+        ]
       },
       "TaskRepository": {
         "id": "TaskRepository",
         "type": "module",
         "desc": "Data access layer for task persistence with pagination and filtering",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/database/repositories/task.repository.js\")",
-        "resolvedPath": "examples/taskflow-app/src/server/database/repositories/task.repository.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/database/repositories/task.repository.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class TaskRepository {",
+          "  db: Database",
+          "  findById(id: string): Promise<Task | null>",
+          "  findByProject(projectId: string, pagination?: PaginationParams | undefined, filters?: FilterParams | undefined): Promise<{ tasks: Task[]; total: number; }>",
+          "  findByAssignee(assigneeId: string, pagination?: PaginationParams | undefined): Promise<{ tasks: Task[]; total: number; }>",
+          "  create(task: Omit<Task, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Task>",
+          "  update(id: string, task: Partial<Task>): Promise<Task | null>",
+          "  delete(id: string): Promise<boolean>",
+          "}"
+        ]
       },
       "AuthContext": {
         "id": "AuthContext",
         "type": "module",
         "desc": "React Context providing authentication state and login/logout methods",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/client/contexts/AuthContext.js\")",
-        "resolvedPath": "examples/taskflow-app/src/client/contexts/AuthContext.tsx"
+        "resolvedPath": "examples/taskflow-app/src/client/contexts/AuthContext.tsx",
+        "morphologySummary": "2 functions, 1 interface, 1 variable",
+        "morphology": [
+          "export function AuthProvider({ children }: { children: ReactNode; }): null",
+          "export function useAuth(): AuthContextValue",
+          "export interface AuthContextValue {",
+          "  user: User | null",
+          "  isAuthenticated: boolean",
+          "  isLoading: boolean",
+          "  login(email: string, password: string): Promise<void>",
+          "  register(email: string, password: string, name: string): Promise<void>",
+          "  logout(): Promise<void>",
+          "}",
+          "export const AuthContext: Context<AuthContextValue | null>"
+        ]
       }
     },
     "terms": {
@@ -890,7 +1783,7 @@
         "explains": "Architecture, API surface, and usage flow of the TSKB library",
         "priority": "essential",
         "filePath": "docs/src/tskb/main.tskb.tsx",
-        "content": "Architecture and implementation docs for the <TSKB> library The package is located in [Folder: TSKB.Package.Root], with its [Module: package.json]and README.md for npm. What is <TSKB> ? A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge\n      graphs and diagrams with type-checked references. What it provides in terms of interfaces (API's) and tools In the root folder: [Folder: TSKB.Package.Root]. In the [Module: package.json]file, it declares a bin command named 'tskb' that runs the [Term: cli]The package exports two main modules, in addition to the [Term: cli]: the index module   [Module: Main.index.js]and the jsxRuntime ( [Term: jsxRuntime]), defined in: [Module: Jsx.runtime.js]Core Primitives for Type-Safe Documentation Main exports (primitives) of the library for creating type-safe architectural documentation: [Export: Folder]: Represents logical groupings in the codebase (features, layers, packages) [Export: Module]: Represents concrete code units (classes, services, components) [Export: Export]: Creates type-safe references to actual code exports using TypeScript's\n          typeof import() syntax - ensures documentation stays in sync with codebase [Export: Term]: Represents domain concepts, patterns, or terminology [Export: ref]: A placeholder for referencing anything from the global tskb registry into jsx\n          tags with type assertions Plus all the JSX documentation components exported from [Module: Jsx.runtime.js]: Doc, H1, H2, H3,\n      P, List, Li, Snippet - providing a familiar TSX syntax for structured content A typical flow of usage Create a docs folder in your repository for documentation files Define a tsconfig.json similar to [Module: sample.tsconfig.json]pointing to repo root with jsx:\n        \"react-jsx\" and jsxImportSource: \"tskb\" Declare vocabulary (Folders, Modules, Exports, Terms) using global namespace augmentation.\n        Use typeof import() for type-safe references. Write *.tskb.tsx files using JSX components. TypeScript validates all references at compile\n        time. Run [Export: cli.build]: \"tskb \\\"**/*.tskb.tsx\\\" --tsconfig tsconfig.json\" The [Term: cli]creates a [Term: tsProgram]and type-checks all documentation files against\n        actual source code Extracts vocabulary from the [Term: registry](Folders, Modules, Exports, Terms) Processes *.tskb.tsx files, extracting content and references Constructs the [Term: graph]by analyzing relationships and hierarchies Outputs JSON knowledge graph optimized for AI agents and tooling Generating a visual representation: [Export: cli.build]automatically generates a [Term: dotFile]in .tskb/graph.dot using   [Export: generateDot][Export: generateDot]transforms the [Term: graph]into a [Term: dotFile]with nodes and\n        relationship edges Render with Graphviz: \"dot -Tpng .tskb/graph.dot -o .tskb/graph.png\" Or use interactive viewers like xdot or online Graphviz tools Key Benefits Type-checked references: Renames, moves, or API changes break the build - enforcing\n        correctness Validated snippets: Code examples are type-checked against actual source Living documentation: Stays in sync through the compiler - CI catches drift AI-optimized: Queryable knowledge graph reduces hallucination Docs as infrastructure: Compile-time validation, not afterthought Navigating the knowledge graph Three commands for exploring and querying the knowledge graph - optimized for AI agents List all folders Run [Export: cli.ls]: \"tskb ls ./dist/taskflow-graph.json\" or \"tskb ls\n        ./dist/taskflow-graph.json --depth 2\" Always starts from Package.Root, lists all folders hierarchically Controllable depth: default 1 (immediate children), -1 for unlimited Returns flat JSON with folder ID, depth level, description, and path Use for initial orientation and discovering folder IDs Pick any node Run [Export: cli.pick]: \"tskb pick tskb.cli\" (by ID) or \"tskb pick packages/tskb/src/cli\" (by\n        path) Resolves any node type: folder, module, export, term, or doc Returns type-specific data: parent, children, modules, exports, referencing docs Falls back to nearest parent folder when no exact match is found Search the graph Run [Export: cli.search]: \"tskb search auth\" or \"tskb search build command\" Fuzzy searches the entire graph across IDs, descriptions, and paths using Fuse.js [Term: searchResult]includes: top 10 ranked results with score (0-1, higher = better match) Searches across all node types: folders, modules, exports, terms, and docs Use pick to get full details on any result Documentation Philosophy: Map, Not Manual Write structural signposts showing what exists where and how pieces connect - not\n      implementation details. Document structure: Declare folders, locations, and key relationships Use type-safe references: typeof import() ensures TypeScript validates existence and catches\n        renames Focus on WHAT and WHERE, not HOW: Describe purpose and location, not algorithms Trust validation: TSKB catches broken references, not behavior changes Major relationships only: Document architectural connections, not every dependency",
+        "content": "Architecture and implementation docs for the <TSKB> library The package is located in <nodeId: TSKB.Package.Root>, with its <nodeId: package.json>and README.md for npm.\n      IMPORTANT: The README.md is the official npm package doc, so we need to make sure its always\n      updated after something important is added/changed What is <TSKB> ? A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge\n      graphs and diagrams with type-checked references. What it provides in terms of interfaces (API's) and tools In the root folder: <nodeId: TSKB.Package.Root>. In the <nodeId: package.json>file, it declares a bin command named 'tskb' that runs the <nodeId: cli>The package exports two main modules, in addition to the <nodeId: cli>: the index module   <nodeId: Main.index.js>and the jsxRuntime ( <nodeId: jsxRuntime>), defined in: <nodeId: Jsx.runtime.js>Core Primitives for Type-Safe Documentation Main exports (primitives) of the library for creating type-safe architectural documentation: <nodeId: Folder>: Represents logical groupings in the codebase (features, layers, packages) <nodeId: Module>: Represents concrete code units (classes, services, components) <nodeId: Export>: Creates type-safe references to actual code exports using TypeScript's\n          typeof import() syntax - ensures documentation stays in sync with codebase <nodeId: Term>: Represents domain concepts, patterns, or terminology <nodeId: ref>: A placeholder for referencing anything from the global tskb registry into jsx\n          tags with type assertions Plus all the JSX documentation components exported from <nodeId: Jsx.runtime.js>: Doc, H1, H2, H3,\n      P, List, Li, Snippet - providing a familiar TSX syntax for structured content A typical flow of usage Create a docs folder in your repository for documentation files Define a tsconfig.json similar to <nodeId: sample.tsconfig.json>pointing to repo root with jsx:\n        \"react-jsx\" and jsxImportSource: \"tskb\" Declare vocabulary (Folders, Modules, Exports, Terms) using global namespace augmentation.\n        Use typeof import() for type-safe references. Write *.tskb.tsx files using JSX components. TypeScript validates all references at compile\n        time. Run <nodeId: cli.build>: \"tskb \\\"**/*.tskb.tsx\\\" --tsconfig tsconfig.json\" The <nodeId: cli>creates a <nodeId: tsProgram>and type-checks all documentation files against\n        actual source code Extracts vocabulary from the <nodeId: registry>(Folders, Modules, Exports, Terms) Processes *.tskb.tsx files, extracting content and references Constructs the <nodeId: graph>by analyzing relationships and hierarchies Outputs JSON knowledge graph optimized for AI agents and tooling Generating a visual representation: <nodeId: cli.build>automatically generates a <nodeId: dotFile>in .tskb/graph.dot using   <nodeId: generateDot><nodeId: generateDot>transforms the <nodeId: graph>into a <nodeId: dotFile>with nodes and\n        relationship edges Render with Graphviz: \"dot -Tpng .tskb/graph.dot -o .tskb/graph.png\" Or use interactive viewers like xdot or online Graphviz tools Key Benefits Type-checked references: Renames, moves, or API changes break the build - enforcing\n        correctness Validated snippets: Code examples are type-checked against actual source Living documentation: Stays in sync through the compiler - CI catches drift AI-optimized: Queryable knowledge graph reduces hallucination Docs as infrastructure: Compile-time validation, not afterthought Navigating the knowledge graph Three commands for exploring and querying the knowledge graph - optimized for AI agents List all folders Run <nodeId: cli.ls>: \"tskb ls ./dist/taskflow-graph.json\" or \"tskb ls\n        ./dist/taskflow-graph.json --depth 2\" Always starts from Package.Root, lists all folders hierarchically Controllable depth: default 1 (immediate children), -1 for unlimited Returns flat JSON with folder ID, depth level, description, and path Use for initial orientation and discovering folder IDs Pick any node Run <nodeId: cli.pick>: \"tskb pick tskb.cli\" (by ID) or \"tskb pick packages/tskb/src/cli\" (by\n        path) Resolves any node type: folder, module, export, term, or doc Returns type-specific data: parent, children, modules, exports, referencing docs Falls back to nearest parent folder when no exact match is found Search the graph Run <nodeId: cli.search>: \"tskb search auth\" or \"tskb search build command\" Fuzzy searches the entire graph across IDs, descriptions, and paths using Fuse.js <nodeId: searchResult>includes: top 10 ranked results with score (0-1, higher = better match) Searches across all node types: folders, modules, exports, terms, and docs Use pick to get full details on any result Documentation Philosophy: Map, Not Manual Write structural signposts showing what exists where and how pieces connect - not\n      implementation details. Document structure: Declare folders, locations, and key relationships Use type-safe references: typeof import() ensures TypeScript validates existence and catches\n        renames Focus on WHAT and WHERE, not HOW: Describe purpose and location, not algorithms Trust validation: TSKB catches broken references, not behavior changes Major relationships only: Document architectural connections, not every dependency",
         "format": "tsx"
       },
       "docs/src/tskb/typescript/typescript.tskb.tsx": {
@@ -899,7 +1792,7 @@
         "explains": "TypeScript Program creation for static analysis without compilation",
         "priority": "essential",
         "filePath": "docs/src/tskb/typescript/typescript.tskb.tsx",
-        "content": "TypeScript Program Located in [Folder: tskb.typescript]. Creates [Term: tsProgram]for analyzing code without compilation. Key Module [Module: typescript.program]: Exports [Export: ts.createProgram]which: Reads and parses tsconfig.json for compiler options Creates TypeScript Program with noEmit=true (analysis only) Validates TypeScript errors in specified files Returns Program with AST, type checker, and symbol resolution Purpose Provides the [Term: tsProgram]used by extraction logic to parse *.tskb.tsx files, resolve\n      types, and walk ASTs for registry and documentation extraction.",
+        "content": "TypeScript Program Located in <nodeId: tskb.typescript>. Creates <nodeId: tsProgram>for analyzing code without compilation. Key Module <nodeId: typescript.program>: Exports <nodeId: ts.createProgram>which: Reads and parses tsconfig.json for compiler options Creates TypeScript Program with noEmit=true (analysis only) Validates TypeScript errors in specified files Returns Program with AST, type checker, and symbol resolution Purpose Provides the <nodeId: tsProgram>used by extraction logic to parse *.tskb.tsx files, resolve\n      types, and walk ASTs for registry and documentation extraction.",
         "format": "tsx"
       },
       "docs/src/tskb/runtime/runtime.tskb.tsx": {
@@ -908,7 +1801,7 @@
         "explains": "Runtime module structure: JSX primitives and registry type definitions",
         "priority": "essential",
         "filePath": "docs/src/tskb/runtime/runtime.tskb.tsx",
-        "content": "Runtime Located in [Folder: tskb.runtime]. Contains registry type definitions and JSX primitives - no actual\n      runtime execution. Modules [Module: runtime.jsx]: JSX runtime with [Export: jsx.Doc](requires explains prop and optional priority via   [Export: DocPriority]: essential, constraint, or supplementary). Includes\n        heading/paragraph/list components, [Export: jsx.Adr]for Architecture Decision Records, and   [Export: jsx.ref]for type-safe registry references. [Module: runtime.registry]: Type definitions for Folder, Module, Export, Term interfaces used in\n        global namespace augmentation. Purpose Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry\n      interfaces enable type-safe vocabulary declarations. JSX components structure documentation\n      content.",
+        "content": "Runtime Located in <nodeId: tskb.runtime>. Contains registry type definitions and JSX primitives - no actual\n      runtime execution. Modules <nodeId: runtime.jsx>: JSX runtime with <nodeId: jsx.Doc>(requires explains prop and optional priority via   <nodeId: DocPriority>: essential, constraint, or supplementary). Includes\n        heading/paragraph/list components, <nodeId: jsx.Adr>for Architecture Decision Records, and   <nodeId: jsx.ref>for type-safe registry references. <nodeId: runtime.registry>: Type definitions for Folder, Module, Export, Term interfaces used in\n        global namespace augmentation. Purpose Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry\n      interfaces enable type-safe vocabulary declarations. JSX components structure documentation\n      content.",
         "format": "tsx"
       },
       "docs/src/tskb/core/visualization.tskb.tsx": {
@@ -917,7 +1810,7 @@
         "explains": "Visualization module: DOT graph generation from the knowledge graph",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/core/visualization.tskb.tsx",
-        "content": "Visualization Located in [Folder: core.visualization]. Contains [Module: visualization.dot-generator]which provides [Export: generateDot]. Transforms\n      a KnowledgeGraph into Graphviz DOT format — folders become nested subgraphs, modules/exports\n      are grouped within their folders, terms and docs get separate clusters. Output is written to\n      .tskb/graph.dot during build.",
+        "content": "Visualization Located in <nodeId: core.visualization>. Contains <nodeId: visualization.dot-generator>which provides <nodeId: generateDot>. Transforms\n      a KnowledgeGraph into Graphviz DOT format — folders become nested subgraphs, modules/exports\n      are grouped within their folders, terms and docs get separate clusters. Output is written to\n      .tskb/graph.dot during build.",
         "format": "tsx"
       },
       "docs/src/tskb/core/graph-builder.tskb.tsx": {
@@ -926,7 +1819,7 @@
         "explains": "Graph module: data model (types) and construction (builder) of the knowledge graph",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/core/graph-builder.tskb.tsx",
-        "content": "Graph Module Located in [Folder: core.extraction.graph]. Takes extracted registry and documentation, produces a   [Export: KnowledgeGraph]. Modules [Module: graph.types]: Defines the graph data model. Node types: FolderNode, ModuleNode, TermNode,\n        ExportNode, DocNode. Edge types: references, belongs-to, contains, related-to. Top-level\n        structure: [Export: KnowledgeGraph]with nodes, edges, and metadata. [Module: graph.builder]: [Export: buildGraph]creates nodes from registry items and docs, then builds\n        edges — explicit references from docs and inferred hierarchy from folder paths\n        (contains/belongs-to).",
+        "content": "Graph Module Located in <nodeId: core.extraction.graph>. Takes extracted registry and documentation, produces a   <nodeId: KnowledgeGraph>. Modules <nodeId: graph.types>: Defines the graph data model. Node types: FolderNode, ModuleNode, TermNode,\n        ExportNode, DocNode. Edge types: references, belongs-to, contains, related-to. Top-level\n        structure: <nodeId: KnowledgeGraph>with nodes, edges, and metadata. <nodeId: graph.builder>: <nodeId: buildGraph>creates nodes from registry items and docs, then builds\n        edges — explicit references from docs and inferred hierarchy from folder paths\n        (contains/belongs-to).",
         "format": "tsx"
       },
       "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx": {
@@ -935,16 +1828,25 @@
         "explains": "Constraint: README.md must be updated when the public API or structural behavior changes",
         "priority": "constraint",
         "filePath": "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx",
-        "content": "The package in [Folder: TSKB.Package.Root]is published to npm. The README.md is the primary documentation\n      users see on the registry. When structural changes are made to the consumer-facing surface — [Folder: tskb.cli]commands, [Module: runtime.jsx]components, [Module: runtime.registry], runtime primitives - $ [Folder: tskb.runtime], type interfaces, build output format, or generated artifacts ( [Module: cli.utils.skill-generator], [Module: cli.utils.copilot-instructions]) — the README.md in [Folder: TSKB.Package.Root]must be updated to\n      reflect them.",
+        "content": "The package in <nodeId: TSKB.Package.Root>is published to npm. The README.md is the primary documentation\n      users see on the registry. When structural changes are made to the consumer-facing surface — <nodeId: tskb.cli>commands, <nodeId: runtime.jsx>components, <nodeId: runtime.registry>, runtime primitives - $ <nodeId: tskb.runtime>, type interfaces, build output format, or generated artifacts ( <nodeId: cli.utils.skill-generator>, <nodeId: cli.utils.copilot-instructions>) — the README.md in <nodeId: TSKB.Package.Root>must be updated to\n      reflect them.",
+        "format": "tsx"
+      },
+      "docs/src/tskb/cli/logging.tskb.tsx": {
+        "id": "docs/src/tskb/cli/logging.tskb.tsx",
+        "type": "doc",
+        "explains": "CLI logging: stderr-only output, --verbose flag, timing support",
+        "priority": "essential",
+        "filePath": "docs/src/tskb/cli/logging.tskb.tsx",
+        "content": "CLI Logger <nodeId: cli.utils.logger>is a module-level singleton that routes all CLI output to stderr, keeping\n      stdout clean for JSON results from query commands. Design All output goes to stderr via process.stderr.write — never stdout Configured once at startup in <nodeId: cli.index>via configure( { verbose } ), driven by the\n        --verbose CLI flag Four log functions: info() always prints, verbose() only when --verbose is set, error() for\n        errors, time() prints a label then returns a closure that logs elapsed ms at verbose level Verbosity Default: <nodeId: cli.commands.build>shows key stages and summary counts. Query commands produce JSON only\n        on stdout, nothing on stderr --verbose: build adds timing per pipeline stage, path resolution stats, and file paths.\n        Query commands log \"Loaded graph from ...\" on stderr",
         "format": "tsx"
       },
       "docs/src/tskb/cli/cli-overview.tskb.tsx": {
         "id": "docs/src/tskb/cli/cli-overview.tskb.tsx",
         "type": "doc",
-        "explains": "CLI structure: commands (build, search, pick, ls) and utils (output generators, content builder)",
+        "explains": "CLI structure: commands (build, search, pick, ls) and utils (output generators, content builder, logger)",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/cli/cli-overview.tskb.tsx",
-        "content": "CLI Located in [Folder: tskb.cli]. Entry point: [Module: cli.index]— parses arguments, routes to command\n      handlers. Commands In [Folder: tskb.cli.commands]: [Module: cli.commands.build]: Full pipeline — files → TypeScript program → extraction → graph → outputs [Module: cli.commands.search]: Fuzzy search across all node types, returns ranked JSON results [Module: cli.commands.pick]: Resolve any node by ID or path, returns type-specific context [Module: cli.commands.ls]: List folder hierarchy with depth control, includes essential docs Utils In [Folder: tskb.cli.utils]: [Module: cli.utils.content-builder]: Shared markdown body for generated files — commands, response\n        shapes, folder tree, doc summaries, constraints section, and workflow steps [Module: cli.utils.skill-generator]: Wraps shared body with Claude Code skill frontmatter →\n        .claude/skills/tskb/SKILL.md [Module: cli.utils.copilot-instructions]: Wraps shared body with Copilot frontmatter →\n        .github/instructions/tskb.instructions.md [Module: cli.utils.graph-finder]: Finds .tskb/graph.json from cwd, used by search/pick/ls",
+        "content": "CLI Located in <nodeId: tskb.cli>. Entry point: <nodeId: cli.index>— parses arguments, routes to command\n      handlers. Commands In <nodeId: tskb.cli.commands>: <nodeId: cli.commands.build>: Full pipeline — files → TypeScript program → extraction → graph → outputs <nodeId: cli.commands.search>: Fuzzy search across all node types, returns ranked JSON results <nodeId: cli.commands.pick>: Resolve any node by ID or path, returns type-specific context <nodeId: cli.commands.ls>: List folder hierarchy with depth control, includes essential docs Utils In <nodeId: tskb.cli.utils>: <nodeId: cli.utils.content-builder>: Produces two markdown bodies — query body (commands, response\n        shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy,\n        primitives, examples, best practices) <nodeId: cli.utils.skill-generator>: Generates two Claude Code skills — tskb (query/explore) and tskb-update\n        (doc authoring guide) <nodeId: cli.utils.copilot-instructions>: Generates two Copilot instructions files — tskb (query/explore) and\n        tskb-update (doc authoring guide) <nodeId: cli.utils.graph-finder>: Finds .tskb/graph.json from cwd, used by search/pick/ls <nodeId: cli.utils.logger>: Stderr-only logger with info/verbose/error/time — configured once at startup\n        via --verbose flag",
         "format": "tsx"
       },
       "docs/src/taskflow-app/main.tskb.tsx": {
@@ -953,7 +1855,7 @@
         "explains": "TaskFlow application overview: architecture layers, patterns, and tech stack",
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/main.tskb.tsx",
-        "content": "TaskFlow Application Full-stack task management application demonstrating modern web architecture patterns.\n      Three-layer separation: [Folder: Client](React), [Folder: Server](Node.js), [Folder: Shared](TypeScript types). Architecture Layers [Folder: Client]: React frontend with [Term: contextProvider]for state, hooks for data\n        fetching, WebSocket for real-time updates. Details in client-overview. [Folder: Server]: Node.js backend with [Term: serviceLayer]and [Term: repositoryPattern].\n        Controllers, services, repositories, middleware. Details in server-overview. [Folder: Shared]: Type definitions shared across client/server ensuring end-to-end type\n        safety. API contracts, domain types. Core Patterns [Term: repositoryPattern]: Abstract data access through repository interfaces. Details in\n        data-layer. [Term: serviceLayer]: Business logic isolated from HTTP and data layers. [Term: contextProvider]: React Context for state management instead of Redux. See\n        adr-context-over-redux. [Term: jwt]: Token-based authentication with refresh flow. Details in authentication-system. Technology Stack Frontend: React, TypeScript, Vite Backend: Node.js, Express, PostgreSQL Real-time: WebSocket for notifications and live updates Type Safety: Shared TypeScript types across full stack Domain Models Tasks: Core entity with status, priority, assignments. See task-domain. Projects: Workspace organization with team management. See project-domain. Authentication: User auth with JWT tokens. See auth-domain. Notifications: Real-time updates via WebSocket. See notification-domain. Documentation Navigation High-Level: architecture-overview for complete architectural picture Client: client-overview for frontend architecture and patterns Server: server-overview for backend layering and request flow Data: data-layer for repository pattern implementation Auth: authentication-system for auth flow and JWT handling Decisions: adr/ folder for architectural decision records Rules: constraints/ folder for enforced architectural constraints",
+        "content": "TaskFlow Application Full-stack task management application demonstrating modern web architecture patterns.\n      Three-layer separation: <nodeId: Client>(React), <nodeId: Server>(Node.js), <nodeId: Shared>(TypeScript types). Architecture Layers <nodeId: Client>: React frontend with <nodeId: contextProvider>for state, hooks for data\n        fetching, WebSocket for real-time updates. Details in client-overview. <nodeId: Server>: Node.js backend with <nodeId: serviceLayer>and <nodeId: repositoryPattern>.\n        Controllers, services, repositories, middleware. Details in server-overview. <nodeId: Shared>: Type definitions shared across client/server ensuring end-to-end type\n        safety. API contracts, domain types. Core Patterns <nodeId: repositoryPattern>: Abstract data access through repository interfaces. Details in\n        data-layer. <nodeId: serviceLayer>: Business logic isolated from HTTP and data layers. <nodeId: contextProvider>: React Context for state management instead of Redux. See\n        adr-context-over-redux. <nodeId: jwt>: Token-based authentication with refresh flow. Details in authentication-system. Technology Stack Frontend: React, TypeScript, Vite Backend: Node.js, Express, PostgreSQL Real-time: WebSocket for notifications and live updates Type Safety: Shared TypeScript types across full stack Domain Models Tasks: Core entity with status, priority, assignments. See task-domain. Projects: Workspace organization with team management. See project-domain. Authentication: User auth with JWT tokens. See auth-domain. Notifications: Real-time updates via WebSocket. See notification-domain. Documentation Navigation High-Level: architecture-overview for complete architectural picture Client: client-overview for frontend architecture and patterns Server: server-overview for backend layering and request flow Data: data-layer for repository pattern implementation Auth: authentication-system for auth flow and JWT handling Decisions: adr/ folder for architectural decision records Rules: constraints/ folder for enforced architectural constraints",
         "format": "tsx"
       },
       "docs/src/taskflow-app/data-layer.tskb.tsx": {
@@ -962,7 +1864,7 @@
         "explains": "Data layer architecture using the repository pattern for database abstraction",
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/data-layer.tskb.tsx",
-        "content": "Data Layer Architecture The data layer implements the [Term: repositoryPattern]to separate database operations from\n      business logic. This architecture provides clean abstraction and makes the code testable and\n      maintainable. Repository Pattern All database access goes through repository classes in [Folder: Repositories]. Repositories\n      provide a clean API for [Term: crudOperations]without exposing database implementation details. TaskRepository Example The [Export: TaskRepository]demonstrates the pattern with support for [Term: pagination]and filtering. It uses [Export: PaginationParams]and [Export: FilterParams]from the shared types to ensure consistency. <snippet>() => {\n        class TaskRepository {\n          constructor(private db: Database) {}\n\n          async findByProject(\n            projectId: string,\n            pagination?: PaginationParams,\n            filters?: FilterParams\n          ): Promise<{ tasks: Task[]; total: number }> {\n            // 1. Build SQL query with filters\n            let query = \"SELECT * FROM tasks WHERE project_id = ?\";\n            const params: any[] = [projectId];\n\n            // 2. Apply filters\n            if (filters?.status) {\n              query += \" AND status IN (?)\";\n              params.push(...filters.status);\n            }\n\n            // 3. Apply pagination\n            const limit = pagination?.limit || PAGINATION_DEFAULT_LIMIT;\n            const offset = ((pagination?.page || 1) - 1) * limit;\n            query += \" LIMIT ? OFFSET ?\";\n            params.push(limit, offset);\n\n            // 4. Execute query\n            const tasks = await this.db.query<Task>(query, params);\n            const total = await this.countByProject(projectId, filters);\n\n            return { tasks, total };\n          }\n\n          private async countByProject(projectId: string, filters?: FilterParams): Promise<number> {\n            let query = \"SELECT COUNT(*) as count FROM tasks WHERE project_id = ?\";\n            const params: any[] = [projectId];\n\n            if (filters?.status) {\n              query += \" AND status IN (?)\";\n              params.push(...filters.status);\n            }\n\n            const result = await this.db.query<{ count: number }>(query, params);\n            return result[0]?.count || 0;\n          }\n        }\n      }</snippet>Repository Benefits Services don't know about SQL - they call clean repository methods Database can be swapped (Postgres → MySQL) by updating repositories only Easy to mock repositories for unit testing services Prevents SQL injection through parameterized queries Centralizes data access logic and validation Service Layer Integration Services like [Export: TaskService]use [Term: dependencyInjection]to receive repository instances, keeping the layers decoupled. The service works with the [Export: Task]type and delegates persistence to [Export: TaskRepository]. <snippet>() => {\n        class TaskService {\n          constructor(\n            private taskRepository: TaskRepository,\n            private notificationService: NotificationService\n          ) {}\n\n          async create(taskData: Omit<Task, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Task> {\n            // 1. Business logic validation\n            if (!taskData.title || taskData.title.length < 3) {\n              throw new Error(\"Title must be at least 3 characters\");\n            }\n\n            // 2. Delegate to repository\n            const task = await this.taskRepository.create(taskData);\n\n            // 3. Trigger side effects\n            if (task.assigneeId) {\n              await this.notificationService.sendTaskAssignedNotification(task.id, task.assigneeId);\n            }\n\n            return task;\n          }\n        }\n      }</snippet>Database Connection The [Export: Database]class in [Folder: Database]manages the connection pool and provides query\n      methods with transaction support. All repositories receive a Database instance via   [Term: dependencyInjection]. <snippet>() => {\n        class Database {\n          private pool: any; // Connection pool instance\n\n          async transaction<T>(callback: () => Promise<T>): Promise<T> {\n            const client = await this.pool.connect();\n\n            try {\n              await client.query(\"BEGIN\");\n              const result = await callback();\n              await client.query(\"COMMIT\");\n              return result;\n            } catch (error) {\n              await client.query(\"ROLLBACK\");\n              throw error;\n            } finally {\n              client.release();\n            }\n          }\n        }\n      }</snippet>Pagination Implementation [Term: pagination]is implemented consistently across all repositories using shared types from   [Folder: Types]. The [Export: PaginationParams]type defines the input, and [Export: PaginatedResponse]wraps the output. PaginationParams defines page number and limit PaginatedResponse includes items, total count, and metadata Default limit is 20 items, maximum is 100 (from constants) Repositories calculate offset from page number: (page - 1) * limit Data Validation Type safety is enforced at multiple levels using TypeScript types like [Export: Task], [Export: User], and [Export: Project]: TypeScript interfaces define expected data shapes Repositories validate required fields before INSERT/UPDATE Services apply business rules and constraints Controllers use validation middleware before reaching services",
+        "content": "Data Layer Architecture The data layer implements the <nodeId: repositoryPattern>to separate database operations from\n      business logic. This architecture provides clean abstraction and makes the code testable and\n      maintainable. Repository Pattern All database access goes through repository classes in <nodeId: Repositories>. Repositories\n      provide a clean API for <nodeId: crudOperations>without exposing database implementation details. TaskRepository Example The <nodeId: TaskRepository>demonstrates the pattern with support for <nodeId: pagination>and filtering. It uses <nodeId: PaginationParams>and <nodeId: FilterParams>from the shared types to ensure consistency. <snippet>() => {\n        class TaskRepository {\n          constructor(private db: Database) {}\n\n          async findByProject(\n            projectId: string,\n            pagination?: PaginationParams,\n            filters?: FilterParams\n          ): Promise<{ tasks: Task[]; total: number }> {\n            // 1. Build SQL query with filters\n            let query = \"SELECT * FROM tasks WHERE project_id = ?\";\n            const params: any[] = [projectId];\n\n            // 2. Apply filters\n            if (filters?.status) {\n              query += \" AND status IN (?)\";\n              params.push(...filters.status);\n            }\n\n            // 3. Apply pagination\n            const limit = pagination?.limit || PAGINATION_DEFAULT_LIMIT;\n            const offset = ((pagination?.page || 1) - 1) * limit;\n            query += \" LIMIT ? OFFSET ?\";\n            params.push(limit, offset);\n\n            // 4. Execute query\n            const tasks = await this.db.query<Task>(query, params);\n            const total = await this.countByProject(projectId, filters);\n\n            return { tasks, total };\n          }\n\n          private async countByProject(projectId: string, filters?: FilterParams): Promise<number> {\n            let query = \"SELECT COUNT(*) as count FROM tasks WHERE project_id = ?\";\n            const params: any[] = [projectId];\n\n            if (filters?.status) {\n              query += \" AND status IN (?)\";\n              params.push(...filters.status);\n            }\n\n            const result = await this.db.query<{ count: number }>(query, params);\n            return result[0]?.count || 0;\n          }\n        }\n      }</snippet>Repository Benefits Services don't know about SQL - they call clean repository methods Database can be swapped (Postgres → MySQL) by updating repositories only Easy to mock repositories for unit testing services Prevents SQL injection through parameterized queries Centralizes data access logic and validation Service Layer Integration Services like <nodeId: TaskService>use <nodeId: dependencyInjection>to receive repository instances, keeping the layers decoupled. The service works with the <nodeId: Task>type and delegates persistence to <nodeId: TaskRepository>. <snippet>() => {\n        class TaskService {\n          constructor(\n            private taskRepository: TaskRepository,\n            private notificationService: NotificationService\n          ) {}\n\n          async create(taskData: Omit<Task, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Task> {\n            // 1. Business logic validation\n            if (!taskData.title || taskData.title.length < 3) {\n              throw new Error(\"Title must be at least 3 characters\");\n            }\n\n            // 2. Delegate to repository\n            const task = await this.taskRepository.create(taskData);\n\n            // 3. Trigger side effects\n            if (task.assigneeId) {\n              await this.notificationService.sendTaskAssignedNotification(task.id, task.assigneeId);\n            }\n\n            return task;\n          }\n        }\n      }</snippet>Database Connection The <nodeId: Database>class in <nodeId: Database>manages the connection pool and provides query\n      methods with transaction support. All repositories receive a Database instance via   <nodeId: dependencyInjection>. <snippet>() => {\n        class Database {\n          private pool: any; // Connection pool instance\n\n          async transaction<T>(callback: () => Promise<T>): Promise<T> {\n            const client = await this.pool.connect();\n\n            try {\n              await client.query(\"BEGIN\");\n              const result = await callback();\n              await client.query(\"COMMIT\");\n              return result;\n            } catch (error) {\n              await client.query(\"ROLLBACK\");\n              throw error;\n            } finally {\n              client.release();\n            }\n          }\n        }\n      }</snippet>Pagination Implementation <nodeId: pagination>is implemented consistently across all repositories using shared types from   <nodeId: Types>. The <nodeId: PaginationParams>type defines the input, and <nodeId: PaginatedResponse>wraps the output. PaginationParams defines page number and limit PaginatedResponse includes items, total count, and metadata Default limit is 20 items, maximum is 100 (from constants) Repositories calculate offset from page number: (page - 1) * limit Data Validation Type safety is enforced at multiple levels using TypeScript types like <nodeId: Task>, <nodeId: User>, and <nodeId: Project>: TypeScript interfaces define expected data shapes Repositories validate required fields before INSERT/UPDATE Services apply business rules and constraints Controllers use validation middleware before reaching services",
         "format": "tsx"
       },
       "docs/src/taskflow-app/authentication-system.tskb.tsx": {
@@ -971,7 +1873,7 @@
         "explains": "Authentication system: login, registration, JWT tokens, and session management",
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/authentication-system.tskb.tsx",
-        "content": "Authentication System The authentication system provides secure user login, registration, and session management\n      using [Term: jwt]tokens. The implementation spans both client and server layers. Server-Side Authentication AuthService The [Export: AuthService]in [Folder: Services]handles the core authentication logic including\n      password validation, token generation, and user verification. <snippet>() => {\n        const jwt = require(\"jsonwebtoken\");\n        const JWT_SECRET = process.env.JWT_SECRET || \"your-secret-key\";\n\n        class AuthService {\n          constructor(private userRepository: UserRepository) {}\n\n          async login(credentials: LoginCredentials): Promise<AuthResponse> {\n            // 1. Validate credentials against database\n            const user = await this.userRepository.findByEmail(credentials.email);\n            if (!user) throw new Error(\"User not found\");\n\n            // 2. Verify password (assuming user has password field)\n            const userPassword = (user as any).password || (user as any).passwordHash;\n            const isValid = await this.verifyPassword(credentials.password, userPassword);\n            if (!isValid) throw new Error(\"Invalid credentials\");\n\n            // 3. Generate JWT tokens\n            const tokens = this.generateTokens(user.id);\n\n            // 4. Return user and tokens\n            return { user, tokens };\n          }\n\n          private async verifyPassword(password: string, hash: string): Promise<boolean> {\n            // Use bcrypt to compare password with hash\n            const bcrypt = require(\"bcrypt\");\n            return bcrypt.compare(password, hash);\n          }\n\n          private generateTokens(userId: string) {\n            const accessToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: \"15m\" });\n            const refreshToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: \"7d\" });\n            return { accessToken, refreshToken };\n          }\n\n          async validateToken(token: string): Promise<User | null> {\n            try {\n              // Verify JWT signature and expiration\n              const payload = jwt.verify(token, JWT_SECRET) as { userId: string };\n              return this.userRepository.findById(payload.userId);\n            } catch (error) {\n              return null;\n            }\n          }\n        }\n      }</snippet>Authentication Middleware The [Export: AuthMiddleware]protects API routes by validating [Term: jwt]tokens on each request. It runs as part of the [Term: middlewareChain]. <snippet>() => {\n        // Assume authService is available as a singleton or injected dependency\n        class AuthService {\n          constructor(private userRepository: UserRepository) {}\n          async validateToken(token: string): Promise<User | null> {\n            const jwt = require(\"jsonwebtoken\");\n            try {\n              const payload = jwt.verify(token, process.env.JWT_SECRET) as { userId: string };\n              return this.userRepository.findById(payload.userId);\n            } catch {\n              return null;\n            }\n          }\n        }\n\n        const authService = new AuthService({} as UserRepository);\n\n        function authenticate() {\n          return async (req: any, res: any, next: any) => {\n            // 1. Extract token from Authorization header\n            const token = req.headers.authorization?.split(\" \")[1];\n\n            if (!token) {\n              return res.status(401).json({ error: \"No token provided\" });\n            }\n\n            // 2. Validate token\n            const user = await authService.validateToken(token);\n\n            // 3. Attach user to request\n            if (user) {\n              req.user = user;\n              next();\n            } else {\n              res.status(401).json({ error: \"Unauthorized\" });\n            }\n          };\n        }\n      }</snippet>Client-Side Authentication AuthContext The [Export: AuthContext]uses the [Term: contextProvider]pattern to manage authentication state\n      across the React application. <snippet>() => {\n        const AUTH_TOKEN_KEY = \"auth_token\";\n        const AuthContext = createContext<any>(null);\n\n        // Mock auth API service\n        const authApiService = {\n          login: async (creds: LoginCredentials) => ({\n            user: { id: \"1\", email: creds.email } as User,\n            tokens: { accessToken: \"token\", refreshToken: \"refresh\" },\n          }),\n          logout: async () => {},\n        };\n\n        function AuthProvider({ children }: { children: React.ReactNode }) {\n          const [user, setUser] = useState<User | null>(null);\n          const [isAuthenticated, setIsAuthenticated] = useState(false);\n\n          const login = async (email: string, password: string) => {\n            const response = await authApiService.login({ email, password });\n            setUser(response.user);\n            setIsAuthenticated(true);\n            // Store tokens in localStorage\n            localStorage.setItem(AUTH_TOKEN_KEY, response.tokens.accessToken);\n          };\n\n          const logout = async () => {\n            await authApiService.logout();\n            setUser(null);\n            setIsAuthenticated(false);\n            localStorage.removeItem(AUTH_TOKEN_KEY);\n          };\n\n          return (\n            <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>\n              {children}\n            </AuthContext.Provider>\n          );\n        }\n      }</snippet>Token Storage and Refresh Access tokens are stored in localStorage using AUTH_TOKEN_KEY constant Refresh tokens enable obtaining new access tokens without re-authentication The [Export: ApiClient]automatically includes tokens in request headers Token expiration is handled by refreshing or redirecting to login Security Considerations Passwords are never stored in plain text - only hashed versions JWT secrets should be strong and kept in environment variables Tokens have expiration times to limit exposure if compromised HTTPS should be enforced in production for secure token transmission CORS configuration limits which origins can access the API",
+        "content": "Authentication System The authentication system provides secure user login, registration, and session management\n      using <nodeId: jwt>tokens. The implementation spans both client and server layers. Server-Side Authentication AuthService The <nodeId: AuthService>in <nodeId: Services>handles the core authentication logic including\n      password validation, token generation, and user verification. <snippet>() => {\n        const jwt = require(\"jsonwebtoken\");\n        const JWT_SECRET = process.env.JWT_SECRET || \"your-secret-key\";\n\n        class AuthService {\n          constructor(private userRepository: UserRepository) {}\n\n          async login(credentials: LoginCredentials): Promise<AuthResponse> {\n            // 1. Validate credentials against database\n            const user = await this.userRepository.findByEmail(credentials.email);\n            if (!user) throw new Error(\"User not found\");\n\n            // 2. Verify password (assuming user has password field)\n            const userPassword = (user as any).password || (user as any).passwordHash;\n            const isValid = await this.verifyPassword(credentials.password, userPassword);\n            if (!isValid) throw new Error(\"Invalid credentials\");\n\n            // 3. Generate JWT tokens\n            const tokens = this.generateTokens(user.id);\n\n            // 4. Return user and tokens\n            return { user, tokens };\n          }\n\n          private async verifyPassword(password: string, hash: string): Promise<boolean> {\n            // Use bcrypt to compare password with hash\n            const bcrypt = require(\"bcrypt\");\n            return bcrypt.compare(password, hash);\n          }\n\n          private generateTokens(userId: string) {\n            const accessToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: \"15m\" });\n            const refreshToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: \"7d\" });\n            return { accessToken, refreshToken };\n          }\n\n          async validateToken(token: string): Promise<User | null> {\n            try {\n              // Verify JWT signature and expiration\n              const payload = jwt.verify(token, JWT_SECRET) as { userId: string };\n              return this.userRepository.findById(payload.userId);\n            } catch (error) {\n              return null;\n            }\n          }\n        }\n      }</snippet>Authentication Middleware The <nodeId: AuthMiddleware>protects API routes by validating <nodeId: jwt>tokens on each request. It runs as part of the <nodeId: middlewareChain>. <snippet>() => {\n        // Assume authService is available as a singleton or injected dependency\n        class AuthService {\n          constructor(private userRepository: UserRepository) {}\n          async validateToken(token: string): Promise<User | null> {\n            const jwt = require(\"jsonwebtoken\");\n            try {\n              const payload = jwt.verify(token, process.env.JWT_SECRET) as { userId: string };\n              return this.userRepository.findById(payload.userId);\n            } catch {\n              return null;\n            }\n          }\n        }\n\n        const authService = new AuthService({} as UserRepository);\n\n        function authenticate() {\n          return async (req: any, res: any, next: any) => {\n            // 1. Extract token from Authorization header\n            const token = req.headers.authorization?.split(\" \")[1];\n\n            if (!token) {\n              return res.status(401).json({ error: \"No token provided\" });\n            }\n\n            // 2. Validate token\n            const user = await authService.validateToken(token);\n\n            // 3. Attach user to request\n            if (user) {\n              req.user = user;\n              next();\n            } else {\n              res.status(401).json({ error: \"Unauthorized\" });\n            }\n          };\n        }\n      }</snippet>Client-Side Authentication AuthContext The <nodeId: AuthContext>uses the <nodeId: contextProvider>pattern to manage authentication state\n      across the React application. <snippet>() => {\n        const AUTH_TOKEN_KEY = \"auth_token\";\n        const AuthContext = createContext<any>(null);\n\n        // Mock auth API service\n        const authApiService = {\n          login: async (creds: LoginCredentials) => ({\n            user: { id: \"1\", email: creds.email } as User,\n            tokens: { accessToken: \"token\", refreshToken: \"refresh\" },\n          }),\n          logout: async () => {},\n        };\n\n        function AuthProvider({ children }: { children: React.ReactNode }) {\n          const [user, setUser] = useState<User | null>(null);\n          const [isAuthenticated, setIsAuthenticated] = useState(false);\n\n          const login = async (email: string, password: string) => {\n            const response = await authApiService.login({ email, password });\n            setUser(response.user);\n            setIsAuthenticated(true);\n            // Store tokens in localStorage\n            localStorage.setItem(AUTH_TOKEN_KEY, response.tokens.accessToken);\n          };\n\n          const logout = async () => {\n            await authApiService.logout();\n            setUser(null);\n            setIsAuthenticated(false);\n            localStorage.removeItem(AUTH_TOKEN_KEY);\n          };\n\n          return (\n            <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>\n              {children}\n            </AuthContext.Provider>\n          );\n        }\n      }</snippet>Token Storage and Refresh Access tokens are stored in localStorage using AUTH_TOKEN_KEY constant Refresh tokens enable obtaining new access tokens without re-authentication The <nodeId: ApiClient>automatically includes tokens in request headers Token expiration is handled by refreshing or redirecting to login Security Considerations Passwords are never stored in plain text - only hashed versions JWT secrets should be strong and kept in environment variables Tokens have expiration times to limit exposure if compromised HTTPS should be enforced in production for secure token transmission CORS configuration limits which origins can access the API",
         "format": "tsx"
       },
       "docs/src/taskflow-app/architecture-overview.tskb.tsx": {
@@ -980,7 +1882,7 @@
         "explains": "Full architectural overview of TaskFlow: layers, data flow, and type safety",
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/architecture-overview.tskb.tsx",
-        "content": "TaskFlow Architecture Overview TaskFlow is a full-stack task management application demonstrating modern web architecture\n      patterns. The application follows a clean separation between [Folder: Client], [Folder: Server],\n      and [Folder: Shared]code. Core Architecture Three-Layer Structure Client Layer - React frontend located in [Folder: Client]handles user interface, state\n        management via [Term: contextProvider], and API communication. Server Layer - Node.js backend in [Folder: Server]implements the [Term: serviceLayer]pattern\n        with controllers, services, and the [Term: repositoryPattern]. Shared Layer - TypeScript types in [Folder: Shared]ensure type safety across the entire\n        stack. Backend Architecture The server follows a layered architecture with clear separation of concerns: [Folder: Controllers]- Handle HTTP requests and responses, delegating business logic to\n        services [Folder: Services]- Implement core business logic using the [Term: serviceLayer]pattern [Folder: Repositories]- Abstract database operations following the [Term: repositoryPattern][Folder: Middleware]- Process requests through a [Term: middlewareChain]for auth, validation,\n        and errors Key Services The [Export: TaskService]is the central module for task management, supporting   [Term: crudOperations], status updates, and filtering with [Term: pagination]. <snippet>() => {\n        class TaskService {\n          taskRepository = new TaskRepository(new Database({} as DatabaseConfig));\n\n          async getByProject(\n            projectId: string,\n            pagination?: PaginationParams,\n            filters?: FilterParams\n          ): Promise<PaginatedResponse<Task>> {\n            // Delegates to repository\n            const { tasks, total } = await this.taskRepository.findByProject(\n              projectId,\n              pagination,\n              filters\n            );\n            const page = pagination?.page || 1;\n            const limit = pagination?.limit || 20;\n            return {\n              items: tasks,\n              total,\n              page,\n              limit,\n              totalPages: Math.ceil(total / limit),\n            };\n          }\n        }\n      }</snippet>Frontend Architecture The client application uses React with Context API for state management. Key organizational\n      patterns: [Folder: Pages]- Route-level components organized by feature (auth, projects, tasks) [Folder: Components]- Reusable UI components grouped by domain [Folder: Contexts]- Global state providers using [Term: contextProvider]pattern [Folder: Hooks]- Custom hooks for shared client-side logic [Folder: ClientServices]- API clients for backend communication State Management Authentication state is managed by [Export: AuthContext], which provides login/logout\n      functionality and user information to all components. The context uses [Term: jwt]tokens for\n      authentication. <snippet>() => {\n        function MyComponent() {\n          const { user, login, logout } = useAuth();\n          const email = \"user@example.com\";\n          const password = \"password123\";\n\n          return user ? (\n            <div>Welcome, {user.name}</div>\n          ) : (\n            <button onClick={() => login(email, password)}>Login</button>\n          );\n        }\n      }</snippet>Data Flow The typical request flow through the application: User interacts with React component in [Folder: Pages]Component calls [Export: ApiClient]to send HTTP request Request passes through [Export: AuthMiddleware]for authentication Controller receives request and calls appropriate service Service implements business logic and calls repository Repository queries database and returns data Response flows back through layers to client Context updates state and React re-renders UI Type Safety The [Folder: Types]folder contains all shared type definitions, ensuring end-to-end type\n      safety. Types are organized by domain: user.types, task.types, project.types, etc. Common types like ApiResponse and PaginatedResponse provide consistent structure for API\n      communication.",
+        "content": "TaskFlow Architecture Overview TaskFlow is a full-stack task management application demonstrating modern web architecture\n      patterns. The application follows a clean separation between <nodeId: Client>, <nodeId: Server>,\n      and <nodeId: Shared>code. Core Architecture Three-Layer Structure Client Layer - React frontend located in <nodeId: Client>handles user interface, state\n        management via <nodeId: contextProvider>, and API communication. Server Layer - Node.js backend in <nodeId: Server>implements the <nodeId: serviceLayer>pattern\n        with controllers, services, and the <nodeId: repositoryPattern>. Shared Layer - TypeScript types in <nodeId: Shared>ensure type safety across the entire\n        stack. Backend Architecture The server follows a layered architecture with clear separation of concerns: <nodeId: Controllers>- Handle HTTP requests and responses, delegating business logic to\n        services <nodeId: Services>- Implement core business logic using the <nodeId: serviceLayer>pattern <nodeId: Repositories>- Abstract database operations following the <nodeId: repositoryPattern><nodeId: Middleware>- Process requests through a <nodeId: middlewareChain>for auth, validation,\n        and errors Key Services The <nodeId: TaskService>is the central module for task management, supporting   <nodeId: crudOperations>, status updates, and filtering with <nodeId: pagination>. <snippet>() => {\n        class TaskService {\n          taskRepository = new TaskRepository(new Database({} as DatabaseConfig));\n\n          async getByProject(\n            projectId: string,\n            pagination?: PaginationParams,\n            filters?: FilterParams\n          ): Promise<PaginatedResponse<Task>> {\n            // Delegates to repository\n            const { tasks, total } = await this.taskRepository.findByProject(\n              projectId,\n              pagination,\n              filters\n            );\n            const page = pagination?.page || 1;\n            const limit = pagination?.limit || 20;\n            return {\n              items: tasks,\n              total,\n              page,\n              limit,\n              totalPages: Math.ceil(total / limit),\n            };\n          }\n        }\n      }</snippet>Frontend Architecture The client application uses React with Context API for state management. Key organizational\n      patterns: <nodeId: Pages>- Route-level components organized by feature (auth, projects, tasks) <nodeId: Components>- Reusable UI components grouped by domain <nodeId: Contexts>- Global state providers using <nodeId: contextProvider>pattern <nodeId: Hooks>- Custom hooks for shared client-side logic <nodeId: ClientServices>- API clients for backend communication State Management Authentication state is managed by <nodeId: AuthContext>, which provides login/logout\n      functionality and user information to all components. The context uses <nodeId: jwt>tokens for\n      authentication. <snippet>() => {\n        function MyComponent() {\n          const { user, login, logout } = useAuth();\n          const email = \"user@example.com\";\n          const password = \"password123\";\n\n          return user ? (\n            <div>Welcome, {user.name}</div>\n          ) : (\n            <button onClick={() => login(email, password)}>Login</button>\n          );\n        }\n      }</snippet>Data Flow The typical request flow through the application: User interacts with React component in <nodeId: Pages>Component calls <nodeId: ApiClient>to send HTTP request Request passes through <nodeId: AuthMiddleware>for authentication Controller receives request and calls appropriate service Service implements business logic and calls repository Repository queries database and returns data Response flows back through layers to client Context updates state and React re-renders UI Type Safety The <nodeId: Types>folder contains all shared type definitions, ensuring end-to-end type\n      safety. Types are organized by domain: user.types, task.types, project.types, etc. Common types like ApiResponse and PaginatedResponse provide consistent structure for API\n      communication.",
         "format": "tsx"
       },
       "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx": {
@@ -989,7 +1891,7 @@
         "explains": "Constraint: services must access data only through repositories, never directly",
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx",
-        "content": "Constraint: Service Layer Isolation Services in [Folder: Services]MUST NOT directly access the database. All data persistence\n      operations MUST go through repositories in [Folder: Repositories]. Rationale Maintains separation of concerns between business logic and data access Enables swapping database implementations without changing services Facilitates testing by allowing repository mocking Prevents SQL injection and enforces parameterized queries Centralizes data access patterns and optimizations Correct Pattern Services receive repository instances via [Term: dependencyInjection]in the constructor. ✅ Good Example: [Export: TaskService]accepts TaskRepository in constructor Service calls repository.findById() instead of writing SQL Repository handles all database interaction details ❌ Anti-pattern: Service imports Database class directly Service writes raw SQL queries Service accesses database connection pool Enforcement Code reviews should flag direct database access in services Import linting can prevent importing Database in service files All database operations should be traceable to a repository method",
+        "content": "Constraint: Service Layer Isolation Services in <nodeId: Services>MUST NOT directly access the database. All data persistence\n      operations MUST go through repositories in <nodeId: Repositories>. Rationale Maintains separation of concerns between business logic and data access Enables swapping database implementations without changing services Facilitates testing by allowing repository mocking Prevents SQL injection and enforces parameterized queries Centralizes data access patterns and optimizations Correct Pattern Services receive repository instances via <nodeId: dependencyInjection>in the constructor. ✅ Good Example: <nodeId: TaskService>accepts TaskRepository in constructor Service calls repository.findById() instead of writing SQL Repository handles all database interaction details ❌ Anti-pattern: Service imports Database class directly Service writes raw SQL queries Service accesses database connection pool Enforcement Code reviews should flag direct database access in services Import linting can prevent importing Database in service files All database operations should be traceable to a repository method",
         "format": "tsx"
       },
       "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx": {
@@ -998,7 +1900,7 @@
         "explains": "Constraint: all API endpoints must follow the ApiResponse type structure",
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx",
-        "content": "Constraint: API Response Structure All API endpoints MUST return responses following the ApiResponse type defined in   [Folder: Types]. This ensures consistent error handling and response structure across the entire\n      API. Required Structure <snippet>() => {\n        interface ApiResponse<T> {\n          data: T; // Actual response payload\n          error?: ApiError; // Error details if request failed\n          meta?: ResponseMetadata; // Optional metadata (timestamps, request ID)\n        }\n      }</snippet>Success Response Example <snippet>() => {\n        // GET /api/tasks/123\n        JSON.stringify({\n          data: {\n            id: \"123\",\n            title: \"Implement login\",\n            status: \"in-progress\",\n            // ... rest of task data\n          },\n          meta: {\n            timestamp: \"2026-01-24T10:30:00Z\",\n            requestId: \"req_abc123\",\n          },\n        });\n      }</snippet>Error Response Example <snippet>() => {\n        // POST /api/tasks (validation failure)\n        JSON.stringify({\n          data: null,\n          error: {\n            code: \"VALIDATION_ERROR\",\n            message: \"Title is required\",\n            details: {\n              field: \"title\",\n              constraint: \"minLength\",\n            },\n          },\n          meta: {\n            timestamp: \"2026-01-24T10:30:00Z\",\n          },\n        });\n      }</snippet>Pagination Responses List endpoints returning multiple items MUST use PaginatedResponse type for consistency with   [Term: pagination]. <snippet>() => {\n        interface PaginatedResponse<T> {\n          items: T[]; // Array of items for current page\n          total: number; // Total count across all pages\n          page: number; // Current page number\n          limit: number; // Items per page\n          totalPages: number; // Calculated total pages\n        }\n      }</snippet>Enforcement Controllers must use typed response helpers that enforce structure [Export: ErrorHandler]middleware ensures errors follow ApiResponse format Client [Export: ApiClient]expects and validates this structure End-to-end type safety from server through client Benefits Predictable error handling on client side Consistent metadata for debugging and logging TypeScript catches response structure violations at compile time Easy to add global response transformations",
+        "content": "Constraint: API Response Structure All API endpoints MUST return responses following the ApiResponse type defined in   <nodeId: Types>. This ensures consistent error handling and response structure across the entire\n      API. Required Structure <snippet>() => {\n        interface ApiResponse<T> {\n          data: T; // Actual response payload\n          error?: ApiError; // Error details if request failed\n          meta?: ResponseMetadata; // Optional metadata (timestamps, request ID)\n        }\n      }</snippet>Success Response Example <snippet>() => {\n        // GET /api/tasks/123\n        JSON.stringify({\n          data: {\n            id: \"123\",\n            title: \"Implement login\",\n            status: \"in-progress\",\n            // ... rest of task data\n          },\n          meta: {\n            timestamp: \"2026-01-24T10:30:00Z\",\n            requestId: \"req_abc123\",\n          },\n        });\n      }</snippet>Error Response Example <snippet>() => {\n        // POST /api/tasks (validation failure)\n        JSON.stringify({\n          data: null,\n          error: {\n            code: \"VALIDATION_ERROR\",\n            message: \"Title is required\",\n            details: {\n              field: \"title\",\n              constraint: \"minLength\",\n            },\n          },\n          meta: {\n            timestamp: \"2026-01-24T10:30:00Z\",\n          },\n        });\n      }</snippet>Pagination Responses List endpoints returning multiple items MUST use PaginatedResponse type for consistency with   <nodeId: pagination>. <snippet>() => {\n        interface PaginatedResponse<T> {\n          items: T[]; // Array of items for current page\n          total: number; // Total count across all pages\n          page: number; // Current page number\n          limit: number; // Items per page\n          totalPages: number; // Calculated total pages\n        }\n      }</snippet>Enforcement Controllers must use typed response helpers that enforce structure <nodeId: ErrorHandler>middleware ensures errors follow ApiResponse format Client <nodeId: ApiClient>expects and validates this structure End-to-end type safety from server through client Benefits Predictable error handling on client side Consistent metadata for debugging and logging TypeScript catches response structure violations at compile time Easy to add global response transformations",
         "format": "tsx"
       },
       "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx": {
@@ -1007,7 +1909,7 @@
         "explains": "ADR: choosing repository pattern over direct database access or full ORM",
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx",
-        "content": "ADR: Repository Pattern Over Direct Database Access Status Accepted Context We needed to decide how the [Term: serviceLayer]in [Folder: Services]should interact with the database. Options considered: Services write SQL queries directly Use an ORM (e.g., TypeORM, Prisma) Implement the [Term: repositoryPattern]Decision We will implement the [Term: repositoryPattern]with repository classes in [Folder: Repositories]. Each domain entity (Task, User, Project) gets its own repository. Repository Responsibilities Execute database queries (SQL or ORM calls) Map database rows to TypeScript types Handle pagination and filtering Ensure parameterized queries to prevent SQL injection Provide clean API for [Term: crudOperations]Service Responsibilities Implement business logic and validation rules Orchestrate operations across multiple repositories Trigger side effects (notifications, logging) Handle transactions when needed Consequences Positive Testability: Services can be tested with mocked repositories without a\n        database Separation of Concerns: Business logic (services) decoupled from data\n        access (repositories) Flexibility: Database can be changed by updating repositories only Reusability: Common queries (findById, findAll) centralized in one place Security: Repositories enforce parameterized queries, preventing SQL\n        injection Negative Boilerplate: More classes and files compared to services writing SQL\n        directly Indirection: One more layer to understand when tracing code Learning Curve: Developers must understand the pattern Implementation Example The [Export: TaskService]uses [Export: TaskRepository]through [Term: dependencyInjection]. <snippet>() => {\n        // Service uses repository abstraction\n        class TaskService {\n          constructor(private taskRepository: TaskRepository) {}\n\n          async assignTask(taskId: string, assigneeId: string): Promise<Task> {\n            // Business logic\n            const task = await this.taskRepository.findById(taskId);\n            if (!task) throw new Error(\"Task not found\");\n\n            // Delegate persistence to repository\n            return this.taskRepository.update(taskId, { assigneeId });\n          }\n        }\n\n        // Repository handles database details\n        class TaskRepository {\n          constructor(private db: Database) {}\n\n          async findById(id: string): Promise<Task | null> {\n            const query = \"SELECT * FROM tasks WHERE id = ?\";\n            const result = await this.db.query<Task>(query, [id]);\n            return result[0] || null;\n          }\n\n          async update(id: string, data: Partial<Task>): Promise<Task> {\n            const query = \"UPDATE tasks SET assignee_id = ? WHERE id = ?\";\n            await this.db.execute(query, [data.assigneeId, id]);\n            const updated = await this.findById(id);\n            if (!updated) throw new Error(\"Task not found after update\");\n            return updated;\n          }\n        }\n      }</snippet>Alternatives Considered 1. Services Write SQL Directly Pro: Fewer classes, less abstraction Con: Business logic mixed with data access Con: Difficult to test without database Con: SQL scattered across codebase 2. Use Full ORM (TypeORM/Prisma) Pro: Less boilerplate, auto-migrations Pro: Type-safe query builders Con: Learning curve for ORM-specific APIs Con: Magic behavior can be hard to debug Con: Performance overhead for simple queries References Martin Fowler - Patterns of Enterprise Application Architecture Clean Architecture by Robert C. Martin Repository pattern in Domain-Driven Design",
+        "content": "ADR: Repository Pattern Over Direct Database Access Status Accepted Context We needed to decide how the <nodeId: serviceLayer>in <nodeId: Services>should interact with the database. Options considered: Services write SQL queries directly Use an ORM (e.g., TypeORM, Prisma) Implement the <nodeId: repositoryPattern>Decision We will implement the <nodeId: repositoryPattern>with repository classes in <nodeId: Repositories>. Each domain entity (Task, User, Project) gets its own repository. Repository Responsibilities Execute database queries (SQL or ORM calls) Map database rows to TypeScript types Handle pagination and filtering Ensure parameterized queries to prevent SQL injection Provide clean API for <nodeId: crudOperations>Service Responsibilities Implement business logic and validation rules Orchestrate operations across multiple repositories Trigger side effects (notifications, logging) Handle transactions when needed Consequences Positive Testability: Services can be tested with mocked repositories without a\n        database Separation of Concerns: Business logic (services) decoupled from data\n        access (repositories) Flexibility: Database can be changed by updating repositories only Reusability: Common queries (findById, findAll) centralized in one place Security: Repositories enforce parameterized queries, preventing SQL\n        injection Negative Boilerplate: More classes and files compared to services writing SQL\n        directly Indirection: One more layer to understand when tracing code Learning Curve: Developers must understand the pattern Implementation Example The <nodeId: TaskService>uses <nodeId: TaskRepository>through <nodeId: dependencyInjection>. <snippet>() => {\n        // Service uses repository abstraction\n        class TaskService {\n          constructor(private taskRepository: TaskRepository) {}\n\n          async assignTask(taskId: string, assigneeId: string): Promise<Task> {\n            // Business logic\n            const task = await this.taskRepository.findById(taskId);\n            if (!task) throw new Error(\"Task not found\");\n\n            // Delegate persistence to repository\n            return this.taskRepository.update(taskId, { assigneeId });\n          }\n        }\n\n        // Repository handles database details\n        class TaskRepository {\n          constructor(private db: Database) {}\n\n          async findById(id: string): Promise<Task | null> {\n            const query = \"SELECT * FROM tasks WHERE id = ?\";\n            const result = await this.db.query<Task>(query, [id]);\n            return result[0] || null;\n          }\n\n          async update(id: string, data: Partial<Task>): Promise<Task> {\n            const query = \"UPDATE tasks SET assignee_id = ? WHERE id = ?\";\n            await this.db.execute(query, [data.assigneeId, id]);\n            const updated = await this.findById(id);\n            if (!updated) throw new Error(\"Task not found after update\");\n            return updated;\n          }\n        }\n      }</snippet>Alternatives Considered 1. Services Write SQL Directly Pro: Fewer classes, less abstraction Con: Business logic mixed with data access Con: Difficult to test without database Con: SQL scattered across codebase 2. Use Full ORM (TypeORM/Prisma) Pro: Less boilerplate, auto-migrations Pro: Type-safe query builders Con: Learning curve for ORM-specific APIs Con: Magic behavior can be hard to debug Con: Performance overhead for simple queries References Martin Fowler - Patterns of Enterprise Application Architecture Clean Architecture by Robert C. Martin Repository pattern in Domain-Driven Design",
         "format": "tsx"
       },
       "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx": {
@@ -1016,7 +1918,7 @@
         "explains": "ADR: choosing React Context API over Redux for state management",
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx",
-        "content": "ADR: React Context Over Redux for State Management Status Accepted Context The [Folder: Client]needed a state management solution for sharing authentication status,\n      current project, and task lists across components. Options considered: React Context API with hooks Redux with Redux Toolkit MobX Zustand Prop drilling (no state management library) Decision Use React Context API with custom hooks, implementing the [Term: contextProvider]pattern. Create separate contexts in [Folder: Contexts]for different domains (Auth, Tasks,\n      Projects, Notifications). Implementation Pattern The [Export: AuthContext]demonstrates the pattern: <snippet>() => {\n        return <CommentForm onSubmit={() => {}} />;\n      }</snippet><snippet>() => {\n        // 1. Create context with typed interface\n        interface AuthContextValue {\n          user: User | null;\n          isAuthenticated: boolean;\n          login: (email: string, password: string) => Promise<void>;\n          logout: () => Promise<void>;\n        }\n\n        const AuthContext = createContext<AuthContextValue | null>(null);\n\n        // 2. Provider component manages state\n        function AuthProvider({ children }: { children: React.ReactNode }) {\n          const [user, setUser] = useState<User | null>(null);\n\n          const login = async (email: string, password: string) => {\n            // Simulated API call\n            const response = await fetch(\"/api/auth/login\", {\n              method: \"POST\",\n              body: JSON.stringify({ email, password }),\n            });\n            const data = await response.json();\n            setUser(data.user);\n          };\n\n          const logout = async () => {\n            await fetch(\"/api/auth/logout\", { method: \"POST\" });\n            setUser(null);\n          };\n\n          const isAuthenticated = user !== null;\n\n          return (\n            <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>\n              {children}\n            </AuthContext.Provider>\n          );\n        }\n\n        // 3. Custom hook for consuming context\n        function useAuth() {\n          const context = useContext(AuthContext);\n          if (!context) throw new Error(\"useAuth must be within AuthProvider\");\n          return context;\n        }\n      }</snippet>Consequences Positive Built-in: No additional dependencies, uses React's native API Simple: Easy to understand for developers familiar with React hooks Type-safe: Full TypeScript support without additional setup Flexible: Can create multiple contexts for different domains Performance: Components only re-render when their context changes Negative No DevTools: Unlike Redux, no time-travel debugging out of the box Boilerplate: Each context requires provider, hook, and interface\n        definitions Re-render Optimization: Need to manually optimize with useMemo/useCallback Testing: Need to wrap components with providers in tests Context Organization Separate contexts by domain to minimize unnecessary re-renders: [Export: AuthContext]- User authentication state [Export: TaskContext]- Current project's tasks [Export: ProjectContext]- Project list and selection NotificationContext - User notifications and alerts When to Use Redux Instead Consider Redux if the application grows to have: Complex state with many interdependent updates Need for time-travel debugging Advanced middleware requirements (sagas, etc.) Large team requiring strict state update patterns Extensive client-side caching needs Migration Path If we need Redux later, migration is straightforward: Context interfaces become Redux state slices Context actions become Redux actions/thunks Custom hooks (useAuth, useTask) can wrap Redux hooks Component code remains largely unchanged References React Context API documentation When to use Context vs Redux - Mark Erikson Application State Management with React - Kent C. Dodds",
+        "content": "ADR: React Context Over Redux for State Management Status Accepted Context The <nodeId: Client>needed a state management solution for sharing authentication status,\n      current project, and task lists across components. Options considered: React Context API with hooks Redux with Redux Toolkit MobX Zustand Prop drilling (no state management library) Decision Use React Context API with custom hooks, implementing the <nodeId: contextProvider>pattern. Create separate contexts in <nodeId: Contexts>for different domains (Auth, Tasks,\n      Projects, Notifications). Implementation Pattern The <nodeId: AuthContext>demonstrates the pattern: <snippet>() => {\n        return <CommentForm onSubmit={() => {}} />;\n      }</snippet><snippet>() => {\n        // 1. Create context with typed interface\n        interface AuthContextValue {\n          user: User | null;\n          isAuthenticated: boolean;\n          login: (email: string, password: string) => Promise<void>;\n          logout: () => Promise<void>;\n        }\n\n        const AuthContext = createContext<AuthContextValue | null>(null);\n\n        // 2. Provider component manages state\n        function AuthProvider({ children }: { children: React.ReactNode }) {\n          const [user, setUser] = useState<User | null>(null);\n\n          const login = async (email: string, password: string) => {\n            // Simulated API call\n            const response = await fetch(\"/api/auth/login\", {\n              method: \"POST\",\n              body: JSON.stringify({ email, password }),\n            });\n            const data = await response.json();\n            setUser(data.user);\n          };\n\n          const logout = async () => {\n            await fetch(\"/api/auth/logout\", { method: \"POST\" });\n            setUser(null);\n          };\n\n          const isAuthenticated = user !== null;\n\n          return (\n            <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>\n              {children}\n            </AuthContext.Provider>\n          );\n        }\n\n        // 3. Custom hook for consuming context\n        function useAuth() {\n          const context = useContext(AuthContext);\n          if (!context) throw new Error(\"useAuth must be within AuthProvider\");\n          return context;\n        }\n      }</snippet>Consequences Positive Built-in: No additional dependencies, uses React's native API Simple: Easy to understand for developers familiar with React hooks Type-safe: Full TypeScript support without additional setup Flexible: Can create multiple contexts for different domains Performance: Components only re-render when their context changes Negative No DevTools: Unlike Redux, no time-travel debugging out of the box Boilerplate: Each context requires provider, hook, and interface\n        definitions Re-render Optimization: Need to manually optimize with useMemo/useCallback Testing: Need to wrap components with providers in tests Context Organization Separate contexts by domain to minimize unnecessary re-renders: <nodeId: AuthContext>- User authentication state <nodeId: TaskContext>- Current project's tasks <nodeId: ProjectContext>- Project list and selection NotificationContext - User notifications and alerts When to Use Redux Instead Consider Redux if the application grows to have: Complex state with many interdependent updates Need for time-travel debugging Advanced middleware requirements (sagas, etc.) Large team requiring strict state update patterns Extensive client-side caching needs Migration Path If we need Redux later, migration is straightforward: Context interfaces become Redux state slices Context actions become Redux actions/thunks Custom hooks (useAuth, useTask) can wrap Redux hooks Component code remains largely unchanged References React Context API documentation When to use Context vs Redux - Mark Erikson Application State Management with React - Kent C. Dodds",
         "format": "tsx"
       }
     }
@@ -1263,6 +2165,21 @@
       "type": "references"
     },
     {
+      "from": "docs/src/tskb/cli/logging.tskb.tsx",
+      "to": "cli.utils.logger",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/cli/logging.tskb.tsx",
+      "to": "cli.index",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/cli/logging.tskb.tsx",
+      "to": "cli.commands.build",
+      "type": "references"
+    },
+    {
       "from": "docs/src/tskb/cli/cli-overview.tskb.tsx",
       "to": "cli.index",
       "type": "references"
@@ -1305,6 +2222,11 @@
     {
       "from": "docs/src/tskb/cli/cli-overview.tskb.tsx",
       "to": "cli.utils.graph-finder",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/cli/cli-overview.tskb.tsx",
+      "to": "cli.utils.logger",
       "type": "references"
     },
     {
@@ -1968,6 +2890,11 @@
       "type": "belongs-to"
     },
     {
+      "from": "cli.utils.logger",
+      "to": "tskb.cli.utils",
+      "type": "belongs-to"
+    },
+    {
       "from": "AuthService",
       "to": "Services",
       "type": "belongs-to"
@@ -2244,16 +3171,16 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-02-18T15:11:51.882Z",
+    "generatedAt": "2026-02-21T15:09:19.448Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
       "folderCount": 31,
-      "moduleCount": 25,
+      "moduleCount": 26,
       "termCount": 30,
       "exportCount": 52,
-      "docCount": 15,
-      "edgeCount": 244
+      "docCount": 16,
+      "edgeCount": 249
     }
   }
 }

@@ -5,6 +5,7 @@ import { createProgram } from "../../typescript/index.js";
 import { extractRegistry, extractDocs } from "../../core/extraction/index.js";
 import { buildGraph } from "../../core/graph/index.js";
 import { generateDot } from "../../core/visualization/index.js";
+import { info, verbose, infoTime } from "../utils/logger.js";
 
 /**
  * Configuration for the extract command
@@ -62,26 +63,28 @@ export interface ExtractConfig {
  * @param config - Extract configuration (pattern, tsconfig)
  */
 export async function build(config: ExtractConfig): Promise<void> {
-  console.log("tskb build");
-  console.log(`   Pattern: ${config.pattern}`);
-  console.log(`   Tsconfig: ${config.tsconfig}`);
-  console.log("");
+  const buildDone = infoTime("tskb build");
+  verbose(`   Pattern: ${config.pattern}`);
+  verbose(`   Tsconfig: ${config.tsconfig}`);
 
   // Find all matching files
+  const globDone = infoTime("Discovering files");
   const files = globSync(config.pattern, { absolute: true, nodir: true });
-  console.log(`Found ${files.length} documentation files`);
+  globDone();
+  info(`Found ${files.length} documentation files`);
 
   if (files.length === 0) {
-    console.warn("No files found matching pattern");
+    info("No files found matching pattern");
     return;
   }
 
   // Create TypeScript program
-  console.log("Creating TypeScript program...");
+  const programDone = infoTime("Creating TypeScript program");
   const program = createProgram(files, config.tsconfig);
+  programDone();
 
   // Extract registry (vocabulary)
-  console.log("Extracting registry (Folders, Modules, Terms)...");
+  const registryDone = infoTime("Extracting registry (Folders, Modules, Terms)");
   const tsconfigDir = path.dirname(path.resolve(config.tsconfig));
 
   // Use rootDir from tsconfig if available, otherwise use tsconfig directory
@@ -90,97 +93,120 @@ export async function build(config: ExtractConfig): Promise<void> {
   // compilerOptions.rootDir is already an absolute path resolved by TypeScript
   const baseDir = compilerOptions.rootDir || tsconfigDir;
 
-  console.log(`   Base directory: ${baseDir}`);
+  verbose(`   Base directory: ${baseDir}`);
 
   const registry = extractRegistry(program, baseDir, config.tsconfig);
-  console.log(`   ├─ ${registry.folders.size} folders`);
+  registryDone();
+
+  info(`   ├─ ${registry.folders.size} folders`);
 
   // Report path resolution status
   const foldersWithPaths = Array.from(registry.folders.values()).filter((c) => c.path);
   const validPaths = foldersWithPaths.filter((c) => c.pathExists).length;
   const invalidPaths = foldersWithPaths.filter((c) => !c.pathExists).length;
   if (foldersWithPaths.length > 0) {
-    console.log(
+    verbose(
       `   │  └─ Paths: ${validPaths} valid, ${
         invalidPaths > 0 ? `${invalidPaths} missing` : "0 missing"
       }`
     );
   }
 
-  console.log(`   ├─ ${registry.modules.size} modules`);
+  info(`   ├─ ${registry.modules.size} modules`);
 
   // Report module import path resolution status
   const modulesWithImports = Array.from(registry.modules.values()).filter((m) => m.importPath);
   const validImports = modulesWithImports.filter((m) => m.pathExists).length;
   const invalidImports = modulesWithImports.filter((m) => !m.pathExists).length;
   if (modulesWithImports.length > 0) {
-    console.log(
+    verbose(
       `   │  └─ Imports: ${validImports} valid, ${
         invalidImports > 0 ? `${invalidImports} missing` : "0 missing"
       }`
     );
   }
 
-  console.log(`   └─ ${registry.terms.size} terms`);
+  info(`   ├─ ${registry.exports.size} exports`);
+  info(`   └─ ${registry.terms.size} terms`);
+
+  // Report folder summary and module morphology counts
+  const foldersWithSummary = Array.from(registry.folders.values()).filter(
+    (f) => f.folderSummary
+  ).length;
+  if (foldersWithSummary > 0) {
+    verbose(`   Folder summaries: ${foldersWithSummary} extracted`);
+  }
+  const modulesWithMorphology = Array.from(registry.modules.values()).filter(
+    (m) => m.morphology
+  ).length;
+  if (modulesWithMorphology > 0) {
+    verbose(`   Module morphologies: ${modulesWithMorphology} extracted`);
+  }
 
   // Extract documentation
-  console.log("Extracting documentation...");
+  const docsDone = infoTime("Extracting documentation");
   const docs = extractDocs(program, new Set(files));
-  console.log(`└─ ${docs.length} docs`);
+  docsDone();
+  info(`└─ ${docs.length} docs`);
 
   // Build knowledge graph
-  console.log("Building knowledge graph...");
+  const graphDone = infoTime("Building knowledge graph");
   const graph = buildGraph(registry, docs, baseDir);
-  console.log(`   ├─ ${graph.metadata.stats.folderCount} folder nodes`);
-  console.log(`   ├─ ${graph.metadata.stats.moduleCount} module nodes`);
-  console.log(`   ├─ ${graph.metadata.stats.exportCount} export nodes`);
-  console.log(`   ├─ ${graph.metadata.stats.termCount} term nodes`);
-  console.log(`   ├─ ${graph.metadata.stats.docCount} doc nodes`);
-  console.log(`   └─ ${graph.metadata.stats.edgeCount} edges`);
+  graphDone();
+
+  info(`   ├─ ${graph.metadata.stats.folderCount} folder nodes`);
+  info(`   ├─ ${graph.metadata.stats.moduleCount} module nodes`);
+  info(`   ├─ ${graph.metadata.stats.exportCount} export nodes`);
+  info(`   ├─ ${graph.metadata.stats.termCount} term nodes`);
+  info(`   ├─ ${graph.metadata.stats.docCount} doc nodes`);
+  info(`   └─ ${graph.metadata.stats.edgeCount} edges`);
 
   // Create .tskb output directory
+  const outputDone = infoTime("Writing outputs");
   const outputDir = path.resolve(process.cwd(), ".tskb");
-  console.log(`Creating output directory: ${outputDir}`);
+  verbose(`   Output directory: ${outputDir}`);
   fs.mkdirSync(outputDir, { recursive: true });
 
   // Write graph.json
   const graphPath = path.join(outputDir, "graph.json");
-  console.log(`Writing graph to ${graphPath}...`);
+  verbose(`   Writing graph to ${graphPath}`);
   fs.writeFileSync(graphPath, JSON.stringify(graph, null, 2), "utf-8");
 
   // Generate and write graph.dot
   const dotPath = path.join(outputDir, "graph.dot");
-  console.log(`Generating visualization: ${dotPath}...`);
+  verbose(`   Generating visualization: ${dotPath}`);
   const dot = generateDot(graph);
   fs.writeFileSync(dotPath, dot, "utf-8");
 
-  // Generate Claude Code skill if .claude/skills/ exists
-  const { generateSkillFile } = await import("../utils/skill-generator.js");
-  const skillPath = generateSkillFile(graph);
-  if (skillPath) {
-    console.log(`Writing Claude Code skill: ${skillPath}...`);
+  // Generate Claude Code skills if .claude/skills/ exists
+  const { generateSkillFiles } = await import("../utils/skill-generator.js");
+  const skillPaths = generateSkillFiles(graph);
+  for (const p of skillPaths) {
+    info(`Writing Claude Code skill: ${p}`);
   }
 
   // Generate Copilot instructions if .github/ exists
-  const { generateCopilotInstructions } =
+  const { generateCopilotInstructionsFiles } =
     await import("../utils/copilot-instructions-generator.js");
-  const copilotPath = generateCopilotInstructions(graph);
-  if (copilotPath) {
-    console.log(`Writing Copilot instructions: ${copilotPath}...`);
+  const copilotPaths = generateCopilotInstructionsFiles(graph);
+  for (const p of copilotPaths) {
+    info(`Writing Copilot instructions: ${p}`);
   }
+  outputDone();
 
-  console.log("");
-  console.log("✓ Done!");
-  console.log("");
-  console.log("Output directory: .tskb/");
-  console.log("   ├─ graph.json     Knowledge graph data");
-  console.log("   └─ graph.dot      Graphviz visualization");
-  if (skillPath) {
-    console.log("   └─ .claude/skills/tskb/SKILL.md  Claude Code skill");
+  info("");
+  info("✓ Done!");
+  info("");
+  info("Output directory: .tskb/");
+  info("   ├─ graph.json     Knowledge graph data");
+  info("   └─ graph.dot      Graphviz visualization");
+  for (const p of skillPaths) {
+    info(`   └─ ${path.relative(process.cwd(), p)}  Claude Code skill`);
   }
-  if (copilotPath) {
-    console.log("   └─ .github/instructions/tskb.instructions.md  Copilot instructions");
+  for (const p of copilotPaths) {
+    info(`   └─ ${path.relative(process.cwd(), p)}  Copilot instructions`);
   }
-  console.log("");
-  console.log(`Visualize with: dot -Tpng .tskb/graph.dot -o .tskb/graph.png`);
+  info("");
+  info(`Visualize with: dot -Tpng .tskb/graph.dot -o .tskb/graph.png`);
+  buildDone();
 }

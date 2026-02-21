@@ -182,14 +182,14 @@ function extractTypeAssertionMetadata(
  *
  * JSX TRAVERSAL STRATEGY:
  * We recursively walk the JSX tree (depth-first) and:
- * 1. When we hit <FolderRef name="X" /> -> add "X" to references.folders, append "[Folder: X]" to content
- * 2. When we hit <ModuleRef name="Y" /> -> add "Y" to references.modules, append "[Module: Y]" to content
- * 3. When we hit <TermRef name="Z" /> -> add "Z" to references.terms, append "[Term: Z]" to content
+ * 1. When we hit <FolderRef name="X" /> -> add "X" to references.folders, append "<nodeId: X>" to content
+ * 2. When we hit <ModuleRef name="Y" /> -> add "Y" to references.modules, append "<nodeId: Y>" to content
+ * 3. When we hit <TermRef name="Z" /> -> add "Z" to references.terms, append "<nodeId: Z>" to content
  * 4. When we hit text nodes ("some text") -> append to content
  * 5. For other elements (<Doc>, <H1>, <P>, etc.) -> recurse into children
  *
  * RESULT:
- * - content: Full text representation of the doc (references shown as [Module: X])
+ * - content: Full text representation of the doc (references shown as <nodeId: X>)
  * - references: Arrays of all referenced module/term/folder names
  *
  * This gives us both human-readable text AND the graph edges we need.
@@ -255,21 +255,21 @@ function extractJsxContent(
           const refName = getNameAttribute(attributes);
           if (refName) {
             references.modules.push(refName);
-            content += `[Module: ${refName}]`;
+            content += `<nodeId: ${refName}>`;
             return; // Don't process children
           }
         } else if (name === "TermRef") {
           const refName = getNameAttribute(attributes);
           if (refName) {
             references.terms.push(refName);
-            content += `[Term: ${refName}]`;
+            content += `<nodeId: ${refName}>`;
             return;
           }
         } else if (name === "FolderRef") {
           const refName = getNameAttribute(attributes);
           if (refName) {
             references.folders.push(refName);
-            content += `[Folder: ${refName}]`;
+            content += `<nodeId: ${refName}>`;
             return;
           }
         }
@@ -352,16 +352,16 @@ function createReferenceContent(
 ): string | null {
   if (category === "Folders") {
     references.folders.push(name);
-    return `[Folder: ${name}]`;
+    return `<nodeId: ${name}>`;
   } else if (category === "Modules") {
     references.modules.push(name);
-    return `[Module: ${name}]`;
+    return `<nodeId: ${name}>`;
   } else if (category === "Terms") {
     references.terms.push(name);
-    return `[Term: ${name}]`;
+    return `<nodeId: ${name}>`;
   } else if (category === "Exports") {
     references.exports.push(name);
-    return `[Export: ${name}]`;
+    return `<nodeId: ${name}>`;
   }
   return null;
 }

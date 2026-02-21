@@ -2,24 +2,30 @@ import fs from "node:fs";
 import Fuse from "fuse.js";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
+import { verbose, time } from "../utils/logger.js";
 
 interface SearchableNode {
   id: string;
   type: AnyNode["type"];
   desc: string;
   path: string;
+  content: string; // children names (folders) or member names (modules) for deep matching
   priority?: string;
+  structureSummary?: string;
+  morphologySummary?: string;
 }
 
 interface SearchResult {
   query: string;
   results: Array<{
-    id: string;
+    nodeId: string;
     type: string;
     desc: string;
     path: string;
     score: number;
     priority?: string;
+    structureSummary?: string;
+    morphologySummary?: string;
   }>;
 }
 
@@ -28,17 +34,22 @@ interface SearchResult {
  * Returns ranked results across all node types.
  */
 export async function search(query: string): Promise<void> {
+  const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
+  loadDone();
 
+  const searchDone = time("Searching");
   const nodes = buildSearchableNodes(graph);
+  verbose(`   ${nodes.length} searchable nodes indexed`);
 
   const fuse = new Fuse(nodes, {
     keys: [
-      { name: "id", weight: 0.4 },
-      { name: "desc", weight: 0.3 },
-      { name: "path", weight: 0.3 },
+      { name: "id", weight: 0.35 },
+      { name: "desc", weight: 0.25 },
+      { name: "path", weight: 0.2 },
+      { name: "content", weight: 0.2 },
     ],
     threshold: 0.4,
     ignoreLocation: true,
@@ -55,7 +66,9 @@ export async function search(query: string): Promise<void> {
   // Boost results that contain an exact substring match of any query word
   const lowerWords = words.map((w) => w.toLowerCase());
   const boosted = fuseResults.map((r) => {
-    const fields = [r.item.id, r.item.desc, r.item.path].map((f) => f.toLowerCase());
+    const fields = [r.item.id, r.item.desc, r.item.path, r.item.content].map((f) =>
+      f.toLowerCase()
+    );
     const hasExact = lowerWords.some((w) => fields.some((f) => f.includes(w)));
     // Halve the score (lower = better in Fuse) for exact substring matches
     const boostedScore = hasExact ? (r.score ?? 1) * 0.5 : (r.score ?? 1);
@@ -66,14 +79,19 @@ export async function search(query: string): Promise<void> {
   const result: SearchResult = {
     query,
     results: boosted.slice(0, 10).map((r) => ({
-      id: r.item.id,
+      nodeId: r.item.id,
       type: r.item.type,
       desc: r.item.desc,
       path: r.item.path,
       score: Math.round((1 - (r.score ?? 1)) * 100) / 100,
       ...(r.item.priority ? { priority: r.item.priority } : {}),
+      ...(r.item.structureSummary ? { structureSummary: r.item.structureSummary } : {}),
+      ...(r.item.morphologySummary ? { morphologySummary: r.item.morphologySummary } : {}),
     })),
   };
+  searchDone();
+
+  verbose(`   ${fuseResults.length} raw matches, returning top ${result.results.length}`);
 
   console.log(JSON.stringify(result, null, 2));
 }
@@ -91,7 +109,14 @@ function buildSearchableNodes(graph: KnowledgeGraph): SearchableNode[] {
         type: node.type,
         desc: getDesc(node),
         path: getPath(node),
+        content: getContent(node),
         ...(node.type === "doc" ? { priority: node.priority } : {}),
+        ...(node.type === "folder" && node.structureSummary
+          ? { structureSummary: node.structureSummary }
+          : {}),
+        ...(node.type === "module" && node.morphologySummary
+          ? { morphologySummary: node.morphologySummary }
+          : {}),
       });
     }
   }
@@ -104,6 +129,20 @@ function getDesc(node: AnyNode): string {
     return node.explains || node.content.substring(0, 200).replace(/\s+/g, " ").trim();
   }
   return node.desc;
+}
+
+function getContent(node: AnyNode): string {
+  if (node.type === "folder" && node.children) {
+    const names = [
+      ...node.children.folders.map((f) => f.name),
+      ...node.children.files.map((f) => f.name),
+    ];
+    return names.join(" ");
+  }
+  if (node.type === "module" && node.morphology) {
+    return node.morphology.join(" ");
+  }
+  return "";
 }
 
 function getPath(node: AnyNode): string {

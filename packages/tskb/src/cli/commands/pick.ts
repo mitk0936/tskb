@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
+import { verbose, time } from "../utils/logger.js";
 import {
   resolveNode,
   getNodeEdges,
@@ -16,43 +17,60 @@ import {
 interface FolderPickResult {
   type: "folder";
   resolvedVia: ResolvedVia;
-  node: { id: string; desc: string; path?: string };
-  parent?: { id: string; type: string; desc: string };
-  childFolders: Array<{ id: string; desc: string; path?: string }>;
-  modules: Array<{ id: string; desc: string; path?: string }>;
-  exports: Array<{ id: string; desc: string; path?: string }>;
+  node: {
+    nodeId: string;
+    desc: string;
+    path?: string;
+    structureSummary?: string;
+    children?: import("../../core/graph/types.js").FolderNode["children"];
+  };
+  parent?: { nodeId: string; type: string; desc: string };
+  exports: Array<{ nodeId: string; desc: string; path?: string }>;
   referencingDocs: DocRef[];
 }
 
 interface ModulePickResult {
   type: "module";
   resolvedVia: ResolvedVia;
-  node: { id: string; desc: string; typeSignature?: string; resolvedPath?: string };
-  parentFolder?: { id: string; desc: string; path?: string };
-  exports: Array<{ id: string; desc: string; typeSignature?: string }>;
+  node: {
+    nodeId: string;
+    desc: string;
+    typeSignature?: string;
+    resolvedPath?: string;
+    morphologySummary?: string;
+    morphology?: string[];
+  };
+  parentFolder?: { nodeId: string; desc: string; path?: string };
+  exports: Array<{ nodeId: string; desc: string; typeSignature?: string }>;
   referencingDocs: DocRef[];
 }
 
 interface ExportPickResult {
   type: "export";
   resolvedVia: ResolvedVia;
-  node: { id: string; desc: string; typeSignature?: string; resolvedPath?: string };
-  parent?: { id: string; type: string; desc: string };
+  node: { nodeId: string; desc: string; typeSignature?: string; resolvedPath?: string };
+  parent?: { nodeId: string; type: string; desc: string };
   referencingDocs: DocRef[];
 }
 
 interface TermPickResult {
   type: "term";
   resolvedVia: ResolvedVia;
-  node: { id: string; desc: string };
+  node: { nodeId: string; desc: string };
   referencingDocs: DocRef[];
 }
 
 interface DocPickResult {
   type: "doc";
   resolvedVia: ResolvedVia;
-  node: { id: string; explains: string; filePath: string; format: string; priority: string };
-  referencedNodes: Array<{ id: string; type: string; desc: string }>;
+  node: {
+    nodeId: string;
+    explains: string;
+    filePath: string;
+    format: string;
+    priority: string;
+    content: string;
+  };
 }
 
 type PickResult =
@@ -81,26 +99,13 @@ function resolveFolder(
 
   const parent = findParent(edges, graph);
 
-  const childFolders: FolderPickResult["childFolders"] = [];
-  for (const edge of edges.outgoing) {
-    if (edge.type === "contains") {
-      const child = graph.nodes.folders[edge.to];
-      if (child) childFolders.push({ id: edge.to, desc: child.desc, path: child.path });
-    }
-  }
-
-  const modules: FolderPickResult["modules"] = [];
+  // Collect exports that belong directly to this folder (not via a module)
   const exports: FolderPickResult["exports"] = [];
   for (const edge of edges.incoming) {
     if (edge.type === "belongs-to") {
-      const mod = graph.nodes.modules[edge.from];
-      if (mod) {
-        modules.push({ id: edge.from, desc: mod.desc, path: mod.resolvedPath });
-        continue;
-      }
       const exp = graph.nodes.exports[edge.from];
       if (exp) {
-        exports.push({ id: edge.from, desc: exp.desc, path: exp.resolvedPath });
+        exports.push({ nodeId: edge.from, desc: exp.desc, path: exp.resolvedPath });
       }
     }
   }
@@ -108,10 +113,14 @@ function resolveFolder(
   return {
     type: "folder",
     resolvedVia: "id", // placeholder, caller overwrites
-    node: { id, desc: folder.desc, path: folder.path },
+    node: {
+      nodeId: id,
+      desc: folder.desc,
+      path: folder.path,
+      ...(folder.structureSummary ? { structureSummary: folder.structureSummary } : {}),
+      ...(folder.children ? { children: folder.children } : {}),
+    },
     parent,
-    childFolders,
-    modules,
     exports,
     referencingDocs: findReferencingDocs(edges, graph),
   };
@@ -130,7 +139,7 @@ function resolveModule(
   let parentFolder: ModulePickResult["parentFolder"];
   if (parentEdge) {
     const folder = graph.nodes.folders[parentEdge.to];
-    if (folder) parentFolder = { id: parentEdge.to, desc: folder.desc, path: folder.path };
+    if (folder) parentFolder = { nodeId: parentEdge.to, desc: folder.desc, path: folder.path };
   }
 
   // exports that belong to this module
@@ -138,14 +147,21 @@ function resolveModule(
   for (const edge of edges.incoming) {
     if (edge.type === "belongs-to") {
       const exp = graph.nodes.exports[edge.from];
-      if (exp) exps.push({ id: edge.from, desc: exp.desc, typeSignature: exp.typeSignature });
+      if (exp) exps.push({ nodeId: edge.from, desc: exp.desc, typeSignature: exp.typeSignature });
     }
   }
 
   return {
     type: "module",
     resolvedVia: "id",
-    node: { id, desc: mod.desc, typeSignature: mod.typeSignature, resolvedPath: mod.resolvedPath },
+    node: {
+      nodeId: id,
+      desc: mod.desc,
+      typeSignature: mod.typeSignature,
+      resolvedPath: mod.resolvedPath,
+      ...(mod.morphologySummary ? { morphologySummary: mod.morphologySummary } : {}),
+      ...(mod.morphology ? { morphology: mod.morphology } : {}),
+    },
     parentFolder,
     exports: exps,
     referencingDocs: findReferencingDocs(edges, graph),
@@ -163,7 +179,12 @@ function resolveExport(
   return {
     type: "export",
     resolvedVia: "id",
-    node: { id, desc: exp.desc, typeSignature: exp.typeSignature, resolvedPath: exp.resolvedPath },
+    node: {
+      nodeId: id,
+      desc: exp.desc,
+      typeSignature: exp.typeSignature,
+      resolvedPath: exp.resolvedPath,
+    },
     parent: findParent(edges, graph),
     referencingDocs: findReferencingDocs(edges, graph),
   };
@@ -180,7 +201,7 @@ function resolveTerm(
   return {
     type: "term",
     resolvedVia: "id",
-    node: { id, desc: term.desc },
+    node: { nodeId: id, desc: term.desc },
     referencingDocs: findReferencingDocs(edges, graph),
   };
 }
@@ -188,40 +209,22 @@ function resolveTerm(
 function resolveDoc(
   id: string,
   node: AnyNode,
-  edges: NodeEdges,
-  graph: KnowledgeGraph
+  _edges: NodeEdges,
+  _graph: KnowledgeGraph
 ): DocPickResult {
   const doc = node as import("../../core/graph/types.js").DocNode;
-
-  const referencedNodes: DocPickResult["referencedNodes"] = [];
-  for (const edge of edges.outgoing) {
-    if (edge.type === "references") {
-      const target =
-        graph.nodes.folders[edge.to] ||
-        graph.nodes.modules[edge.to] ||
-        graph.nodes.exports[edge.to] ||
-        graph.nodes.terms[edge.to];
-      if (target) {
-        referencedNodes.push({
-          id: edge.to,
-          type: target.type,
-          desc: "desc" in target ? target.desc : "",
-        });
-      }
-    }
-  }
 
   return {
     type: "doc",
     resolvedVia: "id",
     node: {
-      id,
+      nodeId: id,
       explains: doc.explains,
       filePath: doc.filePath,
       format: doc.format,
       priority: doc.priority,
+      content: doc.content,
     },
-    referencedNodes,
   };
 }
 
@@ -236,10 +239,13 @@ const resolvers: Record<string, NodeResolver> = {
 // --- Public API ---
 
 export async function pick(identifier: string): Promise<void> {
+  const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
+  loadDone();
 
+  const resolveDone = time("Resolving node");
   const resolved = resolveNode(graph, identifier);
 
   if (!resolved) {
@@ -273,6 +279,11 @@ export async function pick(identifier: string): Promise<void> {
   const edges = getNodeEdges(graph.edges, resolved.id);
   const result = resolver(resolved.id, resolved.node, edges, graph);
   result.resolvedVia = resolved.resolvedVia;
+  resolveDone();
+
+  verbose(
+    `   Resolved "${identifier}" via ${resolved.resolvedVia} → ${resolved.node.type} "${resolved.id}"`
+  );
 
   console.log(JSON.stringify(result, null, 2));
 }

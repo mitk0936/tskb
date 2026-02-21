@@ -1,45 +1,57 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
-import { buildBody } from "./content-builder.js";
+import { buildQueryBody, buildUpdateBody } from "./content-builder.js";
+import { info } from "./logger.js";
 
 /**
- * Generate a Claude Code skill file at .claude/skills/tskb/SKILL.md
+ * Generate Claude Code skill files:
+ * - .claude/skills/tskb/SKILL.md (query/explore)
+ * - .claude/skills/tskb-update/SKILL.md (update docs)
  *
  * If .claude/skills/ doesn't exist, prints a suggestion to create it.
  *
  * @param graph - The built knowledge graph (used to bake in folder tree and doc summaries)
- * @returns The path written, or null if skipped
+ * @returns Array of paths written, or empty array if skipped
  */
-export function generateSkillFile(graph: KnowledgeGraph): string | null {
+export function generateSkillFiles(graph: KnowledgeGraph): string[] {
   const skillsDir = path.resolve(process.cwd(), ".claude", "skills");
 
   if (!fs.existsSync(skillsDir)) {
-    console.log("");
-    console.log(
-      "Tip: Create a .claude/skills/ directory to generate a Claude Code skill for tskb:"
-    );
-    console.log("   mkdir -p .claude/skills");
-    console.log("   Then re-run the build to generate .claude/skills/tskb/SKILL.md");
-    return null;
+    info("");
+    info("Tip: Create a .claude/skills/ directory to generate Claude Code skills for tskb:");
+    info("   mkdir -p .claude/skills");
+    info("   Then re-run the build to generate skill files");
+    return [];
   }
 
-  const tskbSkillDir = path.join(skillsDir, "tskb");
-  fs.mkdirSync(tskbSkillDir, { recursive: true });
+  const paths: string[] = [];
 
-  const content = buildSkillContent(graph);
-  const skillPath = path.join(tskbSkillDir, "SKILL.md");
-  fs.writeFileSync(skillPath, content, "utf-8");
+  // Query skill
+  const queryDir = path.join(skillsDir, "tskb");
+  fs.mkdirSync(queryDir, { recursive: true });
+  const queryContent = buildQuerySkillContent(graph);
+  const queryPath = path.join(queryDir, "SKILL.md");
+  fs.writeFileSync(queryPath, queryContent, "utf-8");
+  paths.push(queryPath);
 
-  return skillPath;
+  // Update skill
+  const updateDir = path.join(skillsDir, "tskb-update");
+  fs.mkdirSync(updateDir, { recursive: true });
+  const updateContent = buildUpdateSkillContent(graph);
+  const updatePath = path.join(updateDir, "SKILL.md");
+  fs.writeFileSync(updatePath, updateContent, "utf-8");
+  paths.push(updatePath);
+
+  return paths;
 }
 
-function buildSkillContent(graph: KnowledgeGraph): string {
+function buildQuerySkillContent(graph: KnowledgeGraph): string {
   return `---
 name: tskb
 description: "IMPORTANT: Always invoke this skill BEFORE planning, exploring, or making code changes. Uses the tskb knowledge graph to understand codebase structure, locate concepts, and find relevant files."
 argument-hint: [query]
-allowed-tools: Bash(npx tskb *)
+allowed-tools: Bash(npx --no -- tskb *)
 ---
 
 # TSKB — Codebase Architecture Explorer
@@ -54,6 +66,22 @@ This project uses **TSKB**, a semantic knowledge graph of the codebase.
 
 Use the commands below to query the graph — do NOT skip this and jump straight to reading files.
 
-${buildBody(graph)}
+${buildQueryBody(graph)}
+`;
+}
+
+function buildUpdateSkillContent(graph: KnowledgeGraph): string {
+  return `---
+name: tskb-update
+description: "Use when you discover undocumented architecture, make structural changes, or the developer wants to record an important decision. Guides writing .tskb.tsx documentation files."
+allowed-tools: Bash(npx --no -- tskb *), Read, Write, Edit, Glob
+---
+
+# TSKB — Documentation Authoring Guide
+
+This project uses **TSKB**, a semantic knowledge graph of the codebase.
+This guide explains how to write and update \`.tskb.tsx\` documentation files.
+
+${buildUpdateBody(graph)}
 `;
 }

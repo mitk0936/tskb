@@ -123,6 +123,8 @@ export default (
     <H1>Architecture and implementation docs for the {"<TSKB>"} library </H1>
     <P>
       The package is located in {TSKBRootFolder}, with its {PackageJson} and README.md for npm.
+      IMPORTANT: The README.md is the official npm package doc, so we need to make sure its always
+      updated after something important is added/changed
     </P>
     <H2>What is {"<TSKB>"}?</H2>
     <P>

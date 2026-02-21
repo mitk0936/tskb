@@ -7,6 +7,7 @@
  */
 
 import type { DocPriority } from "../../runtime/jsx.js";
+import type { FolderChildren } from "../extraction/folder-summary.js";
 
 export interface GraphNode {
   id: string;
@@ -20,6 +21,14 @@ export interface FolderNode extends GraphNode {
    * Resolved path relative to tsconfig directory (portable across machines)
    */
   path?: string;
+  /**
+   * Auto-generated filesystem summary, e.g. "3 folders, 7 files"
+   */
+  structureSummary?: string;
+  /**
+   * Filesystem children (folder and file names)
+   */
+  children?: FolderChildren;
 }
 
 export interface ModuleNode extends GraphNode {
@@ -33,6 +42,14 @@ export interface ModuleNode extends GraphNode {
    * Resolved path relative to tsconfig directory (portable across machines)
    */
   resolvedPath?: string;
+  /**
+   * Auto-generated export summary, e.g. "1 class, 3 functions, 2 types"
+   */
+  morphologySummary?: string;
+  /**
+   * Code stub lines showing exported API shape (classes with methods/props, function signatures, etc.)
+   */
+  morphology?: string[];
 }
 
 export interface TermNode extends GraphNode {
