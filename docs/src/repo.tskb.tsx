@@ -1,4 +1,4 @@
-import { Folder } from "packages/tskb/dist";
+import { Folder } from "tskb";
 
 declare global {
   namespace tskb {

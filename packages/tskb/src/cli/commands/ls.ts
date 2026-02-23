@@ -2,21 +2,23 @@ import fs from "node:fs";
 import type { KnowledgeGraph, GraphEdge } from "../../core/graph/types.js";
 import { ROOT_FOLDER_NAME } from "../../core/constants.js";
 import { findGraphFile } from "../utils/graph-finder.js";
+import { verbose, time } from "../utils/logger.js";
 
 /**
  * Result from listing folders in the knowledge graph
  */
 interface LsResult {
   root: string;
-  folders: Array<{
-    id: string;
-    desc?: string;
-    path?: string;
-  }>;
   docs: Array<{
-    id: string;
+    nodeId: string;
     explains: string;
     filePath: string;
+  }>;
+  folders: Array<{
+    nodeId: string;
+    desc?: string;
+    path?: string;
+    structureSummary?: string;
   }>;
 }
 
@@ -27,9 +29,11 @@ interface LsResult {
  */
 export async function ls(maxDepth: number = 1): Promise<void> {
   // Find and load the knowledge graph
+  const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
+  loadDone();
 
   // Find the root folder (Package.Root)
   const rootId = ROOT_FOLDER_NAME;
@@ -50,7 +54,14 @@ export async function ls(maxDepth: number = 1): Promise<void> {
     process.exit(1);
   }
 
+  const traverseDone = time("Traversing folders");
   const result = listFolders(graph, rootId, maxDepth);
+  traverseDone();
+
+  verbose(
+    `   ${result.folders.length} folders, ${result.docs.length} essential docs (depth=${maxDepth})`
+  );
+
   console.log(JSON.stringify(result, null, 2));
 }
 
@@ -85,7 +96,12 @@ function buildChildIndex(edges: GraphEdge[]): Map<string, string[]> {
 }
 
 function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): LsResult {
-  const folders: Array<{ id: string; desc?: string; path?: string }> = [];
+  const folders: Array<{
+    nodeId: string;
+    desc?: string;
+    path?: string;
+    structureSummary?: string;
+  }> = [];
   const visited = new Set<string>();
   const childIndex = buildChildIndex(graph.edges);
 
@@ -100,9 +116,10 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
     const actualDepth = calculatePathDepth(folderPath);
 
     folders.push({
-      id: folderId,
+      nodeId: folderId,
       desc: folder.desc,
       path: folderPath,
+      ...(folder.structureSummary ? { structureSummary: folder.structureSummary } : {}),
     });
 
     if (maxDepth !== -1 && actualDepth >= maxDepth) {
@@ -122,13 +139,13 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
   folders.sort((a, b) => (a.path ?? "").localeCompare(b.path ?? ""));
 
   // Collect essential docs and deduplicate by ID
-  const docsMap = new Map<string, { id: string; explains: string; filePath: string }>();
+  const docsMap = new Map<string, { nodeId: string; explains: string; filePath: string }>();
   Object.values(graph.nodes.docs)
     .filter((d) => d.priority === "essential")
     .forEach((d) => {
       // Use doc ID as the unique key to prevent duplicates
       if (!docsMap.has(d.id)) {
-        docsMap.set(d.id, { id: d.id, explains: d.explains, filePath: d.filePath });
+        docsMap.set(d.id, { nodeId: d.id, explains: d.explains, filePath: d.filePath });
       }
     });
 
@@ -136,7 +153,7 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
 
   return {
     root: rootId,
-    folders,
     docs,
+    folders,
   };
 }

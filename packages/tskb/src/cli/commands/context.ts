@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import type { KnowledgeGraph, GraphEdge, AnyNode } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
+import { verbose, time } from "../utils/logger.js";
 import {
   resolveNode,
   getNodeEdges,
@@ -12,27 +13,30 @@ import {
 // --- Result types ---
 
 interface ContextNode {
-  id: string;
+  nodeId: string;
   type: AnyNode["type"];
   desc: string;
   path?: string;
+  structureSummary?: string;
+  morphologySummary?: string;
   depth: number;
 }
 
 interface ContextDoc {
-  id: string;
+  nodeId: string;
   explains: string;
   priority: string;
   filePath: string;
-  content: string;
 }
 
 interface ContextResult {
   root: {
-    id: string;
+    nodeId: string;
     type: AnyNode["type"];
     desc: string;
     path?: string;
+    structureSummary?: string;
+    morphologySummary?: string;
     resolvedVia: ResolvedVia;
   };
   nodes: ContextNode[];
@@ -120,28 +124,33 @@ function buildContext(
     // Collect node (skip root at depth 0 — it goes in root field)
     if (depth > 0) {
       collectedNodes.push({
-        id,
+        nodeId: id,
         type: node.type,
         desc: getNodeDesc(node),
         path: getNodePath(node),
+        ...(node.type === "folder" && node.structureSummary
+          ? { structureSummary: node.structureSummary }
+          : {}),
+        ...(node.type === "module" && node.morphologySummary
+          ? { morphologySummary: node.morphologySummary }
+          : {}),
         depth,
       });
     }
 
     // Collect referencing docs for this node
     const edges = getNodeEdges(graph.edges, id);
-    const docs = findReferencingDocs(edges, graph);
-    for (const doc of docs) {
-      if (!docMap.has(doc.id)) {
-        docMap.set(doc.id, {
-          id: doc.id,
-          explains: doc.explains,
-          priority: doc.priority,
-          filePath: doc.filePath,
-          content: doc.content,
+    const docRefs = findReferencingDocs(edges, graph);
+    for (const docRef of docRefs) {
+      if (!docMap.has(docRef.nodeId)) {
+        docMap.set(docRef.nodeId, {
+          nodeId: docRef.nodeId,
+          explains: docRef.explains,
+          priority: docRef.priority,
+          filePath: docRef.filePath,
         });
-        if (doc.priority === "constraint") {
-          constraints.push(doc.id);
+        if (docRef.priority === "constraint") {
+          constraints.push(docRef.nodeId);
         }
       }
     }
@@ -171,10 +180,13 @@ function buildContext(
 // --- Public API ---
 
 export async function context(identifier: string, depth: number = 1): Promise<void> {
+  const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
   const graph: KnowledgeGraph = JSON.parse(graphJson);
+  loadDone();
 
+  const traverseDone = time("Building context");
   const resolved = resolveNode(graph, identifier);
 
   if (!resolved) {
@@ -198,16 +210,30 @@ export async function context(identifier: string, depth: number = 1): Promise<vo
 
   const result: ContextResult = {
     root: {
-      id: resolved.id,
+      nodeId: resolved.id,
       type: rootNode.type,
       desc: getNodeDesc(rootNode),
       path: getNodePath(rootNode),
+      ...(rootNode.type === "folder" && rootNode.structureSummary
+        ? { structureSummary: rootNode.structureSummary }
+        : {}),
+      ...(rootNode.type === "module" && rootNode.morphologySummary
+        ? { morphologySummary: rootNode.morphologySummary }
+        : {}),
       resolvedVia: resolved.resolvedVia,
     },
     nodes,
     docs,
     constraints,
   };
+  traverseDone();
+
+  verbose(
+    `   Resolved "${identifier}" via ${resolved.resolvedVia} → ${resolved.node.type} "${resolved.id}"`
+  );
+  verbose(
+    `   ${nodes.length} nodes, ${docs.length} docs, ${constraints.length} constraints (depth=${depth})`
+  );
 
   console.log(JSON.stringify(result, null, 2));
 }

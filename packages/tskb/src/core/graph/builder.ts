@@ -82,6 +82,9 @@ export function buildGraph(
   buildTermNodes(registry, graph);
   buildExportNodes(registry, graph);
 
+  // Enrich folder children with node IDs from registered folders/modules
+  enrichFolderChildren(graph);
+
   // Build nodes from docs
   buildDocNodes(docs, graph);
 
@@ -123,6 +126,12 @@ function buildFolderNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
       type: "folder",
       desc: data.desc,
       path: data.resolvedPath ?? data.path,
+      ...(data.folderSummary
+        ? {
+            structureSummary: data.folderSummary.summary,
+            children: data.folderSummary.children,
+          }
+        : {}),
     };
     graph.nodes.folders[name] = node;
   }
@@ -139,6 +148,12 @@ function buildModuleNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
       desc: data.desc,
       typeSignature: data.type,
       resolvedPath: data.resolvedPath,
+      ...(data.morphology
+        ? {
+            morphologySummary: data.morphology.summary,
+            morphology: data.morphology.morphology,
+          }
+        : {}),
     };
     graph.nodes.modules[name] = node;
   }
@@ -171,6 +186,59 @@ function buildExportNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
       resolvedPath: data.resolvedPath,
     };
     graph.nodes.exports[name] = node;
+  }
+}
+
+/**
+ * Enrich folder children with node IDs by matching child paths against registered folders and modules.
+ *
+ * For each folder that has children, check if any child folder name corresponds to a registered
+ * folder node (by path) or if any child file corresponds to a registered module node (by resolvedPath).
+ */
+function enrichFolderChildren(graph: KnowledgeGraph): void {
+  // Build path → node lookups
+  const folderPathToNode = new Map<string, FolderNode>();
+  for (const folder of Object.values(graph.nodes.folders)) {
+    if (folder.path) folderPathToNode.set(folder.path, folder);
+  }
+
+  const modulePathToNode = new Map<string, ModuleNode>();
+  for (const mod of Object.values(graph.nodes.modules)) {
+    if (mod.resolvedPath) modulePathToNode.set(mod.resolvedPath, mod);
+  }
+
+  for (const folder of Object.values(graph.nodes.folders)) {
+    if (!folder.children || !folder.path) continue;
+
+    const basePath = folder.path === "." ? "" : folder.path;
+
+    // Enrich child folders
+    for (const child of folder.children.folders) {
+      const childPath = basePath ? `${basePath}/${child.name}` : child.name;
+      const match = folderPathToNode.get(childPath);
+      if (match) {
+        child.nodeId = match.id;
+        child.desc = match.desc;
+      }
+    }
+
+    // Enrich child files
+    for (const child of folder.children.files) {
+      const childPath = basePath ? `${basePath}/${child.name}` : child.name;
+      // Try exact match first, then without extension (modules resolve to .ts but file might be listed as-is)
+      let match = modulePathToNode.get(childPath);
+      if (!match) {
+        const base = childPath.replace(/\.[^.]+$/, "");
+        for (const ext of [".ts", ".tsx", ".js", ".jsx"]) {
+          match = modulePathToNode.get(base + ext);
+          if (match) break;
+        }
+      }
+      if (match) {
+        child.nodeId = match.id;
+        child.desc = match.desc;
+      }
+    }
   }
 }
 

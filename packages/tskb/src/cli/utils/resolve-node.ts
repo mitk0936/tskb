@@ -9,11 +9,10 @@ export interface NodeEdges {
 }
 
 export interface DocRef {
-  id: string;
+  nodeId: string;
   explains: string;
   filePath: string;
   priority: string;
-  content: string;
 }
 
 // --- Node resolution ---
@@ -111,11 +110,10 @@ export function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): Do
       const doc = graph.nodes.docs[edge.from];
       if (doc) {
         docs.push({
-          id: edge.from,
+          nodeId: edge.from,
           explains: doc.explains,
           filePath: doc.filePath,
           priority: doc.priority,
-          content: doc.content,
         });
       }
     }
@@ -126,7 +124,7 @@ export function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): Do
 export function findParent(
   edges: NodeEdges,
   graph: KnowledgeGraph
-): { id: string; type: string; desc: string } | undefined {
+): { nodeId: string; type: string; desc: string } | undefined {
   const parentEdge =
     edges.outgoing.find((e) => e.type === "belongs-to") ||
     edges.incoming.find((e) => e.type === "contains");
@@ -138,7 +136,7 @@ export function findParent(
 
   if (!parentNode) return undefined;
 
-  return { id: parentId, type: parentNode.type, desc: parentNode.desc };
+  return { nodeId: parentId, type: parentNode.type, desc: parentNode.desc };
 }
 
 function normalizePath(p: string): string {
