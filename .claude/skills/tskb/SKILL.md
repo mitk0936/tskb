@@ -10,12 +10,12 @@ allowed-tools: Bash(npx --no -- tskb *)
 This project uses **TSKB**, a semantic knowledge graph of the codebase.
 
 **You MUST use this skill before:**
+- Starting any new task that touches an unexplored part of the repo
 - Planning any implementation or refactoring
-- Exploring unfamiliar parts of the codebase
 - Making code changes (to understand what you're touching)
 - Answering architecture questions
 
-Use the commands below to query the graph — do NOT skip this and jump straight to reading files.
+Query the graph first — it captures developer intent and constraints that file reading alone will miss. Only fall back to filesystem exploration when TSKB has no coverage for the area (undocumented).
 
 ## Graph Concepts
 
@@ -101,8 +101,11 @@ Some docs are marked as **constraints** (`priority="constraint"`). These define 
 
 ## Workflow
 
-1. **Orient** — Scan the folder structure above to find the relevant area
-2. **Search** — Run `npx --no -- tskb search "<query>"` to find specific nodes
-3. **Pick** — Run `npx --no -- tskb pick "<id>"` for full context on a node. Check for constraint docs.
-4. **Explore** — Only then use file reading tools for implementation details not covered by the graph
-5. **Act** — Make architecturally coherent changes based on what you learned
+**For every new task, query TSKB first** — the knowledge graph captures developer intent, architectural decisions, and constraints that filesystem exploration alone will miss. Only fall back to file reading when TSKB has no coverage for the area (no registered folders, modules, or docs reference it).
+
+1. **Query TSKB first** — Run `search`, `pick`, or `context` for the area you're about to touch. This is mandatory, not optional.
+2. **Check for docs and constraints** — Read any referencing docs, especially constraints. These encode rules you must follow.
+3. **If TSKB has no coverage** — The area is undocumented. Switch to filesystem exploration (file reads, grep) to understand it directly. Consider suggesting doc updates.
+4. **Act** — Make architecturally coherent changes based on what you learned.
+
+Do NOT skip step 1 and jump straight to reading files — you risk missing documented intent, constraints, and structural relationships that the developer has explicitly recorded.

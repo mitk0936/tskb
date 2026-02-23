@@ -13,6 +13,37 @@ TSKB docs are **structural maps**, not implementation manuals. They describe *wh
 
 The type-safe primitives (`Folder`, `Module`, `Export`) anchor docs to real code via `typeof import()`. The TypeScript compiler validates that referenced files and exports actually exist — if code moves or is deleted, the build breaks, so docs can't silently go stale.
 
+## Doc Content: Think Code Comments, Not Prose
+
+**`<Doc>` blocks must be terse — like code comments, not essays.** Each `<Doc>` should:
+
+- **State what this is and its main purpose** — one or two sentences, no more.
+- **Bind to actual nodes** — reference `Folder`, `Module`, `Export`, and `Term` refs. The references *are* the documentation; prose just connects them.
+- **Never narrate implementation** — don't describe control flow, algorithms, function internals, or step-by-step logic. That belongs in the code itself.
+
+A good `<Doc>` reads like a label on a map: "This folder handles X. Key module is Y, which provides Z." A bad `<Doc>` reads like a tutorial with paragraphs explaining how things work internally.
+
+```tsx
+// GOOD — short, structural, bound to nodes
+export default (
+  <Doc explains="Task scheduling: queue, workers, retry logic">
+    <P>{TaskQueue} dispatches jobs to {WorkerPool}. Retry policy in {RetryConfig}.</P>
+  </Doc>
+);
+
+// BAD — verbose, implementation-heavy
+export default (
+  <Doc explains="Task scheduling system">
+    <H1>Task Scheduling</H1>
+    <P>The task scheduling system works by first accepting tasks into a queue,
+    where they are prioritized by creation time. The worker pool then picks up
+    tasks using a round-robin strategy. Each worker processes the task and
+    reports back. If a task fails, the retry module checks the retry count
+    against the max retries configuration...</P>
+  </Doc>
+);
+```
+
 ## When to Update Docs
 
 Suggest documenting when:
