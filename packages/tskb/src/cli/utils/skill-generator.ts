@@ -58,13 +58,7 @@ allowed-tools: Bash(npx --no -- tskb *)
 
 This project uses **TSKB**, a semantic knowledge graph of the codebase.
 
-**You MUST use this skill before:**
-- Starting any new task that touches an unexplored part of the repo
-- Planning any implementation or refactoring
-- Making code changes (to understand what you're touching)
-- Answering architecture questions
-
-Query the graph first — it captures developer intent and constraints that file reading alone will miss. Only fall back to filesystem exploration when TSKB has no coverage for the area (undocumented).
+**You MUST query TSKB before touching any area of the codebase** — not just once per task, but each time your work moves to a different folder, module, or concept. Re-query when you shift focus mid-task. The graph captures developer intent and constraints that file reading alone will miss.
 
 ${buildQueryBody(graph)}
 `;

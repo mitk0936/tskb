@@ -904,6 +904,21 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function createProgram(files: string[], tsconfigPath: string): Program"
+        ],
+        "importsSummary": "2 imports from 2 paths",
+        "imports": [
+          "ts from \"typescript\"",
+          "path from \"node:path\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "ts",
+            "path": "typescript"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          }
         ]
       },
       "typescript.index": {
@@ -970,6 +985,21 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function generateDot(graph: KnowledgeGraph): string"
+        ],
+        "importsSummary": "2 imports from 1 path",
+        "imports": [
+          "KnowledgeGraph from \"../graph/types.js\"",
+          "FolderNode from \"../graph/types.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../graph/types.js"
+          },
+          {
+            "symbol": "FolderNode",
+            "path": "../graph/types.js"
+          }
         ]
       },
       "extraction.registry": {
@@ -983,10 +1013,60 @@
           "export function extractRegistry(program: Program, baseDir: string, tsconfigPath: string): ExtractedRegistry",
           "export interface ExtractedRegistry {",
           "  folders: Map<string, { desc: string; path?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; folderSummary?: FolderSummary | undefined; }>",
-          "  modules: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; morphology?: ModuleMorphology | undefined; }>",
+          "  modules: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; morphology?: ModuleMorphology | undefined; imports?: ModuleImports | undefined; }>",
           "  terms: Map<string, string>",
-          "  exports: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; }>",
+          "  exports: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; memberName?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; morphology?: ModuleMorphology | undefined; }>",
           "}"
+        ],
+        "importsSummary": "9 imports from 4 paths",
+        "imports": [
+          "ts from \"typescript\"",
+          "path from \"node:path\"",
+          "extractFolderSummary from \"./folder-summary.js\"",
+          "FolderSummary from \"./folder-summary.js\"",
+          "extractModuleMorphology from \"./module-morphology.js\"",
+          "extractExportMorphology from \"./module-morphology.js\"",
+          "extractModuleImports from \"./module-morphology.js\"",
+          "ModuleMorphology from \"./module-morphology.js\"",
+          "ModuleImports from \"./module-morphology.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "ts",
+            "path": "typescript"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "extractFolderSummary",
+            "path": "./folder-summary.js"
+          },
+          {
+            "symbol": "FolderSummary",
+            "path": "./folder-summary.js"
+          },
+          {
+            "symbol": "extractModuleMorphology",
+            "path": "./module-morphology.js"
+          },
+          {
+            "symbol": "extractExportMorphology",
+            "path": "./module-morphology.js"
+          },
+          {
+            "symbol": "extractModuleImports",
+            "path": "./module-morphology.js"
+          },
+          {
+            "symbol": "ModuleMorphology",
+            "path": "./module-morphology.js"
+          },
+          {
+            "symbol": "ModuleImports",
+            "path": "./module-morphology.js"
+          }
         ]
       },
       "graph.builder": {
@@ -998,6 +1078,66 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph"
+        ],
+        "importsSummary": "11 imports from 5 paths",
+        "imports": [
+          "KnowledgeGraph from \"./types.js\"",
+          "FolderNode from \"./types.js\"",
+          "ModuleNode from \"./types.js\"",
+          "TermNode from \"./types.js\"",
+          "ExportNode from \"./types.js\"",
+          "DocNode from \"./types.js\"",
+          "GraphEdge from \"./types.js\"",
+          "ExtractedRegistry from \"../extraction/registry.js\"",
+          "ExtractedDoc from \"../extraction/documentation.js\"",
+          "path from \"node:path\"",
+          "ROOT_FOLDER_NAME from \"../constants.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "./types.js"
+          },
+          {
+            "symbol": "FolderNode",
+            "path": "./types.js"
+          },
+          {
+            "symbol": "ModuleNode",
+            "path": "./types.js"
+          },
+          {
+            "symbol": "TermNode",
+            "path": "./types.js"
+          },
+          {
+            "symbol": "ExportNode",
+            "path": "./types.js"
+          },
+          {
+            "symbol": "DocNode",
+            "path": "./types.js"
+          },
+          {
+            "symbol": "GraphEdge",
+            "path": "./types.js"
+          },
+          {
+            "symbol": "ExtractedRegistry",
+            "path": "../extraction/registry.js"
+          },
+          {
+            "symbol": "ExtractedDoc",
+            "path": "../extraction/documentation.js"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "ROOT_FOLDER_NAME",
+            "path": "../constants.js"
+          }
         ]
       },
       "graph.types": {
@@ -1027,6 +1167,9 @@
           "  resolvedPath: string | undefined",
           "  morphologySummary: string | undefined",
           "  morphology: string[] | undefined",
+          "  importsSummary: string | undefined",
+          "  imports: string[] | undefined",
+          "  importEntries: ImportEntry[] | undefined",
           "  id: string",
           "}",
           "export interface TermNode {",
@@ -1039,6 +1182,8 @@
           "  desc: string",
           "  typeSignature: string | undefined",
           "  resolvedPath: string | undefined",
+          "  morphologySummary: string | undefined",
+          "  morphology: string[] | undefined",
           "  id: string",
           "}",
           "export interface DocNode {",
@@ -1062,6 +1207,26 @@
           "  edges: GraphEdge[]",
           "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; docCount: number; edgeCount: number; }; }",
           "}"
+        ],
+        "importsSummary": "3 imports from 3 paths",
+        "imports": [
+          "DocPriority from \"../../runtime/jsx.js\"",
+          "FolderChildren from \"../extraction/folder-summary.js\"",
+          "ImportEntry from \"../extraction/module-morphology.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "DocPriority",
+            "path": "../../runtime/jsx.js"
+          },
+          {
+            "symbol": "FolderChildren",
+            "path": "../extraction/folder-summary.js"
+          },
+          {
+            "symbol": "ImportEntry",
+            "path": "../extraction/module-morphology.js"
+          }
         ]
       },
       "extraction.documentation": {
@@ -1081,6 +1246,26 @@
           "  content: string",
           "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; }",
           "}"
+        ],
+        "importsSummary": "3 imports from 3 paths",
+        "imports": [
+          "ts from \"typescript\"",
+          "path from \"node:path\"",
+          "DocPriority from \"../../runtime/jsx.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "ts",
+            "path": "typescript"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "DocPriority",
+            "path": "../../runtime/jsx.js"
+          }
         ]
       },
       "cli.index": {
@@ -1088,7 +1273,57 @@
         "type": "module",
         "desc": "CLI entry point - handles argument parsing, command routing, and error handling",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/index.js\")",
-        "resolvedPath": "packages/tskb/src/cli/index.ts"
+        "resolvedPath": "packages/tskb/src/cli/index.ts",
+        "importsSummary": "9 imports from 8 paths",
+        "imports": [
+          "parseArgs from \"node:util\"",
+          "search from \"./commands/search.js\"",
+          "pick from \"./commands/pick.js\"",
+          "ls from \"./commands/ls.js\"",
+          "context from \"./commands/context.js\"",
+          "docs from \"./commands/docs.js\"",
+          "printHelpAndExit from \"./utils/help.js\"",
+          "configure from \"./utils/logger.js\"",
+          "error from \"./utils/logger.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "parseArgs",
+            "path": "node:util"
+          },
+          {
+            "symbol": "search",
+            "path": "./commands/search.js"
+          },
+          {
+            "symbol": "pick",
+            "path": "./commands/pick.js"
+          },
+          {
+            "symbol": "ls",
+            "path": "./commands/ls.js"
+          },
+          {
+            "symbol": "context",
+            "path": "./commands/context.js"
+          },
+          {
+            "symbol": "docs",
+            "path": "./commands/docs.js"
+          },
+          {
+            "symbol": "printHelpAndExit",
+            "path": "./utils/help.js"
+          },
+          {
+            "symbol": "configure",
+            "path": "./utils/logger.js"
+          },
+          {
+            "symbol": "error",
+            "path": "./utils/logger.js"
+          }
+        ]
       },
       "cli.commands.build": {
         "id": "cli.commands.build",
@@ -1103,6 +1338,66 @@
           "  pattern: string",
           "  tsconfig: string",
           "}"
+        ],
+        "importsSummary": "11 imports from 8 paths",
+        "imports": [
+          "globSync from \"glob\"",
+          "fs from \"node:fs\"",
+          "path from \"node:path\"",
+          "createProgram from \"../../typescript/index.js\"",
+          "extractRegistry from \"../../core/extraction/index.js\"",
+          "extractDocs from \"../../core/extraction/index.js\"",
+          "buildGraph from \"../../core/graph/index.js\"",
+          "generateDot from \"../../core/visualization/index.js\"",
+          "info from \"../utils/logger.js\"",
+          "verbose from \"../utils/logger.js\"",
+          "infoTime from \"../utils/logger.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "globSync",
+            "path": "glob"
+          },
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "createProgram",
+            "path": "../../typescript/index.js"
+          },
+          {
+            "symbol": "extractRegistry",
+            "path": "../../core/extraction/index.js"
+          },
+          {
+            "symbol": "extractDocs",
+            "path": "../../core/extraction/index.js"
+          },
+          {
+            "symbol": "buildGraph",
+            "path": "../../core/graph/index.js"
+          },
+          {
+            "symbol": "generateDot",
+            "path": "../../core/visualization/index.js"
+          },
+          {
+            "symbol": "info",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "verbose",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "infoTime",
+            "path": "../utils/logger.js"
+          }
         ]
       },
       "cli.commands.search": {
@@ -1113,7 +1408,52 @@
         "resolvedPath": "packages/tskb/src/cli/commands/search.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function search(query: string): Promise<void>"
+          "export function search(query: string, optimized?: boolean): Promise<void>"
+        ],
+        "importsSummary": "8 imports from 5 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "Fuse from \"fuse.js\"",
+          "KnowledgeGraph from \"../../core/graph/types.js\"",
+          "AnyNode from \"../../core/graph/types.js\"",
+          "findGraphFile from \"../utils/graph-finder.js\"",
+          "verbose from \"../utils/logger.js\"",
+          "time from \"../utils/logger.js\"",
+          "jsonOut from \"../utils/logger.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "Fuse",
+            "path": "fuse.js"
+          },
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "AnyNode",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "findGraphFile",
+            "path": "../utils/graph-finder.js"
+          },
+          {
+            "symbol": "verbose",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "time",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "jsonOut",
+            "path": "../utils/logger.js"
+          }
         ]
       },
       "cli.commands.pick": {
@@ -1124,7 +1464,87 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string): Promise<void>"
+          "export function pick(identifier: string, optimized?: boolean): Promise<void>"
+        ],
+        "importsSummary": "15 imports from 6 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "path from \"node:path\"",
+          "KnowledgeGraph from \"../../core/graph/types.js\"",
+          "AnyNode from \"../../core/graph/types.js\"",
+          "findGraphFile from \"../utils/graph-finder.js\"",
+          "verbose from \"../utils/logger.js\"",
+          "time from \"../utils/logger.js\"",
+          "jsonOut from \"../utils/logger.js\"",
+          "resolveNode from \"../utils/resolve-node.js\"",
+          "getNodeEdges from \"../utils/resolve-node.js\"",
+          "findReferencingDocs from \"../utils/resolve-node.js\"",
+          "findParent from \"../utils/resolve-node.js\"",
+          "NodeEdges from \"../utils/resolve-node.js\"",
+          "DocRef from \"../utils/resolve-node.js\"",
+          "ResolvedVia from \"../utils/resolve-node.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "AnyNode",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "findGraphFile",
+            "path": "../utils/graph-finder.js"
+          },
+          {
+            "symbol": "verbose",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "time",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "jsonOut",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "resolveNode",
+            "path": "../utils/resolve-node.js"
+          },
+          {
+            "symbol": "getNodeEdges",
+            "path": "../utils/resolve-node.js"
+          },
+          {
+            "symbol": "findReferencingDocs",
+            "path": "../utils/resolve-node.js"
+          },
+          {
+            "symbol": "findParent",
+            "path": "../utils/resolve-node.js"
+          },
+          {
+            "symbol": "NodeEdges",
+            "path": "../utils/resolve-node.js"
+          },
+          {
+            "symbol": "DocRef",
+            "path": "../utils/resolve-node.js"
+          },
+          {
+            "symbol": "ResolvedVia",
+            "path": "../utils/resolve-node.js"
+          }
         ]
       },
       "cli.commands.ls": {
@@ -1135,7 +1555,52 @@
         "resolvedPath": "packages/tskb/src/cli/commands/ls.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function ls(maxDepth?: number): Promise<void>"
+          "export function ls(maxDepth?: number, optimized?: boolean): Promise<void>"
+        ],
+        "importsSummary": "8 imports from 5 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "KnowledgeGraph from \"../../core/graph/types.js\"",
+          "GraphEdge from \"../../core/graph/types.js\"",
+          "ROOT_FOLDER_NAME from \"../../core/constants.js\"",
+          "findGraphFile from \"../utils/graph-finder.js\"",
+          "verbose from \"../utils/logger.js\"",
+          "time from \"../utils/logger.js\"",
+          "jsonOut from \"../utils/logger.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "GraphEdge",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "ROOT_FOLDER_NAME",
+            "path": "../../core/constants.js"
+          },
+          {
+            "symbol": "findGraphFile",
+            "path": "../utils/graph-finder.js"
+          },
+          {
+            "symbol": "verbose",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "time",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "jsonOut",
+            "path": "../utils/logger.js"
+          }
         ]
       },
       "cli.utils.content-builder": {
@@ -1148,6 +1613,16 @@
         "morphology": [
           "export function buildQueryBody(graph: KnowledgeGraph): string",
           "export function buildUpdateBody(graph: KnowledgeGraph): string"
+        ],
+        "importsSummary": "1 import from 1 path",
+        "imports": [
+          "KnowledgeGraph from \"../../core/graph/types.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../../core/graph/types.js"
+          }
         ]
       },
       "cli.utils.skill-generator": {
@@ -1159,6 +1634,41 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function generateSkillFiles(graph: KnowledgeGraph): string[]"
+        ],
+        "importsSummary": "6 imports from 5 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "path from \"node:path\"",
+          "KnowledgeGraph from \"../../core/graph/types.js\"",
+          "buildQueryBody from \"./content-builder.js\"",
+          "buildUpdateBody from \"./content-builder.js\"",
+          "info from \"./logger.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "buildQueryBody",
+            "path": "./content-builder.js"
+          },
+          {
+            "symbol": "buildUpdateBody",
+            "path": "./content-builder.js"
+          },
+          {
+            "symbol": "info",
+            "path": "./logger.js"
+          }
         ]
       },
       "cli.utils.copilot-instructions": {
@@ -1170,6 +1680,41 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[]"
+        ],
+        "importsSummary": "6 imports from 5 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "path from \"node:path\"",
+          "KnowledgeGraph from \"../../core/graph/types.js\"",
+          "buildQueryBody from \"./content-builder.js\"",
+          "buildUpdateBody from \"./content-builder.js\"",
+          "info from \"./logger.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "buildQueryBody",
+            "path": "./content-builder.js"
+          },
+          {
+            "symbol": "buildUpdateBody",
+            "path": "./content-builder.js"
+          },
+          {
+            "symbol": "info",
+            "path": "./logger.js"
+          }
         ]
       },
       "cli.utils.graph-finder": {
@@ -1181,6 +1726,21 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function findGraphFile(): string"
+        ],
+        "importsSummary": "2 imports from 2 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "path from \"node:path\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          }
         ]
       },
       "cli.utils.logger": {
@@ -1189,13 +1749,14 @@
         "desc": "CLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/logger.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/logger.ts",
-        "morphologySummary": "6 functions",
+        "morphologySummary": "7 functions",
         "morphology": [
           "export function configure(opts: { verbose: boolean; }): void",
           "export function info(msg: string): void",
           "export function verbose(msg: string): void",
           "export function error(msg: string): void",
           "export function time(label: string) => (): void",
+          "export function jsonOut(value: unknown, optimized: boolean): void",
           "export function infoTime(label: string) => (): void"
         ]
       },
@@ -1215,6 +1776,36 @@
           "  validateToken(token: string): Promise<User | null>",
           "  getCurrentUser(): Promise<User | null>",
           "}"
+        ],
+        "importsSummary": "5 imports from 1 path",
+        "imports": [
+          "User from \"../../shared/types\"",
+          "LoginCredentials from \"../../shared/types\"",
+          "RegisterData from \"../../shared/types\"",
+          "AuthTokens from \"../../shared/types\"",
+          "AuthResponse from \"../../shared/types\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "User",
+            "path": "../../shared/types"
+          },
+          {
+            "symbol": "LoginCredentials",
+            "path": "../../shared/types"
+          },
+          {
+            "symbol": "RegisterData",
+            "path": "../../shared/types"
+          },
+          {
+            "symbol": "AuthTokens",
+            "path": "../../shared/types"
+          },
+          {
+            "symbol": "AuthResponse",
+            "path": "../../shared/types"
+          }
         ]
       },
       "TaskRepository": {
@@ -1234,6 +1825,31 @@
           "  update(id: string, task: Partial<Task>): Promise<Task | null>",
           "  delete(id: string): Promise<boolean>",
           "}"
+        ],
+        "importsSummary": "4 imports from 2 paths",
+        "imports": [
+          "Task from \"../../../shared/types\"",
+          "PaginationParams from \"../../../shared/types\"",
+          "FilterParams from \"../../../shared/types\"",
+          "Database from \"../connection\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "Task",
+            "path": "../../../shared/types"
+          },
+          {
+            "symbol": "PaginationParams",
+            "path": "../../../shared/types"
+          },
+          {
+            "symbol": "FilterParams",
+            "path": "../../../shared/types"
+          },
+          {
+            "symbol": "Database",
+            "path": "../connection"
+          }
         ]
       },
       "AuthContext": {
@@ -1255,6 +1871,26 @@
           "  logout(): Promise<void>",
           "}",
           "export const AuthContext: Context<AuthContextValue | null>"
+        ],
+        "importsSummary": "3 imports from 2 paths",
+        "imports": [
+          "createContext from \"react\"",
+          "useContext from \"react\"",
+          "User from \"../../shared/types\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "createContext",
+            "path": "react"
+          },
+          {
+            "symbol": "useContext",
+            "path": "react"
+          },
+          {
+            "symbol": "User",
+            "path": "../../shared/types"
+          }
         ]
       }
     },
@@ -1416,364 +2052,734 @@
         "type": "export",
         "desc": "A generic helper to reference folders inside doc files",
         "typeSignature": "import(\"packages/tskb/src/runtime/registry.js\").Folder<any>",
-        "resolvedPath": "packages/tskb/src/runtime/registry.ts"
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "morphologySummary": "1 type",
+        "morphology": [
+          "export type Folder = Ext"
+        ]
       },
       "Module": {
         "id": "Module",
         "type": "export",
         "desc": "A generic helper to reference modules inside doc files",
         "typeSignature": "import(\"packages/tskb/src/runtime/registry.js\").Module<any>",
-        "resolvedPath": "packages/tskb/src/runtime/registry.ts"
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "morphologySummary": "1 type",
+        "morphology": [
+          "export type Module = Ext"
+        ]
       },
       "Export": {
         "id": "Export",
         "type": "export",
         "desc": "A generic helper to reference exports inside doc files",
         "typeSignature": "import(\"packages/tskb/src/runtime/registry.js\").Export<any>",
-        "resolvedPath": "packages/tskb/src/runtime/registry.ts"
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "morphologySummary": "1 type",
+        "morphology": [
+          "export type Export = Ext"
+        ]
       },
       "Term": {
         "id": "Term",
         "type": "export",
         "desc": "A generic helper to reference terms inside doc files",
         "typeSignature": "import(\"packages/tskb/src/runtime/registry.js\").Term<any>",
-        "resolvedPath": "packages/tskb/src/runtime/registry.ts"
+        "resolvedPath": "packages/tskb/src/runtime/registry.ts",
+        "morphologySummary": "1 type",
+        "morphology": [
+          "export type Term = Ext"
+        ]
       },
       "ref": {
         "id": "ref",
         "type": "export",
         "desc": "A placeholder for referencing anything from the global tskb registry into jsx documentation tags",
         "typeSignature": "typeof import(\"packages/tskb/src/index.js\").ref",
-        "resolvedPath": "packages/tskb/src/index.ts"
+        "resolvedPath": "packages/tskb/src/index.ts",
+        "morphologySummary": "1 variable",
+        "morphology": [
+          "export const ref: ReactNode"
+        ]
       },
       "cli.build": {
         "id": "cli.build",
         "type": "export",
         "desc": "The control flow function for the cli, building the docs, graph, and visualization outputing to the .tskb/ directory",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/build.js\").build",
-        "resolvedPath": "packages/tskb/src/cli/commands/build.ts"
+        "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function build(config: ExtractConfig): Promise<void>"
+        ]
       },
       "cli.search": {
         "id": "cli.search",
         "type": "export",
         "desc": "Fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results with scores across IDs, descriptions, and paths",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/search.js\").search",
-        "resolvedPath": "packages/tskb/src/cli/commands/search.ts"
+        "resolvedPath": "packages/tskb/src/cli/commands/search.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function search(query: string, optimized?: boolean): Promise<void>"
+        ]
       },
       "cli.pick": {
         "id": "cli.pick",
         "type": "export",
         "desc": "Resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/pick.js\").pick",
-        "resolvedPath": "packages/tskb/src/cli/commands/pick.ts"
+        "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function pick(identifier: string, optimized?: boolean): Promise<void>"
+        ]
       },
       "cli.ls": {
         "id": "cli.ls",
         "type": "export",
         "desc": "Lists all folders in the knowledge graph from TSKB.Package.Root with controllable depth, returning flat JSON hierarchy",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/ls.js\").ls",
-        "resolvedPath": "packages/tskb/src/cli/commands/ls.ts"
+        "resolvedPath": "packages/tskb/src/cli/commands/ls.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function ls(maxDepth?: number, optimized?: boolean): Promise<void>"
+        ]
       },
       "generateDot": {
         "id": "generateDot",
         "type": "export",
         "desc": "Core function that transforms the knowledge graph into DOT format",
         "typeSignature": "typeof import(\"packages/tskb/src/core/visualization/index.js\").generateDot",
-        "resolvedPath": "packages/tskb/src/core/visualization/index.ts"
+        "resolvedPath": "packages/tskb/src/core/visualization/index.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function generateDot(graph: KnowledgeGraph): string"
+        ]
       },
       "ts.createProgram": {
         "id": "ts.createProgram",
         "type": "export",
         "desc": "Creates a TypeScript Program for analyzing code structure, types, and symbols without emitting output",
         "typeSignature": "typeof import(\"packages/tskb/src/typescript/program.js\").createProgram",
-        "resolvedPath": "packages/tskb/src/typescript/program.ts"
+        "resolvedPath": "packages/tskb/src/typescript/program.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function createProgram(files: string[], tsconfigPath: string): Program"
+        ]
       },
       "jsx.Doc": {
         "id": "jsx.Doc",
         "type": "export",
         "desc": "Documentation container component. Requires an 'explains' prop that describes what the doc covers - used as the doc's description in search results and referencing doc lists",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Doc",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any"
+        ]
       },
       "jsx.H1": {
         "id": "jsx.H1",
         "type": "export",
         "desc": "Heading level 1",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").H1",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function H1({ children }: { children: any; }): any"
+        ]
       },
       "jsx.H2": {
         "id": "jsx.H2",
         "type": "export",
         "desc": "Heading level 2",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").H2",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function H2({ children }: { children: any; }): any"
+        ]
       },
       "jsx.H3": {
         "id": "jsx.H3",
         "type": "export",
         "desc": "Heading level 3",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").H3",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function H3({ children }: { children: any; }): any"
+        ]
       },
       "jsx.P": {
         "id": "jsx.P",
         "type": "export",
         "desc": "Paragraph",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").P",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function P({ children }: { children: any; }): any"
+        ]
       },
       "jsx.List": {
         "id": "jsx.List",
         "type": "export",
         "desc": "List container",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").List",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function List({ children }: { children: any; }): any"
+        ]
       },
       "jsx.Li": {
         "id": "jsx.Li",
         "type": "export",
         "desc": "List item",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Li",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function Li({ children }: { children: any; }): any"
+        ]
       },
       "jsx.Snippet": {
         "id": "jsx.Snippet",
         "type": "export",
         "desc": "Code snippet component",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Snippet",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function Snippet({ code }: { code: () => any; }): any"
+        ]
       },
       "jsx.Adr": {
         "id": "jsx.Adr",
         "type": "export",
         "desc": "Architecture Decision Record component with id, title, status, date, and deciders metadata",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Adr",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any"
+        ]
       },
       "jsx.ref": {
         "id": "jsx.ref",
         "type": "export",
         "desc": "Reference placeholder for type assertions to registry items",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").ref",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 variable",
+        "morphology": [
+          "export const ref: ReactNode"
+        ]
       },
       "DocPriority": {
         "id": "DocPriority",
         "type": "export",
         "desc": "Type for doc importance level: 'essential' (included in generated skill/instructions), 'constraint' (architectural rules for related areas), or 'supplementary' (graph-only, default)",
         "typeSignature": "import(\"packages/tskb/src/runtime/jsx.js\").DocPriority",
-        "resolvedPath": "packages/tskb/src/runtime/jsx.ts"
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 type",
+        "morphology": [
+          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\""
+        ]
       },
       "extractRegistry": {
         "id": "extractRegistry",
         "type": "export",
         "desc": "Main function that extracts the vocabulary (Folders, Modules, Terms, Exports) from TypeScript's type system using the compiler API",
         "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/registry.js\").extractRegistry",
-        "resolvedPath": "packages/tskb/src/core/extraction/registry.ts"
+        "resolvedPath": "packages/tskb/src/core/extraction/registry.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function extractRegistry(program: Program, baseDir: string, tsconfigPath: string): ExtractedRegistry"
+        ]
       },
       "ExtractedRegistry": {
         "id": "ExtractedRegistry",
         "type": "export",
         "desc": "Type definition for the registry data structure containing Maps of folders, modules, terms, and exports",
         "typeSignature": "import(\"packages/tskb/src/core/extraction/registry.js\").ExtractedRegistry",
-        "resolvedPath": "packages/tskb/src/core/extraction/registry.ts"
+        "resolvedPath": "packages/tskb/src/core/extraction/registry.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface ExtractedRegistry {",
+          "  folders: Map<string, { desc: string; path?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; folderSummary?: FolderSummary | undefined; }>",
+          "  modules: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; morphology?: ModuleMorphology | undefined; imports?: ModuleImports | undefined; }>",
+          "  terms: Map<string, string>",
+          "  exports: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; memberName?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; morphology?: ModuleMorphology | undefined; }>",
+          "}"
+        ]
       },
       "buildGraph": {
         "id": "buildGraph",
         "type": "export",
         "desc": "Main entry point for graph construction - takes extracted registry and docs, produces a complete KnowledgeGraph",
         "typeSignature": "typeof import(\"packages/tskb/src/core/graph/builder.js\").buildGraph",
-        "resolvedPath": "packages/tskb/src/core/graph/builder.ts"
+        "resolvedPath": "packages/tskb/src/core/graph/builder.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph"
+        ]
       },
       "KnowledgeGraph": {
         "id": "KnowledgeGraph",
         "type": "export",
         "desc": "The top-level graph structure containing all nodes (folders, modules, terms, exports, docs), edges, and metadata",
         "typeSignature": "import(\"packages/tskb/src/core/graph/types.js\").KnowledgeGraph",
-        "resolvedPath": "packages/tskb/src/core/graph/types.ts"
+        "resolvedPath": "packages/tskb/src/core/graph/types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface KnowledgeGraph {",
+          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; docs: Record<...>; }",
+          "  edges: GraphEdge[]",
+          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; docCount: number; edgeCount: number; }; }",
+          "}"
+        ]
       },
       "extractDocs": {
         "id": "extractDocs",
         "type": "export",
         "desc": "Main function that extracts documentation content and references from TSX files by traversing JSX AST",
         "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\").extractDocs",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts"
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[]"
+        ]
       },
       "ExtractedDoc": {
         "id": "ExtractedDoc",
         "type": "export",
         "desc": "Type definition for extracted documentation containing file path, content, and all references to vocabulary items",
         "typeSignature": "import(\"packages/tskb/src/core/extraction/documentation.js\").ExtractedDoc",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts"
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface ExtractedDoc {",
+          "  filePath: string",
+          "  format: \"tsx\"",
+          "  explains: string",
+          "  priority: DocPriority",
+          "  content: string",
+          "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; }",
+          "}"
+        ]
       },
       "cli.build.ExtractConfig": {
         "id": "cli.build.ExtractConfig",
         "type": "export",
         "desc": "Configuration interface for the build command containing glob pattern and tsconfig path",
         "typeSignature": "import(\"packages/tskb/src/cli/commands/build.js\").ExtractConfig",
-        "resolvedPath": "packages/tskb/src/cli/commands/build.ts"
+        "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface ExtractConfig {",
+          "  pattern: string",
+          "  tsconfig: string",
+          "}"
+        ]
       },
       "AuthService": {
         "id": "AuthService",
         "type": "export",
         "desc": "Handles user authentication, registration, and token management",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/services/auth.service.js\").AuthService",
-        "resolvedPath": "examples/taskflow-app/src/server/services/auth.service.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/services/auth.service.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class AuthService {",
+          "  login(credentials: LoginCredentials): Promise<AuthResponse>",
+          "  register(data: RegisterData): Promise<AuthResponse>",
+          "  logout(): Promise<void>",
+          "  refreshToken(refreshToken: string): Promise<AuthTokens>",
+          "  validateToken(token: string): Promise<User | null>",
+          "  getCurrentUser(): Promise<User | null>",
+          "}"
+        ]
       },
       "TaskService": {
         "id": "TaskService",
         "type": "export",
         "desc": "Manages task CRUD operations, status updates, and assignments",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/services/task.service.js\").TaskService",
-        "resolvedPath": "examples/taskflow-app/src/server/services/task.service.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/services/task.service.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class TaskService {",
+          "  getById(id: string): Promise<Task | null>",
+          "  getByProject(projectId: string, pagination?: PaginationParams | undefined, filters?: FilterParams | undefined): Promise<PaginatedResponse<Task>>",
+          "  getByAssignee(assigneeId: string, pagination?: PaginationParams | undefined): Promise<PaginatedResponse<Task>>",
+          "  create(taskData: Omit<Task, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Task>",
+          "  update(id: string, taskData: Partial<Task>): Promise<Task | null>",
+          "  delete(id: string): Promise<boolean>",
+          "  updateStatus(id: string, status: TaskStatus): Promise<Task | null>",
+          "  assignTask(id: string, assigneeId: string): Promise<Task | null>",
+          "  updatePriority(id: string, priority: TaskPriority): Promise<Task | null>",
+          "}"
+        ]
       },
       "ProjectService": {
         "id": "ProjectService",
         "type": "export",
         "desc": "Handles project lifecycle, team assignments, and member management",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/services/project.service.js\").ProjectService",
-        "resolvedPath": "examples/taskflow-app/src/server/services/project.service.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/services/project.service.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class ProjectService {",
+          "  getById(id: string): Promise<Project | null>",
+          "  getByTeam(teamId: string): Promise<Project[]>",
+          "  create(projectData: Omit<Project, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Project>",
+          "  update(id: string, projectData: Partial<Project>): Promise<Project | null>",
+          "  delete(id: string): Promise<boolean>",
+          "  updateStatus(id: string, status: ProjectStatus): Promise<Project | null>",
+          "  addMember(projectId: string, userId: string, role: \"owner\" | \"contributor\" | \"viewer\"): Promise<ProjectMember>",
+          "  removeMember(projectId: string, userId: string): Promise<boolean>",
+          "  getMembers(projectId: string): Promise<ProjectMember[]>",
+          "}"
+        ]
       },
       "UserService": {
         "id": "UserService",
         "type": "export",
         "desc": "Manages user profiles and team memberships",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/services/user.service.js\").UserService",
-        "resolvedPath": "examples/taskflow-app/src/server/services/user.service.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/services/user.service.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class UserService {",
+          "  getById(id: string): Promise<User | null>",
+          "  getByEmail(email: string): Promise<User | null>",
+          "  create(userData: Omit<User, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<User>",
+          "  update(id: string, userData: Partial<User>): Promise<User | null>",
+          "  delete(id: string): Promise<boolean>",
+          "  getUserTeams(userId: string): Promise<Team[]>",
+          "}"
+        ]
       },
       "NotificationService": {
         "id": "NotificationService",
         "type": "export",
         "desc": "Creates and delivers notifications for task updates and mentions",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/services/notification.service.js\").NotificationService",
-        "resolvedPath": "examples/taskflow-app/src/server/services/notification.service.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/services/notification.service.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class NotificationService {",
+          "  getByUser(userId: string, unreadOnly?: boolean | undefined): Promise<Notification[]>",
+          "  create(notificationData: Omit<Notification, \"id\" | \"createdAt\">): Promise<Notification>",
+          "  markAsRead(id: string): Promise<Notification | null>",
+          "  markAllAsRead(userId: string): Promise<number>",
+          "  delete(id: string): Promise<boolean>",
+          "  sendTaskAssignedNotification(taskId: string, assigneeId: string): Promise<void>",
+          "  sendMentionNotification(userId: string, mentionedByUserId: string, contextId: string): Promise<void>",
+          "}"
+        ]
       },
       "TaskRepository": {
         "id": "TaskRepository",
         "type": "export",
         "desc": "Data access layer for task persistence with pagination and filtering",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/database/repositories/task.repository.js\").TaskRepository",
-        "resolvedPath": "examples/taskflow-app/src/server/database/repositories/task.repository.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/database/repositories/task.repository.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class TaskRepository {",
+          "  db: Database",
+          "  findById(id: string): Promise<Task | null>",
+          "  findByProject(projectId: string, pagination?: PaginationParams | undefined, filters?: FilterParams | undefined): Promise<{ tasks: Task[]; total: number; }>",
+          "  findByAssignee(assigneeId: string, pagination?: PaginationParams | undefined): Promise<{ tasks: Task[]; total: number; }>",
+          "  create(task: Omit<Task, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Task>",
+          "  update(id: string, task: Partial<Task>): Promise<Task | null>",
+          "  delete(id: string): Promise<boolean>",
+          "}"
+        ]
       },
       "UserRepository": {
         "id": "UserRepository",
         "type": "export",
         "desc": "Data access layer for user CRUD operations",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/database/repositories/user.repository.js\").UserRepository",
-        "resolvedPath": "examples/taskflow-app/src/server/database/repositories/user.repository.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/database/repositories/user.repository.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class UserRepository {",
+          "  db: Database",
+          "  findById(id: string): Promise<User | null>",
+          "  findByEmail(email: string): Promise<User | null>",
+          "  create(user: Omit<User, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<User>",
+          "  update(id: string, user: Partial<User>): Promise<User | null>",
+          "  delete(id: string): Promise<boolean>",
+          "}"
+        ]
       },
       "ProjectRepository": {
         "id": "ProjectRepository",
         "type": "export",
         "desc": "Data access layer for project data persistence",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/database/repositories/project.repository.js\").ProjectRepository",
-        "resolvedPath": "examples/taskflow-app/src/server/database/repositories/project.repository.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/database/repositories/project.repository.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class ProjectRepository {",
+          "  db: Database",
+          "  findById(id: string): Promise<Project | null>",
+          "  findByTeam(teamId: string): Promise<Project[]>",
+          "  create(project: Omit<Project, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Project>",
+          "  update(id: string, project: Partial<Project>): Promise<Project | null>",
+          "  delete(id: string): Promise<boolean>",
+          "}"
+        ]
       },
       "AuthContext": {
         "id": "AuthContext",
         "type": "export",
         "desc": "React Context providing authentication state and login/logout methods",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/client/contexts/AuthContext.js\").AuthContext",
-        "resolvedPath": "examples/taskflow-app/src/client/contexts/AuthContext.tsx"
+        "resolvedPath": "examples/taskflow-app/src/client/contexts/AuthContext.tsx",
+        "morphologySummary": "1 variable",
+        "morphology": [
+          "export const AuthContext: Context<AuthContextValue | null>"
+        ]
       },
       "TaskContext": {
         "id": "TaskContext",
         "type": "export",
         "desc": "React Context managing task state and CRUD operations",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/client/contexts/TaskContext.js\").TaskContext",
-        "resolvedPath": "examples/taskflow-app/src/client/contexts/TaskContext.tsx"
+        "resolvedPath": "examples/taskflow-app/src/client/contexts/TaskContext.tsx",
+        "morphologySummary": "1 variable",
+        "morphology": [
+          "export const TaskContext: Context<TaskContextValue | null>"
+        ]
       },
       "ProjectContext": {
         "id": "ProjectContext",
         "type": "export",
         "desc": "React Context for project selection and management",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/client/contexts/ProjectContext.js\").ProjectContext",
-        "resolvedPath": "examples/taskflow-app/src/client/contexts/ProjectContext.tsx"
+        "resolvedPath": "examples/taskflow-app/src/client/contexts/ProjectContext.tsx",
+        "morphologySummary": "1 variable",
+        "morphology": [
+          "export const ProjectContext: Context<ProjectContextValue | null>"
+        ]
       },
       "WebSocketService": {
         "id": "WebSocketService",
         "type": "export",
         "desc": "Real-time communication service for live updates",
         "typeSignature": "import(\"examples/taskflow-app/src/client/services/websocket.service.js\").WebSocketService",
-        "resolvedPath": "examples/taskflow-app/src/client/services/websocket.service.ts"
+        "resolvedPath": "examples/taskflow-app/src/client/services/websocket.service.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class WebSocketService {",
+          "  ws: WebSocket | null",
+          "  connect(): void",
+          "  disconnect(): void",
+          "  on(event: string, callback: (data: any) => void): void",
+          "  emit(event: string, data: any): void",
+          "}"
+        ]
       },
       "ErrorHandler": {
         "id": "ErrorHandler",
         "type": "export",
         "desc": "Global error handling middleware for consistent API responses",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/middleware/error.middleware.js\").errorHandler",
-        "resolvedPath": "examples/taskflow-app/src/server/middleware/error.middleware.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/middleware/error.middleware.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function errorHandler(): void"
+        ]
       },
       "Database": {
         "id": "Database",
         "type": "export",
         "desc": "Database connection manager with query execution and transaction support",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/database/connection.js\").Database",
-        "resolvedPath": "examples/taskflow-app/src/server/database/connection.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/database/connection.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class Database {",
+          "  config: DatabaseConfig",
+          "  connect(): Promise<void>",
+          "  disconnect(): Promise<void>",
+          "  query<T>(sql: string, params?: any[] | undefined): Promise<T[]>",
+          "  execute(sql: string, params?: any[] | undefined): Promise<void>",
+          "  transaction<T>(callback: () => Promise<T>): Promise<T>",
+          "}"
+        ]
       },
       "Task": {
         "id": "Task",
         "type": "export",
         "desc": "Task entity type with status, priority, and assignment properties",
         "typeSignature": "import(\"examples/taskflow-app/src/shared/types/task.types.js\").Task",
-        "resolvedPath": "examples/taskflow-app/src/shared/types/task.types.ts"
+        "resolvedPath": "examples/taskflow-app/src/shared/types/task.types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface Task {",
+          "  id: string",
+          "  title: string",
+          "  description: string | undefined",
+          "  projectId: string",
+          "  assigneeId: string | undefined",
+          "  reporterId: string",
+          "  status: TaskStatus",
+          "  priority: TaskPriority",
+          "  dueDate: Date | undefined",
+          "  estimatedHours: number | undefined",
+          "  actualHours: number | undefined",
+          "  tags: string[]",
+          "  createdAt: Date",
+          "  updatedAt: Date",
+          "}"
+        ]
       },
       "Project": {
         "id": "Project",
         "type": "export",
         "desc": "Project entity type with team and status information",
         "typeSignature": "import(\"examples/taskflow-app/src/shared/types/project.types.js\").Project",
-        "resolvedPath": "examples/taskflow-app/src/shared/types/project.types.ts"
+        "resolvedPath": "examples/taskflow-app/src/shared/types/project.types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface Project {",
+          "  id: string",
+          "  name: string",
+          "  description: string | undefined",
+          "  teamId: string",
+          "  ownerId: string",
+          "  status: ProjectStatus",
+          "  startDate: Date | undefined",
+          "  dueDate: Date | undefined",
+          "  createdAt: Date",
+          "  updatedAt: Date",
+          "}"
+        ]
       },
       "PaginationParams": {
         "id": "PaginationParams",
         "type": "export",
         "desc": "Pagination parameters for list queries (page, limit, sorting)",
         "typeSignature": "import(\"examples/taskflow-app/src/shared/types/api.types.js\").PaginationParams",
-        "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts"
+        "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface PaginationParams {",
+          "  page: number",
+          "  limit: number",
+          "  sortBy: string | undefined",
+          "  sortOrder: \"desc\" | \"asc\" | undefined",
+          "}"
+        ]
       },
       "FilterParams": {
         "id": "FilterParams",
         "type": "export",
         "desc": "Filter parameters for querying tasks by status, priority, date range, etc.",
         "typeSignature": "import(\"examples/taskflow-app/src/shared/types/api.types.js\").FilterParams",
-        "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts"
+        "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface FilterParams {",
+          "  status: string[] | undefined",
+          "  priority: string[] | undefined",
+          "  assigneeId: string | undefined",
+          "  projectId: string | undefined",
+          "  startDate: Date | undefined",
+          "  endDate: Date | undefined",
+          "  search: string | undefined",
+          "}"
+        ]
       },
       "ApiResponse": {
         "id": "ApiResponse",
         "type": "export",
         "desc": "Standard API response wrapper with data, error, and metadata fields",
         "typeSignature": "import(\"examples/taskflow-app/src/shared/types/api.types.js\").ApiResponse<{}>",
-        "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts"
+        "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface ApiResponse {",
+          "  data: T",
+          "  error: ApiError | undefined",
+          "  meta: ResponseMetadata | undefined",
+          "}"
+        ]
       },
       "PaginatedResponse": {
         "id": "PaginatedResponse",
         "type": "export",
         "desc": "Generic paginated response with items, total count, and page metadata",
         "typeSignature": "import(\"examples/taskflow-app/src/shared/types/api.types.js\").PaginatedResponse<{}>",
-        "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts"
+        "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface PaginatedResponse {",
+          "  items: T[]",
+          "  total: number",
+          "  page: number",
+          "  limit: number",
+          "  totalPages: number",
+          "}"
+        ]
       },
       "User": {
         "id": "User",
         "type": "export",
         "desc": "User entity type with authentication and profile information",
         "typeSignature": "import(\"examples/taskflow-app/src/shared/types/user.types.js\").User",
-        "resolvedPath": "examples/taskflow-app/src/shared/types/user.types.ts"
+        "resolvedPath": "examples/taskflow-app/src/shared/types/user.types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface User {",
+          "  id: string",
+          "  email: string",
+          "  name: string",
+          "  avatarUrl: string | undefined",
+          "  createdAt: Date",
+          "  updatedAt: Date",
+          "}"
+        ]
       },
       "AuthMiddleware": {
         "id": "AuthMiddleware",
         "type": "export",
         "desc": "Authentication and authorization middleware for protected routes",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/server/middleware/auth.middleware.js\").authenticate",
-        "resolvedPath": "examples/taskflow-app/src/server/middleware/auth.middleware.ts"
+        "resolvedPath": "examples/taskflow-app/src/server/middleware/auth.middleware.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function authenticate(): void"
+        ]
       },
       "ApiClient": {
         "id": "ApiClient",
         "type": "export",
         "desc": "Base HTTP client for API communication with authentication",
         "typeSignature": "typeof import(\"examples/taskflow-app/src/client/services/api.service.js\").ApiClient",
-        "resolvedPath": "examples/taskflow-app/src/client/services/api.service.ts"
+        "resolvedPath": "examples/taskflow-app/src/client/services/api.service.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class ApiClient {",
+          "  baseUrl: string",
+          "  token: string | null",
+          "  setToken(token: string): void",
+          "  clearToken(): void",
+          "  get<T>(path: string): Promise<ApiResponse<T>>",
+          "  post<T>(path: string, data: any): Promise<ApiResponse<T>>",
+          "  put<T>(path: string, data: any): Promise<ApiResponse<T>>",
+          "  delete<T>(path: string): Promise<ApiResponse<T>>",
+          "  patch<T>(path: string, data: any): Promise<ApiResponse<T>>",
+          "}"
+        ]
       }
     },
     "docs": {
@@ -3168,10 +4174,150 @@
       "from": "ApiClient",
       "to": "ClientServices",
       "type": "belongs-to"
+    },
+    {
+      "from": "visualization.dot-generator",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "graph.builder",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "graph.builder",
+      "to": "extraction.registry",
+      "type": "imports"
+    },
+    {
+      "from": "graph.builder",
+      "to": "extraction.documentation",
+      "type": "imports"
+    },
+    {
+      "from": "graph.types",
+      "to": "runtime.jsx",
+      "type": "imports"
+    },
+    {
+      "from": "extraction.documentation",
+      "to": "runtime.jsx",
+      "type": "imports"
+    },
+    {
+      "from": "cli.index",
+      "to": "cli.commands.search",
+      "type": "imports"
+    },
+    {
+      "from": "cli.index",
+      "to": "cli.commands.pick",
+      "type": "imports"
+    },
+    {
+      "from": "cli.index",
+      "to": "cli.commands.ls",
+      "type": "imports"
+    },
+    {
+      "from": "cli.index",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.build",
+      "to": "typescript.index",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.build",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.search",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.search",
+      "to": "cli.utils.graph-finder",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.search",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.pick",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.pick",
+      "to": "cli.utils.graph-finder",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.pick",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.ls",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.ls",
+      "to": "cli.utils.graph-finder",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.ls",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
+      "from": "cli.utils.content-builder",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "cli.utils.skill-generator",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "cli.utils.skill-generator",
+      "to": "cli.utils.content-builder",
+      "type": "imports"
+    },
+    {
+      "from": "cli.utils.skill-generator",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
+      "from": "cli.utils.copilot-instructions",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "cli.utils.copilot-instructions",
+      "to": "cli.utils.content-builder",
+      "type": "imports"
+    },
+    {
+      "from": "cli.utils.copilot-instructions",
+      "to": "cli.utils.logger",
+      "type": "imports"
     }
   ],
   "metadata": {
-    "generatedAt": "2026-02-23T14:49:06.059Z",
+    "generatedAt": "2026-03-06T14:57:07.535Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
@@ -3180,7 +4326,7 @@
       "termCount": 30,
       "exportCount": 52,
       "docCount": 16,
-      "edgeCount": 249
+      "edgeCount": 277
     }
   }
 }

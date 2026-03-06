@@ -2,7 +2,7 @@ import fs from "node:fs";
 import Fuse from "fuse.js";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time } from "../utils/logger.js";
+import { verbose, time, jsonOut } from "../utils/logger.js";
 
 interface SearchableNode {
   id: string;
@@ -13,6 +13,7 @@ interface SearchableNode {
   priority?: string;
   structureSummary?: string;
   morphologySummary?: string;
+  importsSummary?: string;
 }
 
 interface SearchResult {
@@ -26,6 +27,7 @@ interface SearchResult {
     priority?: string;
     structureSummary?: string;
     morphologySummary?: string;
+    importsSummary?: string;
   }>;
 }
 
@@ -33,7 +35,7 @@ interface SearchResult {
  * Search the knowledge graph for nodes matching a fuzzy query.
  * Returns ranked results across all node types.
  */
-export async function search(query: string): Promise<void> {
+export async function search(query: string, optimized: boolean = false): Promise<void> {
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
@@ -63,37 +65,42 @@ export async function search(query: string): Promise<void> {
   const fuseQuery = words.length > 1 ? words.join(" | ") : query;
   const fuseResults = fuse.search(fuseQuery);
 
-  // Boost results that contain an exact substring match of any query word
+  // Boost results proportionally to how many query words match as exact substrings
   const lowerWords = words.map((w) => w.toLowerCase());
   const boosted = fuseResults.map((r) => {
     const fields = [r.item.id, r.item.desc, r.item.path, r.item.content].map((f) =>
       f.toLowerCase()
     );
-    const hasExact = lowerWords.some((w) => fields.some((f) => f.includes(w)));
-    // Halve the score (lower = better in Fuse) for exact substring matches
-    const boostedScore = hasExact ? (r.score ?? 1) * 0.5 : (r.score ?? 1);
+    const matchCount = lowerWords.filter((w) => fields.some((f) => f.includes(w))).length;
+    // Scale boost by fraction of words matched: all words = 0.5x, no words = 1x
+    const matchRatio = matchCount / lowerWords.length;
+    const boostedScore = (r.score ?? 1) * (1 - matchRatio * 0.5);
     return { ...r, score: boostedScore };
   });
   boosted.sort((a, b) => (a.score ?? 1) - (b.score ?? 1));
 
   const result: SearchResult = {
     query,
-    results: boosted.slice(0, 10).map((r) => ({
-      nodeId: r.item.id,
-      type: r.item.type,
-      desc: r.item.desc,
-      path: r.item.path,
-      score: Math.round((1 - (r.score ?? 1)) * 100) / 100,
-      ...(r.item.priority ? { priority: r.item.priority } : {}),
-      ...(r.item.structureSummary ? { structureSummary: r.item.structureSummary } : {}),
-      ...(r.item.morphologySummary ? { morphologySummary: r.item.morphologySummary } : {}),
-    })),
+    results: boosted
+      .slice(0, 10)
+      .map((r) => ({
+        nodeId: r.item.id,
+        type: r.item.type,
+        desc: r.item.desc,
+        path: r.item.path,
+        score: Math.round((1 - (r.score ?? 1)) * 100) / 100,
+        ...(r.item.priority ? { priority: r.item.priority } : {}),
+        ...(r.item.structureSummary ? { structureSummary: r.item.structureSummary } : {}),
+        ...(r.item.morphologySummary ? { morphologySummary: r.item.morphologySummary } : {}),
+        ...(r.item.importsSummary ? { importsSummary: r.item.importsSummary } : {}),
+      }))
+      .filter((r) => r.score >= 0.45),
   };
   searchDone();
 
   verbose(`   ${fuseResults.length} raw matches, returning top ${result.results.length}`);
 
-  console.log(JSON.stringify(result, null, 2));
+  jsonOut(result, optimized);
 }
 
 /**
@@ -115,6 +122,12 @@ function buildSearchableNodes(graph: KnowledgeGraph): SearchableNode[] {
           ? { structureSummary: node.structureSummary }
           : {}),
         ...(node.type === "module" && node.morphologySummary
+          ? { morphologySummary: node.morphologySummary }
+          : {}),
+        ...(node.type === "module" && node.importsSummary
+          ? { importsSummary: node.importsSummary }
+          : {}),
+        ...(node.type === "export" && node.morphologySummary
           ? { morphologySummary: node.morphologySummary }
           : {}),
       });
@@ -139,7 +152,13 @@ function getContent(node: AnyNode): string {
     ];
     return names.join(" ");
   }
-  if (node.type === "module" && node.morphology) {
+  if (node.type === "module") {
+    const parts: string[] = [];
+    if (node.morphology) parts.push(node.morphology.join(" "));
+    if (node.imports) parts.push(node.imports.join(" "));
+    return parts.join(" ");
+  }
+  if (node.type === "export" && node.morphology) {
     return node.morphology.join(" ");
   }
   return "";

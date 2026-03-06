@@ -2,7 +2,7 @@ import fs from "node:fs";
 import Fuse from "fuse.js";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time } from "../utils/logger.js";
+import { verbose, time, jsonOut } from "../utils/logger.js";
 
 interface DocEntry {
   nodeId: string;
@@ -32,7 +32,7 @@ interface SearchableDoc {
  * List all docs, optionally filtered by a fuzzy search query.
  * Results are sorted: constraints first, then essential, then supplementary.
  */
-export async function docs(query?: string): Promise<void> {
+export async function docs(query?: string, optimized: boolean = false): Promise<void> {
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
@@ -55,7 +55,7 @@ export async function docs(query?: string): Promise<void> {
       docs: allDocs.map(({ content: _, ...rest }) => rest),
     };
     verbose(`   ${allDocs.length} docs listed`);
-    console.log(JSON.stringify(result, null, 2));
+    jsonOut(result, optimized);
     return;
   }
 

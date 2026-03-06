@@ -96,6 +96,9 @@ export function buildGraph(
   buildModuleFolderMembership(graph);
   buildExportMembership(graph);
 
+  // Build import edges between modules
+  buildModuleImportEdges(graph);
+
   // Update stats
   updateStats(graph);
 
@@ -154,6 +157,13 @@ function buildModuleNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
             morphology: data.morphology.morphology,
           }
         : {}),
+      ...(data.imports
+        ? {
+            importsSummary: data.imports.importsSummary,
+            imports: data.imports.imports,
+            importEntries: data.imports.importEntries,
+          }
+        : {}),
     };
     graph.nodes.modules[name] = node;
   }
@@ -184,6 +194,12 @@ function buildExportNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
       desc: data.desc,
       typeSignature: data.type,
       resolvedPath: data.resolvedPath,
+      ...(data.morphology
+        ? {
+            morphologySummary: data.morphology.summary,
+            morphology: data.morphology.morphology,
+          }
+        : {}),
     };
     graph.nodes.exports[name] = node;
   }
@@ -563,6 +579,60 @@ function buildExportMembership(graph: KnowledgeGraph): void {
       }
     }
   }
+}
+
+/**
+ * Build import edges between modules.
+ *
+ * For each module that has imports, resolve the import paths relative to the
+ * module's own resolvedPath. If the resolved path matches another module's
+ * resolvedPath, create an "imports" edge: importingModule -> importedModule.
+ */
+function buildModuleImportEdges(graph: KnowledgeGraph): void {
+  const modules = Object.values(graph.nodes.modules);
+
+  // Build a lookup: normalized resolvedPath (without extension) -> module ID
+  const pathToModuleId = new Map<string, string>();
+  for (const mod of modules) {
+    if (mod.resolvedPath) {
+      const normalized = stripExtension(mod.resolvedPath.replace(/\\/g, "/"));
+      pathToModuleId.set(normalized, mod.id);
+    }
+  }
+
+  for (const mod of modules) {
+    if (!mod.importEntries || !mod.resolvedPath) continue;
+
+    const moduleDir = path.posix.dirname(mod.resolvedPath.replace(/\\/g, "/"));
+    const seen = new Set<string>(); // avoid duplicate edges to same target
+
+    for (const entry of mod.importEntries) {
+      // Only resolve relative imports — aliases and bare specifiers can't be resolved here
+      if (!entry.path.startsWith("./") && !entry.path.startsWith("../")) continue;
+
+      // Resolve relative to the importing module's directory and strip extension
+      const resolved = path.posix.normalize(path.posix.join(moduleDir, entry.path));
+      const normalizedResolved = stripExtension(resolved);
+
+      const targetId = pathToModuleId.get(normalizedResolved);
+      if (targetId && targetId !== mod.id && !seen.has(targetId)) {
+        seen.add(targetId);
+        graph.edges.push({
+          from: mod.id,
+          to: targetId,
+          type: "imports",
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Strip file extension from a path using path utilities.
+ */
+function stripExtension(filePath: string): string {
+  const ext = path.posix.extname(filePath);
+  return ext ? filePath.slice(0, -ext.length) : filePath;
 }
 
 /**

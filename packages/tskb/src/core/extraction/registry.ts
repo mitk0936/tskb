@@ -1,7 +1,13 @@
 import ts from "typescript";
 import path from "node:path";
 import { extractFolderSummary, type FolderSummary } from "./folder-summary.js";
-import { extractModuleMorphology, type ModuleMorphology } from "./module-morphology.js";
+import {
+  extractModuleMorphology,
+  extractExportMorphology,
+  extractModuleImports,
+  type ModuleMorphology,
+  type ModuleImports,
+} from "./module-morphology.js";
 
 /**
  * Registry data extracted from TypeScript declaration merging
@@ -26,6 +32,7 @@ export interface ExtractedRegistry {
       resolvedPath?: string;
       pathExists: boolean;
       morphology?: ModuleMorphology;
+      imports?: ModuleImports;
     }
   >;
   terms: Map<string, string>; // term name -> description
@@ -35,8 +42,10 @@ export interface ExtractedRegistry {
       desc: string;
       type?: string;
       importPath?: string;
+      memberName?: string;
       resolvedPath?: string;
       pathExists: boolean;
+      morphology?: ModuleMorphology;
     }
   >;
 }
@@ -100,6 +109,24 @@ export function extractRegistry(
       const abs = path.resolve(process.cwd(), data.resolvedPath);
       const morphology = extractModuleMorphology(program, abs);
       if (morphology) registry.modules.set(name, { ...data, morphology });
+    }
+  }
+
+  // Enrich modules with imports
+  for (const [name, data] of registry.modules.entries()) {
+    if (data.pathExists && data.resolvedPath) {
+      const abs = path.resolve(process.cwd(), data.resolvedPath);
+      const imports = extractModuleImports(program, abs);
+      if (imports) registry.modules.set(name, { ...data, imports });
+    }
+  }
+
+  // Enrich exports with morphology
+  for (const [name, data] of registry.exports.entries()) {
+    if (data.pathExists && data.resolvedPath && data.memberName) {
+      const abs = path.resolve(process.cwd(), data.resolvedPath);
+      const morphology = extractExportMorphology(program, abs, data.memberName);
+      if (morphology) registry.exports.set(name, { ...data, morphology });
     }
   }
 
@@ -653,6 +680,7 @@ function extractExports(
         ...exportData,
         resolvedPath,
         pathExists,
+        memberName: exportData.memberName,
       });
     }
   }
@@ -671,7 +699,7 @@ function extractExports(
 function extractExportType(
   typeNode: ts.TypeNode,
   checker: ts.TypeChecker
-): { desc: string; type?: string; importPath?: string } | null {
+): { desc: string; type?: string; importPath?: string; memberName?: string } | null {
   if (!ts.isTypeReferenceNode(typeNode)) return null;
 
   const typeArgs = typeNode.typeArguments;
@@ -683,6 +711,7 @@ function extractExportType(
   let desc = "";
   let typeSignature: string | undefined;
   let importPath: string | undefined;
+  let memberName: string | undefined;
 
   for (const member of objectType.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -700,10 +729,13 @@ function extractExportType(
 
       // Try to extract import path from typeof import("...")
       importPath = extractImportPath(propType);
+
+      // Try to extract member name from typeof import("...").memberName
+      memberName = extractImportMember(propType);
     }
   }
 
-  return desc ? { desc, type: typeSignature, importPath } : null;
+  return desc ? { desc, type: typeSignature, importPath, memberName } : null;
 }
 
 /**
@@ -735,6 +767,32 @@ function extractImportPath(typeNode: ts.TypeNode): string | undefined {
 
   visit(typeNode);
   return importPath;
+}
+
+/**
+ * Extract the member name from typeof import("...").memberName expression.
+ *
+ * For Export types like `typeof import("./service").login`, this returns "login".
+ * For Module types like `typeof import("./service")`, this returns undefined.
+ *
+ * @param typeNode - The type node that might contain an import with member access
+ * @returns The member name string, or undefined
+ */
+function extractImportMember(typeNode: ts.TypeNode): string | undefined {
+  let memberName: string | undefined;
+
+  function visit(node: ts.Node): void {
+    if (ts.isImportTypeNode(node) && node.qualifier) {
+      if (ts.isIdentifier(node.qualifier)) {
+        memberName = node.qualifier.text;
+      }
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(typeNode);
+  return memberName;
 }
 
 /**

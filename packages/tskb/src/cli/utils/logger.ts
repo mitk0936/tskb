@@ -30,6 +30,13 @@ export function time(label: string): () => void {
 }
 
 /**
+ * Write a JSON value to stdout, using compact format when optimized is true.
+ */
+export function jsonOut(value: unknown, optimized: boolean): void {
+  console.log(optimized ? JSON.stringify(value) : JSON.stringify(value, null, 2));
+}
+
+/**
  * Start a timer that always logs the label via info, and elapsed time via verbose.
  * Use this in the build command where progress output is expected.
  */

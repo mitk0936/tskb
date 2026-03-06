@@ -142,6 +142,18 @@ export async function build(config: ExtractConfig): Promise<void> {
   if (modulesWithMorphology > 0) {
     verbose(`   Module morphologies: ${modulesWithMorphology} extracted`);
   }
+  const modulesWithImportData = Array.from(registry.modules.values()).filter(
+    (m) => m.imports
+  ).length;
+  if (modulesWithImportData > 0) {
+    verbose(`   Module imports: ${modulesWithImportData} extracted`);
+  }
+  const exportsWithMorphology = Array.from(registry.exports.values()).filter(
+    (e) => e.morphology
+  ).length;
+  if (exportsWithMorphology > 0) {
+    verbose(`   Export morphologies: ${exportsWithMorphology} extracted`);
+  }
 
   // Extract documentation
   const docsDone = infoTime("Extracting documentation");

@@ -1,7 +1,8 @@
 import fs from "node:fs";
+import path from "node:path";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time } from "../utils/logger.js";
+import { verbose, time, jsonOut } from "../utils/logger.js";
 import {
   resolveNode,
   getNodeEdges,
@@ -39,6 +40,8 @@ interface ModulePickResult {
     resolvedPath?: string;
     morphologySummary?: string;
     morphology?: string[];
+    importsSummary?: string;
+    imports?: Array<{ entry: string; moduleId?: string }>;
   };
   parentFolder?: { nodeId: string; desc: string; path?: string };
   exports: Array<{ nodeId: string; desc: string; typeSignature?: string }>;
@@ -48,7 +51,14 @@ interface ModulePickResult {
 interface ExportPickResult {
   type: "export";
   resolvedVia: ResolvedVia;
-  node: { nodeId: string; desc: string; typeSignature?: string; resolvedPath?: string };
+  node: {
+    nodeId: string;
+    desc: string;
+    typeSignature?: string;
+    resolvedPath?: string;
+    morphologySummary?: string;
+    morphology?: string[];
+  };
   parent?: { nodeId: string; type: string; desc: string };
   referencingDocs: DocRef[];
 }
@@ -161,6 +171,10 @@ function resolveModule(
       resolvedPath: mod.resolvedPath,
       ...(mod.morphologySummary ? { morphologySummary: mod.morphologySummary } : {}),
       ...(mod.morphology ? { morphology: mod.morphology } : {}),
+      ...(mod.importsSummary ? { importsSummary: mod.importsSummary } : {}),
+      ...(mod.imports
+        ? { imports: enrichImportsWithModuleIds(mod.imports, mod.resolvedPath, edges, graph) }
+        : {}),
     },
     parentFolder,
     exports: exps,
@@ -184,6 +198,8 @@ function resolveExport(
       desc: exp.desc,
       typeSignature: exp.typeSignature,
       resolvedPath: exp.resolvedPath,
+      ...(exp.morphologySummary ? { morphologySummary: exp.morphologySummary } : {}),
+      ...(exp.morphology ? { morphology: exp.morphology } : {}),
     },
     parent: findParent(edges, graph),
     referencingDocs: findReferencingDocs(edges, graph),
@@ -228,6 +244,65 @@ function resolveDoc(
   };
 }
 
+/**
+ * Enrich raw import entries with moduleId when the import target is a known module in the graph.
+ * Uses "imports" edges to find which modules this module imports from, then maps import paths
+ * to their target module IDs.
+ */
+function enrichImportsWithModuleIds(
+  imports: string[],
+  moduleResolvedPath: string | undefined,
+  edges: NodeEdges,
+  graph: KnowledgeGraph
+): Array<{ entry: string; moduleId?: string }> {
+  // Collect target module IDs from "imports" edges
+  const importedModuleIds = new Set<string>();
+  for (const edge of edges.outgoing) {
+    if (edge.type === "imports") {
+      importedModuleIds.add(edge.to);
+    }
+  }
+
+  if (importedModuleIds.size === 0) {
+    return imports.map((entry) => ({ entry }));
+  }
+
+  // Build normalized resolvedPath (without extension) -> moduleId lookup
+  const pathToModuleId = new Map<string, string>();
+  for (const targetId of importedModuleIds) {
+    const mod = graph.nodes.modules[targetId];
+    if (mod?.resolvedPath) {
+      const normalized = stripExt(mod.resolvedPath.replace(/\\/g, "/"));
+      pathToModuleId.set(normalized, targetId);
+    }
+  }
+
+  const moduleDir = moduleResolvedPath
+    ? path.posix.dirname(moduleResolvedPath.replace(/\\/g, "/"))
+    : undefined;
+
+  return imports.map((entry) => {
+    const fromIdx = entry.lastIndexOf(' from "');
+    if (fromIdx === -1) return { entry };
+
+    const importPath = entry.slice(fromIdx + 7, -1);
+
+    // Resolve relative paths against the module's directory
+    if (moduleDir && (importPath.startsWith("./") || importPath.startsWith("../"))) {
+      const resolved = stripExt(path.posix.normalize(path.posix.join(moduleDir, importPath)));
+      const moduleId = pathToModuleId.get(resolved);
+      if (moduleId) return { entry, moduleId };
+    }
+
+    return { entry };
+  });
+}
+
+function stripExt(filePath: string): string {
+  const ext = path.posix.extname(filePath);
+  return ext ? filePath.slice(0, -ext.length) : filePath;
+}
+
 const resolvers: Record<string, NodeResolver> = {
   folder: resolveFolder as NodeResolver,
   module: resolveModule as NodeResolver,
@@ -238,7 +313,7 @@ const resolvers: Record<string, NodeResolver> = {
 
 // --- Public API ---
 
-export async function pick(identifier: string): Promise<void> {
+export async function pick(identifier: string, optimized: boolean = false): Promise<void> {
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
@@ -285,5 +360,5 @@ export async function pick(identifier: string): Promise<void> {
     `   Resolved "${identifier}" via ${resolved.resolvedVia} → ${resolved.node.type} "${resolved.id}"`
   );
 
-  console.log(JSON.stringify(result, null, 2));
+  jsonOut(result, optimized);
 }

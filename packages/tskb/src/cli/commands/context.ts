@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import type { KnowledgeGraph, GraphEdge, AnyNode } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time } from "../utils/logger.js";
+import { verbose, time, jsonOut } from "../utils/logger.js";
 import {
   resolveNode,
   getNodeEdges,
@@ -179,7 +179,11 @@ function buildContext(
 
 // --- Public API ---
 
-export async function context(identifier: string, depth: number = 1): Promise<void> {
+export async function context(
+  identifier: string,
+  depth: number = 1,
+  optimized: boolean = false
+): Promise<void> {
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
@@ -235,5 +239,5 @@ export async function context(identifier: string, depth: number = 1): Promise<vo
     `   ${nodes.length} nodes, ${docs.length} docs, ${constraints.length} constraints (depth=${depth})`
   );
 
-  console.log(JSON.stringify(result, null, 2));
+  jsonOut(result, optimized);
 }

@@ -8,6 +8,7 @@
 
 import type { DocPriority } from "../../runtime/jsx.js";
 import type { FolderChildren } from "../extraction/folder-summary.js";
+import type { ImportEntry } from "../extraction/module-morphology.js";
 
 export interface GraphNode {
   id: string;
@@ -50,6 +51,18 @@ export interface ModuleNode extends GraphNode {
    * Code stub lines showing exported API shape (classes with methods/props, function signatures, etc.)
    */
   morphology?: string[];
+  /**
+   * Auto-generated import summary, e.g. "5 imports from 3 paths"
+   */
+  importsSummary?: string;
+  /**
+   * Import entries as "symbolName from \"path\"" strings for search
+   */
+  imports?: string[];
+  /**
+   * Structured import entries with symbol and path for programmatic use
+   */
+  importEntries?: ImportEntry[];
 }
 
 export interface TermNode extends GraphNode {
@@ -68,6 +81,14 @@ export interface ExportNode extends GraphNode {
    * Resolved path relative to tsconfig directory (portable across machines)
    */
   resolvedPath?: string;
+  /**
+   * Auto-generated summary of the export's kind, e.g. "1 function" or "1 class"
+   */
+  morphologySummary?: string;
+  /**
+   * Code stub lines showing the export's API shape (signature, class members, interface fields, etc.)
+   */
+  morphology?: string[];
 }
 
 export interface DocNode extends GraphNode {
@@ -103,6 +124,7 @@ export type EdgeType =
   | "references" // Doc references a Folder/Module/Term/Export
   | "belongs-to" // Module/Export belongs to a Folder or Module
   | "contains" // Folder contains another Folder (path hierarchy)
+  | "imports" // Module imports from another Module
   | "related-to"; // General relationship
 
 export interface GraphEdge {
