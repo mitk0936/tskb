@@ -2,7 +2,7 @@ import fs from "node:fs";
 import type { KnowledgeGraph, GraphEdge } from "../../core/graph/types.js";
 import { ROOT_FOLDER_NAME } from "../../core/constants.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time } from "../utils/logger.js";
+import { verbose, time, jsonOut } from "../utils/logger.js";
 
 /**
  * Result from listing folders in the knowledge graph
@@ -27,7 +27,7 @@ interface LsResult {
  *
  * @param maxDepth - Maximum depth to traverse (-1 for unlimited, default: 1)
  */
-export async function ls(maxDepth: number = 1): Promise<void> {
+export async function ls(maxDepth: number = 1, optimized: boolean = false): Promise<void> {
   // Find and load the knowledge graph
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
@@ -62,7 +62,7 @@ export async function ls(maxDepth: number = 1): Promise<void> {
     `   ${result.folders.length} folders, ${result.docs.length} essential docs (depth=${maxDepth})`
   );
 
-  console.log(JSON.stringify(result, null, 2));
+  jsonOut(result, optimized);
 }
 
 /**

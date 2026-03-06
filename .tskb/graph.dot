@@ -635,4 +635,34 @@ digraph KnowledgeGraph {
   "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "TaskContext" [color=grey, style=dashed];
   "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "ProjectContext" [color=grey, style=dashed];
 
+  // imports edges
+  "visualization.dot-generator" -> "graph.types" ;
+  "graph.builder" -> "graph.types" ;
+  "graph.builder" -> "extraction.registry" ;
+  "graph.builder" -> "extraction.documentation" ;
+  "graph.types" -> "runtime.jsx" ;
+  "extraction.documentation" -> "runtime.jsx" ;
+  "cli.index" -> "cli.commands.search" ;
+  "cli.index" -> "cli.commands.pick" ;
+  "cli.index" -> "cli.commands.ls" ;
+  "cli.index" -> "cli.utils.logger" ;
+  "cli.commands.build" -> "typescript.index" ;
+  "cli.commands.build" -> "cli.utils.logger" ;
+  "cli.commands.search" -> "graph.types" ;
+  "cli.commands.search" -> "cli.utils.graph-finder" ;
+  "cli.commands.search" -> "cli.utils.logger" ;
+  "cli.commands.pick" -> "graph.types" ;
+  "cli.commands.pick" -> "cli.utils.graph-finder" ;
+  "cli.commands.pick" -> "cli.utils.logger" ;
+  "cli.commands.ls" -> "graph.types" ;
+  "cli.commands.ls" -> "cli.utils.graph-finder" ;
+  "cli.commands.ls" -> "cli.utils.logger" ;
+  "cli.utils.content-builder" -> "graph.types" ;
+  "cli.utils.skill-generator" -> "graph.types" ;
+  "cli.utils.skill-generator" -> "cli.utils.content-builder" ;
+  "cli.utils.skill-generator" -> "cli.utils.logger" ;
+  "cli.utils.copilot-instructions" -> "graph.types" ;
+  "cli.utils.copilot-instructions" -> "cli.utils.content-builder" ;
+  "cli.utils.copilot-instructions" -> "cli.utils.logger" ;
+
 }

@@ -4,11 +4,11 @@
 export function getHelpText(): string {
   return `Usage:
   tskb build <glob> [--tsconfig <path>] [--verbose]
-  tskb ls [--depth <n>] [--verbose]
-  tskb pick <identifier> [--verbose]
-  tskb search <query> [--verbose]
-  tskb context <identifier> [--depth <n>] [--verbose]
-  tskb docs [<query>] [--verbose]
+  tskb ls [--depth <n>] [--optimized] [--verbose]
+  tskb pick <identifier> [--optimized] [--verbose]
+  tskb search <query> [--optimized] [--verbose]
+  tskb context <identifier> [--depth <n>] [--optimized] [--verbose]
+  tskb docs [<query>] [--optimized] [--verbose]
 
 Examples:
   # Build command - typically run on pre-commit hooks, post-install scripts, or CI pipelines

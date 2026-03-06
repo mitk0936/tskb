@@ -53,7 +53,7 @@ applyTo: "**"
 # TSKB — Codebase Architecture
 
 This project uses **TSKB**, a semantic knowledge graph of the codebase.
-Before making code changes, use TSKB to understand the architecture.
+**Query TSKB before touching any area of the codebase** — not just once per task, but each time your work moves to a different folder, module, or concept.
 
 ${buildQueryBody(graph)}
 `;

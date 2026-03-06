@@ -351,7 +351,7 @@ This graph is the primary output. Everything else (diagrams, markdown, AI contex
 {
   nodes: {
     folders: Record<string, FolderNode>;   // id, desc, path
-    modules: Record<string, ModuleNode>;   // id, desc, resolvedPath, typeSignature
+    modules: Record<string, ModuleNode>;   // id, desc, resolvedPath, typeSignature, imports
     exports: Record<string, ExportNode>;   // id, desc, resolvedPath, typeSignature
     terms:   Record<string, TermNode>;     // id, desc
     docs:    Record<string, DocNode>;       // id, explains, priority, filePath, content
@@ -359,7 +359,7 @@ This graph is the primary output. Everything else (diagrams, markdown, AI contex
   edges: Array<{
     from: string;
     to: string;
-    type: "references" | "contains" | "belongs-to" | "related-to";
+    type: "references" | "contains" | "belongs-to" | "imports" | "related-to";
   }>,
   metadata: {
     generatedAt: string;
@@ -417,6 +417,7 @@ From filesystem paths and imports:
 
 - Folder → Folder (`contains`)
 - Module → Folder (`belongs-to`)
+- Module → Module (`imports`) — from resolved import statements
 - Export → Module (`belongs-to`)
 
 The graph combines **authored intent** with **structural truth**.

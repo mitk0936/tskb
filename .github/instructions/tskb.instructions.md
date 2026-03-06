@@ -5,65 +5,48 @@ applyTo: "**"
 # TSKB — Codebase Architecture
 
 This project uses **TSKB**, a semantic knowledge graph of the codebase.
-Before making code changes, use TSKB to understand the architecture.
+**Query TSKB before touching any area of the codebase** — not just once per task, but each time your work moves to a different folder, module, or concept.
 
-## Graph Concepts
+## Workflow — READ THIS FIRST
 
-The knowledge graph consists of these node types:
+**Query TSKB every time you touch a new area** — not just at the start of a task. When your work moves to a different folder, module, or concept, query TSKB again before reading files. The graph captures developer intent, constraints, and structural relationships that filesystem exploration alone will miss.
 
-- **Folder**: Logical grouping in the codebase (feature, layer, package). Has an ID, description, and filesystem path.
-- **Module**: A source file or unit of code. Linked to its parent folder via belongs-to edges.
-- **Export**: A specific function, class, type, or constant exported from a module. Type-checked via `typeof import()`.
-- **Term**: A domain concept, pattern, or piece of terminology. Not tied to a file — used to name ideas.
-- **Doc**: A `.tskb.tsx` documentation file. References other nodes to create edges. Has an `explains` field and a `priority` (essential, constraint, or supplementary).
+1. **Query before touching** — Run `search`, `pick`, or `context` for the area you're about to touch. Do this each time you move to a new part of the codebase, even mid-task.
+2. **Read docs and constraints** — Check `referencingDocs` in results. Constraint docs **MUST** be read and followed.
+3. **Fall back to files only if TSKB has no coverage** — If no registered nodes or docs reference the area, use filesystem exploration. Consider suggesting doc updates.
+4. **Act** — Make architecturally coherent changes based on what you learned.
+
+Do NOT skip step 1 and jump straight to reading files — you risk missing documented intent and constraints.
 
 ## Commands
 
-
-List folder hierarchy:
 ```bash
-npx --no -- tskb ls --depth=4
+npx --no -- tskb search "<query>" --optimized                    # Fuzzy search across the entire graph
+npx --no -- tskb pick "<identifier>" --optimized                  # Detailed info on any node (by ID or path)
+npx --no -- tskb context "<identifier>" --depth=2 --optimized     # Node + neighborhood + docs (BFS traversal)
+npx --no -- tskb ls --depth=4 --optimized                         # Folder hierarchy
+npx --no -- tskb docs "<query>" --optimized                       # Search docs
 ```
 
-Get detailed info on any node (by ID or path):
-```bash
-npx --no -- tskb pick "<identifier>"
-```
+Drop `--optimized` for human-readable output.
 
-Search for concepts, modules, or folders:
-```bash
-npx --no -- tskb search "<query>"
-```
+## Response Shapes
 
-List or search docs:
-```bash
-npx --no -- tskb docs
-npx --no -- tskb docs "<query>"
-```
+All paths are relative to where `tskb build` was run and can be used directly to read files.
 
-Get full context for an area (node + neighborhood + docs):
-```bash
-npx --no -- tskb context "<identifier>" --depth=2
-```
+- **search**: Ranked results. Folders include `structureSummary`, modules and exports include `morphologySummary`, modules include `importsSummary`. Use `pick` on any `nodeId` for full details.
+- **pick**: Type-specific detail. Modules and exports include `morphology` (code stubs) and `morphologySummary`. Modules include `imports` (with `moduleId` when the target is a registered module) and `importsSummary`. Folders include `children` and `structureSummary`. Docs include `content`. All types include `referencingDocs` — constraint docs in this list **MUST** be read.
+- **context**: Node neighborhood with all referencing docs and constraints surfaced at top level.
+- **ls**: Essential docs first, then folder hierarchy with `structureSummary`.
+- **docs**: Lists or searches all docs. Use `pick` on a doc `nodeId` to get full content.
 
-## Command Response Shapes
+## Graph Concepts
 
-All paths in responses are relative to where `tskb build` was run. They can be used directly to read files or navigate the filesystem.
-
-**search** returns ranked results. Folders include `structureSummary`, modules include `morphologySummary`. Use `pick` on any `nodeId` for full details.
-
-**pick** returns type-specific detail:
-- **Folder**: `node.children` lists filesystem contents — each child has `name` and, if registered, `nodeId` + `desc`. `node.structureSummary` gives counts.
-- **Module**: `node.morphology` is a `string[]` of code stubs (function signatures, class/interface shapes with methods and fields). `node.morphologySummary` gives counts.
-- **Doc**: `node.content` has full text inline.
-- All types include `referencingDocs`. Constraint docs in this list **MUST** be read.
-
-**context** returns a node's neighborhood (BFS traversal) with all referencing docs and constraints surfaced at top level.
-
-**ls** returns essential docs first, then folder hierarchy with `structureSummary` on each folder.
-
-**docs** lists or searches all docs. Use `pick` on a doc `nodeId` to get full content.
-```
+- **Folder**: Logical grouping (feature, layer, package). Has ID, description, filesystem path.
+- **Module**: A source file. Linked to parent folder via belongs-to edges and to other modules via imports edges.
+- **Export**: A specific function, class, type, or constant from a module. Type-checked via `typeof import()`.
+- **Term**: A domain concept or pattern. Not tied to a file.
+- **Doc**: A `.tskb.tsx` documentation file. Has `explains`, `priority` (essential, constraint, supplementary), and references to other nodes.
 
 ## Folder Structure
 
@@ -76,26 +59,11 @@ All paths in responses are relative to where `tskb build` was run. They can be u
 
 ## Documentation
 
-Each doc has an `explains` field describing its purpose. Use this to decide which docs to read.
-
 - `docs/src/tskb/cli/logging.tskb.tsx` — CLI logging: stderr-only output, --verbose flag, timing support
 - `docs/src/tskb/main.tskb.tsx` — Architecture, API surface, and usage flow of the TSKB library
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — Runtime module structure: JSX primitives and registry type definitions
 - `docs/src/tskb/typescript/typescript.tskb.tsx` — TypeScript Program creation for static analysis without compilation
 
-_Plus 12 supplementary docs available via `npx --no -- tskb search`._
+_Plus 12 supplementary docs available via `npx --no -- tskb docs --optimized`._
 
-## Constraints
-
-Some docs are marked as **constraints** (`priority="constraint"`). These define architectural rules and invariants that **MUST** be followed when working on related modules or folders. When `pick` or `ls` shows a constraint doc referencing the area you're working on, **read it before making changes**.
-
-## Workflow
-
-**For every new task, query TSKB first** — the knowledge graph captures developer intent, architectural decisions, and constraints that filesystem exploration alone will miss. Only fall back to file reading when TSKB has no coverage for the area (no registered folders, modules, or docs reference it).
-
-1. **Query TSKB first** — Run `search`, `pick`, or `context` for the area you're about to touch. This is mandatory, not optional.
-2. **Check for docs and constraints** — Read any referencing docs, especially constraints. These encode rules you must follow.
-3. **If TSKB has no coverage** — The area is undocumented. Switch to filesystem exploration (file reads, grep) to understand it directly. Consider suggesting doc updates.
-4. **Act** — Make architecturally coherent changes based on what you learned.
-
-Do NOT skip step 1 and jump straight to reading files — you risk missing documented intent, constraints, and structural relationships that the developer has explicitly recorded.
+Constraint docs define architectural rules that **MUST** be followed when working on related code.

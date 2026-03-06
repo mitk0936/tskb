@@ -5,6 +5,17 @@ export interface ModuleMorphology {
   morphology: string[]; // code stub lines — no \n, each line is its own array element
 }
 
+export interface ImportEntry {
+  symbol: string; // e.g. "Foo", "* as ns", "*"
+  path: string; // raw import path, e.g. "./bar.js"
+}
+
+export interface ModuleImports {
+  imports: string[]; // "symbolName from \"path\"" display entries
+  importEntries: ImportEntry[]; // structured entries for programmatic use
+  importsSummary: string; // "5 imports from 3 paths"
+}
+
 type MemberKind = "class" | "function" | "type" | "interface" | "variable" | "enum";
 
 /**
@@ -329,6 +340,134 @@ function renderVariable(
     return `${prefix}const ${name}: ${typeStr.slice(0, 117)}...`;
   }
   return `${prefix}const ${name}`;
+}
+
+/**
+ * Extract morphology for a single named export from a module file.
+ *
+ * Finds the specified export symbol by name and produces a code stub
+ * and summary for just that export.
+ *
+ * @param program - TypeScript program with type checker
+ * @param resolvedPath - Absolute path to the source file
+ * @param exportName - Name of the export to extract morphology for
+ * @returns Morphology with summary and code stub, or null if unavailable
+ */
+export function extractExportMorphology(
+  program: ts.Program,
+  resolvedPath: string,
+  exportName: string
+): ModuleMorphology | null {
+  const checker = program.getTypeChecker();
+  const sourceFile = program.getSourceFile(resolvedPath);
+  if (!sourceFile) return null;
+
+  const moduleSymbol = checker.getSymbolAtLocation(sourceFile);
+  if (!moduleSymbol) return null;
+
+  let exports: ts.Symbol[];
+  try {
+    exports = checker.getExportsOfModule(moduleSymbol);
+  } catch {
+    return null;
+  }
+
+  // Find the specific export by name
+  const sym = exports.find((s) => s.escapedName === exportName);
+  if (!sym) return null;
+
+  // Resolve aliases (re-exports)
+  let resolved = sym;
+  if (resolved.flags & ts.SymbolFlags.Alias) {
+    try {
+      resolved = checker.getAliasedSymbol(resolved);
+    } catch {
+      // Keep the alias if resolution fails
+    }
+  }
+
+  const kind = classifySymbol(resolved);
+  if (!kind) return null;
+
+  try {
+    const lines = renderExport(sym.name, kind, resolved, checker, sourceFile, false);
+    if (!lines || lines.length === 0) return null;
+
+    const summary = `1 ${kind}`;
+    return { summary, morphology: lines };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract import statements from a module file using AST traversal.
+ *
+ * Walks the source file for `ts.ImportDeclaration` nodes and captures
+ * each imported symbol and its source path as `"symbolName from \"path\""`.
+ *
+ * @param program - TypeScript program
+ * @param resolvedPath - Absolute path to the source file
+ * @returns Import data with entries and summary, or null if no imports found
+ */
+export function extractModuleImports(
+  program: ts.Program,
+  resolvedPath: string
+): ModuleImports | null {
+  const sourceFile = program.getSourceFile(resolvedPath);
+  if (!sourceFile) return null;
+
+  const imports: string[] = [];
+  const importEntries: ImportEntry[] = [];
+  const paths = new Set<string>();
+
+  ts.forEachChild(sourceFile, (node) => {
+    if (!ts.isImportDeclaration(node)) return;
+
+    const moduleSpecifier = node.moduleSpecifier;
+    if (!ts.isStringLiteral(moduleSpecifier)) return;
+
+    const importPath = moduleSpecifier.text;
+    paths.add(importPath);
+
+    const importClause = node.importClause;
+    if (!importClause) {
+      // Side-effect import: import "path"
+      imports.push(`* from "${importPath}"`);
+      importEntries.push({ symbol: "*", path: importPath });
+      return;
+    }
+
+    // Default import: import Foo from "path"
+    if (importClause.name) {
+      const symbol = importClause.name.text;
+      imports.push(`${symbol} from "${importPath}"`);
+      importEntries.push({ symbol, path: importPath });
+    }
+
+    // Named imports: import { a, b } from "path"
+    const namedBindings = importClause.namedBindings;
+    if (namedBindings) {
+      if (ts.isNamedImports(namedBindings)) {
+        for (const element of namedBindings.elements) {
+          const symbol = element.name.text;
+          imports.push(`${symbol} from "${importPath}"`);
+          importEntries.push({ symbol, path: importPath });
+        }
+      } else if (ts.isNamespaceImport(namedBindings)) {
+        // Namespace import: import * as ns from "path"
+        const symbol = `* as ${namedBindings.name.text}`;
+        imports.push(`${symbol} from "${importPath}"`);
+        importEntries.push({ symbol, path: importPath });
+      }
+    }
+  });
+
+  if (imports.length === 0) return null;
+
+  const importsSummary = `${imports.length} import${imports.length !== 1 ? "s" : ""} from ${paths.size} path${paths.size !== 1 ? "s" : ""}`;
+
+  return { imports, importEntries, importsSummary };
 }
 
 /**
