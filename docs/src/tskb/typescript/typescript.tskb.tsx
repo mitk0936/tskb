@@ -1,4 +1,4 @@
-import { type Module, type Export, Doc, H1, ref, P, H2, List, Li } from "tskb";
+import { type Module, type Export, Doc, H1, ref, P, H2, List, Li, Relation } from "tskb";
 
 declare global {
   namespace tskb {
@@ -27,6 +27,8 @@ const TypescriptFolder = ref as tskb.Folders["tskb.typescript"];
 const ProgramModule = ref as tskb.Modules["typescript.program"];
 const CreateProgramExport = ref as tskb.Exports["ts.createProgram"];
 const TsProgramTerm = ref as tskb.Terms["tsProgram"];
+const ExtractionDocModule = ref as tskb.Modules["extraction.documentation"];
+const GraphBuilderModule = ref as tskb.Modules["graph.builder"];
 
 export default (
   <Doc
@@ -55,5 +57,7 @@ export default (
       Provides the {TsProgramTerm} used by extraction logic to parse *.tskb.tsx files, resolve
       types, and walk ASTs for registry and documentation extraction.
     </P>
+    <Relation from={ProgramModule} to={ExtractionDocModule} label="used for doc extraction" />
+    <Relation from={ProgramModule} to={GraphBuilderModule} label="feeds graph builder" />
   </Doc>
 );

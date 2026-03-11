@@ -372,6 +372,35 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
         );
       }
     }
+
+    // Emit "related-to" edges for each relation in doc.relations
+    if (doc.relations && Array.isArray(doc.relations)) {
+      for (const rel of doc.relations) {
+        // Only emit if both nodes exist (can be term, module, folder, or export)
+        const fromExists =
+          graph.nodes.terms[rel.from] ||
+          graph.nodes.modules[rel.from] ||
+          graph.nodes.folders[rel.from] ||
+          graph.nodes.exports[rel.from];
+        const toExists =
+          graph.nodes.terms[rel.to] ||
+          graph.nodes.modules[rel.to] ||
+          graph.nodes.folders[rel.to] ||
+          graph.nodes.exports[rel.to];
+        if (fromExists && toExists) {
+          const edge: any = {
+            from: rel.from,
+            to: rel.to,
+            type: "related-to",
+          };
+          if (rel.label) edge.label = rel.label;
+          graph.edges.push(edge);
+        } else {
+          // Optionally, warn or throw if either node is missing
+          // throw new Error(`Unresolved node in Relation: from="${rel.from}" to="${rel.to}" in doc "${docId}"`);
+        }
+      }
+    }
   }
 }
 

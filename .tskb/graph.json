@@ -846,13 +846,14 @@
         "desc": "The main package export",
         "typeSignature": "typeof import(\"packages/tskb/src/index.js\")",
         "resolvedPath": "packages/tskb/src/index.ts",
-        "morphologySummary": "9 functions, 6 types, 1 variable",
+        "morphologySummary": "10 functions, 6 types, 1 variable",
         "morphology": [
           "export type Term = ",
           "export type Module = ",
           "export type Folder = ",
           "export type Export = ",
           "export const ref: ReactNode",
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 125 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 134 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any",
           "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any",
           "export function H1({ children }: { children: any; }): any",
           "export function H2({ children }: { children: any; }): any",
@@ -862,7 +863,7 @@
           "export function Li({ children }: { children: any; }): any",
           "export function Snippet({ code }: { code: () => any; }): any",
           "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any",
-          "export type ReactNode = js\";\nexport { ref } from \"./runtime/jsx.js\";\n",
+          "export type ReactNode = ",
           "export type DocPriority = "
         ]
       },
@@ -872,8 +873,9 @@
         "desc": "The JSX runtime, provided by the package. Includes all available jsx tags in tskb as functions.",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\")",
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
-        "morphologySummary": "9 functions, 2 types, 1 variable",
+        "morphologySummary": "10 functions, 2 types, 1 variable",
         "morphology": [
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 125 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 134 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any",
           "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any",
           "export function H1({ children }: { children: any; }): any",
           "export function H2({ children }: { children: any; }): any",
@@ -886,6 +888,31 @@
           "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r...",
           "export const ref: ReactNode",
           "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\""
+        ],
+        "importsSummary": "4 imports from 1 path",
+        "imports": [
+          "FolderName from \"./registry.js\"",
+          "ModuleName from \"./registry.js\"",
+          "TermName from \"./registry.js\"",
+          "ExportName from \"./registry.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "FolderName",
+            "path": "./registry.js"
+          },
+          {
+            "symbol": "ModuleName",
+            "path": "./registry.js"
+          },
+          {
+            "symbol": "TermName",
+            "path": "./registry.js"
+          },
+          {
+            "symbol": "ExportName",
+            "path": "./registry.js"
+          }
         ]
       },
       "sample.tsconfig.json": {
@@ -938,8 +965,9 @@
         "desc": "JSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\")",
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
-        "morphologySummary": "9 functions, 2 types, 1 variable",
+        "morphologySummary": "10 functions, 2 types, 1 variable",
         "morphology": [
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 125 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 134 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any",
           "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any",
           "export function H1({ children }: { children: any; }): any",
           "export function H2({ children }: { children: any; }): any",
@@ -952,6 +980,31 @@
           "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r...",
           "export const ref: ReactNode",
           "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\""
+        ],
+        "importsSummary": "4 imports from 1 path",
+        "imports": [
+          "FolderName from \"./registry.js\"",
+          "ModuleName from \"./registry.js\"",
+          "TermName from \"./registry.js\"",
+          "ExportName from \"./registry.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "FolderName",
+            "path": "./registry.js"
+          },
+          {
+            "symbol": "ModuleName",
+            "path": "./registry.js"
+          },
+          {
+            "symbol": "TermName",
+            "path": "./registry.js"
+          },
+          {
+            "symbol": "ExportName",
+            "path": "./registry.js"
+          }
         ]
       },
       "runtime.registry": {
@@ -1201,6 +1254,7 @@
           "  from: string",
           "  to: string",
           "  type: EdgeType",
+          "  label: string | undefined",
           "}",
           "export interface KnowledgeGraph {",
           "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; docs: Record<...>; }",
@@ -1245,6 +1299,7 @@
           "  priority: DocPriority",
           "  content: string",
           "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; }",
+          "  relations: { from: string; to: string; label?: string | undefined; }[] | undefined",
           "}"
         ],
         "importsSummary": "3 imports from 3 paths",
@@ -2278,6 +2333,17 @@
           "export const ref: ReactNode"
         ]
       },
+      "jsx.Relation": {
+        "id": "jsx.Relation",
+        "type": "export",
+        "desc": "Semantic relation component. Creates a labeled or unlabeled related-to edge between two registry nodes in the knowledge graph. Props: from, to (node constants), optional label (string). Visible in CLI output.",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Relation",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 125 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 134 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any"
+        ]
+      },
       "DocPriority": {
         "id": "DocPriority",
         "type": "export",
@@ -2368,6 +2434,7 @@
           "  priority: DocPriority",
           "  content: string",
           "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; }",
+          "  relations: { from: string; to: string; label?: string | undefined; }[] | undefined",
           "}"
         ]
       },
@@ -2789,7 +2856,7 @@
         "explains": "Architecture, API surface, and usage flow of the TSKB library",
         "priority": "essential",
         "filePath": "docs/src/tskb/main.tskb.tsx",
-        "content": "Architecture and implementation docs for the <TSKB> library The package is located in <nodeId: TSKB.Package.Root>, with its <nodeId: package.json>and README.md for npm. What is <TSKB> ? A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge\n      graphs and diagrams with type-checked references. What it provides in terms of interfaces (API's) and tools In the root folder: <nodeId: TSKB.Package.Root>. In the <nodeId: package.json>file, it declares a bin command named 'tskb' that runs the <nodeId: cli>The package exports two main modules, in addition to the <nodeId: cli>: the index module   <nodeId: Main.index.js>and the jsxRuntime ( <nodeId: jsxRuntime>), defined in: <nodeId: Jsx.runtime.js>Core Primitives for Type-Safe Documentation Main exports (primitives) of the library for creating type-safe architectural documentation: <nodeId: Folder>: Represents logical groupings in the codebase (features, layers, packages) <nodeId: Module>: Represents concrete code units (classes, services, components) <nodeId: Export>: Creates type-safe references to actual code exports using TypeScript's\n          typeof import() syntax - ensures documentation stays in sync with codebase <nodeId: Term>: Represents domain concepts, patterns, or terminology <nodeId: ref>: A placeholder for referencing anything from the global tskb registry into jsx\n          tags with type assertions Plus all the JSX documentation components exported from <nodeId: Jsx.runtime.js>: Doc, H1, H2, H3,\n      P, List, Li, Snippet - providing a familiar TSX syntax for structured content A typical flow of usage Create a docs folder in your repository for documentation files Define a tsconfig.json similar to <nodeId: sample.tsconfig.json>pointing to repo root with jsx:\n        \"react-jsx\" and jsxImportSource: \"tskb\" Declare vocabulary (Folders, Modules, Exports, Terms) using global namespace augmentation.\n        Use typeof import() for type-safe references. Write *.tskb.tsx files using JSX components. TypeScript validates all references at compile\n        time. Run <nodeId: cli.build>: \"tskb \\\"**/*.tskb.tsx\\\" --tsconfig tsconfig.json\" The <nodeId: cli>creates a <nodeId: tsProgram>and type-checks all documentation files against\n        actual source code Extracts vocabulary from the <nodeId: registry>(Folders, Modules, Exports, Terms) Processes *.tskb.tsx files, extracting content and references Constructs the <nodeId: graph>by analyzing relationships and hierarchies Outputs JSON knowledge graph optimized for AI agents and tooling Generating a visual representation: <nodeId: cli.build>automatically generates a <nodeId: dotFile>in .tskb/graph.dot using   <nodeId: generateDot><nodeId: generateDot>transforms the <nodeId: graph>into a <nodeId: dotFile>with nodes and\n        relationship edges Render with Graphviz: \"dot -Tpng .tskb/graph.dot -o .tskb/graph.png\" Or use interactive viewers like xdot or online Graphviz tools Key Benefits Type-checked references: Renames, moves, or API changes break the build - enforcing\n        correctness Validated snippets: Code examples are type-checked against actual source Living documentation: Stays in sync through the compiler - CI catches drift AI-optimized: Queryable knowledge graph reduces hallucination Docs as infrastructure: Compile-time validation, not afterthought Navigating the knowledge graph Three commands for exploring and querying the knowledge graph - optimized for AI agents List all folders Run <nodeId: cli.ls>: \"tskb ls ./dist/taskflow-graph.json\" or \"tskb ls\n        ./dist/taskflow-graph.json --depth 2\" Always starts from Package.Root, lists all folders hierarchically Controllable depth: default 1 (immediate children), -1 for unlimited Returns flat JSON with folder ID, depth level, description, and path Use for initial orientation and discovering folder IDs Pick any node Run <nodeId: cli.pick>: \"tskb pick tskb.cli\" (by ID) or \"tskb pick packages/tskb/src/cli\" (by\n        path) Resolves any node type: folder, module, export, term, or doc Returns type-specific data: parent, children, modules, exports, referencing docs Falls back to nearest parent folder when no exact match is found Search the graph Run <nodeId: cli.search>: \"tskb search auth\" or \"tskb search build command\" Fuzzy searches the entire graph across IDs, descriptions, and paths using Fuse.js <nodeId: searchResult>includes: top 10 ranked results with score (0-1, higher = better match) Searches across all node types: folders, modules, exports, terms, and docs Use pick to get full details on any result Documentation Philosophy: Map, Not Manual Write structural signposts showing what exists where and how pieces connect - not\n      implementation details. Document structure: Declare folders, locations, and key relationships Use type-safe references: typeof import() ensures TypeScript validates existence and catches\n        renames Focus on WHAT and WHERE, not HOW: Describe purpose and location, not algorithms Trust validation: TSKB catches broken references, not behavior changes Major relationships only: Document architectural connections, not every dependency",
+        "content": "Architecture and implementation docs for the <TSKB> library The package is located in <nodeId: TSKB.Package.Root>, with its <nodeId: package.json>and README.md for npm. What is <TSKB> ? A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge\n      graphs and diagrams with type-checked references. What it provides in terms of interfaces (API's) and tools In the root folder: <nodeId: TSKB.Package.Root>. In the <nodeId: package.json>file, it declares a bin command named 'tskb' that runs the <nodeId: cli>The package exports two main modules, in addition to the <nodeId: cli>: the index module   <nodeId: Main.index.js>and the jsxRuntime ( <nodeId: jsxRuntime>), defined in: <nodeId: Jsx.runtime.js>Core Primitives for Type-Safe Documentation Main exports (primitives) of the library for creating type-safe architectural documentation: <nodeId: Folder>: Represents logical groupings in the codebase (features, layers, packages) <nodeId: Module>: Represents concrete code units (classes, services, components) <nodeId: Export>: Creates type-safe references to actual code exports using TypeScript's\n          typeof import() syntax - ensures documentation stays in sync with codebase <nodeId: Term>: Represents domain concepts, patterns, or terminology <nodeId: ref>: A placeholder for referencing anything from the global tskb registry into jsx\n          tags with type assertions Plus all the JSX documentation components exported from <nodeId: Jsx.runtime.js>: Doc, H1, H2, H3,\n      P, List, Li, Snippet - providing a familiar TSX syntax for structured content A typical flow of usage Create a docs folder in your repository for documentation files Define a tsconfig.json similar to <nodeId: sample.tsconfig.json>pointing to repo root with jsx:\n        \"react-jsx\" and jsxImportSource: \"tskb\" Declare vocabulary (Folders, Modules, Exports, Terms) using global namespace augmentation.\n        Use typeof import() for type-safe references. Write *.tskb.tsx files using JSX components. TypeScript validates all references at compile\n        time. Run <nodeId: cli.build>: \"tskb \\\"**/*.tskb.tsx\\\" --tsconfig tsconfig.json\" The <nodeId: cli>creates a <nodeId: tsProgram>and type-checks all documentation files against\n        actual source code <relation from=\"tsProgram\" to=\"typescript.program\" /><relation from=\"tsProgram\" to=\"ref\" />Extracts vocabulary from the <nodeId: registry>(Folders, Modules, Exports, Terms) Processes *.tskb.tsx files, extracting content and references Constructs the <nodeId: graph>by analyzing relationships and hierarchies Outputs JSON knowledge graph optimized for AI agents and tooling Generating a visual representation: <nodeId: cli.build>automatically generates a <nodeId: dotFile>in .tskb/graph.dot using   <nodeId: generateDot><nodeId: generateDot>transforms the <nodeId: graph>into a <nodeId: dotFile>with nodes and\n        relationship edges Render with Graphviz: \"dot -Tpng .tskb/graph.dot -o .tskb/graph.png\" Or use interactive viewers like xdot or online Graphviz tools Key Benefits Type-checked references: Renames, moves, or API changes break the build - enforcing\n        correctness Validated snippets: Code examples are type-checked against actual source Living documentation: Stays in sync through the compiler - CI catches drift AI-optimized: Queryable knowledge graph reduces hallucination Docs as infrastructure: Compile-time validation, not afterthought Navigating the knowledge graph Three commands for exploring and querying the knowledge graph - optimized for AI agents List all folders Run <nodeId: cli.ls>: \"tskb ls ./dist/taskflow-graph.json\" or \"tskb ls\n        ./dist/taskflow-graph.json --depth 2\" Always starts from Package.Root, lists all folders hierarchically Controllable depth: default 1 (immediate children), -1 for unlimited Returns flat JSON with folder ID, depth level, description, and path Use for initial orientation and discovering folder IDs Pick any node Run <nodeId: cli.pick>: \"tskb pick tskb.cli\" (by ID) or \"tskb pick packages/tskb/src/cli\" (by\n        path) Resolves any node type: folder, module, export, term, or doc Returns type-specific data: parent, children, modules, exports, referencing docs Falls back to nearest parent folder when no exact match is found Search the graph Run <nodeId: cli.search>: \"tskb search auth\" or \"tskb search build command\" Fuzzy searches the entire graph across IDs, descriptions, and paths using Fuse.js <nodeId: searchResult>includes: top 10 ranked results with score (0-1, higher = better match) Searches across all node types: folders, modules, exports, terms, and docs Use pick to get full details on any result Documentation Philosophy: Map, Not Manual Write structural signposts showing what exists where and how pieces connect - not\n      implementation details. Document structure: Declare folders, locations, and key relationships Use type-safe references: typeof import() ensures TypeScript validates existence and catches\n        renames Focus on WHAT and WHERE, not HOW: Describe purpose and location, not algorithms Trust validation: TSKB catches broken references, not behavior changes Major relationships only: Document architectural connections, not every dependency",
         "format": "tsx"
       },
       "docs/src/tskb/typescript/typescript.tskb.tsx": {
@@ -2798,7 +2865,7 @@
         "explains": "TypeScript Program creation for static analysis without compilation",
         "priority": "essential",
         "filePath": "docs/src/tskb/typescript/typescript.tskb.tsx",
-        "content": "TypeScript Program Located in <nodeId: tskb.typescript>. Creates <nodeId: tsProgram>for analyzing code without compilation. Key Module <nodeId: typescript.program>: Exports <nodeId: ts.createProgram>which: Reads and parses tsconfig.json for compiler options Creates TypeScript Program with noEmit=true (analysis only) Validates TypeScript errors in specified files Returns Program with AST, type checker, and symbol resolution Purpose Provides the <nodeId: tsProgram>used by extraction logic to parse *.tskb.tsx files, resolve\n      types, and walk ASTs for registry and documentation extraction.",
+        "content": "TypeScript Program Located in <nodeId: tskb.typescript>. Creates <nodeId: tsProgram>for analyzing code without compilation. Key Module <nodeId: typescript.program>: Exports <nodeId: ts.createProgram>which: Reads and parses tsconfig.json for compiler options Creates TypeScript Program with noEmit=true (analysis only) Validates TypeScript errors in specified files Returns Program with AST, type checker, and symbol resolution Purpose Provides the <nodeId: tsProgram>used by extraction logic to parse *.tskb.tsx files, resolve\n      types, and walk ASTs for registry and documentation extraction. <relation from=\"typescript.program\" to=\"extraction.documentation\" label=\"used for doc extraction\" /><relation from=\"typescript.program\" to=\"graph.builder\" label=\"feeds graph builder\" />",
         "format": "tsx"
       },
       "docs/src/tskb/runtime/runtime.tskb.tsx": {
@@ -2807,7 +2874,7 @@
         "explains": "Runtime module structure: JSX primitives and registry type definitions",
         "priority": "essential",
         "filePath": "docs/src/tskb/runtime/runtime.tskb.tsx",
-        "content": "Runtime Located in <nodeId: tskb.runtime>. Contains registry type definitions and JSX primitives - no actual\n      runtime execution. Modules <nodeId: runtime.jsx>: JSX runtime with <nodeId: jsx.Doc>(requires explains prop and optional priority via   <nodeId: DocPriority>: essential, constraint, or supplementary). Includes\n        heading/paragraph/list components, <nodeId: jsx.Adr>for Architecture Decision Records, and   <nodeId: jsx.ref>for type-safe registry references. <nodeId: runtime.registry>: Type definitions for Folder, Module, Export, Term interfaces used in\n        global namespace augmentation. Purpose Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry\n      interfaces enable type-safe vocabulary declarations. JSX components structure documentation\n      content.",
+        "content": "Runtime Located in <nodeId: tskb.runtime>. Contains registry type definitions and JSX primitives - no actual\n      runtime execution. Modules <nodeId: runtime.jsx>: JSX runtime with <nodeId: jsx.Doc>(requires explains prop and optional priority via   <nodeId: DocPriority>: essential, constraint, or supplementary). Includes\n        heading/paragraph/list components, <nodeId: jsx.Adr>for Architecture Decision Records, and   <nodeId: jsx.ref>for type-safe registry references. <nodeId: runtime.registry>: Type definitions for Folder, Module, Export, Term interfaces used in\n        global namespace augmentation. Purpose Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry\n      interfaces enable type-safe vocabulary declarations. JSX components structure documentation\n      content. Semantic Relations The Relation tag creates a semantic edge in the knowledge graph between two nodes. It\n      is type-safe and supports any registered Folder, Module, Term, or Export. The optional   label prop allows you to describe the relationship (e.g., \"depends on\"). <snippet>() => <Relation from={JsxModule} to={ExampleTerm} label=\"runtime describes graph\" /></snippet>This will emit a related-to edge from the runtime.jsx module to the Graph   term in the TSKB graph, with the label \"runtime describes graph\".",
         "format": "tsx"
       },
       "docs/src/tskb/core/visualization.tskb.tsx": {
@@ -2816,7 +2883,7 @@
         "explains": "Visualization module: DOT graph generation from the knowledge graph",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/core/visualization.tskb.tsx",
-        "content": "Visualization Located in <nodeId: core.visualization>. Contains <nodeId: visualization.dot-generator>which provides <nodeId: generateDot>. Transforms\n      a KnowledgeGraph into Graphviz DOT format — folders become nested subgraphs, modules/exports\n      are grouped within their folders, terms and docs get separate clusters. Output is written to\n      .tskb/graph.dot during build.",
+        "content": "Visualization Located in <nodeId: core.visualization>. Contains <nodeId: visualization.dot-generator>which provides <nodeId: generateDot>. Transforms\n      a KnowledgeGraph into Graphviz DOT format — folders become nested subgraphs, modules/exports\n      are grouped within their folders, terms and docs get separate clusters. Output is written to\n      .tskb/graph.dot during build. <relation from=\"visualization.dot-generator\" to=\"generateDot\" /><relation from=\"visualization.dot-generator\" to=\"graph.builder\" />",
         "format": "tsx"
       },
       "docs/src/tskb/core/graph-builder.tskb.tsx": {
@@ -2825,7 +2892,7 @@
         "explains": "Graph module: data model (types) and construction (builder) of the knowledge graph",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/core/graph-builder.tskb.tsx",
-        "content": "Graph Module Located in <nodeId: core.extraction.graph>. Takes extracted registry and documentation, produces a   <nodeId: KnowledgeGraph>. Modules <nodeId: graph.types>: Defines the graph data model. Node types: FolderNode, ModuleNode, TermNode,\n        ExportNode, DocNode. Edge types: references, belongs-to, contains, related-to. Top-level\n        structure: <nodeId: KnowledgeGraph>with nodes, edges, and metadata. <nodeId: graph.builder>: <nodeId: buildGraph>creates nodes from registry items and docs, then builds\n        edges — explicit references from docs and inferred hierarchy from folder paths\n        (contains/belongs-to).",
+        "content": "Graph Module Located in <nodeId: core.extraction.graph>. Takes extracted registry and documentation, produces a   <nodeId: KnowledgeGraph>. Modules <nodeId: graph.types>: Defines the graph data model. Node types: FolderNode, ModuleNode, TermNode,\n        ExportNode, DocNode. Edge types: references, belongs-to, contains, related-to. Top-level\n        structure: <nodeId: KnowledgeGraph>with nodes, edges, and metadata. <nodeId: graph.builder>: <nodeId: buildGraph>creates nodes from registry items and docs, then builds\n        edges — explicit references from docs and inferred hierarchy from folder paths\n        (contains/belongs-to). <relation from=\"buildGraph\" to=\"KnowledgeGraph\" /><relation from=\"buildGraph\" to=\"visualization.dot-generator\" />",
         "format": "tsx"
       },
       "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx": {
@@ -3041,6 +3108,16 @@
       "type": "references"
     },
     {
+      "from": "tsProgram",
+      "to": "typescript.program",
+      "type": "related-to"
+    },
+    {
+      "from": "tsProgram",
+      "to": "ref",
+      "type": "related-to"
+    },
+    {
       "from": "docs/src/tskb/typescript/typescript.tskb.tsx",
       "to": "typescript.program",
       "type": "references"
@@ -3059,6 +3136,18 @@
       "from": "docs/src/tskb/typescript/typescript.tskb.tsx",
       "to": "ts.createProgram",
       "type": "references"
+    },
+    {
+      "from": "typescript.program",
+      "to": "extraction.documentation",
+      "type": "related-to",
+      "label": "used for doc extraction"
+    },
+    {
+      "from": "typescript.program",
+      "to": "graph.builder",
+      "type": "related-to",
+      "label": "feeds graph builder"
     },
     {
       "from": "docs/src/tskb/runtime/runtime.tskb.tsx",
@@ -3111,6 +3200,16 @@
       "type": "references"
     },
     {
+      "from": "visualization.dot-generator",
+      "to": "generateDot",
+      "type": "related-to"
+    },
+    {
+      "from": "visualization.dot-generator",
+      "to": "graph.builder",
+      "type": "related-to"
+    },
+    {
       "from": "docs/src/tskb/core/graph-builder.tskb.tsx",
       "to": "graph.types",
       "type": "references"
@@ -3134,6 +3233,16 @@
       "from": "docs/src/tskb/core/graph-builder.tskb.tsx",
       "to": "buildGraph",
       "type": "references"
+    },
+    {
+      "from": "buildGraph",
+      "to": "KnowledgeGraph",
+      "type": "related-to"
+    },
+    {
+      "from": "buildGraph",
+      "to": "visualization.dot-generator",
+      "type": "related-to"
     },
     {
       "from": "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx",
@@ -4021,6 +4130,11 @@
       "type": "belongs-to"
     },
     {
+      "from": "jsx.Relation",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
       "from": "DocPriority",
       "to": "Jsx.runtime.js",
       "type": "belongs-to"
@@ -4176,6 +4290,16 @@
       "type": "belongs-to"
     },
     {
+      "from": "Jsx.runtime.js",
+      "to": "runtime.registry",
+      "type": "imports"
+    },
+    {
+      "from": "runtime.jsx",
+      "to": "runtime.registry",
+      "type": "imports"
+    },
+    {
       "from": "visualization.dot-generator",
       "to": "graph.types",
       "type": "imports"
@@ -4317,16 +4441,16 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-09T11:27:04.645Z",
+    "generatedAt": "2026-03-11T08:33:57.442Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
       "folderCount": 31,
       "moduleCount": 26,
       "termCount": 30,
-      "exportCount": 52,
+      "exportCount": 53,
       "docCount": 16,
-      "edgeCount": 277
+      "edgeCount": 288
     }
   }
 }

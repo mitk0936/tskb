@@ -75,16 +75,17 @@ Reference nodes in JSX via type assertions: `const X = ref as tskb.Modules["id"]
 
 ## JSX Components
 
-- **`<Doc explains="..." priority?="essential"|"constraint"|"supplementary">`** — Root component. Every file exports one.
-- **`<Snippet code={() => { ... }} />`** — Code example using real imports. Creates physical binds.
-- **`<Adr id="..." title="..." status="accepted"|"proposed"|"deprecated"|"superseded">`** — Architecture Decision Record.
-- **`<H1>`, `<H2>`, `<H3>`, `<P>`, `<List>`/`<Li>`** — Content components.
+- <Doc explains="..." priority?="essential"|"constraint"|"supplementary"> — Root component. Every file exports one.
+- <Snippet code={() => { ... }} /> — Code example using real imports. Creates physical binds.
+- <Relation from={...} to={...} label?="..." /> — Declares a semantic relation between two nodes. from and to must be node constants (from the registry). label is optional and describes the relationship (e.g., "depends on"). Produces a related-to edge in the graph, visible in CLI output.
+- <Adr id="..." title="..." status="accepted"|"proposed"|"deprecated"|"superseded"> — Architecture Decision Record.
+- <H1>, <H2>, <H3>, <P>, <List>/<Li> — Content components.
 
 ## Priorities
 
-- **`essential`** — Orientation docs shown in `ls`. Use sparingly.
-- **`constraint`** — Architectural rules. **Must** be followed.
-- **`supplementary`** (default) — Additional context.
+- essential — Orientation docs shown in ls. Use sparingly.
+- constraint — Architectural rules. Must be followed.
+- supplementary (default) — Additional context.
 
 ## Good vs Bad
 

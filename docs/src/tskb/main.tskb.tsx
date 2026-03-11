@@ -1,4 +1,17 @@
-import { type Folder, type Module, type Export, Doc, H1, ref, P, H2, H3, Li, List } from "tskb";
+import {
+  type Folder,
+  type Module,
+  type Export,
+  Doc,
+  H1,
+  ref,
+  P,
+  H2,
+  H3,
+  Li,
+  List,
+  Relation,
+} from "tskb";
 
 declare global {
   namespace tskb {
@@ -105,6 +118,7 @@ const TermExport = ref as tskb.Exports["Term"];
 const RefExport = ref as tskb.Exports["ref"];
 const SampleTsconfigModule = ref as tskb.Modules["sample.tsconfig.json"];
 const TsProgramTerm = ref as tskb.Terms["tsProgram"];
+const ProgramModule = ref as tskb.Modules["typescript.program"];
 const RegistryTerm = ref as tskb.Terms["registry"];
 const GraphTerm = ref as tskb.Terms["graph"];
 const CliBuildExport = ref as tskb.Exports["cli.build"];
@@ -183,16 +197,18 @@ export default (
       <Li>
         Run {CliBuildExport}:<P>"tskb \"**/*.tskb.tsx\" --tsconfig tsconfig.json"</P>
       </Li>
-
       <Li>
         The {CliTerm} creates a {TsProgramTerm} and type-checks all documentation files against
         actual source code
+        <Relation from={TsProgramTerm} to={ProgramModule} />
+        <Relation from={TsProgramTerm} to={ref as tskb.Modules["extraction.documentation"]} />
       </Li>
       <Li>Extracts vocabulary from the {RegistryTerm} (Folders, Modules, Exports, Terms)</Li>
       <Li>Processes *.tskb.tsx files, extracting content and references</Li>
       <Li>Constructs the {GraphTerm} by analyzing relationships and hierarchies</Li>
       <Li>Outputs JSON knowledge graph optimized for AI agents and tooling</Li>
     </List>
+
     <P>Generating a visual representation:</P>
     <List>
       <Li>

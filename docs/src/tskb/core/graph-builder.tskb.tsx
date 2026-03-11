@@ -1,4 +1,16 @@
-import { type Folder, type Module, type Export, Doc, H1, H2, P, List, Li, ref } from "tskb";
+import {
+  type Folder,
+  type Module,
+  type Export,
+  Doc,
+  H1,
+  H2,
+  P,
+  List,
+  Li,
+  ref,
+  Relation,
+} from "tskb";
 
 declare global {
   namespace tskb {
@@ -39,6 +51,7 @@ const BuilderModule = ref as tskb.Modules["graph.builder"];
 const TypesModule = ref as tskb.Modules["graph.types"];
 const BuildGraphExport = ref as tskb.Exports["buildGraph"];
 const KnowledgeGraphExport = ref as tskb.Exports["KnowledgeGraph"];
+const VisualizationDotGenModule = ref as tskb.Modules["visualization.dot-generator"];
 
 export default (
   <Doc explains="Graph module: data model (types) and construction (builder) of the knowledge graph">
@@ -61,5 +74,7 @@ export default (
         (contains/belongs-to).
       </Li>
     </List>
+    <Relation from={BuildGraphExport} to={KnowledgeGraphExport} />
+    <Relation from={BuildGraphExport} to={VisualizationDotGenModule} />
   </Doc>
 );
