@@ -1,4 +1,17 @@
-import { type Folder, type Module, type Export, Doc, H1, ref, P, H2, List, Li } from "tskb";
+import {
+  type Folder,
+  type Module,
+  type Export,
+  Doc,
+  H1,
+  ref,
+  P,
+  H2,
+  List,
+  Li,
+  Snippet,
+  Relation,
+} from "tskb";
 
 declare global {
   namespace tskb {
@@ -55,6 +68,10 @@ declare global {
         desc: "Reference placeholder for type assertions to registry items";
         type: typeof import("packages/tskb/src/runtime/jsx.js").ref;
       }>;
+      "jsx.Relation": Export<{
+        desc: "Semantic relation component. Creates a labeled or unlabeled related-to edge between two registry nodes in the knowledge graph. Props: from, to (node constants), optional label (string). Visible in CLI output.";
+        type: typeof import("packages/tskb/src/runtime/jsx.js").Relation;
+      }>;
       DocPriority: Export<{
         desc: "Type for doc importance level: 'essential' (included in generated skill/instructions), 'constraint' (architectural rules for related areas), or 'supplementary' (graph-only, default)";
         type: import("packages/tskb/src/runtime/jsx.js").DocPriority;
@@ -70,6 +87,7 @@ const DocExport = ref as tskb.Exports["jsx.Doc"];
 const AdrExport = ref as tskb.Exports["jsx.Adr"];
 const RefExport = ref as tskb.Exports["jsx.ref"];
 const DocPriorityExport = ref as tskb.Exports["DocPriority"];
+const ExampleTerm = ref as tskb.Terms["graph"];
 
 export default (
   <Doc
@@ -81,7 +99,6 @@ export default (
       Located in {RuntimeFolder}. Contains registry type definitions and JSX primitives - no actual
       runtime execution.
     </P>
-
     <H2>Modules</H2>
     <List>
       <Li>
@@ -95,12 +112,24 @@ export default (
         global namespace augmentation.
       </Li>
     </List>
-
     <H2>Purpose</H2>
     <P>
       Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry
       interfaces enable type-safe vocabulary declarations. JSX components structure documentation
       content.
+    </P>
+    <H2>Semantic Relations</H2>
+    <P>
+      The <b>Relation</b> tag creates a semantic edge in the knowledge graph between two nodes. It
+      is type-safe and supports any registered Folder, Module, Term, or Export. The optional{" "}
+      <b>label</b> prop allows you to describe the relationship (e.g., "depends on").
+    </P>
+    <Snippet
+      code={() => <Relation from={JsxModule} to={ExampleTerm} label="runtime describes graph" />}
+    />
+    <P>
+      This will emit a <b>related-to</b> edge from the <b>runtime.jsx</b> module to the <b>Graph</b>{" "}
+      term in the TSKB graph, with the label "runtime describes graph".
     </P>
   </Doc>
 );

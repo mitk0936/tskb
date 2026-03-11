@@ -1,4 +1,4 @@
-import { type Folder, type Module, Doc, H1, P, ref } from "tskb";
+import { type Folder, type Module, Doc, H1, P, ref, Relation } from "tskb";
 
 declare global {
   namespace tskb {
@@ -21,6 +21,7 @@ declare global {
 const VisFolder = ref as tskb.Folders["core.visualization"];
 const DotGenModule = ref as tskb.Modules["visualization.dot-generator"];
 const GenerateDotExport = ref as tskb.Exports["generateDot"];
+const GraphBuilder = ref as tskb.Modules["graph.builder"];
 
 export default (
   <Doc explains="Visualization module: DOT graph generation from the knowledge graph">
@@ -31,5 +32,7 @@ export default (
       are grouped within their folders, terms and docs get separate clusters. Output is written to
       .tskb/graph.dot during build.
     </P>
+    <Relation from={DotGenModule} to={GenerateDotExport} />
+    <Relation from={DotGenModule} to={GraphBuilder} />
   </Doc>
 );

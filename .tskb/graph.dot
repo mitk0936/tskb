@@ -390,6 +390,7 @@ digraph KnowledgeGraph {
             "jsx.Snippet" [label="Export\<\"jsx.Snippet\"\>\nCode snippet component\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "jsx.Adr" [label="Export\<\"jsx.Adr\"\>\nArchitecture Decision Record component with id, title, status, date, and deciders metadata\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "jsx.ref" [label="Export\<\"jsx.ref\"\>\nReference placeholder for type assertions to registry items\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "jsx.Relation" [label="Export\<\"jsx.Relation\"\>\nSemantic relation component. Creates a labeled or unlabeled related-to edge between two registry nodes in the knowledge graph. Props: from, to (node constants), optional label (string). Visible in CLI output.\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "DocPriority" [label="Export\<\"DocPriority\"\>\nType for doc importance level: 'essential' (included in generated skill/instructions), 'constraint' (architectural rules for related areas), or 'supplementary' (graph-only, default)\n📁 packages/tskb/src/runtime/jsx.ts", shape=component, fillcolor="#C5E1A5", style=filled];
           "runtime.jsx" [label="Module\<\"runtime.jsx\"\>\nJSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper\n📁 packages/tskb/src/runtime/jsx.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
           "runtime.registry" [label="Module\<\"runtime.registry\"\>\nRegistry type definitions - Folder, Module, Export, Term interfaces for global namespace augmentation\n📁 packages/tskb/src/runtime/registry.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
@@ -635,7 +636,19 @@ digraph KnowledgeGraph {
   "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "TaskContext" [color=grey, style=dashed];
   "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "ProjectContext" [color=grey, style=dashed];
 
+  // related-to edges
+  "tsProgram" -> "typescript.program" ;
+  "tsProgram" -> "ref" ;
+  "typescript.program" -> "extraction.documentation" ;
+  "typescript.program" -> "graph.builder" ;
+  "visualization.dot-generator" -> "generateDot" ;
+  "visualization.dot-generator" -> "graph.builder" ;
+  "buildGraph" -> "KnowledgeGraph" ;
+  "buildGraph" -> "visualization.dot-generator" ;
+
   // imports edges
+  "Jsx.runtime.js" -> "runtime.registry" ;
+  "runtime.jsx" -> "runtime.registry" ;
   "visualization.dot-generator" -> "graph.types" ;
   "graph.builder" -> "graph.types" ;
   "graph.builder" -> "extraction.registry" ;

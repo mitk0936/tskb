@@ -360,6 +360,7 @@ This graph is the primary output. Everything else (diagrams, markdown, AI contex
     from: string;
     to: string;
     type: "references" | "contains" | "belongs-to" | "imports" | "related-to";
+    label?: string; // Only for related-to edges, optional
   }>,
   metadata: {
     generatedAt: string;
@@ -410,6 +411,25 @@ tskb records a semantic edge:
 ```
 Doc → AuthService (references)
 ```
+
+#### Semantic Relations with `<Relation />`
+
+To express a semantic relationship between two nodes, use the `<Relation />` JSX tag:
+
+```tsx
+<Relation from={AuthService} to={UserRepository} label="depends on" />
+```
+
+This creates a `related-to` edge in the graph, optionally labeled for richer semantics:
+
+```
+AuthService → UserRepository (related-to, label: "depends on")
+```
+
+- `from` and `to` must be node constants (extracted from the registry)
+- `label` is optional and can be any string describing the relationship
+
+These relations are visible in CLI output (e.g., `pick`), and the label is included if present.
 
 ### Inferred structure
 

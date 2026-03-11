@@ -1,4 +1,38 @@
 /**
+ * Semantic relation tag for TSKB knowledge graph
+ *
+ * Usage: <Relation from="a" to="b" />
+ *
+ * These props are extracted by the TSKB pipeline and converted to graph edges.
+ */
+import type { FolderName, ModuleName, TermName, ExportName } from "./registry.js";
+
+/**
+ * Type-safe semantic relation tag for TSKB knowledge graph
+ *
+ * Usage:
+ *   <Relation from={ref as tskb.Modules['MyModule']} to={ref as tskb.Terms['MyTerm']} />
+ *   <Relation from={ref as tskb.Folders['MyFolder']} to={ref as tskb.Modules['MyModule']} />
+ *
+ * These props are extracted by the TSKB pipeline and converted to graph edges.
+ */
+export function Relation({
+  from,
+  to,
+  label,
+}: {
+  from:
+    | (typeof ref & { __tskbType?: FolderName | ModuleName | TermName | ExportName })
+    | (FolderName | ModuleName | TermName | ExportName);
+  to:
+    | (typeof ref & { __tskbType?: FolderName | ModuleName | TermName | ExportName })
+    | (FolderName | ModuleName | TermName | ExportName);
+  label?: string;
+}): any {
+  // Return a special marker for extraction
+  return { __tskbRelation: true, from, to, label };
+}
+/**
  * tskb ReactNode type - pure documentation node types without React dependency
  *
  * Supports:

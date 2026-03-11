@@ -131,6 +131,7 @@ export interface GraphEdge {
   from: string; // Source node ID
   to: string; // Target node ID
   type: EdgeType;
+  label?: string; // Optional label for related-to edges
 }
 
 /**

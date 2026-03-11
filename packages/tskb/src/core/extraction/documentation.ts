@@ -20,6 +20,8 @@ export interface ExtractedDoc {
     folders: string[];
     exports: string[];
   };
+  /** Extracted semantic relations: {from, to, label?} */
+  relations?: { from: string; to: string; label?: string }[];
 }
 
 /**
@@ -75,12 +77,15 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
   // Build a map of constant declarations to their type assertions
   const constantReferences = buildConstantReferencesMap(sourceFile);
 
+  // Collect relations
+  const relations: { from: string; to: string }[] = [];
+
   // Find the default export
   const defaultExport = findDefaultExport(sourceFile);
   if (!defaultExport) return null;
 
-  // Extract content and references from JSX
-  content = extractJsxContent(defaultExport, references, constantReferences, docMeta);
+  // Extract content and references from JSX, now also collects relations
+  content = extractJsxContent(defaultExport, references, constantReferences, docMeta, relations);
 
   // Convert absolute path to relative path (for portability across repos/machines)
   const relativePath = path.relative(process.cwd(), sourceFile.fileName).replace(/\\/g, "/");
@@ -97,6 +102,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
       folders: Array.from(new Set(references.folders)),
       exports: Array.from(new Set(references.exports)),
     },
+    relations,
   };
 }
 
@@ -198,7 +204,8 @@ function extractJsxContent(
   node: ts.Node,
   references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] },
   constantReferences: Map<string, { category: string; name: string }>,
-  docMeta: { explains: string; priority: DocPriority }
+  docMeta: { explains: string; priority: DocPriority },
+  relations?: { from: string; to: string; label?: string }[]
 ): string {
   let content = "";
 
@@ -234,6 +241,79 @@ function extractJsxContent(
             content += `<snippet>${codeAttr}</snippet>`;
             return;
           }
+        }
+
+        // Handle Relation component: extract from/to attributes (string or expression)
+        if (name === "Relation" && relations) {
+          let fromVal: string | undefined;
+          let toVal: string | undefined;
+          let labelVal: string | undefined;
+          for (const prop of attributes.properties) {
+            if (ts.isJsxAttribute(prop) && ts.isIdentifier(prop.name)) {
+              if (prop.name.text === "from" && prop.initializer) {
+                if (ts.isStringLiteral(prop.initializer)) {
+                  fromVal = prop.initializer.text;
+                } else if (ts.isJsxExpression(prop.initializer) && prop.initializer.expression) {
+                  fromVal = jsxExpressionToString(prop.initializer.expression, constantReferences);
+                }
+              } else if (prop.name.text === "to" && prop.initializer) {
+                if (ts.isStringLiteral(prop.initializer)) {
+                  toVal = prop.initializer.text;
+                } else if (ts.isJsxExpression(prop.initializer) && prop.initializer.expression) {
+                  toVal = jsxExpressionToString(prop.initializer.expression, constantReferences);
+                }
+              } else if (prop.name.text === "label" && prop.initializer) {
+                if (ts.isStringLiteral(prop.initializer)) {
+                  labelVal = prop.initializer.text;
+                } else if (ts.isJsxExpression(prop.initializer) && prop.initializer.expression) {
+                  labelVal = jsxExpressionToString(prop.initializer.expression, constantReferences);
+                }
+              }
+            }
+          }
+          // Defensive: trim quotes and whitespace from resolved names
+          if (typeof fromVal === "string") fromVal = fromVal.replace(/^['"]|['"]$/g, "").trim();
+          if (typeof toVal === "string") toVal = toVal.replace(/^['"]|['"]$/g, "").trim();
+          if (typeof labelVal === "string") labelVal = labelVal.trim();
+          if (fromVal && toVal) {
+            relations.push(
+              labelVal
+                ? { from: fromVal, to: toVal, label: labelVal }
+                : { from: fromVal, to: toVal }
+            );
+          }
+          // Always add a marker to content for debug
+          content += `<relation from="${fromVal}" to="${toVal}"${labelVal ? ` label="${labelVal}"` : ""} />`;
+          return;
+        }
+        // Helper to stringify JSX expressions for Relation extraction
+        // Enhanced: resolve identifiers using constantReferences for Relation extraction
+        function jsxExpressionToString(
+          expr: ts.Expression,
+          constantReferences?: Map<string, { category: string; name: string }>
+        ): string | undefined {
+          if (ts.isStringLiteral(expr)) return expr.text;
+          if (ts.isIdentifier(expr)) {
+            if (constantReferences) {
+              const ref = constantReferences.get(expr.text);
+              if (ref) return ref.name;
+            }
+            return expr.text;
+          }
+          if (ts.isAsExpression(expr)) {
+            // Try to extract the name from type assertion: ref as tskb.Modules["MyModule"]
+            if (ts.isIdentifier(expr.expression)) {
+              if (constantReferences) {
+                const ref = constantReferences.get(expr.expression.text);
+                if (ref) return ref.name;
+              }
+              return expr.expression.text;
+            }
+            if (ts.isPropertyAccessExpression(expr.expression)) return expr.expression.name.text;
+            // Could add more cases as needed
+          }
+          // Fallback: print the expression as source
+          return expr.getText();
         }
 
         // Handle ADR component specially

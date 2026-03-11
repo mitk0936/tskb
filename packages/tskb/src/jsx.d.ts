@@ -15,7 +15,7 @@ import type { ReactNode } from "./runtime/jsx.js";
 
 declare global {
   namespace JSX {
-    // Accept any valid HTML element names and any custom components
+    // Explicitly type Relation for label prop
     interface IntrinsicElements {
       [elemName: string]: any;
     }

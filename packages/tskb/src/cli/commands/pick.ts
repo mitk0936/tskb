@@ -28,6 +28,7 @@ interface FolderPickResult {
   parent?: { nodeId: string; type: string; desc: string };
   exports: Array<{ nodeId: string; desc: string; path?: string }>;
   referencingDocs: DocRef[];
+  relations?: Array<{ from: string; to: string; label?: string }>;
 }
 
 interface ModulePickResult {
@@ -46,6 +47,7 @@ interface ModulePickResult {
   parentFolder?: { nodeId: string; desc: string; path?: string };
   exports: Array<{ nodeId: string; desc: string; typeSignature?: string }>;
   referencingDocs: DocRef[];
+  relations?: Array<{ from: string; to: string; label?: string }>;
 }
 
 interface ExportPickResult {
@@ -61,6 +63,7 @@ interface ExportPickResult {
   };
   parent?: { nodeId: string; type: string; desc: string };
   referencingDocs: DocRef[];
+  relations?: Array<{ from: string; to: string; label?: string }>;
 }
 
 interface TermPickResult {
@@ -68,6 +71,7 @@ interface TermPickResult {
   resolvedVia: ResolvedVia;
   node: { nodeId: string; desc: string };
   referencingDocs: DocRef[];
+  relations?: Array<{ from: string; to: string; label?: string }>;
 }
 
 interface DocPickResult {
@@ -81,6 +85,7 @@ interface DocPickResult {
     priority: string;
     content: string;
   };
+  relations?: Array<{ from: string; to: string; label?: string }>;
 }
 
 type PickResult =
@@ -354,6 +359,12 @@ export async function pick(identifier: string, optimized: boolean = false): Prom
   const edges = getNodeEdges(graph.edges, resolved.id);
   const result = resolver(resolved.id, resolved.node, edges, graph);
   result.resolvedVia = resolved.resolvedVia;
+
+  // Add relations: all related-to edges where this node is from or to
+  result.relations = graph.edges
+    .filter((e) => e.type === "related-to" && (e.from === resolved.id || e.to === resolved.id))
+    .map((e) => ({ from: e.from, to: e.to, ...(e.label ? { label: e.label } : {}) }));
+
   resolveDone();
 
   verbose(
