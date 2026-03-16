@@ -2,29 +2,19 @@ import fs from "node:fs";
 import path from "node:path";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
 import { buildQueryBody, buildUpdateBody } from "./content-builder.js";
-import { info } from "./logger.js";
 
 /**
  * Generate GitHub Copilot instructions files:
  * - .github/instructions/tskb.instructions.md (query/explore)
  * - .github/instructions/tskb-update.instructions.md (update docs)
  *
- * If .github/ doesn't exist, prints a suggestion to create it.
+ * Directories are created automatically if they don't exist.
  *
  * @param graph - The built knowledge graph (used to bake in folder tree and doc summaries)
- * @returns Array of paths written, or empty array if skipped
+ * @returns Array of paths written
  */
 export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[] {
   const githubDir = path.resolve(process.cwd(), ".github");
-
-  if (!fs.existsSync(githubDir)) {
-    info("");
-    info("Tip: Create a .github/ directory to generate Copilot instructions for tskb:");
-    info("   mkdir -p .github/instructions");
-    info("   Then re-run the build to generate instruction files");
-    return [];
-  }
-
   const instructionsDir = path.join(githubDir, "instructions");
   fs.mkdirSync(instructionsDir, { recursive: true });
 
