@@ -2,28 +2,19 @@ import fs from "node:fs";
 import path from "node:path";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
 import { buildQueryBody, buildUpdateBody } from "./content-builder.js";
-import { info } from "./logger.js";
 
 /**
  * Generate Claude Code skill files:
  * - .claude/skills/tskb/SKILL.md (query/explore)
  * - .claude/skills/tskb-update/SKILL.md (update docs)
  *
- * If .claude/skills/ doesn't exist, prints a suggestion to create it.
+ * Directories are created automatically if they don't exist.
  *
  * @param graph - The built knowledge graph (used to bake in folder tree and doc summaries)
- * @returns Array of paths written, or empty array if skipped
+ * @returns Array of paths written
  */
 export function generateSkillFiles(graph: KnowledgeGraph): string[] {
   const skillsDir = path.resolve(process.cwd(), ".claude", "skills");
-
-  if (!fs.existsSync(skillsDir)) {
-    info("");
-    info("Tip: Create a .claude/skills/ directory to generate Claude Code skills for tskb:");
-    info("   mkdir -p .claude/skills");
-    info("   Then re-run the build to generate skill files");
-    return [];
-  }
 
   const paths: string[] = [];
 

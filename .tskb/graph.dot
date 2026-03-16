@@ -673,9 +673,7 @@ digraph KnowledgeGraph {
   "cli.utils.content-builder" -> "graph.types" ;
   "cli.utils.skill-generator" -> "graph.types" ;
   "cli.utils.skill-generator" -> "cli.utils.content-builder" ;
-  "cli.utils.skill-generator" -> "cli.utils.logger" ;
   "cli.utils.copilot-instructions" -> "graph.types" ;
   "cli.utils.copilot-instructions" -> "cli.utils.content-builder" ;
-  "cli.utils.copilot-instructions" -> "cli.utils.logger" ;
 
 }

@@ -1690,14 +1690,13 @@
         "morphology": [
           "export function generateSkillFiles(graph: KnowledgeGraph): string[]"
         ],
-        "importsSummary": "6 imports from 5 paths",
+        "importsSummary": "5 imports from 4 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
           "KnowledgeGraph from \"../../core/graph/types.js\"",
           "buildQueryBody from \"./content-builder.js\"",
-          "buildUpdateBody from \"./content-builder.js\"",
-          "info from \"./logger.js\""
+          "buildUpdateBody from \"./content-builder.js\""
         ],
         "importEntries": [
           {
@@ -1719,10 +1718,6 @@
           {
             "symbol": "buildUpdateBody",
             "path": "./content-builder.js"
-          },
-          {
-            "symbol": "info",
-            "path": "./logger.js"
           }
         ]
       },
@@ -1736,14 +1731,13 @@
         "morphology": [
           "export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[]"
         ],
-        "importsSummary": "6 imports from 5 paths",
+        "importsSummary": "5 imports from 4 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
           "KnowledgeGraph from \"../../core/graph/types.js\"",
           "buildQueryBody from \"./content-builder.js\"",
-          "buildUpdateBody from \"./content-builder.js\"",
-          "info from \"./logger.js\""
+          "buildUpdateBody from \"./content-builder.js\""
         ],
         "importEntries": [
           {
@@ -1765,10 +1759,6 @@
           {
             "symbol": "buildUpdateBody",
             "path": "./content-builder.js"
-          },
-          {
-            "symbol": "info",
-            "path": "./logger.js"
           }
         ]
       },
@@ -4420,11 +4410,6 @@
       "type": "imports"
     },
     {
-      "from": "cli.utils.skill-generator",
-      "to": "cli.utils.logger",
-      "type": "imports"
-    },
-    {
       "from": "cli.utils.copilot-instructions",
       "to": "graph.types",
       "type": "imports"
@@ -4433,15 +4418,10 @@
       "from": "cli.utils.copilot-instructions",
       "to": "cli.utils.content-builder",
       "type": "imports"
-    },
-    {
-      "from": "cli.utils.copilot-instructions",
-      "to": "cli.utils.logger",
-      "type": "imports"
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-12T19:35:00.503Z",
+    "generatedAt": "2026-03-16T10:17:08.275Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
@@ -4450,7 +4430,7 @@
       "termCount": 30,
       "exportCount": 53,
       "docCount": 16,
-      "edgeCount": 288
+      "edgeCount": 286
     }
   }
 }
