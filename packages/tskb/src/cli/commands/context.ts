@@ -65,13 +65,11 @@ function buildNeighborIndex(edges: GraphEdge[]): Map<string, string[]> {
 
   for (const edge of edges) {
     if (edge.type === "contains") {
-      // folder → child folder (both directions for traversal)
+      // folder → child folder (downward only — no upward traversal to parent)
       addEntry(edge.from, edge.to);
-      addEntry(edge.to, edge.from);
     } else if (edge.type === "belongs-to") {
-      // module/export/file → parent folder/module (both directions)
+      // module/export/file → parent folder/module (downward only: parent → child)
       addEntry(edge.to, edge.from);
-      addEntry(edge.from, edge.to);
     } else if (edge.type === "imports") {
       // module → module/folder (both directions)
       addEntry(edge.from, edge.to);

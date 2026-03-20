@@ -10,6 +10,7 @@ interface SearchableNode {
   desc: string;
   path: string;
   content: string; // children names (folders) or member names (modules) for deep matching
+  edgeCount?: number;
   priority?: string;
   structureSummary?: string;
   morphologySummary?: string;
@@ -116,7 +117,13 @@ export async function search(query: string, optimized: boolean = false): Promise
     const matchRatio = matchCount / lowerWords.length;
     // Add up to 0.5 points for exact word matches, halve score if zero words matched
     const wordBoost = matchRatio * 0.5;
-    const score = matchCount === 0 ? baseScore * 0.5 : baseScore + wordBoost;
+    let score = matchCount === 0 ? baseScore * 0.5 : baseScore + wordBoost;
+
+    // Small connectivity boost: well-connected nodes get a slight bump (up to ~0.15)
+    const ec = r.item.edgeCount ?? 0;
+    if (ec > 1) {
+      score += Math.log2(ec) * 0.05;
+    }
 
     return { item: r.item, score };
   });
@@ -187,6 +194,7 @@ function buildSearchableNodes(graph: KnowledgeGraph): SearchableNode[] {
         desc: getDesc(node),
         path: getPath(node),
         content: getContent(node),
+        ...(node.edgeCount ? { edgeCount: node.edgeCount } : {}),
         ...(node.type === "doc" ? { priority: node.priority } : {}),
         ...(node.type === "folder" && node.structureSummary
           ? { structureSummary: node.structureSummary }

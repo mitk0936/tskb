@@ -6,7 +6,8 @@
         "type": "folder",
         "desc": "The root directory (automatically added by tskb)",
         "path": ".",
-        "packageName": "tskb-workspace"
+        "packageName": "tskb-workspace",
+        "edgeCount": 4
       },
       "docs": {
         "id": "docs",
@@ -27,7 +28,8 @@
               "desc": "An example of required tsconfig.json for building <TSKB> docs"
             }
           ]
-        }
+        },
+        "edgeCount": 2
       },
       "examples.taskflow-app": {
         "id": "examples.taskflow-app",
@@ -71,7 +73,8 @@
             }
           ]
         },
-        "packageName": "taskflow-app-example"
+        "packageName": "taskflow-app-example",
+        "edgeCount": 4
       },
       "packages": {
         "id": "packages",
@@ -88,7 +91,8 @@
             }
           ],
           "files": []
-        }
+        },
+        "edgeCount": 2
       },
       "references": {
         "id": "references",
@@ -106,7 +110,8 @@
               "name": "tskb-doc-graph.json"
             }
           ]
-        }
+        },
+        "edgeCount": 1
       },
       "TSKB.Package.Root": {
         "id": "TSKB.Package.Root",
@@ -140,7 +145,8 @@
             }
           ]
         },
-        "packageName": "tskb"
+        "packageName": "tskb",
+        "edgeCount": 10
       },
       "tskb.cli": {
         "id": "tskb.cli",
@@ -168,7 +174,8 @@
               "desc": "CLI entry point - handles argument parsing, command routing, and error handling"
             }
           ]
-        }
+        },
+        "edgeCount": 6
       },
       "tskb.core": {
         "id": "tskb.core",
@@ -199,7 +206,8 @@
               "name": "constants.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 4
       },
       "tskb.runtime": {
         "id": "tskb.runtime",
@@ -221,7 +229,8 @@
               "desc": "Registry type definitions - Folder, Module, Export, Term interfaces for global namespace augmentation"
             }
           ]
-        }
+        },
+        "edgeCount": 6
       },
       "tskb.typescript": {
         "id": "tskb.typescript",
@@ -243,7 +252,8 @@
               "desc": "Creates TypeScript Program from files and tsconfig for static analysis"
             }
           ]
-        }
+        },
+        "edgeCount": 4
       },
       "core.visualization": {
         "id": "core.visualization",
@@ -263,7 +273,8 @@
               "name": "index.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 4
       },
       "core.extraction": {
         "id": "core.extraction",
@@ -294,7 +305,8 @@
               "desc": "Main registry extraction module that traverses TypeScript AST to extract Folders, Modules, Terms, and Exports from the global tskb namespace"
             }
           ]
-        }
+        },
+        "edgeCount": 3
       },
       "core.extraction.graph": {
         "id": "core.extraction.graph",
@@ -319,7 +331,8 @@
               "desc": "Type definitions for the knowledge graph data model - all node types, edge types, and the KnowledgeGraph structure"
             }
           ]
-        }
+        },
+        "edgeCount": 4
       },
       "tskb.cli.commands": {
         "id": "tskb.cli.commands",
@@ -357,7 +370,8 @@
               "desc": "Search command module - fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results"
             }
           ]
-        }
+        },
+        "edgeCount": 6
       },
       "tskb.cli.utils": {
         "id": "tskb.cli.utils",
@@ -400,7 +414,8 @@
               "desc": "Generates two Claude Code skills: .claude/skills/tskb/SKILL.md (query/explore) and .claude/skills/tskb-update/SKILL.md (doc authoring guide)"
             }
           ]
-        }
+        },
+        "edgeCount": 7
       },
       "Client": {
         "id": "Client",
@@ -444,7 +459,8 @@
               "name": "main.tsx"
             }
           ]
-        }
+        },
+        "edgeCount": 9
       },
       "Server": {
         "id": "Server",
@@ -476,7 +492,8 @@
             }
           ],
           "files": []
-        }
+        },
+        "edgeCount": 7
       },
       "Shared": {
         "id": "Shared",
@@ -503,7 +520,8 @@
             }
           ],
           "files": []
-        }
+        },
+        "edgeCount": 6
       },
       "Components": {
         "id": "Components",
@@ -531,7 +549,8 @@
               "name": "Router.tsx"
             }
           ]
-        }
+        },
+        "edgeCount": 2
       },
       "Pages": {
         "id": "Pages",
@@ -556,7 +575,8 @@
               "name": "DashboardPage.tsx"
             }
           ]
-        }
+        },
+        "edgeCount": 2
       },
       "Contexts": {
         "id": "Contexts",
@@ -582,7 +602,8 @@
               "name": "TaskContext.tsx"
             }
           ]
-        }
+        },
+        "edgeCount": 6
       },
       "Hooks": {
         "id": "Hooks",
@@ -606,7 +627,8 @@
               "name": "useWebSocket.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 2
       },
       "ClientServices": {
         "id": "ClientServices",
@@ -633,7 +655,8 @@
               "name": "websocket.service.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 4
       },
       "Services": {
         "id": "Services",
@@ -668,7 +691,8 @@
               "name": "user.service.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 10
       },
       "Controllers": {
         "id": "Controllers",
@@ -701,7 +725,8 @@
               "name": "user.controller.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 2
       },
       "Middleware": {
         "id": "Middleware",
@@ -722,7 +747,8 @@
               "name": "validation.middleware.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 4
       },
       "Database": {
         "id": "Database",
@@ -743,7 +769,8 @@
               "name": "connection.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 6
       },
       "Repositories": {
         "id": "Repositories",
@@ -766,7 +793,8 @@
               "name": "user.repository.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 8
       },
       "Types": {
         "id": "Types",
@@ -799,7 +827,8 @@
               "name": "user.types.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 11
       },
       "Utils": {
         "id": "Utils",
@@ -817,7 +846,8 @@
               "name": "validation.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 1
       },
       "Config": {
         "id": "Config",
@@ -832,7 +862,8 @@
               "name": "constants.ts"
             }
           ]
-        }
+        },
+        "edgeCount": 1
       }
     },
     "modules": {
@@ -841,7 +872,8 @@
         "type": "module",
         "desc": "Library's package.json file",
         "typeSignature": "typeof import(\"../../../packages/tskb/package.json\")",
-        "resolvedPath": "packages/tskb/package.json"
+        "resolvedPath": "packages/tskb/package.json",
+        "edgeCount": 2
       },
       "Main.index.js": {
         "id": "Main.index.js",
@@ -869,7 +901,8 @@
           "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any",
           "export type ReactNode = ",
           "export type DocPriority = "
-        ]
+        ],
+        "edgeCount": 3
       },
       "Jsx.runtime.js": {
         "id": "Jsx.runtime.js",
@@ -922,14 +955,16 @@
             "symbol": "FileName",
             "path": "./registry.js"
           }
-        ]
+        ],
+        "edgeCount": 15
       },
       "sample.tsconfig.json": {
         "id": "sample.tsconfig.json",
         "type": "module",
         "desc": "An example of required tsconfig.json for building <TSKB> docs",
         "typeSignature": "typeof import(\"../../tsconfig.json\")",
-        "resolvedPath": "docs/tsconfig.json"
+        "resolvedPath": "docs/tsconfig.json",
+        "edgeCount": 2
       },
       "typescript.program": {
         "id": "typescript.program",
@@ -955,7 +990,8 @@
             "symbol": "path",
             "path": "node:path"
           }
-        ]
+        ],
+        "edgeCount": 6
       },
       "typescript.index": {
         "id": "typescript.index",
@@ -966,7 +1002,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function createProgram(files: string[], tsconfigPath: string): Program"
-        ]
+        ],
+        "edgeCount": 2
       },
       "runtime.jsx": {
         "id": "runtime.jsx",
@@ -1019,7 +1056,8 @@
             "symbol": "FileName",
             "path": "./registry.js"
           }
-        ]
+        ],
+        "edgeCount": 6
       },
       "runtime.registry": {
         "id": "runtime.registry",
@@ -1044,7 +1082,8 @@
           "export type Term = Ext",
           "export type Export = Ext",
           "export type File = Ext"
-        ]
+        ],
+        "edgeCount": 10
       },
       "visualization.dot-generator": {
         "id": "visualization.dot-generator",
@@ -1070,7 +1109,8 @@
             "symbol": "FolderNode",
             "path": "../graph/types.js"
           }
-        ]
+        ],
+        "edgeCount": 6
       },
       "extraction.registry": {
         "id": "extraction.registry",
@@ -1138,7 +1178,8 @@
             "symbol": "ModuleImports",
             "path": "./module-morphology.js"
           }
-        ]
+        ],
+        "edgeCount": 4
       },
       "graph.builder": {
         "id": "graph.builder",
@@ -1219,7 +1260,8 @@
             "symbol": "ROOT_FOLDER_NAME",
             "path": "../constants.js"
           }
-        ]
+        ],
+        "edgeCount": 8
       },
       "graph.types": {
         "id": "graph.types",
@@ -1232,6 +1274,7 @@
           "export interface GraphNode {",
           "  id: string",
           "  type: \"module\" | \"folder\" | \"term\" | \"export\" | \"doc\" | \"file\"",
+          "  edgeCount: number | undefined",
           "}",
           "export interface FolderNode {",
           "  type: \"folder\"",
@@ -1241,6 +1284,7 @@
           "  structureSummary: string | undefined",
           "  children: FolderChildren | undefined",
           "  id: string",
+          "  edgeCount: number | undefined",
           "}",
           "export interface ModuleNode {",
           "  type: \"module\"",
@@ -1253,11 +1297,13 @@
           "  imports: string[] | undefined",
           "  importEntries: ImportEntry[] | undefined",
           "  id: string",
+          "  edgeCount: number | undefined",
           "}",
           "export interface TermNode {",
           "  type: \"term\"",
           "  desc: string",
           "  id: string",
+          "  edgeCount: number | undefined",
           "}",
           "export interface ExportNode {",
           "  type: \"export\"",
@@ -1267,12 +1313,14 @@
           "  morphologySummary: string | undefined",
           "  morphology: string[] | undefined",
           "  id: string",
+          "  edgeCount: number | undefined",
           "}",
           "export interface FileNode {",
           "  type: \"file\"",
           "  desc: string",
           "  path: string | undefined",
           "  id: string",
+          "  edgeCount: number | undefined",
           "}",
           "export interface DocNode {",
           "  type: \"doc\"",
@@ -1282,6 +1330,7 @@
           "  content: string",
           "  format: \"tsx\" | \"ts\"",
           "  id: string",
+          "  edgeCount: number | undefined",
           "}",
           "export type AnyNode = FolderNode | ModuleNode | TermNode | ExportNode | FileNode | DocNode",
           "export type EdgeType = | \"references\" // Doc references a Folder/Module/Term/Export\n  | \"belongs-to\" // Module/Export belongs to a Folder or...",
@@ -1316,7 +1365,8 @@
             "symbol": "ImportEntry",
             "path": "../extraction/module-morphology.js"
           }
-        ]
+        ],
+        "edgeCount": 12
       },
       "extraction.documentation": {
         "id": "extraction.documentation",
@@ -1356,7 +1406,8 @@
             "symbol": "DocPriority",
             "path": "../../runtime/jsx.js"
           }
-        ]
+        ],
+        "edgeCount": 6
       },
       "cli.index": {
         "id": "cli.index",
@@ -1413,7 +1464,8 @@
             "symbol": "error",
             "path": "./utils/logger.js"
           }
-        ]
+        ],
+        "edgeCount": 7
       },
       "cli.commands.build": {
         "id": "cli.commands.build",
@@ -1488,7 +1540,8 @@
             "symbol": "infoTime",
             "path": "../utils/logger.js"
           }
-        ]
+        ],
+        "edgeCount": 7
       },
       "cli.commands.search": {
         "id": "cli.commands.search",
@@ -1544,7 +1597,8 @@
             "symbol": "jsonOut",
             "path": "../utils/logger.js"
           }
-        ]
+        ],
+        "edgeCount": 7
       },
       "cli.commands.pick": {
         "id": "cli.commands.pick",
@@ -1635,7 +1689,8 @@
             "symbol": "ResolvedVia",
             "path": "../utils/resolve-node.js"
           }
-        ]
+        ],
+        "edgeCount": 7
       },
       "cli.commands.ls": {
         "id": "cli.commands.ls",
@@ -1691,7 +1746,8 @@
             "symbol": "jsonOut",
             "path": "../utils/logger.js"
           }
-        ]
+        ],
+        "edgeCount": 7
       },
       "cli.utils.content-builder": {
         "id": "cli.utils.content-builder",
@@ -1713,7 +1769,8 @@
             "symbol": "KnowledgeGraph",
             "path": "../../core/graph/types.js"
           }
-        ]
+        ],
+        "edgeCount": 5
       },
       "cli.utils.skill-generator": {
         "id": "cli.utils.skill-generator",
@@ -1754,7 +1811,8 @@
             "symbol": "buildUpdateBody",
             "path": "./content-builder.js"
           }
-        ]
+        ],
+        "edgeCount": 5
       },
       "cli.utils.copilot-instructions": {
         "id": "cli.utils.copilot-instructions",
@@ -1795,7 +1853,8 @@
             "symbol": "buildUpdateBody",
             "path": "./content-builder.js"
           }
-        ]
+        ],
+        "edgeCount": 5
       },
       "cli.utils.graph-finder": {
         "id": "cli.utils.graph-finder",
@@ -1821,7 +1880,8 @@
             "symbol": "path",
             "path": "node:path"
           }
-        ]
+        ],
+        "edgeCount": 5
       },
       "cli.utils.logger": {
         "id": "cli.utils.logger",
@@ -1838,7 +1898,8 @@
           "export function time(label: string) => (): void",
           "export function jsonOut(value: unknown, optimized: boolean): void",
           "export function infoTime(label: string) => (): void"
-        ]
+        ],
+        "edgeCount": 8
       },
       "AuthService": {
         "id": "AuthService",
@@ -1886,7 +1947,8 @@
             "symbol": "AuthResponse",
             "path": "../../shared/types"
           }
-        ]
+        ],
+        "edgeCount": 4
       },
       "TaskRepository": {
         "id": "TaskRepository",
@@ -1930,7 +1992,8 @@
             "symbol": "Database",
             "path": "../connection"
           }
-        ]
+        ],
+        "edgeCount": 5
       },
       "AuthContext": {
         "id": "AuthContext",
@@ -1971,7 +2034,8 @@
             "symbol": "User",
             "path": "../../shared/types"
           }
-        ]
+        ],
+        "edgeCount": 6
       }
     },
     "terms": {
@@ -1983,37 +2047,44 @@
       "cli": {
         "id": "cli",
         "type": "term",
-        "desc": "The library exposes a command line interface for main actions - build docs to json graph, generate visualization, search nodes from the graph by query"
+        "desc": "The library exposes a command line interface for main actions - build docs to json graph, generate visualization, search nodes from the graph by query",
+        "edgeCount": 1
       },
       "jsxRuntime": {
         "id": "jsxRuntime",
         "type": "term",
-        "desc": "TSKB provides a custom JSX runtime (jsx-runtime module) that transforms TSX documentation syntax into a knowledge graph. Configured via tsconfig's jsxImportSource option, it processes JSX elements differently from React - instead of DOM rendering, it extracts documentation structure, references, and code snippets for analysis and visualization."
+        "desc": "TSKB provides a custom JSX runtime (jsx-runtime module) that transforms TSX documentation syntax into a knowledge graph. Configured via tsconfig's jsxImportSource option, it processes JSX elements differently from React - instead of DOM rendering, it extracts documentation structure, references, and code snippets for analysis and visualization.",
+        "edgeCount": 1
       },
       "tsProgram": {
         "id": "tsProgram",
         "type": "term",
-        "desc": "TypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output."
+        "desc": "TypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output.",
+        "edgeCount": 4
       },
       "registry": {
         "id": "registry",
         "type": "term",
-        "desc": "The global namespace (declare global { namespace tskb }) containing typed interfaces (Folders, Modules, Exports, Terms) that serve as a type-safe vocabulary registry, enabling autocomplete and type-checked references across all .tskb.tsx documentation files."
+        "desc": "The global namespace (declare global { namespace tskb }) containing typed interfaces (Folders, Modules, Exports, Terms) that serve as a type-safe vocabulary registry, enabling autocomplete and type-checked references across all .tskb.tsx documentation files.",
+        "edgeCount": 1
       },
       "graph": {
         "id": "graph",
         "type": "term",
-        "desc": "Refers to th raw output of the library, where it constructs all the relations and connections between folders, modules, exports, terms, docs, etc. In its raw form it is a json file"
+        "desc": "Refers to th raw output of the library, where it constructs all the relations and connections between folders, modules, exports, terms, docs, etc. In its raw form it is a json file",
+        "edgeCount": 1
       },
       "dotFile": {
         "id": "dotFile",
         "type": "term",
-        "desc": "A Graphviz DOT format file that describes the graph structure with nodes and edges, used for rendering visual diagrams of the architecture"
+        "desc": "A Graphviz DOT format file that describes the graph structure with nodes and edges, used for rendering visual diagrams of the architecture",
+        "edgeCount": 1
       },
       "searchResult": {
         "id": "searchResult",
         "type": "term",
-        "desc": "Result from searching the knowledge graph - includes ranked matches with scores across the entire graph, found via fuzzy matching on IDs, descriptions, and paths"
+        "desc": "Result from searching the knowledge graph - includes ranked matches with scores across the entire graph, found via fuzzy matching on IDs, descriptions, and paths",
+        "edgeCount": 1
       },
       "ast": {
         "id": "ast",
@@ -2083,42 +2154,50 @@
       "repositoryPattern": {
         "id": "repositoryPattern",
         "type": "term",
-        "desc": "Data access abstraction layer that separates business logic from database operations"
+        "desc": "Data access abstraction layer that separates business logic from database operations",
+        "edgeCount": 4
       },
       "serviceLayer": {
         "id": "serviceLayer",
         "type": "term",
-        "desc": "Business logic layer that orchestrates operations between controllers and repositories"
+        "desc": "Business logic layer that orchestrates operations between controllers and repositories",
+        "edgeCount": 3
       },
       "contextProvider": {
         "id": "contextProvider",
         "type": "term",
-        "desc": "React pattern for managing and sharing state across component tree without prop drilling"
+        "desc": "React pattern for managing and sharing state across component tree without prop drilling",
+        "edgeCount": 4
       },
       "jwt": {
         "id": "jwt",
         "type": "term",
-        "desc": "JSON Web Token - stateless authentication mechanism using signed tokens"
+        "desc": "JSON Web Token - stateless authentication mechanism using signed tokens",
+        "edgeCount": 3
       },
       "pagination": {
         "id": "pagination",
         "type": "term",
-        "desc": "Technique for splitting large datasets into smaller pages for efficient data transfer"
+        "desc": "Technique for splitting large datasets into smaller pages for efficient data transfer",
+        "edgeCount": 3
       },
       "middlewareChain": {
         "id": "middlewareChain",
         "type": "term",
-        "desc": "Sequential processing pattern where request passes through multiple handlers"
+        "desc": "Sequential processing pattern where request passes through multiple handlers",
+        "edgeCount": 2
       },
       "dependencyInjection": {
         "id": "dependencyInjection",
         "type": "term",
-        "desc": "Design pattern where dependencies are provided to a class rather than created internally"
+        "desc": "Design pattern where dependencies are provided to a class rather than created internally",
+        "edgeCount": 3
       },
       "crudOperations": {
         "id": "crudOperations",
         "type": "term",
-        "desc": "Create, Read, Update, Delete - fundamental data operations"
+        "desc": "Create, Read, Update, Delete - fundamental data operations",
+        "edgeCount": 3
       },
       "typeGuards": {
         "id": "typeGuards",
@@ -2136,7 +2215,8 @@
         "morphologySummary": "1 type",
         "morphology": [
           "export type Folder = Ext"
-        ]
+        ],
+        "edgeCount": 2
       },
       "Module": {
         "id": "Module",
@@ -2147,7 +2227,8 @@
         "morphologySummary": "1 type",
         "morphology": [
           "export type Module = Ext"
-        ]
+        ],
+        "edgeCount": 2
       },
       "Export": {
         "id": "Export",
@@ -2158,7 +2239,8 @@
         "morphologySummary": "1 type",
         "morphology": [
           "export type Export = Ext"
-        ]
+        ],
+        "edgeCount": 2
       },
       "Term": {
         "id": "Term",
@@ -2169,7 +2251,8 @@
         "morphologySummary": "1 type",
         "morphology": [
           "export type Term = Ext"
-        ]
+        ],
+        "edgeCount": 2
       },
       "File": {
         "id": "File",
@@ -2180,7 +2263,8 @@
         "morphologySummary": "1 type",
         "morphology": [
           "export type File = Ext"
-        ]
+        ],
+        "edgeCount": 2
       },
       "ref": {
         "id": "ref",
@@ -2191,7 +2275,8 @@
         "morphologySummary": "1 variable",
         "morphology": [
           "export const ref: ReactNode"
-        ]
+        ],
+        "edgeCount": 3
       },
       "cli.build": {
         "id": "cli.build",
@@ -2202,7 +2287,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function build(config: ExtractConfig): Promise<void>"
-        ]
+        ],
+        "edgeCount": 2
       },
       "cli.search": {
         "id": "cli.search",
@@ -2213,7 +2299,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function search(query: string, optimized?: boolean): Promise<void>"
-        ]
+        ],
+        "edgeCount": 2
       },
       "cli.pick": {
         "id": "cli.pick",
@@ -2224,7 +2311,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function pick(identifier: string, optimized?: boolean): Promise<void>"
-        ]
+        ],
+        "edgeCount": 2
       },
       "cli.ls": {
         "id": "cli.ls",
@@ -2235,7 +2323,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function ls(maxDepth?: number, optimized?: boolean): Promise<void>"
-        ]
+        ],
+        "edgeCount": 2
       },
       "generateDot": {
         "id": "generateDot",
@@ -2246,7 +2335,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function generateDot(graph: KnowledgeGraph): string"
-        ]
+        ],
+        "edgeCount": 4
       },
       "ts.createProgram": {
         "id": "ts.createProgram",
@@ -2257,7 +2347,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function createProgram(files: string[], tsconfigPath: string): Program"
-        ]
+        ],
+        "edgeCount": 2
       },
       "jsx.Doc": {
         "id": "jsx.Doc",
@@ -2268,7 +2359,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any"
-        ]
+        ],
+        "edgeCount": 2
       },
       "jsx.H1": {
         "id": "jsx.H1",
@@ -2279,7 +2371,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function H1({ children }: { children: any; }): any"
-        ]
+        ],
+        "edgeCount": 1
       },
       "jsx.H2": {
         "id": "jsx.H2",
@@ -2290,7 +2383,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function H2({ children }: { children: any; }): any"
-        ]
+        ],
+        "edgeCount": 1
       },
       "jsx.H3": {
         "id": "jsx.H3",
@@ -2301,7 +2395,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function H3({ children }: { children: any; }): any"
-        ]
+        ],
+        "edgeCount": 1
       },
       "jsx.P": {
         "id": "jsx.P",
@@ -2312,7 +2407,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function P({ children }: { children: any; }): any"
-        ]
+        ],
+        "edgeCount": 1
       },
       "jsx.List": {
         "id": "jsx.List",
@@ -2323,7 +2419,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function List({ children }: { children: any; }): any"
-        ]
+        ],
+        "edgeCount": 1
       },
       "jsx.Li": {
         "id": "jsx.Li",
@@ -2334,7 +2431,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function Li({ children }: { children: any; }): any"
-        ]
+        ],
+        "edgeCount": 1
       },
       "jsx.Snippet": {
         "id": "jsx.Snippet",
@@ -2345,7 +2443,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function Snippet({ code }: { code: () => any; }): any"
-        ]
+        ],
+        "edgeCount": 1
       },
       "jsx.Adr": {
         "id": "jsx.Adr",
@@ -2356,7 +2455,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any"
-        ]
+        ],
+        "edgeCount": 2
       },
       "jsx.ref": {
         "id": "jsx.ref",
@@ -2367,7 +2467,8 @@
         "morphologySummary": "1 variable",
         "morphology": [
           "export const ref: ReactNode"
-        ]
+        ],
+        "edgeCount": 2
       },
       "jsx.Relation": {
         "id": "jsx.Relation",
@@ -2378,7 +2479,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 127 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 136 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any"
-        ]
+        ],
+        "edgeCount": 1
       },
       "DocPriority": {
         "id": "DocPriority",
@@ -2389,7 +2491,8 @@
         "morphologySummary": "1 type",
         "morphology": [
           "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\""
-        ]
+        ],
+        "edgeCount": 2
       },
       "extractRegistry": {
         "id": "extractRegistry",
@@ -2400,7 +2503,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function extractRegistry(program: Program, baseDir: string, tsconfigPath: string): ExtractedRegistry"
-        ]
+        ],
+        "edgeCount": 1
       },
       "ExtractedRegistry": {
         "id": "ExtractedRegistry",
@@ -2417,7 +2521,8 @@
           "  exports: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; memberName?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; morphology?: ModuleMorphology | undefined; }>",
           "  files: Map<string, { desc: string; path?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; }>",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "buildGraph": {
         "id": "buildGraph",
@@ -2428,7 +2533,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph"
-        ]
+        ],
+        "edgeCount": 4
       },
       "KnowledgeGraph": {
         "id": "KnowledgeGraph",
@@ -2443,7 +2549,8 @@
           "  edges: GraphEdge[]",
           "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; docCount: number; edgeCount: number; }; }",
           "}"
-        ]
+        ],
+        "edgeCount": 3
       },
       "extractDocs": {
         "id": "extractDocs",
@@ -2454,7 +2561,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[]"
-        ]
+        ],
+        "edgeCount": 1
       },
       "ExtractedDoc": {
         "id": "ExtractedDoc",
@@ -2473,7 +2581,8 @@
           "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; }",
           "  relations: { from: string; to: string; label?: string | undefined; }[] | undefined",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "cli.build.ExtractConfig": {
         "id": "cli.build.ExtractConfig",
@@ -2487,7 +2596,8 @@
           "  pattern: string",
           "  tsconfig: string",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "AuthService": {
         "id": "AuthService",
@@ -2505,7 +2615,8 @@
           "  validateToken(token: string): Promise<User | null>",
           "  getCurrentUser(): Promise<User | null>",
           "}"
-        ]
+        ],
+        "edgeCount": 4
       },
       "TaskService": {
         "id": "TaskService",
@@ -2526,7 +2637,8 @@
           "  assignTask(id: string, assigneeId: string): Promise<Task | null>",
           "  updatePriority(id: string, priority: TaskPriority): Promise<Task | null>",
           "}"
-        ]
+        ],
+        "edgeCount": 5
       },
       "ProjectService": {
         "id": "ProjectService",
@@ -2547,7 +2659,8 @@
           "  removeMember(projectId: string, userId: string): Promise<boolean>",
           "  getMembers(projectId: string): Promise<ProjectMember[]>",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "UserService": {
         "id": "UserService",
@@ -2565,7 +2678,8 @@
           "  delete(id: string): Promise<boolean>",
           "  getUserTeams(userId: string): Promise<Team[]>",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "NotificationService": {
         "id": "NotificationService",
@@ -2584,7 +2698,8 @@
           "  sendTaskAssignedNotification(taskId: string, assigneeId: string): Promise<void>",
           "  sendMentionNotification(userId: string, mentionedByUserId: string, contextId: string): Promise<void>",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "TaskRepository": {
         "id": "TaskRepository",
@@ -2603,7 +2718,8 @@
           "  update(id: string, task: Partial<Task>): Promise<Task | null>",
           "  delete(id: string): Promise<boolean>",
           "}"
-        ]
+        ],
+        "edgeCount": 5
       },
       "UserRepository": {
         "id": "UserRepository",
@@ -2621,7 +2737,8 @@
           "  update(id: string, user: Partial<User>): Promise<User | null>",
           "  delete(id: string): Promise<boolean>",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "ProjectRepository": {
         "id": "ProjectRepository",
@@ -2639,7 +2756,8 @@
           "  update(id: string, project: Partial<Project>): Promise<Project | null>",
           "  delete(id: string): Promise<boolean>",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "AuthContext": {
         "id": "AuthContext",
@@ -2650,7 +2768,8 @@
         "morphologySummary": "1 variable",
         "morphology": [
           "export const AuthContext: Context<AuthContextValue | null>"
-        ]
+        ],
+        "edgeCount": 6
       },
       "TaskContext": {
         "id": "TaskContext",
@@ -2661,7 +2780,8 @@
         "morphologySummary": "1 variable",
         "morphology": [
           "export const TaskContext: Context<TaskContextValue | null>"
-        ]
+        ],
+        "edgeCount": 2
       },
       "ProjectContext": {
         "id": "ProjectContext",
@@ -2672,7 +2792,8 @@
         "morphologySummary": "1 variable",
         "morphology": [
           "export const ProjectContext: Context<ProjectContextValue | null>"
-        ]
+        ],
+        "edgeCount": 2
       },
       "WebSocketService": {
         "id": "WebSocketService",
@@ -2689,7 +2810,8 @@
           "  on(event: string, callback: (data: any) => void): void",
           "  emit(event: string, data: any): void",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "ErrorHandler": {
         "id": "ErrorHandler",
@@ -2700,7 +2822,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function errorHandler(): void"
-        ]
+        ],
+        "edgeCount": 2
       },
       "Database": {
         "id": "Database",
@@ -2718,7 +2841,8 @@
           "  execute(sql: string, params?: any[] | undefined): Promise<void>",
           "  transaction<T>(callback: () => Promise<T>): Promise<T>",
           "}"
-        ]
+        ],
+        "edgeCount": 6
       },
       "Task": {
         "id": "Task",
@@ -2744,7 +2868,8 @@
           "  createdAt: Date",
           "  updatedAt: Date",
           "}"
-        ]
+        ],
+        "edgeCount": 2
       },
       "Project": {
         "id": "Project",
@@ -2766,7 +2891,8 @@
           "  createdAt: Date",
           "  updatedAt: Date",
           "}"
-        ]
+        ],
+        "edgeCount": 2
       },
       "PaginationParams": {
         "id": "PaginationParams",
@@ -2782,7 +2908,8 @@
           "  sortBy: string | undefined",
           "  sortOrder: \"desc\" | \"asc\" | undefined",
           "}"
-        ]
+        ],
+        "edgeCount": 2
       },
       "FilterParams": {
         "id": "FilterParams",
@@ -2801,7 +2928,8 @@
           "  endDate: Date | undefined",
           "  search: string | undefined",
           "}"
-        ]
+        ],
+        "edgeCount": 2
       },
       "ApiResponse": {
         "id": "ApiResponse",
@@ -2816,7 +2944,8 @@
           "  error: ApiError | undefined",
           "  meta: ResponseMetadata | undefined",
           "}"
-        ]
+        ],
+        "edgeCount": 1
       },
       "PaginatedResponse": {
         "id": "PaginatedResponse",
@@ -2833,7 +2962,8 @@
           "  limit: number",
           "  totalPages: number",
           "}"
-        ]
+        ],
+        "edgeCount": 2
       },
       "User": {
         "id": "User",
@@ -2851,7 +2981,8 @@
           "  createdAt: Date",
           "  updatedAt: Date",
           "}"
-        ]
+        ],
+        "edgeCount": 2
       },
       "AuthMiddleware": {
         "id": "AuthMiddleware",
@@ -2862,7 +2993,8 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function authenticate(): void"
-        ]
+        ],
+        "edgeCount": 3
       },
       "ApiClient": {
         "id": "ApiClient",
@@ -2883,7 +3015,8 @@
           "  delete<T>(path: string): Promise<ApiResponse<T>>",
           "  patch<T>(path: string, data: any): Promise<ApiResponse<T>>",
           "}"
-        ]
+        ],
+        "edgeCount": 4
       }
     },
     "files": {
@@ -2891,7 +3024,8 @@
         "id": "npm.README.md",
         "type": "file",
         "desc": "The main npm README.md for the tskb package",
-        "path": "packages/tskb/README.md"
+        "path": "packages/tskb/README.md",
+        "edgeCount": 3
       }
     },
     "docs": {
@@ -2902,7 +3036,8 @@
         "priority": "essential",
         "filePath": "docs/src/tskb/main.tskb.tsx",
         "content": "Architecture and implementation docs for the <TSKB> library The package is located in <nodeId: TSKB.Package.Root>, with its <nodeId: package.json>and <nodeId: npm.README.md>for npm. What is <TSKB> ? A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge\n      graphs and diagrams with type-checked references. What it provides in terms of interfaces (API's) and tools In the root folder: <nodeId: TSKB.Package.Root>. In the <nodeId: package.json>file, it declares a bin command named 'tskb' that runs the <nodeId: cli>The package exports two main modules, in addition to the <nodeId: cli>: the index module   <nodeId: Main.index.js>and the jsxRuntime ( <nodeId: jsxRuntime>), defined in: <nodeId: Jsx.runtime.js>Core Primitives for Type-Safe Documentation Main exports (primitives) of the library for creating type-safe architectural documentation: <nodeId: Folder>: Represents logical groupings in the codebase (features, layers, packages) <nodeId: Module>: Represents concrete code units (classes, services, components) <nodeId: Export>: Creates type-safe references to actual code exports using TypeScript's\n          typeof import() syntax - ensures documentation stays in sync with codebase <nodeId: Term>: Represents domain concepts, patterns, or terminology <nodeId: File>: References non-JS/TS files (README.md, yml configs, etc.) by path <nodeId: ref>: A placeholder for referencing anything from the global tskb registry into jsx\n          tags with type assertions Plus all the JSX documentation components exported from <nodeId: Jsx.runtime.js>: Doc, H1, H2, H3,\n      P, List, Li, Snippet - providing a familiar TSX syntax for structured content A typical flow of usage Create a docs folder in your repository for documentation files Define a tsconfig.json similar to <nodeId: sample.tsconfig.json>pointing to repo root with jsx:\n        \"react-jsx\" and jsxImportSource: \"tskb\" Declare vocabulary (Folders, Modules, Exports, Terms, Files) using global namespace\n        augmentation. Use typeof import() for type-safe references. Write *.tskb.tsx files using JSX components. TypeScript validates all references at compile\n        time. Run <nodeId: cli.build>: \"tskb \\\"**/*.tskb.tsx\\\" --tsconfig tsconfig.json\" The <nodeId: cli>creates a <nodeId: tsProgram>and type-checks all documentation files against\n        actual source code <relation from=\"tsProgram\" to=\"typescript.program\" /><relation from=\"tsProgram\" to=\"ref\" />Extracts vocabulary from the <nodeId: registry>(Folders, Modules, Exports, Terms) Processes *.tskb.tsx files, extracting content and references Constructs the <nodeId: graph>by analyzing relationships and hierarchies Outputs JSON knowledge graph optimized for AI agents and tooling Generating a visual representation: <nodeId: cli.build>automatically generates a <nodeId: dotFile>in .tskb/graph.dot using   <nodeId: generateDot><nodeId: generateDot>transforms the <nodeId: graph>into a <nodeId: dotFile>with nodes and\n        relationship edges Render with Graphviz: \"dot -Tpng .tskb/graph.dot -o .tskb/graph.png\" Or use interactive viewers like xdot or online Graphviz tools Key Benefits Type-checked references: Renames, moves, or API changes break the build - enforcing\n        correctness Validated snippets: Code examples are type-checked against actual source Living documentation: Stays in sync through the compiler - CI catches drift AI-optimized: Queryable knowledge graph reduces hallucination Docs as infrastructure: Compile-time validation, not afterthought Navigating the knowledge graph Three commands for exploring and querying the knowledge graph - optimized for AI agents List all folders Run <nodeId: cli.ls>: \"tskb ls ./dist/taskflow-graph.json\" or \"tskb ls\n        ./dist/taskflow-graph.json --depth 2\" Always starts from Package.Root, lists all folders hierarchically Controllable depth: default 1 (immediate children), -1 for unlimited Returns flat JSON with folder ID, depth level, description, and path Use for initial orientation and discovering folder IDs Pick any node Run <nodeId: cli.pick>: \"tskb pick tskb.cli\" (by ID) or \"tskb pick packages/tskb/src/cli\" (by\n        path) Resolves any node type: folder, module, export, term, or doc Returns type-specific data: parent, children, modules, exports, referencing docs Falls back to nearest parent folder when no exact match is found Search the graph Run <nodeId: cli.search>: \"tskb search auth\" or \"tskb search build command\" Fuzzy searches the entire graph across IDs, descriptions, and paths using Fuse.js <nodeId: searchResult>includes: top 10 ranked results with score (0-1, higher = better match) Searches across all node types: folders, modules, exports, terms, and docs Use pick to get full details on any result Documentation Philosophy: Map, Not Manual Write structural signposts showing what exists where and how pieces connect - not\n      implementation details. Document structure: Declare folders, locations, and key relationships Use type-safe references: typeof import() ensures TypeScript validates existence and catches\n        renames Focus on WHAT and WHERE, not HOW: Describe purpose and location, not algorithms Trust validation: TSKB catches broken references, not behavior changes Major relationships only: Document architectural connections, not every dependency",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 24
       },
       "docs/src/tskb/typescript/typescript.tskb.tsx": {
         "id": "docs/src/tskb/typescript/typescript.tskb.tsx",
@@ -2911,7 +3046,8 @@
         "priority": "essential",
         "filePath": "docs/src/tskb/typescript/typescript.tskb.tsx",
         "content": "TypeScript Program Located in <nodeId: tskb.typescript>. Creates <nodeId: tsProgram>for analyzing code without compilation. Key Module <nodeId: typescript.program>: Exports <nodeId: ts.createProgram>which: Reads and parses tsconfig.json for compiler options Creates TypeScript Program with noEmit=true (analysis only) Validates TypeScript errors in specified files Returns Program with AST, type checker, and symbol resolution Purpose Provides the <nodeId: tsProgram>used by extraction logic to parse *.tskb.tsx files, resolve\n      types, and walk ASTs for registry and documentation extraction. <relation from=\"typescript.program\" to=\"extraction.documentation\" label=\"used for doc extraction\" /><relation from=\"typescript.program\" to=\"graph.builder\" label=\"feeds graph builder\" />",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 4
       },
       "docs/src/tskb/runtime/runtime.tskb.tsx": {
         "id": "docs/src/tskb/runtime/runtime.tskb.tsx",
@@ -2920,7 +3056,8 @@
         "priority": "essential",
         "filePath": "docs/src/tskb/runtime/runtime.tskb.tsx",
         "content": "Runtime Located in <nodeId: tskb.runtime>. Contains registry type definitions and JSX primitives - no actual\n      runtime execution. Modules <nodeId: runtime.jsx>: JSX runtime with <nodeId: jsx.Doc>(requires explains prop and optional priority via   <nodeId: DocPriority>: essential, constraint, or supplementary). Includes\n        heading/paragraph/list components, <nodeId: jsx.Adr>for Architecture Decision Records, and   <nodeId: jsx.ref>for type-safe registry references. <nodeId: runtime.registry>: Type definitions for Folder, Module, Export, Term interfaces used in\n        global namespace augmentation. Purpose Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry\n      interfaces enable type-safe vocabulary declarations. JSX components structure documentation\n      content. Semantic Relations The Relation tag creates a semantic edge in the knowledge graph between two nodes. It\n      is type-safe and supports any registered Folder, Module, Term, or Export. The optional   label prop allows you to describe the relationship (e.g., \"depends on\"). <snippet>() => <Relation from={JsxModule} to={ExampleTerm} label=\"runtime describes graph\" /></snippet>This will emit a related-to edge from the runtime.jsx module to the Graph   term in the TSKB graph, with the label \"runtime describes graph\".",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 7
       },
       "docs/src/tskb/core/visualization.tskb.tsx": {
         "id": "docs/src/tskb/core/visualization.tskb.tsx",
@@ -2929,7 +3066,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/tskb/core/visualization.tskb.tsx",
         "content": "Visualization Located in <nodeId: core.visualization>. Contains <nodeId: visualization.dot-generator>which provides <nodeId: generateDot>. Transforms\n      a KnowledgeGraph into Graphviz DOT format — folders become nested subgraphs, modules/exports\n      are grouped within their folders, terms and docs get separate clusters. Output is written to\n      .tskb/graph.dot during build. <relation from=\"visualization.dot-generator\" to=\"generateDot\" /><relation from=\"visualization.dot-generator\" to=\"graph.builder\" />",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 3
       },
       "docs/src/tskb/core/graph-builder.tskb.tsx": {
         "id": "docs/src/tskb/core/graph-builder.tskb.tsx",
@@ -2938,7 +3076,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/tskb/core/graph-builder.tskb.tsx",
         "content": "Graph Module Located in <nodeId: core.extraction.graph>. Takes extracted registry and documentation, produces a   <nodeId: KnowledgeGraph>. Modules <nodeId: graph.types>: Defines the graph data model. Node types: FolderNode, ModuleNode, TermNode,\n        ExportNode, DocNode. Edge types: references, belongs-to, contains, related-to. Top-level\n        structure: <nodeId: KnowledgeGraph>with nodes, edges, and metadata. <nodeId: graph.builder>: <nodeId: buildGraph>creates nodes from registry items and docs, then builds\n        edges — explicit references from docs and inferred hierarchy from folder paths\n        (contains/belongs-to). <relation from=\"buildGraph\" to=\"KnowledgeGraph\" /><relation from=\"buildGraph\" to=\"visualization.dot-generator\" />",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 5
       },
       "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx": {
         "id": "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx",
@@ -2947,7 +3086,8 @@
         "priority": "constraint",
         "filePath": "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx",
         "content": "The package in <nodeId: TSKB.Package.Root>is published to npm. <nodeId: npm.README.md>is the primary documentation\n      users see on the registry. When structural changes are made to the consumer-facing surface — <nodeId: tskb.cli>commands, <nodeId: runtime.jsx>components, <nodeId: runtime.registry>, runtime primitives - $ <nodeId: tskb.runtime>, type interfaces, build output format, or generated artifacts ( <nodeId: cli.utils.skill-generator>, <nodeId: cli.utils.copilot-instructions>) — <nodeId: npm.README.md>in <nodeId: TSKB.Package.Root>must be updated to\n      reflect them.",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 8
       },
       "docs/src/tskb/cli/logging.tskb.tsx": {
         "id": "docs/src/tskb/cli/logging.tskb.tsx",
@@ -2956,7 +3096,8 @@
         "priority": "essential",
         "filePath": "docs/src/tskb/cli/logging.tskb.tsx",
         "content": "CLI Logger <nodeId: cli.utils.logger>is a module-level singleton that routes all CLI output to stderr, keeping\n      stdout clean for JSON results from query commands. Design All output goes to stderr via process.stderr.write — never stdout Configured once at startup in <nodeId: cli.index>via configure( { verbose } ), driven by the\n        --verbose CLI flag Four log functions: info() always prints, verbose() only when --verbose is set, error() for\n        errors, time() prints a label then returns a closure that logs elapsed ms at verbose level Verbosity Default: <nodeId: cli.commands.build>shows key stages and summary counts. Query commands produce JSON only\n        on stdout, nothing on stderr --verbose: build adds timing per pipeline stage, path resolution stats, and file paths.\n        Query commands log \"Loaded graph from ...\" on stderr",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 3
       },
       "docs/src/tskb/cli/cli-overview.tskb.tsx": {
         "id": "docs/src/tskb/cli/cli-overview.tskb.tsx",
@@ -2965,7 +3106,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/tskb/cli/cli-overview.tskb.tsx",
         "content": "CLI Located in <nodeId: tskb.cli>. Entry point: <nodeId: cli.index>— parses arguments, routes to command\n      handlers. Commands In <nodeId: tskb.cli.commands>: <nodeId: cli.commands.build>: Full pipeline — files → TypeScript program → extraction → graph → outputs <nodeId: cli.commands.search>: Fuzzy search across all node types, returns ranked JSON results <nodeId: cli.commands.pick>: Resolve any node by ID or path, returns type-specific context <nodeId: cli.commands.ls>: List folder hierarchy with depth control, includes essential docs Utils In <nodeId: tskb.cli.utils>: <nodeId: cli.utils.content-builder>: Produces two markdown bodies — query body (commands, response\n        shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy,\n        primitives, examples, best practices) <nodeId: cli.utils.skill-generator>: Generates two Claude Code skills — tskb (query/explore) and tskb-update\n        (doc authoring guide) <nodeId: cli.utils.copilot-instructions>: Generates two Copilot instructions files — tskb (query/explore) and\n        tskb-update (doc authoring guide) <nodeId: cli.utils.graph-finder>: Finds .tskb/graph.json from cwd, used by search/pick/ls <nodeId: cli.utils.logger>: Stderr-only logger with info/verbose/error/time — configured once at startup\n        via --verbose flag",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 13
       },
       "docs/src/taskflow-app/main.tskb.tsx": {
         "id": "docs/src/taskflow-app/main.tskb.tsx",
@@ -2974,7 +3116,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/main.tskb.tsx",
         "content": "TaskFlow Application Full-stack task management application demonstrating modern web architecture patterns.\n      Three-layer separation: <nodeId: Client>(React), <nodeId: Server>(Node.js), <nodeId: Shared>(TypeScript types). Architecture Layers <nodeId: Client>: React frontend with <nodeId: contextProvider>for state, hooks for data\n        fetching, WebSocket for real-time updates. Details in client-overview. <nodeId: Server>: Node.js backend with <nodeId: serviceLayer>and <nodeId: repositoryPattern>.\n        Controllers, services, repositories, middleware. Details in server-overview. <nodeId: Shared>: Type definitions shared across client/server ensuring end-to-end type\n        safety. API contracts, domain types. Core Patterns <nodeId: repositoryPattern>: Abstract data access through repository interfaces. Details in\n        data-layer. <nodeId: serviceLayer>: Business logic isolated from HTTP and data layers. <nodeId: contextProvider>: React Context for state management instead of Redux. See\n        adr-context-over-redux. <nodeId: jwt>: Token-based authentication with refresh flow. Details in authentication-system. Technology Stack Frontend: React, TypeScript, Vite Backend: Node.js, Express, PostgreSQL Real-time: WebSocket for notifications and live updates Type Safety: Shared TypeScript types across full stack Domain Models Tasks: Core entity with status, priority, assignments. See task-domain. Projects: Workspace organization with team management. See project-domain. Authentication: User auth with JWT tokens. See auth-domain. Notifications: Real-time updates via WebSocket. See notification-domain. Documentation Navigation High-Level: architecture-overview for complete architectural picture Client: client-overview for frontend architecture and patterns Server: server-overview for backend layering and request flow Data: data-layer for repository pattern implementation Auth: authentication-system for auth flow and JWT handling Decisions: adr/ folder for architectural decision records Rules: constraints/ folder for enforced architectural constraints",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 7
       },
       "docs/src/taskflow-app/data-layer.tskb.tsx": {
         "id": "docs/src/taskflow-app/data-layer.tskb.tsx",
@@ -2983,7 +3126,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/data-layer.tskb.tsx",
         "content": "Data Layer Architecture The data layer implements the <nodeId: repositoryPattern>to separate database operations from\n      business logic. This architecture provides clean abstraction and makes the code testable and\n      maintainable. Repository Pattern All database access goes through repository classes in <nodeId: Repositories>. Repositories\n      provide a clean API for <nodeId: crudOperations>without exposing database implementation details. TaskRepository Example The <nodeId: TaskRepository>demonstrates the pattern with support for <nodeId: pagination>and filtering. It uses <nodeId: PaginationParams>and <nodeId: FilterParams>from the shared types to ensure consistency. <snippet>() => {\n        class TaskRepository {\n          constructor(private db: Database) {}\n\n          async findByProject(\n            projectId: string,\n            pagination?: PaginationParams,\n            filters?: FilterParams\n          ): Promise<{ tasks: Task[]; total: number }> {\n            // 1. Build SQL query with filters\n            let query = \"SELECT * FROM tasks WHERE project_id = ?\";\n            const params: any[] = [projectId];\n\n            // 2. Apply filters\n            if (filters?.status) {\n              query += \" AND status IN (?)\";\n              params.push(...filters.status);\n            }\n\n            // 3. Apply pagination\n            const limit = pagination?.limit || PAGINATION_DEFAULT_LIMIT;\n            const offset = ((pagination?.page || 1) - 1) * limit;\n            query += \" LIMIT ? OFFSET ?\";\n            params.push(limit, offset);\n\n            // 4. Execute query\n            const tasks = await this.db.query<Task>(query, params);\n            const total = await this.countByProject(projectId, filters);\n\n            return { tasks, total };\n          }\n\n          private async countByProject(projectId: string, filters?: FilterParams): Promise<number> {\n            let query = \"SELECT COUNT(*) as count FROM tasks WHERE project_id = ?\";\n            const params: any[] = [projectId];\n\n            if (filters?.status) {\n              query += \" AND status IN (?)\";\n              params.push(...filters.status);\n            }\n\n            const result = await this.db.query<{ count: number }>(query, params);\n            return result[0]?.count || 0;\n          }\n        }\n      }</snippet>Repository Benefits Services don't know about SQL - they call clean repository methods Database can be swapped (Postgres → MySQL) by updating repositories only Easy to mock repositories for unit testing services Prevents SQL injection through parameterized queries Centralizes data access logic and validation Service Layer Integration Services like <nodeId: TaskService>use <nodeId: dependencyInjection>to receive repository instances, keeping the layers decoupled. The service works with the <nodeId: Task>type and delegates persistence to <nodeId: TaskRepository>. <snippet>() => {\n        class TaskService {\n          constructor(\n            private taskRepository: TaskRepository,\n            private notificationService: NotificationService\n          ) {}\n\n          async create(taskData: Omit<Task, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Task> {\n            // 1. Business logic validation\n            if (!taskData.title || taskData.title.length < 3) {\n              throw new Error(\"Title must be at least 3 characters\");\n            }\n\n            // 2. Delegate to repository\n            const task = await this.taskRepository.create(taskData);\n\n            // 3. Trigger side effects\n            if (task.assigneeId) {\n              await this.notificationService.sendTaskAssignedNotification(task.id, task.assigneeId);\n            }\n\n            return task;\n          }\n        }\n      }</snippet>Database Connection The <nodeId: Database>class in <nodeId: Database>manages the connection pool and provides query\n      methods with transaction support. All repositories receive a Database instance via   <nodeId: dependencyInjection>. <snippet>() => {\n        class Database {\n          private pool: any; // Connection pool instance\n\n          async transaction<T>(callback: () => Promise<T>): Promise<T> {\n            const client = await this.pool.connect();\n\n            try {\n              await client.query(\"BEGIN\");\n              const result = await callback();\n              await client.query(\"COMMIT\");\n              return result;\n            } catch (error) {\n              await client.query(\"ROLLBACK\");\n              throw error;\n            } finally {\n              client.release();\n            }\n          }\n        }\n      }</snippet>Pagination Implementation <nodeId: pagination>is implemented consistently across all repositories using shared types from   <nodeId: Types>. The <nodeId: PaginationParams>type defines the input, and <nodeId: PaginatedResponse>wraps the output. PaginationParams defines page number and limit PaginatedResponse includes items, total count, and metadata Default limit is 20 items, maximum is 100 (from constants) Repositories calculate offset from page number: (page - 1) * limit Data Validation Type safety is enforced at multiple levels using TypeScript types like <nodeId: Task>, <nodeId: User>, and <nodeId: Project>: TypeScript interfaces define expected data shapes Repositories validate required fields before INSERT/UPDATE Services apply business rules and constraints Controllers use validation middleware before reaching services",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 16
       },
       "docs/src/taskflow-app/authentication-system.tskb.tsx": {
         "id": "docs/src/taskflow-app/authentication-system.tskb.tsx",
@@ -2992,7 +3136,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/authentication-system.tskb.tsx",
         "content": "Authentication System The authentication system provides secure user login, registration, and session management\n      using <nodeId: jwt>tokens. The implementation spans both client and server layers. Server-Side Authentication AuthService The <nodeId: AuthService>in <nodeId: Services>handles the core authentication logic including\n      password validation, token generation, and user verification. <snippet>() => {\n        const jwt = require(\"jsonwebtoken\");\n        const JWT_SECRET = process.env.JWT_SECRET || \"your-secret-key\";\n\n        class AuthService {\n          constructor(private userRepository: UserRepository) {}\n\n          async login(credentials: LoginCredentials): Promise<AuthResponse> {\n            // 1. Validate credentials against database\n            const user = await this.userRepository.findByEmail(credentials.email);\n            if (!user) throw new Error(\"User not found\");\n\n            // 2. Verify password (assuming user has password field)\n            const userPassword = (user as any).password || (user as any).passwordHash;\n            const isValid = await this.verifyPassword(credentials.password, userPassword);\n            if (!isValid) throw new Error(\"Invalid credentials\");\n\n            // 3. Generate JWT tokens\n            const tokens = this.generateTokens(user.id);\n\n            // 4. Return user and tokens\n            return { user, tokens };\n          }\n\n          private async verifyPassword(password: string, hash: string): Promise<boolean> {\n            // Use bcrypt to compare password with hash\n            const bcrypt = require(\"bcrypt\");\n            return bcrypt.compare(password, hash);\n          }\n\n          private generateTokens(userId: string) {\n            const accessToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: \"15m\" });\n            const refreshToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: \"7d\" });\n            return { accessToken, refreshToken };\n          }\n\n          async validateToken(token: string): Promise<User | null> {\n            try {\n              // Verify JWT signature and expiration\n              const payload = jwt.verify(token, JWT_SECRET) as { userId: string };\n              return this.userRepository.findById(payload.userId);\n            } catch (error) {\n              return null;\n            }\n          }\n        }\n      }</snippet>Authentication Middleware The <nodeId: AuthMiddleware>protects API routes by validating <nodeId: jwt>tokens on each request. It runs as part of the <nodeId: middlewareChain>. <snippet>() => {\n        // Assume authService is available as a singleton or injected dependency\n        class AuthService {\n          constructor(private userRepository: UserRepository) {}\n          async validateToken(token: string): Promise<User | null> {\n            const jwt = require(\"jsonwebtoken\");\n            try {\n              const payload = jwt.verify(token, process.env.JWT_SECRET) as { userId: string };\n              return this.userRepository.findById(payload.userId);\n            } catch {\n              return null;\n            }\n          }\n        }\n\n        const authService = new AuthService({} as UserRepository);\n\n        function authenticate() {\n          return async (req: any, res: any, next: any) => {\n            // 1. Extract token from Authorization header\n            const token = req.headers.authorization?.split(\" \")[1];\n\n            if (!token) {\n              return res.status(401).json({ error: \"No token provided\" });\n            }\n\n            // 2. Validate token\n            const user = await authService.validateToken(token);\n\n            // 3. Attach user to request\n            if (user) {\n              req.user = user;\n              next();\n            } else {\n              res.status(401).json({ error: \"Unauthorized\" });\n            }\n          };\n        }\n      }</snippet>Client-Side Authentication AuthContext The <nodeId: AuthContext>uses the <nodeId: contextProvider>pattern to manage authentication state\n      across the React application. <snippet>() => {\n        const AUTH_TOKEN_KEY = \"auth_token\";\n        const AuthContext = createContext<any>(null);\n\n        // Mock auth API service\n        const authApiService = {\n          login: async (creds: LoginCredentials) => ({\n            user: { id: \"1\", email: creds.email } as User,\n            tokens: { accessToken: \"token\", refreshToken: \"refresh\" },\n          }),\n          logout: async () => {},\n        };\n\n        function AuthProvider({ children }: { children: React.ReactNode }) {\n          const [user, setUser] = useState<User | null>(null);\n          const [isAuthenticated, setIsAuthenticated] = useState(false);\n\n          const login = async (email: string, password: string) => {\n            const response = await authApiService.login({ email, password });\n            setUser(response.user);\n            setIsAuthenticated(true);\n            // Store tokens in localStorage\n            localStorage.setItem(AUTH_TOKEN_KEY, response.tokens.accessToken);\n          };\n\n          const logout = async () => {\n            await authApiService.logout();\n            setUser(null);\n            setIsAuthenticated(false);\n            localStorage.removeItem(AUTH_TOKEN_KEY);\n          };\n\n          return (\n            <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>\n              {children}\n            </AuthContext.Provider>\n          );\n        }\n      }</snippet>Token Storage and Refresh Access tokens are stored in localStorage using AUTH_TOKEN_KEY constant Refresh tokens enable obtaining new access tokens without re-authentication The <nodeId: ApiClient>automatically includes tokens in request headers Token expiration is handled by refreshing or redirecting to login Security Considerations Passwords are never stored in plain text - only hashed versions JWT secrets should be strong and kept in environment variables Tokens have expiration times to limit exposure if compromised HTTPS should be enforced in production for secure token transmission CORS configuration limits which origins can access the API",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 8
       },
       "docs/src/taskflow-app/architecture-overview.tskb.tsx": {
         "id": "docs/src/taskflow-app/architecture-overview.tskb.tsx",
@@ -3001,7 +3146,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/architecture-overview.tskb.tsx",
         "content": "TaskFlow Architecture Overview TaskFlow is a full-stack task management application demonstrating modern web architecture\n      patterns. The application follows a clean separation between <nodeId: Client>, <nodeId: Server>,\n      and <nodeId: Shared>code. Core Architecture Three-Layer Structure Client Layer - React frontend located in <nodeId: Client>handles user interface, state\n        management via <nodeId: contextProvider>, and API communication. Server Layer - Node.js backend in <nodeId: Server>implements the <nodeId: serviceLayer>pattern\n        with controllers, services, and the <nodeId: repositoryPattern>. Shared Layer - TypeScript types in <nodeId: Shared>ensure type safety across the entire\n        stack. Backend Architecture The server follows a layered architecture with clear separation of concerns: <nodeId: Controllers>- Handle HTTP requests and responses, delegating business logic to\n        services <nodeId: Services>- Implement core business logic using the <nodeId: serviceLayer>pattern <nodeId: Repositories>- Abstract database operations following the <nodeId: repositoryPattern><nodeId: Middleware>- Process requests through a <nodeId: middlewareChain>for auth, validation,\n        and errors Key Services The <nodeId: TaskService>is the central module for task management, supporting   <nodeId: crudOperations>, status updates, and filtering with <nodeId: pagination>. <snippet>() => {\n        class TaskService {\n          taskRepository = new TaskRepository(new Database({} as DatabaseConfig));\n\n          async getByProject(\n            projectId: string,\n            pagination?: PaginationParams,\n            filters?: FilterParams\n          ): Promise<PaginatedResponse<Task>> {\n            // Delegates to repository\n            const { tasks, total } = await this.taskRepository.findByProject(\n              projectId,\n              pagination,\n              filters\n            );\n            const page = pagination?.page || 1;\n            const limit = pagination?.limit || 20;\n            return {\n              items: tasks,\n              total,\n              page,\n              limit,\n              totalPages: Math.ceil(total / limit),\n            };\n          }\n        }\n      }</snippet>Frontend Architecture The client application uses React with Context API for state management. Key organizational\n      patterns: <nodeId: Pages>- Route-level components organized by feature (auth, projects, tasks) <nodeId: Components>- Reusable UI components grouped by domain <nodeId: Contexts>- Global state providers using <nodeId: contextProvider>pattern <nodeId: Hooks>- Custom hooks for shared client-side logic <nodeId: ClientServices>- API clients for backend communication State Management Authentication state is managed by <nodeId: AuthContext>, which provides login/logout\n      functionality and user information to all components. The context uses <nodeId: jwt>tokens for\n      authentication. <snippet>() => {\n        function MyComponent() {\n          const { user, login, logout } = useAuth();\n          const email = \"user@example.com\";\n          const password = \"password123\";\n\n          return user ? (\n            <div>Welcome, {user.name}</div>\n          ) : (\n            <button onClick={() => login(email, password)}>Login</button>\n          );\n        }\n      }</snippet>Data Flow The typical request flow through the application: User interacts with React component in <nodeId: Pages>Component calls <nodeId: ApiClient>to send HTTP request Request passes through <nodeId: AuthMiddleware>for authentication Controller receives request and calls appropriate service Service implements business logic and calls repository Repository queries database and returns data Response flows back through layers to client Context updates state and React re-renders UI Type Safety The <nodeId: Types>folder contains all shared type definitions, ensuring end-to-end type\n      safety. Types are organized by domain: user.types, task.types, project.types, etc. Common types like ApiResponse and PaginatedResponse provide consistent structure for API\n      communication.",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 24
       },
       "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx": {
         "id": "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx",
@@ -3010,7 +3156,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx",
         "content": "Constraint: Service Layer Isolation Services in <nodeId: Services>MUST NOT directly access the database. All data persistence\n      operations MUST go through repositories in <nodeId: Repositories>. Rationale Maintains separation of concerns between business logic and data access Enables swapping database implementations without changing services Facilitates testing by allowing repository mocking Prevents SQL injection and enforces parameterized queries Centralizes data access patterns and optimizations Correct Pattern Services receive repository instances via <nodeId: dependencyInjection>in the constructor. ✅ Good Example: <nodeId: TaskService>accepts TaskRepository in constructor Service calls repository.findById() instead of writing SQL Repository handles all database interaction details ❌ Anti-pattern: Service imports Database class directly Service writes raw SQL queries Service accesses database connection pool Enforcement Code reviews should flag direct database access in services Import linting can prevent importing Database in service files All database operations should be traceable to a repository method",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 4
       },
       "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx": {
         "id": "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx",
@@ -3019,7 +3166,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx",
         "content": "Constraint: API Response Structure All API endpoints MUST return responses following the ApiResponse type defined in   <nodeId: Types>. This ensures consistent error handling and response structure across the entire\n      API. Required Structure <snippet>() => {\n        interface ApiResponse<T> {\n          data: T; // Actual response payload\n          error?: ApiError; // Error details if request failed\n          meta?: ResponseMetadata; // Optional metadata (timestamps, request ID)\n        }\n      }</snippet>Success Response Example <snippet>() => {\n        // GET /api/tasks/123\n        JSON.stringify({\n          data: {\n            id: \"123\",\n            title: \"Implement login\",\n            status: \"in-progress\",\n            // ... rest of task data\n          },\n          meta: {\n            timestamp: \"2026-01-24T10:30:00Z\",\n            requestId: \"req_abc123\",\n          },\n        });\n      }</snippet>Error Response Example <snippet>() => {\n        // POST /api/tasks (validation failure)\n        JSON.stringify({\n          data: null,\n          error: {\n            code: \"VALIDATION_ERROR\",\n            message: \"Title is required\",\n            details: {\n              field: \"title\",\n              constraint: \"minLength\",\n            },\n          },\n          meta: {\n            timestamp: \"2026-01-24T10:30:00Z\",\n          },\n        });\n      }</snippet>Pagination Responses List endpoints returning multiple items MUST use PaginatedResponse type for consistency with   <nodeId: pagination>. <snippet>() => {\n        interface PaginatedResponse<T> {\n          items: T[]; // Array of items for current page\n          total: number; // Total count across all pages\n          page: number; // Current page number\n          limit: number; // Items per page\n          totalPages: number; // Calculated total pages\n        }\n      }</snippet>Enforcement Controllers must use typed response helpers that enforce structure <nodeId: ErrorHandler>middleware ensures errors follow ApiResponse format Client <nodeId: ApiClient>expects and validates this structure End-to-end type safety from server through client Benefits Predictable error handling on client side Consistent metadata for debugging and logging TypeScript catches response structure violations at compile time Easy to add global response transformations",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 4
       },
       "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx": {
         "id": "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx",
@@ -3028,7 +3176,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx",
         "content": "ADR: Repository Pattern Over Direct Database Access Status Accepted Context We needed to decide how the <nodeId: serviceLayer>in <nodeId: Services>should interact with the database. Options considered: Services write SQL queries directly Use an ORM (e.g., TypeORM, Prisma) Implement the <nodeId: repositoryPattern>Decision We will implement the <nodeId: repositoryPattern>with repository classes in <nodeId: Repositories>. Each domain entity (Task, User, Project) gets its own repository. Repository Responsibilities Execute database queries (SQL or ORM calls) Map database rows to TypeScript types Handle pagination and filtering Ensure parameterized queries to prevent SQL injection Provide clean API for <nodeId: crudOperations>Service Responsibilities Implement business logic and validation rules Orchestrate operations across multiple repositories Trigger side effects (notifications, logging) Handle transactions when needed Consequences Positive Testability: Services can be tested with mocked repositories without a\n        database Separation of Concerns: Business logic (services) decoupled from data\n        access (repositories) Flexibility: Database can be changed by updating repositories only Reusability: Common queries (findById, findAll) centralized in one place Security: Repositories enforce parameterized queries, preventing SQL\n        injection Negative Boilerplate: More classes and files compared to services writing SQL\n        directly Indirection: One more layer to understand when tracing code Learning Curve: Developers must understand the pattern Implementation Example The <nodeId: TaskService>uses <nodeId: TaskRepository>through <nodeId: dependencyInjection>. <snippet>() => {\n        // Service uses repository abstraction\n        class TaskService {\n          constructor(private taskRepository: TaskRepository) {}\n\n          async assignTask(taskId: string, assigneeId: string): Promise<Task> {\n            // Business logic\n            const task = await this.taskRepository.findById(taskId);\n            if (!task) throw new Error(\"Task not found\");\n\n            // Delegate persistence to repository\n            return this.taskRepository.update(taskId, { assigneeId });\n          }\n        }\n\n        // Repository handles database details\n        class TaskRepository {\n          constructor(private db: Database) {}\n\n          async findById(id: string): Promise<Task | null> {\n            const query = \"SELECT * FROM tasks WHERE id = ?\";\n            const result = await this.db.query<Task>(query, [id]);\n            return result[0] || null;\n          }\n\n          async update(id: string, data: Partial<Task>): Promise<Task> {\n            const query = \"UPDATE tasks SET assignee_id = ? WHERE id = ?\";\n            await this.db.execute(query, [data.assigneeId, id]);\n            const updated = await this.findById(id);\n            if (!updated) throw new Error(\"Task not found after update\");\n            return updated;\n          }\n        }\n      }</snippet>Alternatives Considered 1. Services Write SQL Directly Pro: Fewer classes, less abstraction Con: Business logic mixed with data access Con: Difficult to test without database Con: SQL scattered across codebase 2. Use Full ORM (TypeORM/Prisma) Pro: Less boilerplate, auto-migrations Pro: Type-safe query builders Con: Learning curve for ORM-specific APIs Con: Magic behavior can be hard to debug Con: Performance overhead for simple queries References Martin Fowler - Patterns of Enterprise Application Architecture Clean Architecture by Robert C. Martin Repository pattern in Domain-Driven Design",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 8
       },
       "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx": {
         "id": "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx",
@@ -3037,7 +3186,8 @@
         "priority": "supplementary",
         "filePath": "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx",
         "content": "ADR: React Context Over Redux for State Management Status Accepted Context The <nodeId: Client>needed a state management solution for sharing authentication status,\n      current project, and task lists across components. Options considered: React Context API with hooks Redux with Redux Toolkit MobX Zustand Prop drilling (no state management library) Decision Use React Context API with custom hooks, implementing the <nodeId: contextProvider>pattern. Create separate contexts in <nodeId: Contexts>for different domains (Auth, Tasks,\n      Projects, Notifications). Implementation Pattern The <nodeId: AuthContext>demonstrates the pattern: <snippet>() => {\n        return <CommentForm onSubmit={() => {}} />;\n      }</snippet><snippet>() => {\n        // 1. Create context with typed interface\n        interface AuthContextValue {\n          user: User | null;\n          isAuthenticated: boolean;\n          login: (email: string, password: string) => Promise<void>;\n          logout: () => Promise<void>;\n        }\n\n        const AuthContext = createContext<AuthContextValue | null>(null);\n\n        // 2. Provider component manages state\n        function AuthProvider({ children }: { children: React.ReactNode }) {\n          const [user, setUser] = useState<User | null>(null);\n\n          const login = async (email: string, password: string) => {\n            // Simulated API call\n            const response = await fetch(\"/api/auth/login\", {\n              method: \"POST\",\n              body: JSON.stringify({ email, password }),\n            });\n            const data = await response.json();\n            setUser(data.user);\n          };\n\n          const logout = async () => {\n            await fetch(\"/api/auth/logout\", { method: \"POST\" });\n            setUser(null);\n          };\n\n          const isAuthenticated = user !== null;\n\n          return (\n            <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>\n              {children}\n            </AuthContext.Provider>\n          );\n        }\n\n        // 3. Custom hook for consuming context\n        function useAuth() {\n          const context = useContext(AuthContext);\n          if (!context) throw new Error(\"useAuth must be within AuthProvider\");\n          return context;\n        }\n      }</snippet>Consequences Positive Built-in: No additional dependencies, uses React's native API Simple: Easy to understand for developers familiar with React hooks Type-safe: Full TypeScript support without additional setup Flexible: Can create multiple contexts for different domains Performance: Components only re-render when their context changes Negative No DevTools: Unlike Redux, no time-travel debugging out of the box Boilerplate: Each context requires provider, hook, and interface\n        definitions Re-render Optimization: Need to manually optimize with useMemo/useCallback Testing: Need to wrap components with providers in tests Context Organization Separate contexts by domain to minimize unnecessary re-renders: <nodeId: AuthContext>- User authentication state <nodeId: TaskContext>- Current project's tasks <nodeId: ProjectContext>- Project list and selection NotificationContext - User notifications and alerts When to Use Redux Instead Consider Redux if the application grows to have: Complex state with many interdependent updates Need for time-travel debugging Advanced middleware requirements (sagas, etc.) Large team requiring strict state update patterns Extensive client-side caching needs Migration Path If we need Redux later, migration is straightforward: Context interfaces become Redux state slices Context actions become Redux actions/thunks Custom hooks (useAuth, useTask) can wrap Redux hooks Component code remains largely unchanged References React Context API documentation When to use Context vs Redux - Mark Erikson Application State Management with React - Kent C. Dodds",
-        "format": "tsx"
+        "format": "tsx",
+        "edgeCount": 6
       }
     }
   },
@@ -4501,7 +4651,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-20T14:29:53.410Z",
+    "generatedAt": "2026-03-20T16:33:45.178Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
