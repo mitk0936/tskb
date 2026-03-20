@@ -13,6 +13,10 @@ import type { ImportEntry } from "../extraction/module-morphology.js";
 export interface GraphNode {
   id: string;
   type: "folder" | "module" | "term" | "export" | "doc" | "file";
+  /**
+   * Number of edges connected to this node (computed during build)
+   */
+  edgeCount?: number;
 }
 
 export interface FolderNode extends GraphNode {

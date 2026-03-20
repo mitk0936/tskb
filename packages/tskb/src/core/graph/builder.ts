@@ -108,6 +108,9 @@ export function buildGraph(
   // Build import edges between modules
   buildModuleImportEdges(graph);
 
+  // Compute edge counts per node
+  computeEdgeCounts(graph);
+
   // Update stats
   updateStats(graph);
 
@@ -791,6 +794,25 @@ function buildModuleImportEdges(graph: KnowledgeGraph): void {
 function stripExtension(filePath: string): string {
   const ext = path.posix.extname(filePath);
   return ext ? filePath.slice(0, -ext.length) : filePath;
+}
+
+/**
+ * Count edges per node and store on each node as edgeCount.
+ */
+function computeEdgeCounts(graph: KnowledgeGraph): void {
+  const counts = new Map<string, number>();
+  for (const edge of graph.edges) {
+    counts.set(edge.from, (counts.get(edge.from) ?? 0) + 1);
+    counts.set(edge.to, (counts.get(edge.to) ?? 0) + 1);
+  }
+  for (const dict of Object.values(graph.nodes)) {
+    for (const node of Object.values(dict)) {
+      const count = counts.get(node.id);
+      if (count) {
+        (node as import("./types.js").GraphNode).edgeCount = count;
+      }
+    }
+  }
 }
 
 /**
