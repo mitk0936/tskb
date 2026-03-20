@@ -12,7 +12,7 @@ import type { ImportEntry } from "../extraction/module-morphology.js";
 
 export interface GraphNode {
   id: string;
-  type: "folder" | "module" | "term" | "export" | "doc";
+  type: "folder" | "module" | "term" | "export" | "doc" | "file";
 }
 
 export interface FolderNode extends GraphNode {
@@ -22,6 +22,10 @@ export interface FolderNode extends GraphNode {
    * Resolved path relative to tsconfig directory (portable across machines)
    */
   path?: string;
+  /**
+   * npm package name from package.json, if this folder is a package root
+   */
+  packageName?: string;
   /**
    * Auto-generated filesystem summary, e.g. "3 folders, 7 files"
    */
@@ -91,6 +95,15 @@ export interface ExportNode extends GraphNode {
   morphology?: string[];
 }
 
+export interface FileNode extends GraphNode {
+  type: "file";
+  desc: string;
+  /**
+   * Resolved path relative to tsconfig directory (portable across machines)
+   */
+  path?: string;
+}
+
 export interface DocNode extends GraphNode {
   type: "doc";
   /**
@@ -115,7 +128,7 @@ export interface DocNode extends GraphNode {
   format: "ts" | "tsx";
 }
 
-export type AnyNode = FolderNode | ModuleNode | TermNode | ExportNode | DocNode;
+export type AnyNode = FolderNode | ModuleNode | TermNode | ExportNode | FileNode | DocNode;
 
 /**
  * Edge types representing relationships in the knowledge graph
@@ -146,6 +159,7 @@ export interface KnowledgeGraph {
     modules: Record<string, ModuleNode>;
     terms: Record<string, TermNode>;
     exports: Record<string, ExportNode>;
+    files: Record<string, FileNode>;
     docs: Record<string, DocNode>;
   };
   /**
@@ -167,6 +181,7 @@ export interface KnowledgeGraph {
       moduleCount: number;
       termCount: number;
       exportCount: number;
+      fileCount: number;
       docCount: number;
       edgeCount: number;
     };

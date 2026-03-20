@@ -36,9 +36,9 @@ Drop \`--optimized\` for human-readable output.
 
 All paths are relative to where \`tskb build\` was run and can be used directly to read files.
 
-- **search**: Ranked results. Folders include \`structureSummary\`, modules and exports include \`morphologySummary\`, modules include \`importsSummary\`. Use \`pick\` on any \`nodeId\` for full details.
-- **pick**: Type-specific detail. Modules and exports include \`morphology\` (code stubs) and \`morphologySummary\`. Modules include \`imports\` (with \`moduleId\` when the target is a registered module) and \`importsSummary\`. Folders include \`children\` and \`structureSummary\`. Docs include \`content\`. All types include \`referencingDocs\` — constraint docs in this list **MUST** be read.
-- **context**: Node neighborhood with all referencing docs and constraints surfaced at top level.
+- **search**: Ranked results with graph-aware scoring. Results are boosted when they are graph neighbors of higher-ranked results. Scores are relative to the top result (1.0 = best match). Folders include \`structureSummary\`, modules and exports include \`morphologySummary\`, modules include \`importsSummary\`. Use \`pick\` on any \`nodeId\` for full details.
+- **pick**: Type-specific detail. Modules and exports include \`morphology\` (code stubs) and \`morphologySummary\`. Modules include \`imports\` (with \`moduleId\` when the target is a registered module), \`importsSummary\`, and \`importedBy\` (which registered modules import this one). Exports include \`parent\` with \`morphologySummary\` when the parent is a module (shows what else the module exports). Folders include \`children\`, \`structureSummary\`, and \`packageName\` (if the folder is an npm package root). Docs include \`content\`. All types include \`referencingDocs\` — constraint docs in this list **MUST** be read.
+- **context**: Graph neighborhood traversal via BFS across all edge types (contains, belongs-to, imports, related-to). Returns connected nodes up to the specified depth, with all referencing docs and constraints surfaced at top level. Use for understanding what connects to a node — not just its structural children.
 - **ls**: Essential docs first, then folder hierarchy with \`structureSummary\`.
 - **docs**: Lists or searches all docs. Use \`pick\` on a doc \`nodeId\` to get full content.
 
@@ -47,6 +47,7 @@ All paths are relative to where \`tskb build\` was run and can be used directly 
 - **Folder**: Logical grouping (feature, layer, package). Has ID, description, filesystem path.
 - **Module**: A source file. Linked to parent folder via belongs-to edges and to other modules via imports edges.
 - **Export**: A specific function, class, type, or constant from a module. Type-checked via \`typeof import()\`.
+- **File**: A non-JS/TS file (README.md, yml configs, etc.). Has ID, description, filesystem path.
 - **Term**: A domain concept or pattern. Not tied to a file.
 - **Doc**: A \`.tskb.tsx\` documentation file. Has \`explains\`, \`priority\` (essential, constraint, supplementary), and references to other nodes.
 
@@ -105,6 +106,9 @@ declare global {
     interface Exports {
       "auth.service.login": Export<{ desc: "Authenticates user, returns session token"; type: typeof import("src/auth/service.js").login }>;
     }
+    interface Files {
+      "auth.config.yml": File<{ desc: "Auth provider configuration"; path: "src/auth/config.yml" }>;
+    }
     interface Terms {
       sessionToken: Term<"JWT issued on login for authenticating API requests">;
     }
@@ -130,6 +134,7 @@ export default (
 - \`Folder<{ desc: "..."; path: "..." }>\` — Logical grouping. Path relative to project root.
 - \`Module<{ desc: "..."; type: typeof import("...") }>\` — Source file. Import path must resolve.
 - \`Export<{ desc: "..."; type: typeof import("...").Name }>\` — Named export. Compiler validates existence.
+- \`File<{ desc: "..."; path: "..." }>\` — Non-JS/TS file (README, config, etc.). Path relative to project root.
 - \`Term<"...">\` — Domain concept. Not tied to a file.
 
 Reference nodes in JSX via type assertions: \`const X = ref as tskb.Modules["id"]\`, then use \`{X}\` in JSX.

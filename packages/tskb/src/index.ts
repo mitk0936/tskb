@@ -5,6 +5,6 @@
  */
 
 // Runtime types for .tskb files
-export type { Term, Module, Folder, Export } from "./runtime/registry.js";
+export type { Term, Module, Folder, Export, File } from "./runtime/registry.js";
 export * from "./runtime/jsx.js";
 export { ref } from "./runtime/jsx.js";

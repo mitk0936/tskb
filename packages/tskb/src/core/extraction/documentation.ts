@@ -19,6 +19,7 @@ export interface ExtractedDoc {
     terms: string[];
     folders: string[];
     exports: string[];
+    files: string[];
   };
   /** Extracted semantic relations: {from, to, label?} */
   relations?: { from: string; to: string; label?: string }[];
@@ -66,6 +67,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
     terms: [] as string[],
     folders: [] as string[],
     exports: [] as string[],
+    files: [] as string[],
   };
 
   let content = "";
@@ -101,6 +103,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
       terms: Array.from(new Set(references.terms)),
       folders: Array.from(new Set(references.folders)),
       exports: Array.from(new Set(references.exports)),
+      files: Array.from(new Set(references.files)),
     },
     relations,
   };
@@ -202,7 +205,13 @@ function extractTypeAssertionMetadata(
  */
 function extractJsxContent(
   node: ts.Node,
-  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] },
+  references: {
+    modules: string[];
+    terms: string[];
+    folders: string[];
+    exports: string[];
+    files: string[];
+  },
   constantReferences: Map<string, { category: string; name: string }>,
   docMeta: { explains: string; priority: DocPriority },
   relations?: { from: string; to: string; label?: string }[]
@@ -413,7 +422,13 @@ function extractJsxContent(
  */
 function extractReferenceFromTypeAssertion(
   assertion: ts.AsExpression,
-  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] }
+  references: {
+    modules: string[];
+    terms: string[];
+    folders: string[];
+    exports: string[];
+    files: string[];
+  }
 ): string | null {
   const metadata = extractTypeAssertionMetadata(assertion);
   if (metadata) {
@@ -428,7 +443,13 @@ function extractReferenceFromTypeAssertion(
 function createReferenceContent(
   category: string,
   name: string,
-  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[] }
+  references: {
+    modules: string[];
+    terms: string[];
+    folders: string[];
+    exports: string[];
+    files: string[];
+  }
 ): string | null {
   if (category === "Folders") {
     references.folders.push(name);
@@ -441,6 +462,9 @@ function createReferenceContent(
     return `<nodeId: ${name}>`;
   } else if (category === "Exports") {
     references.exports.push(name);
+    return `<nodeId: ${name}>`;
+  } else if (category === "Files") {
+    references.files.push(name);
     return `<nodeId: ${name}>`;
   }
   return null;

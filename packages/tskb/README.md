@@ -185,11 +185,11 @@ Then re-run `npm run docs` to generate the integration files.
 
 ## Define your vocabulary
 
-Declare architecture primitives using TypeScript declaration merging.
+Declare architecture primitives using TypeScript declaration merging. All primitives are declared inside the global `tskb` namespace.
 
 ```tsx
 // docs/vocabulary.tskb.tsx
-import type { Folder, Export, Term } from "tskb";
+import type { Folder, File, Export, Term } from "tskb";
 
 declare global {
   namespace tskb {
@@ -223,6 +223,13 @@ declare global {
       AuthService: Export<{
         desc: "Authentication and authorization business logic";
         type: typeof import("../src/server/services/auth.service.js").AuthService;
+      }>;
+    }
+
+    interface Files {
+      "api-spec": File<{
+        desc: "OpenAPI specification for the REST API";
+        path: "docs/openapi.yml";
       }>;
     }
 
@@ -336,7 +343,7 @@ tskb builds a **typed, semantic knowledge graph** describing your system.
 
 The graph captures:
 
-- **Nodes** - folders, modules, exports, terms, docs
+- **Nodes** - folders, modules, exports, files, terms, docs
 - **Edges** - explicit and inferred relationships
 - **Hierarchy** - nested architectural contexts
 - **Semantics** - intent expressed through JSX
@@ -353,6 +360,7 @@ This graph is the primary output. Everything else (diagrams, markdown, AI contex
     folders: Record<string, FolderNode>;   // id, desc, path
     modules: Record<string, ModuleNode>;   // id, desc, resolvedPath, typeSignature, imports
     exports: Record<string, ExportNode>;   // id, desc, resolvedPath, typeSignature
+    files:   Record<string, FileNode>;     // id, desc, path
     terms:   Record<string, TermNode>;     // id, desc
     docs:    Record<string, DocNode>;       // id, explains, priority, filePath, content
   },
@@ -365,7 +373,7 @@ This graph is the primary output. Everything else (diagrams, markdown, AI contex
   metadata: {
     generatedAt: string;
     version: string;
-    stats: { folderCount, moduleCount, exportCount, termCount, docCount, edgeCount };
+    stats: { folderCount, moduleCount, exportCount, fileCount, termCount, docCount, edgeCount };
   }
 }
 ```
@@ -439,6 +447,7 @@ From filesystem paths and imports:
 - Module → Folder (`belongs-to`)
 - Module → Module (`imports`) — from resolved import statements
 - Export → Module (`belongs-to`)
+- File → Folder (`belongs-to`)
 
 The graph combines **authored intent** with **structural truth**.
 
@@ -545,7 +554,7 @@ npx tskb pick "src/server/services"       # Pick by filesystem path
 npx tskb pick "auth.AuthService"          # Pick a module by ID
 ```
 
-Returns type-specific data: parent, children, modules, exports, and referencing docs with their `priority`. When picking a doc node, the full content is included inline. Constraint docs in the results indicate rules that must be followed.
+Returns type-specific data: parent, children, modules, exports, files, and referencing docs with their `priority`. When picking a doc node, the full content is included inline. Constraint docs in the results indicate rules that must be followed.
 
 ### Search the graph
 
