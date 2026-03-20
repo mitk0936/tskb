@@ -31,6 +31,7 @@ export function resolveNode(graph: KnowledgeGraph, identifier: string): Resolved
     ["folders", graph.nodes.folders],
     ["modules", graph.nodes.modules],
     ["exports", graph.nodes.exports],
+    ["files", graph.nodes.files],
     ["terms", graph.nodes.terms],
     ["docs", graph.nodes.docs],
   ];
@@ -59,6 +60,12 @@ export function resolveNode(graph: KnowledgeGraph, identifier: string): Resolved
   for (const [id, exp] of Object.entries(graph.nodes.exports)) {
     if (exp.resolvedPath && normalizePath(exp.resolvedPath) === normalized) {
       return { id, node: exp, resolvedVia: "path" };
+    }
+  }
+
+  for (const [id, file] of Object.entries(graph.nodes.files)) {
+    if (file.path && normalizePath(file.path) === normalized) {
+      return { id, node: file, resolvedVia: "path" };
     }
   }
 
@@ -124,7 +131,7 @@ export function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): Do
 export function findParent(
   edges: NodeEdges,
   graph: KnowledgeGraph
-): { nodeId: string; type: string; desc: string } | undefined {
+): { nodeId: string; type: string; desc: string; morphologySummary?: string } | undefined {
   const parentEdge =
     edges.outgoing.find((e) => e.type === "belongs-to") ||
     edges.incoming.find((e) => e.type === "contains");

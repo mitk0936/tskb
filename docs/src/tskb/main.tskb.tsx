@@ -2,6 +2,7 @@ import {
   type Folder,
   type Module,
   type Export,
+  type File,
   Doc,
   H1,
   ref,
@@ -58,6 +59,13 @@ declare global {
       }>;
     }
 
+    interface Files {
+      "npm.README.md": File<{
+        desc: "The main npm README.md for the tskb package";
+        path: "packages/tskb/README.md";
+      }>;
+    }
+
     interface Exports {
       Folder: Export<{
         desc: "A generic helper to reference folders inside doc files";
@@ -74,6 +82,10 @@ declare global {
       Term: Export<{
         desc: "A generic helper to reference terms inside doc files";
         type: import("packages/tskb/src/runtime/registry.js").Term<any>;
+      }>;
+      File: Export<{
+        desc: "A generic helper to reference non-JS/TS files (README.md, yml configs, etc.) inside doc files";
+        type: import("packages/tskb/src/runtime/registry.js").File<any>;
       }>;
       ref: Export<{
         desc: "A placeholder for referencing anything from the global tskb registry into jsx documentation tags";
@@ -106,6 +118,7 @@ declare global {
 }
 
 const TSKBRootFolder = ref as tskb.Folders["TSKB.Package.Root"];
+const NpmReadme = ref as tskb.Files["npm.README.md"];
 const PackageJson = ref as tskb.Modules["package.json"];
 const CliTerm = ref as tskb.Terms["cli"];
 const MainIndexModule = ref as tskb.Modules["Main.index.js"];
@@ -115,6 +128,7 @@ const FolderExport = ref as tskb.Exports["Folder"];
 const ModuleExport = ref as tskb.Exports["Module"];
 const ExportExport = ref as tskb.Exports["Export"];
 const TermExport = ref as tskb.Exports["Term"];
+const FileExport = ref as tskb.Exports["File"];
 const RefExport = ref as tskb.Exports["ref"];
 const SampleTsconfigModule = ref as tskb.Modules["sample.tsconfig.json"];
 const TsProgramTerm = ref as tskb.Terms["tsProgram"];
@@ -136,7 +150,7 @@ export default (
   >
     <H1>Architecture and implementation docs for the {"<TSKB>"} library </H1>
     <P>
-      The package is located in {TSKBRootFolder}, with its {PackageJson} and README.md for npm.
+      The package is located in {TSKBRootFolder}, with its {PackageJson} and {NpmReadme} for npm.
     </P>
     <H2>What is {"<TSKB>"}?</H2>
     <P>
@@ -165,6 +179,7 @@ export default (
           typeof import() syntax - ensures documentation stays in sync with codebase
         </Li>
         <Li>{TermExport}: Represents domain concepts, patterns, or terminology</Li>
+        <Li>{FileExport}: References non-JS/TS files (README.md, yml configs, etc.) by path</Li>
         <Li>
           {RefExport}: A placeholder for referencing anything from the global tskb registry into jsx
           tags with type assertions
@@ -185,8 +200,8 @@ export default (
       </Li>
 
       <Li>
-        Declare vocabulary (Folders, Modules, Exports, Terms) using global namespace augmentation.
-        Use typeof import() for type-safe references.
+        Declare vocabulary (Folders, Modules, Exports, Terms, Files) using global namespace
+        augmentation. Use typeof import() for type-safe references.
       </Li>
 
       <Li>

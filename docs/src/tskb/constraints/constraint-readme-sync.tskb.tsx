@@ -1,6 +1,7 @@
 import { Doc, P, ref } from "tskb";
 
 const PackageRoot = ref as tskb.Folders["TSKB.Package.Root"];
+const NpmReadme = ref as tskb.Files["npm.README.md"];
 const CliFolder = ref as tskb.Folders["tskb.cli"];
 const RuntimeFolder = ref as tskb.Folders["tskb.runtime"];
 const JsxModule = ref as tskb.Modules["runtime.jsx"];
@@ -14,11 +15,11 @@ export default (
     priority="constraint"
   >
     <P>
-      The package in {PackageRoot} is published to npm. The README.md is the primary documentation
+      The package in {PackageRoot} is published to npm. {NpmReadme} is the primary documentation
       users see on the registry. When structural changes are made to the consumer-facing surface —
       {CliFolder} commands, {JsxModule} components, {RegistryModule}, runtime primitives - $
       {RuntimeFolder}, type interfaces, build output format, or generated artifacts (
-      {SkillGenModule}, {CopilotGenModule}) — the README.md in {PackageRoot} must be updated to
+      {SkillGenModule}, {CopilotGenModule}) — {NpmReadme} in {PackageRoot} must be updated to
       reflect them.
     </P>
   </Doc>

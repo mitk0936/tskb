@@ -4,11 +4,13 @@ import type {
   ModuleNode,
   TermNode,
   ExportNode,
+  FileNode,
   DocNode,
   GraphEdge,
 } from "./types.js";
 import type { ExtractedRegistry } from "../extraction/registry.js";
 import type { ExtractedDoc } from "../extraction/documentation.js";
+import fs from "node:fs";
 import path from "node:path";
 import { ROOT_FOLDER_NAME } from "../constants.js";
 
@@ -55,6 +57,7 @@ export function buildGraph(
       modules: {},
       terms: {},
       exports: {},
+      files: {},
       docs: {},
     },
     edges: [],
@@ -67,6 +70,7 @@ export function buildGraph(
         moduleCount: 0,
         termCount: 0,
         exportCount: 0,
+        fileCount: 0,
         docCount: 0,
         edgeCount: 0,
       },
@@ -81,9 +85,13 @@ export function buildGraph(
   buildModuleNodes(registry, graph);
   buildTermNodes(registry, graph);
   buildExportNodes(registry, graph);
+  buildFileNodes(registry, graph);
 
   // Enrich folder children with node IDs from registered folders/modules
   enrichFolderChildren(graph);
+
+  // Detect npm packages (folders with package.json containing a name)
+  detectPackageFolders(graph);
 
   // Build nodes from docs
   buildDocNodes(docs, graph);
@@ -95,6 +103,7 @@ export function buildGraph(
   buildFolderHierarchy(graph);
   buildModuleFolderMembership(graph);
   buildExportMembership(graph);
+  buildFileFolderMembership(graph);
 
   // Build import edges between modules
   buildModuleImportEdges(graph);
@@ -206,6 +215,21 @@ function buildExportNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
 }
 
 /**
+ * Create File nodes from registry
+ */
+function buildFileNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): void {
+  for (const [name, data] of registry.files.entries()) {
+    const node: FileNode = {
+      id: name,
+      type: "file",
+      desc: data.desc,
+      path: data.resolvedPath ?? data.path,
+    };
+    graph.nodes.files[name] = node;
+  }
+}
+
+/**
  * Enrich folder children with node IDs by matching child paths against registered folders and modules.
  *
  * For each folder that has children, check if any child folder name corresponds to a registered
@@ -254,6 +278,27 @@ function enrichFolderChildren(graph: KnowledgeGraph): void {
         child.nodeId = match.id;
         child.desc = match.desc;
       }
+    }
+  }
+}
+
+/**
+ * Detect folders that are npm package roots by checking for package.json with a name field.
+ * Sets the packageName property on matching FolderNodes.
+ */
+function detectPackageFolders(graph: KnowledgeGraph): void {
+  for (const folder of Object.values(graph.nodes.folders)) {
+    if (!folder.path) continue;
+
+    const pkgPath = path.resolve(process.cwd(), folder.path, "package.json");
+    try {
+      const raw = fs.readFileSync(pkgPath, "utf-8");
+      const pkg = JSON.parse(raw);
+      if (typeof pkg.name === "string" && pkg.name) {
+        folder.packageName = pkg.name;
+      }
+    } catch {
+      // No package.json or invalid — skip
     }
   }
 }
@@ -373,6 +418,22 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
+    for (const fileName of doc.references.files) {
+      if (graph.nodes.files[fileName]) {
+        graph.edges.push({
+          from: docId,
+          to: fileName,
+          type: "references",
+        });
+      } else {
+        throw new Error(
+          `Unresolved file reference "${fileName}" in doc "${docId}":\n` +
+            `  The doc references a file that does not exist in the registry.\n` +
+            `  Make sure "${fileName}" is declared in a \`namespace tskb { interface Files { ... } }\` block.`
+        );
+      }
+    }
+
     // Emit "related-to" edges for each relation in doc.relations
     if (doc.relations && Array.isArray(doc.relations)) {
       for (const rel of doc.relations) {
@@ -381,12 +442,14 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
           graph.nodes.terms[rel.from] ||
           graph.nodes.modules[rel.from] ||
           graph.nodes.folders[rel.from] ||
-          graph.nodes.exports[rel.from];
+          graph.nodes.exports[rel.from] ||
+          graph.nodes.files[rel.from];
         const toExists =
           graph.nodes.terms[rel.to] ||
           graph.nodes.modules[rel.to] ||
           graph.nodes.folders[rel.to] ||
-          graph.nodes.exports[rel.to];
+          graph.nodes.exports[rel.to] ||
+          graph.nodes.files[rel.to];
         if (fromExists && toExists) {
           const edge: any = {
             from: rel.from,
@@ -611,6 +674,48 @@ function buildExportMembership(graph: KnowledgeGraph): void {
 }
 
 /**
+ * Build file-to-folder membership based on resolved paths.
+ *
+ * If a file's path falls within a folder's path, that file belongs to that folder.
+ */
+function buildFileFolderMembership(graph: KnowledgeGraph): void {
+  const files = Object.values(graph.nodes.files);
+  const folders = Object.values(graph.nodes.folders);
+
+  for (const file of files) {
+    if (!file.path) continue;
+
+    let bestFolder: FolderNode | null = null;
+    let bestFolderPathLength = 0;
+
+    for (const folder of folders) {
+      if (!folder.path) continue;
+
+      const folderPath = folder.path.replace(/\\/g, "/");
+      const filePath = file.path.replace(/\\/g, "/");
+
+      const isFileInFolder =
+        filePath.startsWith(folderPath + "/") || filePath.startsWith(folderPath);
+
+      if (isFileInFolder) {
+        if (folderPath.length > bestFolderPathLength) {
+          bestFolder = folder;
+          bestFolderPathLength = folderPath.length;
+        }
+      }
+    }
+
+    if (bestFolder) {
+      graph.edges.push({
+        from: file.id,
+        to: bestFolder.id,
+        type: "belongs-to",
+      });
+    }
+  }
+}
+
+/**
  * Build import edges between modules.
  *
  * For each module that has imports, resolve the import paths relative to the
@@ -629,6 +734,14 @@ function buildModuleImportEdges(graph: KnowledgeGraph): void {
     }
   }
 
+  // Build a lookup: packageName -> folder ID for bare specifier resolution
+  const packageNameToFolderId = new Map<string, string>();
+  for (const folder of Object.values(graph.nodes.folders)) {
+    if (folder.packageName) {
+      packageNameToFolderId.set(folder.packageName, folder.id);
+    }
+  }
+
   for (const mod of modules) {
     if (!mod.importEntries || !mod.resolvedPath) continue;
 
@@ -636,21 +749,37 @@ function buildModuleImportEdges(graph: KnowledgeGraph): void {
     const seen = new Set<string>(); // avoid duplicate edges to same target
 
     for (const entry of mod.importEntries) {
-      // Only resolve relative imports — aliases and bare specifiers can't be resolved here
-      if (!entry.path.startsWith("./") && !entry.path.startsWith("../")) continue;
+      if (entry.path.startsWith("./") || entry.path.startsWith("../")) {
+        // Resolve relative imports to modules
+        const resolved = path.posix.normalize(path.posix.join(moduleDir, entry.path));
+        const normalizedResolved = stripExtension(resolved);
 
-      // Resolve relative to the importing module's directory and strip extension
-      const resolved = path.posix.normalize(path.posix.join(moduleDir, entry.path));
-      const normalizedResolved = stripExtension(resolved);
-
-      const targetId = pathToModuleId.get(normalizedResolved);
-      if (targetId && targetId !== mod.id && !seen.has(targetId)) {
-        seen.add(targetId);
-        graph.edges.push({
-          from: mod.id,
-          to: targetId,
-          type: "imports",
-        });
+        const targetId = pathToModuleId.get(normalizedResolved);
+        if (targetId && targetId !== mod.id && !seen.has(targetId)) {
+          seen.add(targetId);
+          graph.edges.push({
+            from: mod.id,
+            to: targetId,
+            type: "imports",
+          });
+        }
+      } else {
+        // Bare specifier — check if it matches a registered package name
+        // e.g. "tskb" or "tskb/runtime/jsx" both match package "tskb"
+        const specifier = entry.path;
+        for (const [pkgName, folderId] of packageNameToFolderId) {
+          if (specifier === pkgName || specifier.startsWith(pkgName + "/")) {
+            if (folderId !== mod.id && !seen.has(folderId)) {
+              seen.add(folderId);
+              graph.edges.push({
+                from: mod.id,
+                to: folderId,
+                type: "imports",
+              });
+            }
+            break;
+          }
+        }
       }
     }
   }
@@ -672,6 +801,7 @@ function updateStats(graph: KnowledgeGraph): void {
   graph.metadata.stats.moduleCount = Object.keys(graph.nodes.modules).length;
   graph.metadata.stats.termCount = Object.keys(graph.nodes.terms).length;
   graph.metadata.stats.exportCount = Object.keys(graph.nodes.exports).length;
+  graph.metadata.stats.fileCount = Object.keys(graph.nodes.files).length;
   graph.metadata.stats.docCount = Object.keys(graph.nodes.docs).length;
   graph.metadata.stats.edgeCount = graph.edges.length;
 }

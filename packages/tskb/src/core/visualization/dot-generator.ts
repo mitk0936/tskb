@@ -250,7 +250,7 @@ function formatLabel(
   id: string,
   desc: string,
   path?: string,
-  type?: "folder" | "module" | "term" | "export"
+  type?: "folder" | "module" | "term" | "export" | "file"
 ): string {
   // Escape quotes and newlines
   const escapedDesc = desc.replace(/"/g, '\\"').replace(/\n/g, "\\n");

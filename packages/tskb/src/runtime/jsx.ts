@@ -5,7 +5,7 @@
  *
  * These props are extracted by the TSKB pipeline and converted to graph edges.
  */
-import type { FolderName, ModuleName, TermName, ExportName } from "./registry.js";
+import type { FolderName, ModuleName, TermName, ExportName, FileName } from "./registry.js";
 
 /**
  * Type-safe semantic relation tag for TSKB knowledge graph
@@ -22,11 +22,11 @@ export function Relation({
   label,
 }: {
   from:
-    | (typeof ref & { __tskbType?: FolderName | ModuleName | TermName | ExportName })
-    | (FolderName | ModuleName | TermName | ExportName);
+    | (typeof ref & { __tskbType?: FolderName | ModuleName | TermName | ExportName | FileName })
+    | (FolderName | ModuleName | TermName | ExportName | FileName);
   to:
-    | (typeof ref & { __tskbType?: FolderName | ModuleName | TermName | ExportName })
-    | (FolderName | ModuleName | TermName | ExportName);
+    | (typeof ref & { __tskbType?: FolderName | ModuleName | TermName | ExportName | FileName })
+    | (FolderName | ModuleName | TermName | ExportName | FileName);
   label?: string;
 }): any {
   // Return a special marker for extraction

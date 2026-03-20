@@ -398,6 +398,7 @@ digraph KnowledgeGraph {
             "Module" [label="Export\<\"Module\"\>\nA generic helper to reference modules inside doc files\n📁 packages/tskb/src/runtime/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "Export" [label="Export\<\"Export\"\>\nA generic helper to reference exports inside doc files\n📁 packages/tskb/src/runtime/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "Term" [label="Export\<\"Term\"\>\nA generic helper to reference terms inside doc files\n📁 packages/tskb/src/runtime/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "File" [label="Export\<\"File\"\>\nA generic helper to reference non-JS/TS files (README.md, yml configs, etc.) inside doc files\n📁 packages/tskb/src/runtime/registry.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
         }
 
@@ -474,12 +475,12 @@ digraph KnowledgeGraph {
     label="Documentation";
     style=dashed;
     color=gray;
-    "docs/src/tskb/main.tskb.tsx" [label="docs/src/tskb/main.tskb.tsx\nArchitecture and implementation docs for the  library The package is located in , with its and READM...\n📄 docs/src/tskb/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/main.tskb.tsx" [label="docs/src/tskb/main.tskb.tsx\nArchitecture and implementation docs for the  library The package is located in , with its and for n...\n📄 docs/src/tskb/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/typescript/typescript.tskb.tsx" [label="docs/src/tskb/typescript/typescript.tskb.tsx\nTypeScript Program Located in . Creates for analyzing code without compilation. Key Module : Exports...\n📄 docs/src/tskb/typescript/typescript.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/runtime/runtime.tskb.tsx" [label="docs/src/tskb/runtime/runtime.tskb.tsx\nRuntime Located in . Contains registry type definitions and JSX primitives - no actual\n      runtime...\n📄 docs/src/tskb/runtime/runtime.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/core/visualization.tskb.tsx" [label="docs/src/tskb/core/visualization.tskb.tsx\nVisualization Located in . Contains which provides . Transforms\n      a KnowledgeGraph into Graphviz...\n📄 docs/src/tskb/core/visualization.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/core/graph-builder.tskb.tsx" [label="docs/src/tskb/core/graph-builder.tskb.tsx\nGraph Module Located in . Takes extracted registry and documentation, produces a   . Modules : Defin...\n📄 docs/src/tskb/core/graph-builder.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" [label="docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx\nThe package in is published to npm. The README.md is the primary documentation\n      users see on th...\n📄 docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" [label="docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx\nThe package in is published to npm. is the primary documentation\n      users see on the registry. Wh...\n📄 docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/cli/logging.tskb.tsx" [label="docs/src/tskb/cli/logging.tskb.tsx\nCLI Logger is a module-level singleton that routes all CLI output to stderr, keeping\n      stdout cl...\n📄 docs/src/tskb/cli/logging.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/cli/cli-overview.tskb.tsx" [label="docs/src/tskb/cli/cli-overview.tskb.tsx\nCLI Located in . Entry point: — parses arguments, routes to command\n      handlers. Commands In : : ...\n📄 docs/src/tskb/cli/cli-overview.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/main.tskb.tsx" [label="docs/src/taskflow-app/main.tskb.tsx\nTaskFlow Application Full-stack task management application demonstrating modern web architecture pa...\n📄 docs/src/taskflow-app/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
@@ -510,12 +511,14 @@ digraph KnowledgeGraph {
   "docs/src/tskb/main.tskb.tsx" -> "Module" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "Export" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "Term" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "File" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "ref" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "cli.build" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "generateDot" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "cli.ls" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "cli.pick" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "cli.search" [color=grey, style=dashed];
+  "docs/src/tskb/main.tskb.tsx" -> "npm.README.md" [color=grey, style=dashed];
   "docs/src/tskb/typescript/typescript.tskb.tsx" -> "typescript.program" [color=grey, style=dashed];
   "docs/src/tskb/typescript/typescript.tskb.tsx" -> "tsProgram" [color=grey, style=dashed];
   "docs/src/tskb/typescript/typescript.tskb.tsx" -> "tskb.typescript" [color=grey, style=dashed];
@@ -542,6 +545,7 @@ digraph KnowledgeGraph {
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "TSKB.Package.Root" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "tskb.cli" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "tskb.runtime" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "npm.README.md" [color=grey, style=dashed];
   "docs/src/tskb/cli/logging.tskb.tsx" -> "cli.utils.logger" [color=grey, style=dashed];
   "docs/src/tskb/cli/logging.tskb.tsx" -> "cli.index" [color=grey, style=dashed];
   "docs/src/tskb/cli/logging.tskb.tsx" -> "cli.commands.build" [color=grey, style=dashed];

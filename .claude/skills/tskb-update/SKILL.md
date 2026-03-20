@@ -44,6 +44,9 @@ declare global {
     interface Exports {
       "auth.service.login": Export<{ desc: "Authenticates user, returns session token"; type: typeof import("src/auth/service.js").login }>;
     }
+    interface Files {
+      "auth.config.yml": File<{ desc: "Auth provider configuration"; path: "src/auth/config.yml" }>;
+    }
     interface Terms {
       sessionToken: Term<"JWT issued on login for authenticating API requests">;
     }
@@ -69,6 +72,7 @@ export default (
 - `Folder<{ desc: "..."; path: "..." }>` — Logical grouping. Path relative to project root.
 - `Module<{ desc: "..."; type: typeof import("...") }>` — Source file. Import path must resolve.
 - `Export<{ desc: "..."; type: typeof import("...").Name }>` — Named export. Compiler validates existence.
+- `File<{ desc: "..."; path: "..." }>` — Non-JS/TS file (README, config, etc.). Path relative to project root.
 - `Term<"...">` — Domain concept. Not tied to a file.
 
 Reference nodes in JSX via type assertions: `const X = ref as tskb.Modules["id"]`, then use `{X}` in JSX.

@@ -48,6 +48,15 @@ export interface ExtractedRegistry {
       morphology?: ModuleMorphology;
     }
   >;
+  files: Map<
+    string,
+    {
+      desc: string;
+      path?: string;
+      resolvedPath?: string;
+      pathExists: boolean;
+    }
+  >;
 }
 
 /**
@@ -72,6 +81,7 @@ export function extractRegistry(
     modules: new Map(),
     terms: new Map(),
     exports: new Map(),
+    files: new Map(),
   };
 
   // Use the provided baseDir for all path resolution
@@ -190,6 +200,8 @@ function extractFromTskbNamespace(
       extractTerms(statement, checker, registry, sourceFile);
     } else if (interfaceName == "Exports") {
       extractExports(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+    } else if (interfaceName === "Files") {
+      extractFiles(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
     }
   }
 }
@@ -574,6 +586,94 @@ function extractTermType(typeNode: ts.TypeNode): string | null {
   }
 
   return null;
+}
+
+/**
+ * Extract all Files from the Files interface.
+ *
+ * Similar to Folders but for individual non-JS/TS files (README.md, yml configs, etc.):
+ * ```ts
+ * interface Files {
+ *   "README.md": File<{ desc: "Project readme", path: "/README.md" }>;
+ * }
+ * ```
+ */
+function extractFiles(
+  interfaceNode: ts.InterfaceDeclaration,
+  checker: ts.TypeChecker,
+  registry: ExtractedRegistry,
+  sourceFile: ts.SourceFile,
+  tsconfigDir: string,
+  baseUrl: string
+): void {
+  for (const member of interfaceNode.members) {
+    if (!ts.isPropertySignature(member)) continue;
+    if (!member.name || (!ts.isIdentifier(member.name) && !ts.isStringLiteral(member.name)))
+      continue;
+
+    const fileName = member.name.text;
+    const type = member.type;
+
+    if (!type) continue;
+
+    // Reuse the same extraction as Folder (File has same shape: { desc, path })
+    const fileData = extractFolderType(type, checker);
+    if (!fileData) {
+      const typeText = type.getText();
+      throw new Error(
+        `Invalid File definition for "${fileName}" in ${sourceFile.fileName}:\n` +
+          `  Expected: File<{ desc: string; path: string }>\n` +
+          `  Received: ${typeText}\n` +
+          `  All properties in the Files interface must use the File<...> helper type.`
+      );
+    }
+
+    if (!fileData.path) {
+      throw new Error(
+        `File "${fileName}" in ${sourceFile.fileName} is missing a path.\n` +
+          `  Files must have a path property pointing to the file location.`
+      );
+    }
+
+    // Resolve and validate path
+    let resolvedPath: string | undefined;
+    let pathExists = false;
+
+    // Strip leading slash from path
+    let normalizedPath = fileData.path.startsWith("/") ? fileData.path.slice(1) : fileData.path;
+    normalizedPath = normalizedPath.replace(/\/$/, "");
+
+    // Try to resolve path from baseUrl
+    const absoluteFromBaseUrl = path.resolve(baseUrl, normalizedPath);
+
+    if (ts.sys.fileExists(absoluteFromBaseUrl)) {
+      resolvedPath = path.relative(process.cwd(), absoluteFromBaseUrl).replace(/\\/g, "/");
+      pathExists = true;
+    } else {
+      // Try relative to the source file where File was declared
+      const sourceFileDir = path.dirname(sourceFile.fileName);
+      const absoluteFromSourceFile = path.resolve(sourceFileDir, normalizedPath);
+      if (ts.sys.fileExists(absoluteFromSourceFile)) {
+        resolvedPath = path.relative(process.cwd(), absoluteFromSourceFile).replace(/\\/g, "/");
+        pathExists = true;
+      } else {
+        throw new Error(
+          `File path not found for "${fileName}" in ${sourceFile.fileName}:\n` +
+            `  Specified path: "${fileData.path}"\n` +
+            `  Tried resolving from:\n` +
+            `    - Repository root (${baseUrl}): ${absoluteFromBaseUrl}\n` +
+            `    - Source file directory (${sourceFileDir}): ${absoluteFromSourceFile}\n` +
+            `  Neither path exists. Please check the path is correct.`
+        );
+      }
+    }
+
+    registry.files.set(fileName, {
+      ...fileData,
+      resolvedPath,
+      pathExists,
+    });
+  }
 }
 
 /**

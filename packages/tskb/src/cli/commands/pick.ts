@@ -22,11 +22,13 @@ interface FolderPickResult {
     nodeId: string;
     desc: string;
     path?: string;
+    packageName?: string;
     structureSummary?: string;
     children?: import("../../core/graph/types.js").FolderNode["children"];
   };
   parent?: { nodeId: string; type: string; desc: string };
   exports: Array<{ nodeId: string; desc: string; path?: string }>;
+  importedBy?: Array<{ moduleId: string; desc: string }>;
   referencingDocs: DocRef[];
   relations?: Array<{ from: string; to: string; label?: string }>;
 }
@@ -46,6 +48,7 @@ interface ModulePickResult {
   };
   parentFolder?: { nodeId: string; desc: string; path?: string };
   exports: Array<{ nodeId: string; desc: string; typeSignature?: string }>;
+  importedBy?: Array<{ moduleId: string; desc: string }>;
   referencingDocs: DocRef[];
   relations?: Array<{ from: string; to: string; label?: string }>;
 }
@@ -61,7 +64,7 @@ interface ExportPickResult {
     morphologySummary?: string;
     morphology?: string[];
   };
-  parent?: { nodeId: string; type: string; desc: string };
+  parent?: { nodeId: string; type: string; desc: string; morphologySummary?: string };
   referencingDocs: DocRef[];
   relations?: Array<{ from: string; to: string; label?: string }>;
 }
@@ -70,6 +73,19 @@ interface TermPickResult {
   type: "term";
   resolvedVia: ResolvedVia;
   node: { nodeId: string; desc: string };
+  referencingDocs: DocRef[];
+  relations?: Array<{ from: string; to: string; label?: string }>;
+}
+
+interface FilePickResult {
+  type: "file";
+  resolvedVia: ResolvedVia;
+  node: {
+    nodeId: string;
+    desc: string;
+    path?: string;
+  };
+  parentFolder?: { nodeId: string; desc: string; path?: string };
   referencingDocs: DocRef[];
   relations?: Array<{ from: string; to: string; label?: string }>;
 }
@@ -93,6 +109,7 @@ type PickResult =
   | ModulePickResult
   | ExportPickResult
   | TermPickResult
+  | FilePickResult
   | DocPickResult;
 
 // --- Per-type resolvers ---
@@ -116,11 +133,19 @@ function resolveFolder(
 
   // Collect exports that belong directly to this folder (not via a module)
   const exports: FolderPickResult["exports"] = [];
+  // Collect modules that import this folder (as a package)
+  const importedBy: FolderPickResult["importedBy"] = [];
   for (const edge of edges.incoming) {
     if (edge.type === "belongs-to") {
       const exp = graph.nodes.exports[edge.from];
       if (exp) {
         exports.push({ nodeId: edge.from, desc: exp.desc, path: exp.resolvedPath });
+      }
+    }
+    if (edge.type === "imports") {
+      const importer = graph.nodes.modules[edge.from];
+      if (importer) {
+        importedBy.push({ moduleId: edge.from, desc: importer.desc });
       }
     }
   }
@@ -132,11 +157,13 @@ function resolveFolder(
       nodeId: id,
       desc: folder.desc,
       path: folder.path,
+      ...(folder.packageName ? { packageName: folder.packageName } : {}),
       ...(folder.structureSummary ? { structureSummary: folder.structureSummary } : {}),
       ...(folder.children ? { children: folder.children } : {}),
     },
     parent,
     exports,
+    ...(importedBy.length > 0 ? { importedBy } : {}),
     referencingDocs: findReferencingDocs(edges, graph),
   };
 }
@@ -166,6 +193,17 @@ function resolveModule(
     }
   }
 
+  // modules that import this module (incoming import edges)
+  const importedBy: ModulePickResult["importedBy"] = [];
+  for (const edge of edges.incoming) {
+    if (edge.type === "imports") {
+      const importer = graph.nodes.modules[edge.from];
+      if (importer) {
+        importedBy.push({ moduleId: edge.from, desc: importer.desc });
+      }
+    }
+  }
+
   return {
     type: "module",
     resolvedVia: "id",
@@ -183,6 +221,7 @@ function resolveModule(
     },
     parentFolder,
     exports: exps,
+    ...(importedBy.length > 0 ? { importedBy } : {}),
     referencingDocs: findReferencingDocs(edges, graph),
   };
 }
@@ -195,6 +234,15 @@ function resolveExport(
 ): ExportPickResult {
   const exp = node as import("../../core/graph/types.js").ExportNode;
 
+  // Find parent and include morphologySummary if parent is a module
+  const parent = findParent(edges, graph);
+  if (parent) {
+    const parentModule = graph.nodes.modules[parent.nodeId];
+    if (parentModule?.morphologySummary) {
+      parent.morphologySummary = parentModule.morphologySummary;
+    }
+  }
+
   return {
     type: "export",
     resolvedVia: "id",
@@ -206,7 +254,7 @@ function resolveExport(
       ...(exp.morphologySummary ? { morphologySummary: exp.morphologySummary } : {}),
       ...(exp.morphology ? { morphology: exp.morphology } : {}),
     },
-    parent: findParent(edges, graph),
+    parent,
     referencingDocs: findReferencingDocs(edges, graph),
   };
 }
@@ -223,6 +271,35 @@ function resolveTerm(
     type: "term",
     resolvedVia: "id",
     node: { nodeId: id, desc: term.desc },
+    referencingDocs: findReferencingDocs(edges, graph),
+  };
+}
+
+function resolveFile(
+  id: string,
+  node: AnyNode,
+  edges: NodeEdges,
+  graph: KnowledgeGraph
+): FilePickResult {
+  const file = node as import("../../core/graph/types.js").FileNode;
+
+  // parent folder
+  const parentEdge = edges.outgoing.find((e) => e.type === "belongs-to");
+  let parentFolder: FilePickResult["parentFolder"];
+  if (parentEdge) {
+    const folder = graph.nodes.folders[parentEdge.to];
+    if (folder) parentFolder = { nodeId: parentEdge.to, desc: folder.desc, path: folder.path };
+  }
+
+  return {
+    type: "file",
+    resolvedVia: "id",
+    node: {
+      nodeId: id,
+      desc: file.desc,
+      path: file.path,
+    },
+    parentFolder,
     referencingDocs: findReferencingDocs(edges, graph),
   };
 }
@@ -260,25 +337,34 @@ function enrichImportsWithModuleIds(
   edges: NodeEdges,
   graph: KnowledgeGraph
 ): Array<{ entry: string; moduleId?: string }> {
-  // Collect target module IDs from "imports" edges
-  const importedModuleIds = new Set<string>();
+  // Collect target node IDs from "imports" edges (can be modules or folders)
+  const importTargetIds = new Set<string>();
   for (const edge of edges.outgoing) {
     if (edge.type === "imports") {
-      importedModuleIds.add(edge.to);
+      importTargetIds.add(edge.to);
     }
   }
 
-  if (importedModuleIds.size === 0) {
+  if (importTargetIds.size === 0) {
     return imports.map((entry) => ({ entry }));
   }
 
   // Build normalized resolvedPath (without extension) -> moduleId lookup
   const pathToModuleId = new Map<string, string>();
-  for (const targetId of importedModuleIds) {
+  for (const targetId of importTargetIds) {
     const mod = graph.nodes.modules[targetId];
     if (mod?.resolvedPath) {
       const normalized = stripExt(mod.resolvedPath.replace(/\\/g, "/"));
       pathToModuleId.set(normalized, targetId);
+    }
+  }
+
+  // Build packageName -> folderId lookup for bare specifier resolution
+  const packageNameToFolderId = new Map<string, string>();
+  for (const targetId of importTargetIds) {
+    const folder = graph.nodes.folders[targetId];
+    if (folder?.packageName) {
+      packageNameToFolderId.set(folder.packageName, targetId);
     }
   }
 
@@ -297,6 +383,13 @@ function enrichImportsWithModuleIds(
       const resolved = stripExt(path.posix.normalize(path.posix.join(moduleDir, importPath)));
       const moduleId = pathToModuleId.get(resolved);
       if (moduleId) return { entry, moduleId };
+    } else {
+      // Bare specifier — check if it matches a registered package
+      for (const [pkgName, folderId] of packageNameToFolderId) {
+        if (importPath === pkgName || importPath.startsWith(pkgName + "/")) {
+          return { entry, moduleId: folderId };
+        }
+      }
     }
 
     return { entry };
@@ -313,6 +406,7 @@ const resolvers: Record<string, NodeResolver> = {
   module: resolveModule as NodeResolver,
   export: resolveExport as NodeResolver,
   term: resolveTerm as NodeResolver,
+  file: resolveFile as NodeResolver,
   doc: resolveDoc as NodeResolver,
 };
 
@@ -335,7 +429,7 @@ export async function pick(identifier: string, optimized: boolean = false): Prom
           error: "Node not found in graph",
           identifier,
           suggestion:
-            "Use a valid node ID (folder, module, export, term, doc) or a filesystem path. Run `tskb ls` to see available folders.",
+            "Use a valid node ID (folder, module, export, file, term, doc) or a filesystem path. Run `tskb ls` to see available folders.",
         },
         null,
         2

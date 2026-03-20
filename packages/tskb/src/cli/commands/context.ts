@@ -47,31 +47,41 @@ interface ContextResult {
 // --- Traversal ---
 
 /**
- * Build a lookup from parent ID → child IDs for structural edges.
- * Covers both "contains" (folder→folder) and "belongs-to" (module/export→folder/module).
+ * Build a lookup from node ID → connected node IDs for graph traversal.
+ * Covers structural edges (contains, belongs-to) and graph edges (imports, related-to).
+ * Both directions are indexed so traversal works regardless of starting node type.
  */
-function buildChildIndex(edges: GraphEdge[]): Map<string, string[]> {
+function buildNeighborIndex(edges: GraphEdge[]): Map<string, string[]> {
   const index = new Map<string, string[]>();
 
+  function addEntry(from: string, to: string) {
+    let neighbors = index.get(from);
+    if (!neighbors) {
+      neighbors = [];
+      index.set(from, neighbors);
+    }
+    neighbors.push(to);
+  }
+
   for (const edge of edges) {
-    // "contains": parent is `from`, child is `to`
     if (edge.type === "contains") {
-      let children = index.get(edge.from);
-      if (!children) {
-        children = [];
-        index.set(edge.from, children);
-      }
-      children.push(edge.to);
+      // folder → child folder (both directions for traversal)
+      addEntry(edge.from, edge.to);
+      addEntry(edge.to, edge.from);
+    } else if (edge.type === "belongs-to") {
+      // module/export/file → parent folder/module (both directions)
+      addEntry(edge.to, edge.from);
+      addEntry(edge.from, edge.to);
+    } else if (edge.type === "imports") {
+      // module → module/folder (both directions)
+      addEntry(edge.from, edge.to);
+      addEntry(edge.to, edge.from);
+    } else if (edge.type === "related-to") {
+      // any → any (both directions)
+      addEntry(edge.from, edge.to);
+      addEntry(edge.to, edge.from);
     }
-    // "belongs-to": child is `from`, parent is `to`
-    if (edge.type === "belongs-to") {
-      let children = index.get(edge.to);
-      if (!children) {
-        children = [];
-        index.set(edge.to, children);
-      }
-      children.push(edge.from);
-    }
+    // skip "references" — doc edges are collected separately via findReferencingDocs
   }
 
   return index;
@@ -82,6 +92,7 @@ function findNode(graph: KnowledgeGraph, id: string): AnyNode | undefined {
     graph.nodes.folders[id] ||
     graph.nodes.modules[id] ||
     graph.nodes.exports[id] ||
+    graph.nodes.files[id] ||
     graph.nodes.terms[id] ||
     graph.nodes.docs[id]
   );
@@ -95,6 +106,7 @@ function getNodeDesc(node: AnyNode): string {
 function getNodePath(node: AnyNode): string | undefined {
   if (node.type === "folder") return node.path;
   if (node.type === "module" || node.type === "export") return node.resolvedPath;
+  if (node.type === "file") return node.path;
   if (node.type === "doc") return node.filePath;
   return undefined;
 }
@@ -109,8 +121,8 @@ function buildContext(
   const docMap = new Map<string, ContextDoc>();
   const constraints: string[] = [];
 
-  // BFS traversal
-  const childIndex = buildChildIndex(graph.edges);
+  // BFS traversal across all edge types
+  const neighborIndex = buildNeighborIndex(graph.edges);
   const queue: Array<{ id: string; depth: number }> = [{ id: startId, depth: 0 }];
 
   while (queue.length > 0) {
@@ -155,13 +167,13 @@ function buildContext(
       }
     }
 
-    // Enqueue children if within depth
+    // Enqueue neighbors if within depth
     if (depth < maxDepth) {
-      const children = childIndex.get(id);
-      if (children) {
-        for (const childId of children) {
-          if (!visited.has(childId)) {
-            queue.push({ id: childId, depth: depth + 1 });
+      const neighbors = neighborIndex.get(id);
+      if (neighbors) {
+        for (const neighborId of neighbors) {
+          if (!visited.has(neighborId)) {
+            queue.push({ id: neighborId, depth: depth + 1 });
           }
         }
       }
@@ -200,7 +212,7 @@ export async function context(
           error: "Node not found in graph",
           identifier,
           suggestion:
-            "Use a valid node ID (folder, module, export, term, doc) or a filesystem path. Run `tskb ls` to see available folders.",
+            "Use a valid node ID (folder, module, export, file, term, doc) or a filesystem path. Run `tskb ls` to see available folders.",
         },
         null,
         2
