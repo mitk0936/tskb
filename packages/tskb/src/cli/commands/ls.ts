@@ -2,7 +2,7 @@ import fs from "node:fs";
 import type { KnowledgeGraph, GraphEdge } from "../../core/graph/types.js";
 import { ROOT_FOLDER_NAME } from "../../core/constants.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time, jsonOut } from "../utils/logger.js";
+import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
 
 /**
  * Result from listing folders in the knowledge graph
@@ -27,7 +27,11 @@ interface LsResult {
  *
  * @param maxDepth - Maximum depth to traverse (-1 for unlimited, default: 1)
  */
-export async function ls(maxDepth: number = 1, optimized: boolean = false): Promise<void> {
+export async function ls(
+  maxDepth: number = 1,
+  optimized: boolean = false,
+  plain: boolean = false
+): Promise<void> {
   // Find and load the knowledge graph
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
@@ -62,7 +66,39 @@ export async function ls(maxDepth: number = 1, optimized: boolean = false): Prom
     `   ${result.folders.length} folders, ${result.docs.length} essential docs (depth=${maxDepth})`
   );
 
-  jsonOut(result, optimized);
+  if (plain) {
+    plainOut(formatLsPlain(result, maxDepth));
+  } else {
+    jsonOut(result, optimized);
+  }
+}
+
+function formatLsPlain(result: LsResult, maxDepth: number): string {
+  const lines: string[] = [];
+
+  lines.push(
+    `Ls: root ${result.root} — depth ${maxDepth}, ${result.folders.length} folders, ${result.docs.length} essential docs`
+  );
+
+  if (result.docs.length > 0) {
+    lines.push("");
+    lines.push("Essential docs:");
+    for (const d of result.docs) {
+      lines.push(`  id: ${d.nodeId} — ${d.explains}`);
+    }
+  }
+
+  lines.push("");
+  lines.push("Folders:");
+  for (const f of result.folders) {
+    const meta: string[] = [];
+    if (f.path) meta.push(f.path);
+    if (f.structureSummary) meta.push(f.structureSummary);
+    const metaStr = meta.length > 0 ? ` (${meta.join(" | ")})` : "";
+    lines.push(`  id: ${f.nodeId}${metaStr} — ${f.desc}`);
+  }
+
+  return lines.join("\n").trimEnd();
 }
 
 /**

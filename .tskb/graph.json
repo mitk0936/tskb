@@ -1551,9 +1551,9 @@
         "resolvedPath": "packages/tskb/src/cli/commands/search.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function search(query: string, optimized?: boolean): Promise<void>"
+          "export function search(query: string, optimized?: boolean, plain?: boolean): Promise<void>"
         ],
-        "importsSummary": "8 imports from 5 paths",
+        "importsSummary": "9 imports from 5 paths",
         "imports": [
           "fs from \"node:fs\"",
           "Fuse from \"fuse.js\"",
@@ -1562,7 +1562,8 @@
           "findGraphFile from \"../utils/graph-finder.js\"",
           "verbose from \"../utils/logger.js\"",
           "time from \"../utils/logger.js\"",
-          "jsonOut from \"../utils/logger.js\""
+          "jsonOut from \"../utils/logger.js\"",
+          "plainOut from \"../utils/logger.js\""
         ],
         "importEntries": [
           {
@@ -1596,6 +1597,10 @@
           {
             "symbol": "jsonOut",
             "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "plainOut",
+            "path": "../utils/logger.js"
           }
         ],
         "edgeCount": 7
@@ -1608,9 +1613,9 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean): Promise<void>"
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void>"
         ],
-        "importsSummary": "15 imports from 6 paths",
+        "importsSummary": "16 imports from 6 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
@@ -1620,6 +1625,7 @@
           "verbose from \"../utils/logger.js\"",
           "time from \"../utils/logger.js\"",
           "jsonOut from \"../utils/logger.js\"",
+          "plainOut from \"../utils/logger.js\"",
           "resolveNode from \"../utils/resolve-node.js\"",
           "getNodeEdges from \"../utils/resolve-node.js\"",
           "findReferencingDocs from \"../utils/resolve-node.js\"",
@@ -1662,6 +1668,10 @@
             "path": "../utils/logger.js"
           },
           {
+            "symbol": "plainOut",
+            "path": "../utils/logger.js"
+          },
+          {
             "symbol": "resolveNode",
             "path": "../utils/resolve-node.js"
           },
@@ -1700,9 +1710,9 @@
         "resolvedPath": "packages/tskb/src/cli/commands/ls.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function ls(maxDepth?: number, optimized?: boolean): Promise<void>"
+          "export function ls(maxDepth?: number, optimized?: boolean, plain?: boolean): Promise<void>"
         ],
-        "importsSummary": "8 imports from 5 paths",
+        "importsSummary": "9 imports from 5 paths",
         "imports": [
           "fs from \"node:fs\"",
           "KnowledgeGraph from \"../../core/graph/types.js\"",
@@ -1711,7 +1721,8 @@
           "findGraphFile from \"../utils/graph-finder.js\"",
           "verbose from \"../utils/logger.js\"",
           "time from \"../utils/logger.js\"",
-          "jsonOut from \"../utils/logger.js\""
+          "jsonOut from \"../utils/logger.js\"",
+          "plainOut from \"../utils/logger.js\""
         ],
         "importEntries": [
           {
@@ -1744,6 +1755,10 @@
           },
           {
             "symbol": "jsonOut",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "plainOut",
             "path": "../utils/logger.js"
           }
         ],
@@ -1889,7 +1904,7 @@
         "desc": "CLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/logger.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/logger.ts",
-        "morphologySummary": "7 functions",
+        "morphologySummary": "8 functions",
         "morphology": [
           "export function configure(opts: { verbose: boolean; }): void",
           "export function info(msg: string): void",
@@ -1897,6 +1912,7 @@
           "export function error(msg: string): void",
           "export function time(label: string) => (): void",
           "export function jsonOut(value: unknown, optimized: boolean): void",
+          "export function plainOut(text: string): void",
           "export function infoTime(label: string) => (): void"
         ],
         "edgeCount": 8
@@ -2298,7 +2314,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/search.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function search(query: string, optimized?: boolean): Promise<void>"
+          "export function search(query: string, optimized?: boolean, plain?: boolean): Promise<void>"
         ],
         "edgeCount": 2
       },
@@ -2310,7 +2326,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean): Promise<void>"
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void>"
         ],
         "edgeCount": 2
       },
@@ -2322,7 +2338,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/ls.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function ls(maxDepth?: number, optimized?: boolean): Promise<void>"
+          "export function ls(maxDepth?: number, optimized?: boolean, plain?: boolean): Promise<void>"
         ],
         "edgeCount": 2
       },
@@ -3095,7 +3111,7 @@
         "explains": "CLI logging: stderr-only output, --verbose flag, timing support",
         "priority": "essential",
         "filePath": "docs/src/tskb/cli/logging.tskb.tsx",
-        "content": "CLI Logger <nodeId: cli.utils.logger>is a module-level singleton that routes all CLI output to stderr, keeping\n      stdout clean for JSON results from query commands. Design All output goes to stderr via process.stderr.write — never stdout Configured once at startup in <nodeId: cli.index>via configure( { verbose } ), driven by the\n        --verbose CLI flag Four log functions: info() always prints, verbose() only when --verbose is set, error() for\n        errors, time() prints a label then returns a closure that logs elapsed ms at verbose level Verbosity Default: <nodeId: cli.commands.build>shows key stages and summary counts. Query commands produce JSON only\n        on stdout, nothing on stderr --verbose: build adds timing per pipeline stage, path resolution stats, and file paths.\n        Query commands log \"Loaded graph from ...\" on stderr",
+        "content": "CLI Logger <nodeId: cli.utils.logger>is a module-level singleton that routes all CLI output to stderr, keeping\n      stdout clean for query command results. Design All log output goes to stderr via process.stderr.write — never stdout Configured once at startup in <nodeId: cli.index>via configure( { verbose } ), driven by the\n        --verbose CLI flag Log functions: info() always prints, verbose() only when --verbose is set, error() for\n        errors, time() prints a label then returns a closure that logs elapsed ms at verbose level Output Modes Query commands (search, pick, context, ls, docs) support three output modes on stdout: Default: pretty-printed JSON (human-readable) --optimized: compact JSON (no whitespace, smaller payload) --plain: structured plain text optimized for AI assistants — no JSON overhead, ~30% fewer\n        tokens while preserving all semantic content. Uses plainOut() in the logger Verbosity Default: <nodeId: cli.commands.build>shows key stages and summary counts. Query commands produce output\n        only on stdout, nothing on stderr --verbose: build adds timing per pipeline stage, path resolution stats, and file paths.\n        Query commands log \"Loaded graph from ...\" on stderr",
         "format": "tsx",
         "edgeCount": 3
       },
@@ -4651,7 +4667,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-20T16:40:03.984Z",
+    "generatedAt": "2026-03-22T13:25:20.155Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {

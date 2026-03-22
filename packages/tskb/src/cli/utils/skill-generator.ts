@@ -40,16 +40,14 @@ export function generateSkillFiles(graph: KnowledgeGraph): string[] {
 function buildQuerySkillContent(graph: KnowledgeGraph): string {
   return `---
 name: tskb
-description: "IMPORTANT: Always invoke this skill BEFORE planning, exploring, or making code changes. Uses the tskb knowledge graph to understand codebase structure, locate concepts, and find relevant files."
+description: "Uses the tskb knowledge graph to understand codebase structure, locate concepts, and find relevant files. Use when exploring unfamiliar areas or before structural changes."
 argument-hint: [query]
 allowed-tools: Bash(npx --no -- tskb *)
 ---
 
 # TSKB — Codebase Architecture Explorer
 
-This project uses **TSKB**, a semantic knowledge graph of the codebase.
-
-**You MUST query TSKB before touching any area of the codebase** — not just once per task, but each time your work moves to a different folder, module, or concept. Re-query when you shift focus mid-task. The graph captures developer intent and constraints that file reading alone will miss.
+This project uses **TSKB**, a semantic knowledge graph of the codebase. It captures architectural intent, constraints, and structural relationships that filesystem exploration alone will miss.
 
 ${buildQueryBody(graph)}
 `;

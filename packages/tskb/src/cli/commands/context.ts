@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import type { KnowledgeGraph, GraphEdge, AnyNode } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time, jsonOut } from "../utils/logger.js";
+import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
 import {
   resolveNode,
   getNodeEdges,
@@ -192,7 +192,8 @@ function buildContext(
 export async function context(
   identifier: string,
   depth: number = 1,
-  optimized: boolean = false
+  optimized: boolean = false,
+  plain: boolean = false
 ): Promise<void> {
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
@@ -249,5 +250,64 @@ export async function context(
     `   ${nodes.length} nodes, ${docs.length} docs, ${constraints.length} constraints (depth=${depth})`
   );
 
-  jsonOut(result, optimized);
+  if (plain) {
+    plainOut(formatContextPlain(result, depth));
+  } else {
+    jsonOut(result, optimized);
+  }
+}
+
+function formatContextPlain(result: ContextResult, depth: number): string {
+  const { root, nodes, docs, constraints } = result;
+  const lines: string[] = [];
+
+  // Header
+  lines.push(
+    `Context: "${root.nodeId}" → ${root.type} (resolved via ${root.resolvedVia}) — depth ${depth}, ${nodes.length} nodes, ${docs.length} docs, ${constraints.length} ${constraints.length === 1 ? "constraint" : "constraints"}`
+  );
+
+  // Root
+  lines.push("");
+  lines.push("Root:");
+  lines.push(`id: ${root.nodeId} (${root.type})`);
+  lines.push(`  ${root.desc}`);
+  const rootMeta: string[] = [];
+  if (root.path) rootMeta.push(`path: ${root.path}`);
+  if (root.structureSummary) rootMeta.push(root.structureSummary);
+  if (root.morphologySummary) rootMeta.push(root.morphologySummary);
+  if (rootMeta.length > 0) lines.push(`  ${rootMeta.join(" | ")}`);
+
+  // Nodes
+  if (nodes.length > 0) {
+    lines.push("");
+    lines.push("Nodes:");
+    for (const n of nodes) {
+      lines.push(`  [depth ${n.depth}] id: ${n.nodeId} (${n.type}) — ${n.desc}`);
+      const meta: string[] = [];
+      if (n.path) meta.push(`path: ${n.path}`);
+      if (n.structureSummary) meta.push(n.structureSummary);
+      if (n.morphologySummary) meta.push(n.morphologySummary);
+      if (meta.length > 0) lines.push(`    ${meta.join(" | ")}`);
+    }
+  }
+
+  // Docs
+  if (docs.length > 0) {
+    lines.push("");
+    lines.push("Docs:");
+    for (const d of docs) {
+      lines.push(`  id: ${d.nodeId} [${d.priority}] — ${d.explains}`);
+    }
+  }
+
+  // Constraints
+  if (constraints.length > 0) {
+    lines.push("");
+    lines.push("Constraints:");
+    for (const c of constraints) {
+      lines.push(`  ${c}`);
+    }
+  }
+
+  return lines.join("\n").trimEnd();
 }

@@ -37,6 +37,13 @@ export function jsonOut(value: unknown, optimized: boolean): void {
 }
 
 /**
+ * Write plain text to stdout.
+ */
+export function plainOut(text: string): void {
+  console.log(text);
+}
+
+/**
  * Start a timer that always logs the label via info, and elapsed time via verbose.
  * Use this in the build command where progress output is expected.
  */

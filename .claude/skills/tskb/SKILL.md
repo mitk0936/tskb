@@ -1,38 +1,33 @@
 ---
 name: tskb
-description: "IMPORTANT: Always invoke this skill BEFORE planning, exploring, or making code changes. Uses the tskb knowledge graph to understand codebase structure, locate concepts, and find relevant files."
+description: "Uses the tskb knowledge graph to understand codebase structure, locate concepts, and find relevant files. Use when exploring unfamiliar areas or before structural changes."
 argument-hint: [query]
 allowed-tools: Bash(npx --no -- tskb *)
 ---
 
 # TSKB — Codebase Architecture Explorer
 
-This project uses **TSKB**, a semantic knowledge graph of the codebase.
+This project uses **TSKB**, a semantic knowledge graph of the codebase. It captures architectural intent, constraints, and structural relationships that filesystem exploration alone will miss.
 
-**You MUST query TSKB before touching any area of the codebase** — not just once per task, but each time your work moves to a different folder, module, or concept. Re-query when you shift focus mid-task. The graph captures developer intent and constraints that file reading alone will miss.
+## When to Use TSKB
 
-## Workflow — READ THIS FIRST
+Query TSKB when entering an **unfamiliar area** of the codebase or when the task could have **architectural implications**. The graph captures developer intent, constraints, and structural relationships that file reading alone will miss.
 
-**Query TSKB every time you touch a new area** — not just at the start of a task. When your work moves to a different folder, module, or concept, query TSKB again before reading files. The graph captures developer intent, constraints, and structural relationships that filesystem exploration alone will miss.
-
-1. **Query before touching** — Run `search`, `pick`, or `context` for the area you're about to touch. Do this each time you move to a new part of the codebase, even mid-task.
-2. **Read docs and constraints** — Check `referencingDocs` in results. Constraint docs **MUST** be read and followed.
-3. **Fall back to files only if TSKB has no coverage** — If no registered nodes or docs reference the area, use filesystem exploration. Consider suggesting doc updates.
-4. **Act** — Make architecturally coherent changes based on what you learned.
-
-Do NOT skip step 1 and jump straight to reading files — you risk missing documented intent and constraints.
+- **Orientation** — Use `search`, `ls`, or `context` to understand where things are and how they connect.
+- **Before structural changes** — Check for constraint docs that define rules you must follow.
+- **Skip for focused tasks** — If you already know which file to edit and the change is localized, go straight to the code.
 
 ## Commands
 
 ```bash
-npx --no -- tskb search "<query>" --optimized                    # Fuzzy search across the entire graph
-npx --no -- tskb pick "<identifier>" --optimized                  # Detailed info on any node (by ID or path)
-npx --no -- tskb context "<identifier>" --depth=2 --optimized     # Node + neighborhood + docs (BFS traversal)
-npx --no -- tskb ls --depth=4 --optimized                         # Folder hierarchy
-npx --no -- tskb docs "<query>" --optimized                       # Search docs
+npx --no -- tskb search "<query>" --plain                    # Fuzzy search across the entire graph
+npx --no -- tskb pick "<identifier>" --plain                  # Detailed info on any node (by ID or path)
+npx --no -- tskb context "<identifier>" --depth=2 --plain     # Node + neighborhood + docs (BFS traversal)
+npx --no -- tskb ls --depth=4 --plain                         # Folder hierarchy
+npx --no -- tskb docs "<query>" --plain                       # Search docs
 ```
 
-Drop `--optimized` for human-readable output.
+Drop `--plain` for JSON output. Use `--optimized` for compact JSON (no whitespace).
 
 ## Response Shapes
 

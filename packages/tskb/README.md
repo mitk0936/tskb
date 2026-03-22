@@ -584,7 +584,7 @@ npx tskb context "src/server/services"   # Also works with filesystem paths
 
 Returns the target node, all neighborhood nodes (child folders, modules, exports) up to the specified depth, and all referencing docs — deduplicated and sorted by priority. Constraint doc IDs are surfaced at the top level so they can't be missed.
 
-All commands output JSON, making them ideal for programmatic consumption and AI assistants.
+All commands output JSON by default. Use `--plain` for structured plain text optimized for AI assistants (fewer tokens, no JSON overhead), or `--optimized` for compact JSON.
 
 ---
 
@@ -644,7 +644,8 @@ TSKB is designed to help AI assistants understand codebases efficiently:
 - **Constraint docs**: Mark docs with `priority="constraint"` to define architectural rules. When an AI picks a node, constraint docs referencing that area appear in the results — signaling rules that must be followed before making changes
 - **Docs command**: `docs` lists or searches all documentation, with fuzzy matching across explains, content, and file paths — essential docs are boosted in search results
 - **Context command**: `context` returns a node's full neighborhood (children, modules, exports) with referencing docs — replacing multi-step `pick` → read → `pick` workflows with a single call
-- **Structured queries**: AI can use `ls`, `pick`, `search`, `docs`, and `context` to navigate architecture — all return JSON with priority metadata on doc results
+- **Plain text mode**: `--plain` outputs structured text instead of JSON — ~30% fewer tokens for AI consumption while preserving all semantic content
+- **Structured queries**: AI can use `ls`, `pick`, `search`, `docs`, and `context` to navigate architecture — all return JSON (or plain text with `--plain`) with priority metadata on doc results
 
 Instead of blindly exploring files, AI assistants can:
 

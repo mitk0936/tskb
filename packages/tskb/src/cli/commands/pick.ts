@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time, jsonOut } from "../utils/logger.js";
+import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
 import {
   resolveNode,
   getNodeEdges,
@@ -412,7 +412,11 @@ const resolvers: Record<string, NodeResolver> = {
 
 // --- Public API ---
 
-export async function pick(identifier: string, optimized: boolean = false): Promise<void> {
+export async function pick(
+  identifier: string,
+  optimized: boolean = false,
+  plain: boolean = false
+): Promise<void> {
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
@@ -465,5 +469,226 @@ export async function pick(identifier: string, optimized: boolean = false): Prom
     `   Resolved "${identifier}" via ${resolved.resolvedVia} → ${resolved.node.type} "${resolved.id}"`
   );
 
-  jsonOut(result, optimized);
+  if (plain) {
+    plainOut(formatPickPlain(result));
+  } else {
+    jsonOut(result, optimized);
+  }
+}
+
+// --- Plain text formatting ---
+
+function formatDocs(docs: DocRef[]): string[] {
+  if (docs.length === 0) return [];
+  const lines = ["  docs:"];
+  for (const d of docs) {
+    lines.push(`    id: ${d.nodeId} [${d.priority}] — ${d.explains}`);
+  }
+  return lines;
+}
+
+function formatRelations(
+  relations?: Array<{ from: string; to: string; label?: string }>
+): string[] {
+  if (!relations || relations.length === 0) return [];
+  const lines = ["  relations:"];
+  for (const r of relations) {
+    const label = r.label ? ` (${r.label})` : "";
+    lines.push(`    ${r.from} → ${r.to}${label}`);
+  }
+  return lines;
+}
+
+function formatModulePlain(result: ModulePickResult): string[] {
+  const { node } = result;
+  const lines: string[] = [
+    `id: ${node.nodeId} (module)`,
+    `  ${node.desc}`,
+    `  path: ${node.resolvedPath ?? ""}`,
+  ];
+
+  // Module summary: imports then exports, like zoomed-out code
+  if (node.imports && node.imports.length > 0) {
+    lines.push("");
+    for (const imp of node.imports) {
+      const target = imp.moduleId ? ` → ${imp.moduleId}` : "";
+      lines.push(`  import ${imp.entry}${target}`);
+    }
+  }
+
+  if (result.exports.length > 0) {
+    lines.push("");
+    for (const exp of result.exports) {
+      lines.push(`  export ${exp.nodeId} — ${exp.desc}`);
+    }
+  }
+
+  // Morphology (actual signatures)
+  if (node.morphology && node.morphology.length > 0) {
+    lines.push("");
+    for (const m of node.morphology) {
+      lines.push(`  ${m}`);
+    }
+  }
+
+  if (result.parentFolder) {
+    lines.push("");
+    lines.push(`  parent: id: ${result.parentFolder.nodeId} — ${result.parentFolder.desc}`);
+  }
+
+  if (result.importedBy && result.importedBy.length > 0) {
+    lines.push("  importedBy:");
+    for (const ib of result.importedBy) {
+      lines.push(`    id: ${ib.moduleId} — ${ib.desc}`);
+    }
+  }
+
+  lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatRelations(result.relations));
+
+  return lines;
+}
+
+function formatFolderPlain(result: FolderPickResult): string[] {
+  const { node } = result;
+  const meta: string[] = [];
+  if (node.path) meta.push(`path: ${node.path}`);
+  if (node.structureSummary) meta.push(node.structureSummary);
+  if (node.packageName) meta.push(`package: ${node.packageName}`);
+
+  const lines: string[] = [`id: ${node.nodeId} (folder)`, `  ${node.desc}`];
+  if (meta.length > 0) lines.push(`  ${meta.join(" | ")}`);
+
+  if (result.parent) {
+    lines.push(
+      `  parent: id: ${result.parent.nodeId} (${result.parent.type}) — ${result.parent.desc}`
+    );
+  }
+
+  if (node.children) {
+    lines.push("  children:");
+    for (const f of node.children.folders) {
+      const label = f.nodeId ? `id: ${f.nodeId} — ${f.desc}` : f.name;
+      lines.push(`    [folder] ${label}`);
+    }
+    for (const f of node.children.files) {
+      const label = f.nodeId ? `id: ${f.nodeId} — ${f.desc}` : f.name;
+      lines.push(`    [file] ${label}`);
+    }
+  }
+
+  if (result.exports.length > 0) {
+    lines.push("  exports:");
+    for (const exp of result.exports) {
+      lines.push(`    id: ${exp.nodeId} — ${exp.desc}`);
+    }
+  }
+
+  if (result.importedBy && result.importedBy.length > 0) {
+    lines.push("  importedBy:");
+    for (const ib of result.importedBy) {
+      lines.push(`    id: ${ib.moduleId} — ${ib.desc}`);
+    }
+  }
+
+  lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatRelations(result.relations));
+
+  return lines;
+}
+
+function formatExportPlain(result: ExportPickResult): string[] {
+  const { node } = result;
+  const lines: string[] = [
+    `id: ${node.nodeId} (export)`,
+    `  ${node.desc}`,
+    `  path: ${node.resolvedPath ?? ""}`,
+  ];
+
+  if (node.morphology && node.morphology.length > 0) {
+    lines.push("");
+    for (const m of node.morphology) {
+      lines.push(`  ${m}`);
+    }
+  }
+
+  if (result.parent) {
+    const parentMeta = result.parent.morphologySummary
+      ? ` | ${result.parent.morphologySummary}`
+      : "";
+    lines.push("");
+    lines.push(
+      `  parent: id: ${result.parent.nodeId} (${result.parent.type}) — ${result.parent.desc}${parentMeta}`
+    );
+  }
+
+  lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatRelations(result.relations));
+
+  return lines;
+}
+
+function formatTermPlain(result: TermPickResult): string[] {
+  const lines: string[] = [`id: ${result.node.nodeId} (term)`, `  ${result.node.desc}`];
+
+  lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatRelations(result.relations));
+
+  return lines;
+}
+
+function formatFilePlain(result: FilePickResult): string[] {
+  const lines: string[] = [`id: ${result.node.nodeId} (file)`, `  ${result.node.desc}`];
+  if (result.node.path) lines.push(`  path: ${result.node.path}`);
+
+  if (result.parentFolder) {
+    lines.push(`  parent: id: ${result.parentFolder.nodeId} — ${result.parentFolder.desc}`);
+  }
+
+  lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatRelations(result.relations));
+
+  return lines;
+}
+
+function formatDocPlain(result: DocPickResult): string[] {
+  const lines: string[] = [
+    `id: ${result.node.nodeId} (doc, ${result.node.priority})`,
+    `  ${result.node.explains}`,
+    `  file: ${result.node.filePath}`,
+    "",
+    result.node.content,
+  ];
+
+  lines.push(...formatRelations(result.relations));
+
+  return lines;
+}
+
+function formatPickPlain(result: PickResult): string {
+  const nodeId = result.type === "doc" ? result.node.nodeId : result.node.nodeId;
+  const header = `Pick: "${nodeId}" → ${result.type} (resolved via ${result.resolvedVia})`;
+
+  let lines: string[];
+  switch (result.type) {
+    case "module":
+      lines = formatModulePlain(result);
+      break;
+    case "folder":
+      lines = formatFolderPlain(result);
+      break;
+    case "export":
+      lines = formatExportPlain(result);
+      break;
+    case "term":
+      lines = formatTermPlain(result);
+      break;
+    case "file":
+      lines = formatFilePlain(result);
+      break;
+    case "doc":
+      lines = formatDocPlain(result);
+      break;
+  }
+  return [header, "", ...lines].join("\n").trimEnd();
 }
