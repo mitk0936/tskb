@@ -9,28 +9,25 @@ export function buildQueryBody(graph: KnowledgeGraph): string {
   const folderTree = buildFolderTree(graph, 2);
   const docSummaries = buildDocSummaries(graph, true);
 
-  return `## Workflow — READ THIS FIRST
+  return `## When to Use TSKB
 
-**Query TSKB every time you touch a new area** — not just at the start of a task. When your work moves to a different folder, module, or concept, query TSKB again before reading files. The graph captures developer intent, constraints, and structural relationships that filesystem exploration alone will miss.
+Query TSKB when entering an **unfamiliar area** of the codebase or when the task could have **architectural implications**. The graph captures developer intent, constraints, and structural relationships that file reading alone will miss.
 
-1. **Query before touching** — Run \`search\`, \`pick\`, or \`context\` for the area you're about to touch. Do this each time you move to a new part of the codebase, even mid-task.
-2. **Read docs and constraints** — Check \`referencingDocs\` in results. Constraint docs **MUST** be read and followed.
-3. **Fall back to files only if TSKB has no coverage** — If no registered nodes or docs reference the area, use filesystem exploration. Consider suggesting doc updates.
-4. **Act** — Make architecturally coherent changes based on what you learned.
-
-Do NOT skip step 1 and jump straight to reading files — you risk missing documented intent and constraints.
+- **Orientation** — Use \`search\`, \`ls\`, or \`context\` to understand where things are and how they connect.
+- **Before structural changes** — Check for constraint docs that define rules you must follow.
+- **Skip for focused tasks** — If you already know which file to edit and the change is localized, go straight to the code.
 
 ## Commands
 
 \`\`\`bash
-npx --no -- tskb search "<query>" --optimized                    # Fuzzy search across the entire graph
-npx --no -- tskb pick "<identifier>" --optimized                  # Detailed info on any node (by ID or path)
-npx --no -- tskb context "<identifier>" --depth=2 --optimized     # Node + neighborhood + docs (BFS traversal)
-npx --no -- tskb ls --depth=4 --optimized                         # Folder hierarchy
-npx --no -- tskb docs "<query>" --optimized                       # Search docs
+npx --no -- tskb search "<query>" --plain                    # Fuzzy search across the entire graph
+npx --no -- tskb pick "<identifier>" --plain                  # Detailed info on any node (by ID or path)
+npx --no -- tskb context "<identifier>" --depth=2 --plain     # Node + neighborhood + docs (BFS traversal)
+npx --no -- tskb ls --depth=4 --plain                         # Folder hierarchy
+npx --no -- tskb docs "<query>" --plain                       # Search docs
 \`\`\`
 
-Drop \`--optimized\` for human-readable output.
+Drop \`--plain\` for JSON output. Use \`--optimized\` for compact JSON (no whitespace).
 
 ## Response Shapes
 

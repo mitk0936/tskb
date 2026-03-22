@@ -2,7 +2,7 @@ import fs from "node:fs";
 import Fuse from "fuse.js";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time, jsonOut } from "../utils/logger.js";
+import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
 
 interface SearchableNode {
   id: string;
@@ -74,7 +74,11 @@ function buildNeighborSets(
  * 3. Graph proximity boost (neighbors of higher-scored results get a bump)
  * 4. Scores normalized relative to top result (top = 1.0)
  */
-export async function search(query: string, optimized: boolean = false): Promise<void> {
+export async function search(
+  query: string,
+  optimized: boolean = false,
+  plain: boolean = false
+): Promise<void> {
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
@@ -177,7 +181,11 @@ export async function search(query: string, optimized: boolean = false): Promise
 
   verbose(`   ${fuseResults.length} raw matches, returning top ${result.results.length}`);
 
-  jsonOut(result, optimized);
+  if (plain) {
+    plainOut(formatSearchPlain(result));
+  } else {
+    jsonOut(result, optimized);
+  }
 }
 
 /**
@@ -247,4 +255,24 @@ function getPath(node: AnyNode): string {
   if ("filePath" in node) return node.filePath;
   if ("path" in node && node.path) return node.path;
   return "";
+}
+
+function formatSearchPlain(result: SearchResult): string {
+  const lines: string[] = [`Search: "${result.query}" — ${result.results.length} results`, ""];
+
+  for (const r of result.results) {
+    lines.push(`id: ${r.nodeId} (${r.type}) [${r.score}]`);
+    lines.push(`  ${r.desc}`);
+
+    const meta: string[] = [];
+    if (r.path) meta.push(`path: ${r.path}`);
+    if (r.structureSummary) meta.push(r.structureSummary);
+    if (r.morphologySummary) meta.push(r.morphologySummary);
+    if (r.importsSummary) meta.push(r.importsSummary);
+    if (meta.length > 0) lines.push(`  ${meta.join(" | ")}`);
+
+    lines.push("");
+  }
+
+  return lines.join("\n").trimEnd();
 }

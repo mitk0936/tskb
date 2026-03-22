@@ -27,6 +27,7 @@ async function main() {
       depth: { type: "string", default: "1" },
       verbose: { type: "boolean", default: false },
       optimized: { type: "boolean", default: false },
+      plain: { type: "boolean", default: false },
     },
     allowPositionals: true,
   });
@@ -57,7 +58,7 @@ async function main() {
           error('Usage: tskb search "<query>"');
           process.exit(1);
         }
-        await search(query, values.optimized!);
+        await search(query, values.optimized!, values.plain!);
         break;
       }
       case "pick": {
@@ -67,11 +68,11 @@ async function main() {
           error('Usage: tskb pick "<identifier>"');
           process.exit(1);
         }
-        await pick(identifier, values.optimized!);
+        await pick(identifier, values.optimized!, values.plain!);
         break;
       }
       case "ls": {
-        await ls(parseInt(values.depth!, 10), values.optimized!);
+        await ls(parseInt(values.depth!, 10), values.optimized!, values.plain!);
         break;
       }
       case "context": {
@@ -81,11 +82,11 @@ async function main() {
           error('Usage: tskb context "<identifier>" [--depth <n>]');
           process.exit(1);
         }
-        await context(identifier, parseInt(values.depth!, 10), values.optimized!);
+        await context(identifier, parseInt(values.depth!, 10), values.optimized!, values.plain!);
         break;
       }
       case "docs": {
-        await docs(positionals[1], values.optimized!);
+        await docs(positionals[1], values.optimized!, values.plain!);
         break;
       }
       default:

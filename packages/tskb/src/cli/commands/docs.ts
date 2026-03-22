@@ -2,7 +2,7 @@ import fs from "node:fs";
 import Fuse from "fuse.js";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { verbose, time, jsonOut } from "../utils/logger.js";
+import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
 
 interface DocEntry {
   nodeId: string;
@@ -32,7 +32,11 @@ interface SearchableDoc {
  * List all docs, optionally filtered by a fuzzy search query.
  * Results are sorted: constraints first, then essential, then supplementary.
  */
-export async function docs(query?: string, optimized: boolean = false): Promise<void> {
+export async function docs(
+  query?: string,
+  optimized: boolean = false,
+  plain: boolean = false
+): Promise<void> {
   const loadDone = time("Loading graph");
   const graphPath = findGraphFile();
   const graphJson = fs.readFileSync(graphPath, "utf-8");
@@ -55,7 +59,11 @@ export async function docs(query?: string, optimized: boolean = false): Promise<
       docs: allDocs.map(({ content: _, ...rest }) => rest),
     };
     verbose(`   ${allDocs.length} docs listed`);
-    jsonOut(result, optimized);
+    if (plain) {
+      plainOut(formatDocsListPlain(result));
+    } else {
+      jsonOut(result, optimized);
+    }
     return;
   }
 
@@ -106,5 +114,29 @@ export async function docs(query?: string, optimized: boolean = false): Promise<
 
   verbose(`   ${fuseResults.length} raw matches, returning ${result.docs.length}`);
 
-  console.log(JSON.stringify(result, null, 2));
+  if (plain) {
+    plainOut(formatDocsSearchPlain(result));
+  } else {
+    jsonOut(result, optimized);
+  }
+}
+
+function formatDocsListPlain(result: DocsResult): string {
+  const lines: string[] = [`Docs: ${result.docs.length} docs`, ""];
+
+  for (const d of result.docs) {
+    lines.push(`  id: ${d.nodeId} [${d.priority}] — ${d.explains}`);
+  }
+
+  return lines.join("\n").trimEnd();
+}
+
+function formatDocsSearchPlain(result: DocsSearchResult): string {
+  const lines: string[] = [`Docs: "${result.query}" — ${result.docs.length} results`, ""];
+
+  for (const d of result.docs) {
+    lines.push(`  id: ${d.nodeId} [${d.priority}] [${d.score}] — ${d.explains}`);
+  }
+
+  return lines.join("\n").trimEnd();
 }
