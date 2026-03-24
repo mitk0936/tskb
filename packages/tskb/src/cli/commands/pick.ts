@@ -508,11 +508,26 @@ function formatModulePlain(result: ModulePickResult): string[] {
   ];
 
   // Module summary: imports then exports, like zoomed-out code
+  // Show only library imports and those with tskb references; summarize the rest
   if (node.imports && node.imports.length > 0) {
-    lines.push("");
-    for (const imp of node.imports) {
-      const target = imp.moduleId ? ` → ${imp.moduleId}` : "";
-      lines.push(`  import ${imp.entry}${target}`);
+    const tskbImports = node.imports.filter((imp) => imp.moduleId);
+    const libraryImports = node.imports.filter(
+      (imp) => !imp.moduleId && !imp.entry.includes('from "./') && !imp.entry.includes('from "../')
+    );
+    const localSkipped = node.imports.length - tskbImports.length - libraryImports.length;
+
+    if (tskbImports.length > 0 || libraryImports.length > 0) {
+      lines.push("");
+      for (const imp of [...tskbImports, ...libraryImports]) {
+        const target = imp.moduleId ? ` → ${imp.moduleId}` : "";
+        lines.push(`  import ${imp.entry}${target}`);
+      }
+      if (localSkipped > 0) {
+        lines.push(`  (${localSkipped} local import${localSkipped !== 1 ? "s" : ""} omitted)`);
+      }
+    } else if (node.importsSummary) {
+      lines.push("");
+      lines.push(`  ${node.importsSummary}`);
     }
   }
 
@@ -523,11 +538,27 @@ function formatModulePlain(result: ModulePickResult): string[] {
     }
   }
 
-  // Morphology (actual signatures)
+  // Morphology (actual signatures) — collapse interfaces to `{ ... }` at module level
   if (node.morphology && node.morphology.length > 0) {
     lines.push("");
-    for (const m of node.morphology) {
-      lines.push(`  ${m}`);
+    let i = 0;
+    while (i < node.morphology.length) {
+      const line = node.morphology[i];
+      if (
+        /^export\s+(default\s+)?interface\s+/.test(line) &&
+        /\{\s*(\/\/.*)?$/.test(line.trimEnd())
+      ) {
+        // Collapse interface: show name with { ... }
+        const lineComment = line.match(/(\/\/ :.*)$/)?.[1] ?? "";
+        const name = line.replace(/\s*\{(\s*\/\/.*)?$/, "");
+        lines.push(`  ${name} { ... } ${lineComment}`.trimEnd());
+        i++;
+        while (i < node.morphology.length && node.morphology[i] !== "}") i++;
+        if (i < node.morphology.length) i++; // skip closing }
+      } else {
+        lines.push(`  ${line}`);
+        i++;
+      }
     }
   }
 

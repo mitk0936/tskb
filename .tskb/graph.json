@@ -912,19 +912,19 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "10 functions, 2 types, 1 variable",
         "morphology": [
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 127 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 136 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any",
-          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any",
-          "export function H1({ children }: { children: any; }): any",
-          "export function H2({ children }: { children: any; }): any",
-          "export function H3({ children }: { children: any; }): any",
-          "export function P({ children }: { children: any; }): any",
-          "export function List({ children }: { children: any; }): any",
-          "export function Li({ children }: { children: any; }): any",
-          "export function Snippet({ code }: { code: () => any; }): any",
-          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any",
-          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r...",
-          "export const ref: ReactNode",
-          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\""
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 127 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 136 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any // :19-34",
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any // :78-88",
+          "export function H1({ children }: { children: any; }): any // :99-101",
+          "export function H2({ children }: { children: any; }): any // :103-105",
+          "export function H3({ children }: { children: any; }): any // :107-109",
+          "export function P({ children }: { children: any; }): any // :111-113",
+          "export function List({ children }: { children: any; }): any // :115-117",
+          "export function Li({ children }: { children: any; }): any // :119-121",
+          "export function Snippet({ code }: { code: () => any; }): any // :134-137",
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any // :160-186",
+          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r... // :43-51",
+          "export const ref: ReactNode // :65",
+          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\" // :73"
         ],
         "importsSummary": "5 imports from 1 path",
         "imports": [
@@ -974,7 +974,7 @@
         "resolvedPath": "packages/tskb/src/typescript/program.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function createProgram(files: string[], tsconfigPath: string): Program"
+          "export function createProgram(files: string[], tsconfigPath: string): Program // :34-97"
         ],
         "importsSummary": "2 imports from 2 paths",
         "imports": [
@@ -1013,19 +1013,19 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "10 functions, 2 types, 1 variable",
         "morphology": [
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 127 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 136 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any",
-          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any",
-          "export function H1({ children }: { children: any; }): any",
-          "export function H2({ children }: { children: any; }): any",
-          "export function H3({ children }: { children: any; }): any",
-          "export function P({ children }: { children: any; }): any",
-          "export function List({ children }: { children: any; }): any",
-          "export function Li({ children }: { children: any; }): any",
-          "export function Snippet({ code }: { code: () => any; }): any",
-          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any",
-          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r...",
-          "export const ref: ReactNode",
-          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\""
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 127 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 136 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any // :19-34",
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any // :78-88",
+          "export function H1({ children }: { children: any; }): any // :99-101",
+          "export function H2({ children }: { children: any; }): any // :103-105",
+          "export function H3({ children }: { children: any; }): any // :107-109",
+          "export function P({ children }: { children: any; }): any // :111-113",
+          "export function List({ children }: { children: any; }): any // :115-117",
+          "export function Li({ children }: { children: any; }): any // :119-121",
+          "export function Snippet({ code }: { code: () => any; }): any // :134-137",
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any // :160-186",
+          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r... // :43-51",
+          "export const ref: ReactNode // :65",
+          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\" // :73"
         ],
         "importsSummary": "5 imports from 1 path",
         "imports": [
@@ -1067,21 +1067,21 @@
         "resolvedPath": "packages/tskb/src/runtime/registry.ts",
         "morphologySummary": "15 types",
         "morphology": [
-          "export type FolderRegistry = NormalizeFolders<tskb.Folders>",
-          "export type ModuleRegistry = NormalizeModules<tskb.Modules>",
-          "export type TermRegistry = NormalizeTerms<tskb.Terms>",
-          "export type ExportRegistry = NormalizeExports<tskb.Exports>",
-          "export type FileRegistry = NormalizeFiles<tskb.Files>",
-          "export type FolderName = keyof tskb.Folders",
-          "export type ModuleName = keyof tskb.Modules",
-          "export type TermName = keyof tskb.Terms",
-          "export type ExportName = keyof tskb.Exports",
-          "export type FileName = keyof tskb.Files",
-          "export type Folder = Ext",
-          "export type Module = Ext",
-          "export type Term = Ext",
-          "export type Export = Ext",
-          "export type File = Ext"
+          "export type FolderRegistry = NormalizeFolders<tskb.Folders> // :62",
+          "export type ModuleRegistry = NormalizeModules<tskb.Modules> // :63",
+          "export type TermRegistry = NormalizeTerms<tskb.Terms> // :64",
+          "export type ExportRegistry = NormalizeExports<tskb.Exports> // :65",
+          "export type FileRegistry = NormalizeFiles<tskb.Files> // :66",
+          "export type FolderName = keyof tskb.Folders // :69",
+          "export type ModuleName = keyof tskb.Modules // :70",
+          "export type TermName = keyof tskb.Terms // :71",
+          "export type ExportName = keyof tskb.Exports // :72",
+          "export type FileName = keyof tskb.Files // :73",
+          "export type Folder = Ext // :76",
+          "export type Module = Ext // :77",
+          "export type Term = Ext // :78",
+          "export type Export = Ext // :79",
+          "export type File = Ext // :80"
         ],
         "edgeCount": 10
       },
@@ -1093,7 +1093,7 @@
         "resolvedPath": "packages/tskb/src/core/visualization/dot-generator.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function generateDot(graph: KnowledgeGraph): string"
+          "export function generateDot(graph: KnowledgeGraph): string // :13-148"
         ],
         "importsSummary": "2 imports from 1 path",
         "imports": [
@@ -1120,8 +1120,8 @@
         "resolvedPath": "packages/tskb/src/core/extraction/registry.ts",
         "morphologySummary": "1 function, 1 interface",
         "morphology": [
-          "export function extractRegistry(program: Program, baseDir: string, tsconfigPath: string): ExtractedRegistry",
-          "export interface ExtractedRegistry {",
+          "export function extractRegistry(program: Program, baseDir: string, tsconfigPath: string): ExtractedRegistry // :73-144",
+          "export interface ExtractedRegistry { // :15-60",
           "  folders: Map<string, { desc: string; path?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; folderSummary?: FolderSummary | undefined; }>",
           "  modules: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; morphology?: ModuleMorphology | undefined; imports?: ModuleImports | undefined; }>",
           "  terms: Map<string, string>",
@@ -1189,7 +1189,7 @@
         "resolvedPath": "packages/tskb/src/core/graph/builder.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph"
+          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph // :49-118"
         ],
         "importsSummary": "13 imports from 6 paths",
         "imports": [
@@ -1271,12 +1271,12 @@
         "resolvedPath": "packages/tskb/src/core/graph/types.ts",
         "morphologySummary": "9 interfaces, 2 types",
         "morphology": [
-          "export interface GraphNode {",
+          "export interface GraphNode { // :13-20",
           "  id: string",
           "  type: \"module\" | \"folder\" | \"term\" | \"export\" | \"doc\" | \"file\"",
           "  edgeCount: number | undefined",
           "}",
-          "export interface FolderNode {",
+          "export interface FolderNode { // :22-41",
           "  type: \"folder\"",
           "  desc: string",
           "  path: string | undefined",
@@ -1286,7 +1286,7 @@
           "  id: string",
           "  edgeCount: number | undefined",
           "}",
-          "export interface ModuleNode {",
+          "export interface ModuleNode { // :43-74",
           "  type: \"module\"",
           "  desc: string",
           "  typeSignature: string | undefined",
@@ -1299,13 +1299,13 @@
           "  id: string",
           "  edgeCount: number | undefined",
           "}",
-          "export interface TermNode {",
+          "export interface TermNode { // :76-79",
           "  type: \"term\"",
           "  desc: string",
           "  id: string",
           "  edgeCount: number | undefined",
           "}",
-          "export interface ExportNode {",
+          "export interface ExportNode { // :81-100",
           "  type: \"export\"",
           "  desc: string",
           "  typeSignature: string | undefined",
@@ -1315,14 +1315,14 @@
           "  id: string",
           "  edgeCount: number | undefined",
           "}",
-          "export interface FileNode {",
+          "export interface FileNode { // :102-109",
           "  type: \"file\"",
           "  desc: string",
           "  path: string | undefined",
           "  id: string",
           "  edgeCount: number | undefined",
           "}",
-          "export interface DocNode {",
+          "export interface DocNode { // :111-133",
           "  type: \"doc\"",
           "  explains: string",
           "  priority: DocPriority",
@@ -1332,15 +1332,15 @@
           "  id: string",
           "  edgeCount: number | undefined",
           "}",
-          "export type AnyNode = FolderNode | ModuleNode | TermNode | ExportNode | FileNode | DocNode",
-          "export type EdgeType = | \"references\" // Doc references a Folder/Module/Term/Export\n  | \"belongs-to\" // Module/Export belongs to a Folder or...",
-          "export interface GraphEdge {",
+          "export type AnyNode = FolderNode | ModuleNode | TermNode | ExportNode | FileNode | DocNode // :135",
+          "export type EdgeType = | \"references\" // Doc references a Folder/Module/Term/Export\n  | \"belongs-to\" // Module/Export belongs to a Folder or... // :140-145",
+          "export interface GraphEdge { // :147-152",
           "  from: string",
           "  to: string",
           "  type: EdgeType",
           "  label: string | undefined",
           "}",
-          "export interface KnowledgeGraph {",
+          "export interface KnowledgeGraph { // :157-193",
           "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; docs: Record<...>; }",
           "  edges: GraphEdge[]",
           "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; docCount: number; edgeCount: number; }; }",
@@ -1376,8 +1376,8 @@
         "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
         "morphologySummary": "1 function, 1 interface",
         "morphology": [
-          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[]",
-          "export interface ExtractedDoc {",
+          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[] // :37-59",
+          "export interface ExtractedDoc { // :8-26",
           "  filePath: string",
           "  format: \"tsx\"",
           "  explains: string",
@@ -1475,8 +1475,8 @@
         "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
         "morphologySummary": "1 function, 1 interface",
         "morphology": [
-          "export function build(config: ExtractConfig): Promise<void>",
-          "export interface ExtractConfig {",
+          "export function build(config: ExtractConfig): Promise<void> // :65-224",
+          "export interface ExtractConfig { // :13-22",
           "  pattern: string",
           "  tsconfig: string",
           "}"
@@ -1551,7 +1551,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/search.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function search(query: string, optimized?: boolean, plain?: boolean): Promise<void>"
+          "export function search(query: string, optimized?: boolean, plain?: boolean): Promise<void> // :77-189"
         ],
         "importsSummary": "9 imports from 5 paths",
         "imports": [
@@ -1613,7 +1613,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void>"
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> // :415-477"
         ],
         "importsSummary": "16 imports from 6 paths",
         "imports": [
@@ -1710,7 +1710,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/ls.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function ls(maxDepth?: number, optimized?: boolean, plain?: boolean): Promise<void>"
+          "export function ls(maxDepth?: number, optimized?: boolean, plain?: boolean): Promise<void> // :30-74"
         ],
         "importsSummary": "9 imports from 5 paths",
         "imports": [
@@ -1772,8 +1772,8 @@
         "resolvedPath": "packages/tskb/src/cli/utils/content-builder.ts",
         "morphologySummary": "2 functions",
         "morphology": [
-          "export function buildQueryBody(graph: KnowledgeGraph): string",
-          "export function buildUpdateBody(graph: KnowledgeGraph): string"
+          "export function buildQueryBody(graph: KnowledgeGraph): string // :8-60",
+          "export function buildUpdateBody(graph: KnowledgeGraph): string // :67-169"
         ],
         "importsSummary": "1 import from 1 path",
         "imports": [
@@ -1795,7 +1795,7 @@
         "resolvedPath": "packages/tskb/src/cli/utils/skill-generator.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function generateSkillFiles(graph: KnowledgeGraph): string[]"
+          "export function generateSkillFiles(graph: KnowledgeGraph): string[] // :16-38"
         ],
         "importsSummary": "5 imports from 4 paths",
         "imports": [
@@ -1837,7 +1837,7 @@
         "resolvedPath": "packages/tskb/src/cli/utils/copilot-instructions-generator.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[]"
+          "export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[] // :16-36"
         ],
         "importsSummary": "5 imports from 4 paths",
         "imports": [
@@ -1879,7 +1879,7 @@
         "resolvedPath": "packages/tskb/src/cli/utils/graph-finder.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function findGraphFile(): string"
+          "export function findGraphFile(): string // :10-22"
         ],
         "importsSummary": "2 imports from 2 paths",
         "imports": [
@@ -1906,14 +1906,14 @@
         "resolvedPath": "packages/tskb/src/cli/utils/logger.ts",
         "morphologySummary": "8 functions",
         "morphology": [
-          "export function configure(opts: { verbose: boolean; }): void",
-          "export function info(msg: string): void",
-          "export function verbose(msg: string): void",
-          "export function error(msg: string): void",
-          "export function time(label: string) => (): void",
-          "export function jsonOut(value: unknown, optimized: boolean): void",
-          "export function plainOut(text: string): void",
-          "export function infoTime(label: string) => (): void"
+          "export function configure(opts: { verbose: boolean; }): void // :3-5",
+          "export function info(msg: string): void // :7-9",
+          "export function verbose(msg: string): void // :11-13",
+          "export function error(msg: string): void // :15-17",
+          "export function time(label: string) => (): void // :23-30",
+          "export function jsonOut(value: unknown, optimized: boolean): void // :35-37",
+          "export function plainOut(text: string): void // :42-44",
+          "export function infoTime(label: string) => (): void // :50-57"
         ],
         "edgeCount": 8
       },
@@ -1925,7 +1925,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/services/auth.service.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class AuthService {",
+          "export class AuthService { // :3-25",
           "  login(credentials: LoginCredentials): Promise<AuthResponse>",
           "  register(data: RegisterData): Promise<AuthResponse>",
           "  logout(): Promise<void>",
@@ -1974,7 +1974,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/database/repositories/task.repository.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class TaskRepository {",
+          "export class TaskRepository { // :4-37",
           "  db: Database",
           "  findById(id: string): Promise<Task | null>",
           "  findByProject(projectId: string, pagination?: PaginationParams | undefined, filters?: FilterParams | undefined): Promise<{ tasks: Task[]; total: number; }>",
@@ -2019,9 +2019,9 @@
         "resolvedPath": "examples/taskflow-app/src/client/contexts/AuthContext.tsx",
         "morphologySummary": "2 functions, 1 interface, 1 variable",
         "morphology": [
-          "export function AuthProvider({ children }: { children: ReactNode; }): null",
-          "export function useAuth(): AuthContextValue",
-          "export interface AuthContextValue {",
+          "export function AuthProvider({ children }: { children: ReactNode; }): null // :15-17",
+          "export function useAuth(): AuthContextValue // :19-25",
+          "export interface AuthContextValue { // :4-11",
           "  user: User | null",
           "  isAuthenticated: boolean",
           "  isLoading: boolean",
@@ -2029,7 +2029,7 @@
           "  register(email: string, password: string, name: string): Promise<void>",
           "  logout(): Promise<void>",
           "}",
-          "export const AuthContext: Context<AuthContextValue | null>"
+          "export const AuthContext: Context<AuthContextValue | null> // :13"
         ],
         "importsSummary": "3 imports from 2 paths",
         "imports": [
@@ -2230,7 +2230,7 @@
         "resolvedPath": "packages/tskb/src/runtime/registry.ts",
         "morphologySummary": "1 type",
         "morphology": [
-          "export type Folder = Ext"
+          "export type Folder = Ext // :76"
         ],
         "edgeCount": 2
       },
@@ -2242,7 +2242,7 @@
         "resolvedPath": "packages/tskb/src/runtime/registry.ts",
         "morphologySummary": "1 type",
         "morphology": [
-          "export type Module = Ext"
+          "export type Module = Ext // :77"
         ],
         "edgeCount": 2
       },
@@ -2254,7 +2254,7 @@
         "resolvedPath": "packages/tskb/src/runtime/registry.ts",
         "morphologySummary": "1 type",
         "morphology": [
-          "export type Export = Ext"
+          "export type Export = Ext // :79"
         ],
         "edgeCount": 2
       },
@@ -2266,7 +2266,7 @@
         "resolvedPath": "packages/tskb/src/runtime/registry.ts",
         "morphologySummary": "1 type",
         "morphology": [
-          "export type Term = Ext"
+          "export type Term = Ext // :78"
         ],
         "edgeCount": 2
       },
@@ -2278,7 +2278,7 @@
         "resolvedPath": "packages/tskb/src/runtime/registry.ts",
         "morphologySummary": "1 type",
         "morphology": [
-          "export type File = Ext"
+          "export type File = Ext // :80"
         ],
         "edgeCount": 2
       },
@@ -2302,7 +2302,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function build(config: ExtractConfig): Promise<void>"
+          "export function build(config: ExtractConfig): Promise<void> // :65-224"
         ],
         "edgeCount": 2
       },
@@ -2314,7 +2314,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/search.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function search(query: string, optimized?: boolean, plain?: boolean): Promise<void>"
+          "export function search(query: string, optimized?: boolean, plain?: boolean): Promise<void> // :77-189"
         ],
         "edgeCount": 2
       },
@@ -2326,7 +2326,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void>"
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> // :415-477"
         ],
         "edgeCount": 2
       },
@@ -2338,7 +2338,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/ls.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function ls(maxDepth?: number, optimized?: boolean, plain?: boolean): Promise<void>"
+          "export function ls(maxDepth?: number, optimized?: boolean, plain?: boolean): Promise<void> // :30-74"
         ],
         "edgeCount": 2
       },
@@ -2362,7 +2362,7 @@
         "resolvedPath": "packages/tskb/src/typescript/program.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function createProgram(files: string[], tsconfigPath: string): Program"
+          "export function createProgram(files: string[], tsconfigPath: string): Program // :34-97"
         ],
         "edgeCount": 2
       },
@@ -2374,7 +2374,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any"
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any // :78-88"
         ],
         "edgeCount": 2
       },
@@ -2386,7 +2386,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function H1({ children }: { children: any; }): any"
+          "export function H1({ children }: { children: any; }): any // :99-101"
         ],
         "edgeCount": 1
       },
@@ -2398,7 +2398,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function H2({ children }: { children: any; }): any"
+          "export function H2({ children }: { children: any; }): any // :103-105"
         ],
         "edgeCount": 1
       },
@@ -2410,7 +2410,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function H3({ children }: { children: any; }): any"
+          "export function H3({ children }: { children: any; }): any // :107-109"
         ],
         "edgeCount": 1
       },
@@ -2422,7 +2422,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function P({ children }: { children: any; }): any"
+          "export function P({ children }: { children: any; }): any // :111-113"
         ],
         "edgeCount": 1
       },
@@ -2434,7 +2434,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function List({ children }: { children: any; }): any"
+          "export function List({ children }: { children: any; }): any // :115-117"
         ],
         "edgeCount": 1
       },
@@ -2446,7 +2446,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Li({ children }: { children: any; }): any"
+          "export function Li({ children }: { children: any; }): any // :119-121"
         ],
         "edgeCount": 1
       },
@@ -2458,7 +2458,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Snippet({ code }: { code: () => any; }): any"
+          "export function Snippet({ code }: { code: () => any; }): any // :134-137"
         ],
         "edgeCount": 1
       },
@@ -2470,7 +2470,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any"
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any // :160-186"
         ],
         "edgeCount": 2
       },
@@ -2482,7 +2482,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 variable",
         "morphology": [
-          "export const ref: ReactNode"
+          "export const ref: ReactNode // :65"
         ],
         "edgeCount": 2
       },
@@ -2494,7 +2494,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 127 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 136 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any"
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 127 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 136 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any // :19-34"
         ],
         "edgeCount": 1
       },
@@ -2506,7 +2506,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 type",
         "morphology": [
-          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\""
+          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\" // :73"
         ],
         "edgeCount": 2
       },
@@ -2518,7 +2518,7 @@
         "resolvedPath": "packages/tskb/src/core/extraction/registry.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function extractRegistry(program: Program, baseDir: string, tsconfigPath: string): ExtractedRegistry"
+          "export function extractRegistry(program: Program, baseDir: string, tsconfigPath: string): ExtractedRegistry // :73-144"
         ],
         "edgeCount": 1
       },
@@ -2530,7 +2530,7 @@
         "resolvedPath": "packages/tskb/src/core/extraction/registry.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface ExtractedRegistry {",
+          "export interface ExtractedRegistry { // :15-60",
           "  folders: Map<string, { desc: string; path?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; folderSummary?: FolderSummary | undefined; }>",
           "  modules: Map<string, { desc: string; type?: string | undefined; importPath?: string | undefined; resolvedPath?: string | undefined; pathExists: boolean; morphology?: ModuleMorphology | undefined; imports?: ModuleImports | undefined; }>",
           "  terms: Map<string, string>",
@@ -2548,7 +2548,7 @@
         "resolvedPath": "packages/tskb/src/core/graph/builder.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph"
+          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph // :49-118"
         ],
         "edgeCount": 4
       },
@@ -2560,7 +2560,7 @@
         "resolvedPath": "packages/tskb/src/core/graph/types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface KnowledgeGraph {",
+          "export interface KnowledgeGraph { // :157-193",
           "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; docs: Record<...>; }",
           "  edges: GraphEdge[]",
           "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; docCount: number; edgeCount: number; }; }",
@@ -2576,7 +2576,7 @@
         "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[]"
+          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[] // :37-59"
         ],
         "edgeCount": 1
       },
@@ -2588,7 +2588,7 @@
         "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface ExtractedDoc {",
+          "export interface ExtractedDoc { // :8-26",
           "  filePath: string",
           "  format: \"tsx\"",
           "  explains: string",
@@ -2608,7 +2608,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface ExtractConfig {",
+          "export interface ExtractConfig { // :13-22",
           "  pattern: string",
           "  tsconfig: string",
           "}"
@@ -2623,7 +2623,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/services/auth.service.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class AuthService {",
+          "export class AuthService { // :3-25",
           "  login(credentials: LoginCredentials): Promise<AuthResponse>",
           "  register(data: RegisterData): Promise<AuthResponse>",
           "  logout(): Promise<void>",
@@ -2642,7 +2642,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/services/task.service.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class TaskService {",
+          "export class TaskService { // :12-55",
           "  getById(id: string): Promise<Task | null>",
           "  getByProject(projectId: string, pagination?: PaginationParams | undefined, filters?: FilterParams | undefined): Promise<PaginatedResponse<Task>>",
           "  getByAssignee(assigneeId: string, pagination?: PaginationParams | undefined): Promise<PaginatedResponse<Task>>",
@@ -2664,7 +2664,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/services/project.service.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class ProjectService {",
+          "export class ProjectService { // :3-43",
           "  getById(id: string): Promise<Project | null>",
           "  getByTeam(teamId: string): Promise<Project[]>",
           "  create(projectData: Omit<Project, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Project>",
@@ -2686,7 +2686,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/services/user.service.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class UserService {",
+          "export class UserService { // :3-27",
           "  getById(id: string): Promise<User | null>",
           "  getByEmail(email: string): Promise<User | null>",
           "  create(userData: Omit<User, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<User>",
@@ -2705,7 +2705,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/services/notification.service.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class NotificationService {",
+          "export class NotificationService { // :3-31",
           "  getByUser(userId: string, unreadOnly?: boolean | undefined): Promise<Notification[]>",
           "  create(notificationData: Omit<Notification, \"id\" | \"createdAt\">): Promise<Notification>",
           "  markAsRead(id: string): Promise<Notification | null>",
@@ -2725,7 +2725,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/database/repositories/task.repository.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class TaskRepository {",
+          "export class TaskRepository { // :4-37",
           "  db: Database",
           "  findById(id: string): Promise<Task | null>",
           "  findByProject(projectId: string, pagination?: PaginationParams | undefined, filters?: FilterParams | undefined): Promise<{ tasks: Task[]; total: number; }>",
@@ -2745,7 +2745,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/database/repositories/user.repository.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class UserRepository {",
+          "export class UserRepository { // :4-26",
           "  db: Database",
           "  findById(id: string): Promise<User | null>",
           "  findByEmail(email: string): Promise<User | null>",
@@ -2764,7 +2764,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/database/repositories/project.repository.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class ProjectRepository {",
+          "export class ProjectRepository { // :4-26",
           "  db: Database",
           "  findById(id: string): Promise<Project | null>",
           "  findByTeam(teamId: string): Promise<Project[]>",
@@ -2783,7 +2783,7 @@
         "resolvedPath": "examples/taskflow-app/src/client/contexts/AuthContext.tsx",
         "morphologySummary": "1 variable",
         "morphology": [
-          "export const AuthContext: Context<AuthContextValue | null>"
+          "export const AuthContext: Context<AuthContextValue | null> // :13"
         ],
         "edgeCount": 6
       },
@@ -2795,7 +2795,7 @@
         "resolvedPath": "examples/taskflow-app/src/client/contexts/TaskContext.tsx",
         "morphologySummary": "1 variable",
         "morphology": [
-          "export const TaskContext: Context<TaskContextValue | null>"
+          "export const TaskContext: Context<TaskContextValue | null> // :15"
         ],
         "edgeCount": 2
       },
@@ -2807,7 +2807,7 @@
         "resolvedPath": "examples/taskflow-app/src/client/contexts/ProjectContext.tsx",
         "morphologySummary": "1 variable",
         "morphology": [
-          "export const ProjectContext: Context<ProjectContextValue | null>"
+          "export const ProjectContext: Context<ProjectContextValue | null> // :15"
         ],
         "edgeCount": 2
       },
@@ -2819,7 +2819,7 @@
         "resolvedPath": "examples/taskflow-app/src/client/services/websocket.service.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class WebSocketService {",
+          "export class WebSocketService { // :8-18",
           "  ws: WebSocket | null",
           "  connect(): void",
           "  disconnect(): void",
@@ -2837,7 +2837,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/middleware/error.middleware.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function errorHandler(): void"
+          "export function errorHandler(): void // :1"
         ],
         "edgeCount": 2
       },
@@ -2849,7 +2849,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/database/connection.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class Database {",
+          "export class Database { // :9-25",
           "  config: DatabaseConfig",
           "  connect(): Promise<void>",
           "  disconnect(): Promise<void>",
@@ -2868,7 +2868,7 @@
         "resolvedPath": "examples/taskflow-app/src/shared/types/task.types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface Task {",
+          "export interface Task { // :1-16",
           "  id: string",
           "  title: string",
           "  description: string | undefined",
@@ -2895,7 +2895,7 @@
         "resolvedPath": "examples/taskflow-app/src/shared/types/project.types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface Project {",
+          "export interface Project { // :1-12",
           "  id: string",
           "  name: string",
           "  description: string | undefined",
@@ -2918,7 +2918,7 @@
         "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface PaginationParams {",
+          "export interface PaginationParams { // :18-23",
           "  page: number",
           "  limit: number",
           "  sortBy: string | undefined",
@@ -2935,7 +2935,7 @@
         "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface FilterParams {",
+          "export interface FilterParams { // :33-41",
           "  status: string[] | undefined",
           "  priority: string[] | undefined",
           "  assigneeId: string | undefined",
@@ -2955,7 +2955,7 @@
         "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface ApiResponse {",
+          "export interface ApiResponse { // :1-5",
           "  data: T",
           "  error: ApiError | undefined",
           "  meta: ResponseMetadata | undefined",
@@ -2971,7 +2971,7 @@
         "resolvedPath": "examples/taskflow-app/src/shared/types/api.types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface PaginatedResponse {",
+          "export interface PaginatedResponse { // :25-31",
           "  items: T[]",
           "  total: number",
           "  page: number",
@@ -2989,7 +2989,7 @@
         "resolvedPath": "examples/taskflow-app/src/shared/types/user.types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface User {",
+          "export interface User { // :1-8",
           "  id: string",
           "  email: string",
           "  name: string",
@@ -3008,7 +3008,7 @@
         "resolvedPath": "examples/taskflow-app/src/server/middleware/auth.middleware.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function authenticate(): void"
+          "export function authenticate(): void // :6"
         ],
         "edgeCount": 3
       },
@@ -3020,7 +3020,7 @@
         "resolvedPath": "examples/taskflow-app/src/client/services/api.service.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class ApiClient {",
+          "export class ApiClient { // :3-38",
           "  baseUrl: string",
           "  token: string | null",
           "  setToken(token: string): void",
@@ -4667,7 +4667,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-22T13:25:20.155Z",
+    "generatedAt": "2026-03-24T07:38:40.010Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {

@@ -125,22 +125,56 @@ function renderExport(
 ): string[] | null {
   const prefix = isDefault ? "export default " : "export ";
 
+  let lines: string[] | null;
   switch (kind) {
     case "function":
-      return [renderFunction(name, sym, checker, sourceFile, prefix)];
+      lines = [renderFunction(name, sym, checker, sourceFile, prefix)];
+      break;
     case "class":
-      return renderClass(name, sym, checker, sourceFile, prefix);
+      lines = renderClass(name, sym, checker, sourceFile, prefix);
+      break;
     case "interface":
-      return renderInterface(name, sym, checker, sourceFile, prefix);
+      lines = renderInterface(name, sym, checker, sourceFile, prefix);
+      break;
     case "type":
-      return [renderTypeAlias(name, sym, checker, sourceFile, prefix)];
+      lines = [renderTypeAlias(name, sym, checker, sourceFile, prefix)];
+      break;
     case "enum":
-      return [renderEnum(name, sym, checker, prefix)];
+      lines = [renderEnum(name, sym, checker, prefix)];
+      break;
     case "variable":
-      return [renderVariable(name, sym, checker, sourceFile, prefix)];
+      lines = [renderVariable(name, sym, checker, sourceFile, prefix)];
+      break;
     default:
       return null;
   }
+
+  if (lines && lines.length > 0) {
+    const range = getDeclarationLineRange(sym, sourceFile);
+    if (range !== undefined) {
+      lines[0] = `${lines[0]} // :${range}`;
+    }
+  }
+
+  return lines;
+}
+
+/**
+ * Get the 1-based line range of a symbol's declaration in the given source file.
+ * Returns "start-end" for multi-line declarations, or "start" for single-line.
+ */
+function getDeclarationLineRange(sym: ts.Symbol, sourceFile: ts.SourceFile): string | undefined {
+  const decls = sym.getDeclarations();
+  if (!decls) return undefined;
+
+  for (const decl of decls) {
+    if (decl.getSourceFile() === sourceFile) {
+      const start = sourceFile.getLineAndCharacterOfPosition(decl.getStart()).line + 1;
+      const end = sourceFile.getLineAndCharacterOfPosition(decl.getEnd()).line + 1;
+      return start === end ? `${start}` : `${start}-${end}`;
+    }
+  }
+  return undefined;
 }
 
 function renderFunction(
