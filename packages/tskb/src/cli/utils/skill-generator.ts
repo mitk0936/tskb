@@ -40,14 +40,14 @@ export function generateSkillFiles(graph: KnowledgeGraph): string[] {
 function buildQuerySkillContent(graph: KnowledgeGraph): string {
   return `---
 name: tskb
-description: "Uses the tskb knowledge graph to understand codebase structure, locate concepts, and find relevant files. Use when exploring unfamiliar areas or before structural changes."
+description: "A map of the codebase — folders, modules, exports, and how they connect. Use it before grep/glob to find where things are, what depends on what, and what docs exist. Incomplete but fast."
 argument-hint: [query]
 allowed-tools: Bash(npx --no -- tskb *)
 ---
 
-# TSKB — Codebase Architecture Explorer
+# TSKB — Codebase Map
 
-This project uses **TSKB**, a semantic knowledge graph of the codebase. It captures architectural intent, constraints, and structural relationships that filesystem exploration alone will miss.
+Like an open-source map of the codebase — not satellite imagery, but what people thought was important to map. Folders, modules, exports, their connections, and developer-written docs. Won't have everything, but gets you oriented fast.
 
 ${buildQueryBody(graph)}
 `;
@@ -56,14 +56,13 @@ ${buildQueryBody(graph)}
 function buildUpdateSkillContent(graph: KnowledgeGraph): string {
   return `---
 name: tskb-update
-description: "Use when you discover undocumented architecture, make structural changes, or the developer wants to record an important decision. Guides writing .tskb.tsx documentation files."
+description: "Add or update entries on the codebase map — declare folders, modules, exports, and write .tskb.tsx doc files. Use when the developer asks or when you find something important that's not on the map."
 allowed-tools: Bash(npx --no -- tskb *), Read, Write, Edit, Glob
 ---
 
-# TSKB — Documentation Authoring Guide
+# TSKB — Update the Codebase Map
 
-This project uses **TSKB**, a semantic knowledge graph of the codebase.
-This guide explains how to write and update \`.tskb.tsx\` documentation files.
+How to add things to the map. The map lives in \`.tskb.tsx\` files — they declare what exists and how it connects.
 
 ${buildUpdateBody(graph)}
 `;

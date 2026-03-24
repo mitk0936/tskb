@@ -12,7 +12,7 @@ import type { ImportEntry } from "../extraction/module-morphology.js";
 
 export interface GraphNode {
   id: string;
-  type: "folder" | "module" | "term" | "export" | "doc" | "file";
+  type: "folder" | "module" | "term" | "export" | "doc" | "file" | "external";
   /**
    * Number of edges connected to this node (computed during build)
    */
@@ -108,6 +108,15 @@ export interface FileNode extends GraphNode {
   path?: string;
 }
 
+export interface ExternalNode extends GraphNode {
+  type: "external";
+  desc: string;
+  /**
+   * Free-form key-value metadata (url, kind, version, etc.)
+   */
+  metadata: Record<string, string>;
+}
+
 export interface DocNode extends GraphNode {
   type: "doc";
   /**
@@ -132,7 +141,14 @@ export interface DocNode extends GraphNode {
   format: "ts" | "tsx";
 }
 
-export type AnyNode = FolderNode | ModuleNode | TermNode | ExportNode | FileNode | DocNode;
+export type AnyNode =
+  | FolderNode
+  | ModuleNode
+  | TermNode
+  | ExportNode
+  | FileNode
+  | ExternalNode
+  | DocNode;
 
 /**
  * Edge types representing relationships in the knowledge graph
@@ -164,6 +180,7 @@ export interface KnowledgeGraph {
     terms: Record<string, TermNode>;
     exports: Record<string, ExportNode>;
     files: Record<string, FileNode>;
+    externals: Record<string, ExternalNode>;
     docs: Record<string, DocNode>;
   };
   /**
@@ -186,6 +203,7 @@ export interface KnowledgeGraph {
       termCount: number;
       exportCount: number;
       fileCount: number;
+      externalCount: number;
       docCount: number;
       edgeCount: number;
     };

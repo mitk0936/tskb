@@ -169,12 +169,20 @@ function getDeclarationLineRange(sym: ts.Symbol, sourceFile: ts.SourceFile): str
 
   for (const decl of decls) {
     if (decl.getSourceFile() === sourceFile) {
-      const start = sourceFile.getLineAndCharacterOfPosition(decl.getStart()).line + 1;
-      const end = sourceFile.getLineAndCharacterOfPosition(decl.getEnd()).line + 1;
-      return start === end ? `${start}` : `${start}-${end}`;
+      return getNodeLineRange(decl, sourceFile);
     }
   }
   return undefined;
+}
+
+/**
+ * Get the 1-based line range of an AST node in the given source file.
+ */
+function getNodeLineRange(node: ts.Node, sourceFile: ts.SourceFile): string | undefined {
+  if (node.getSourceFile() !== sourceFile) return undefined;
+  const start = sourceFile.getLineAndCharacterOfPosition(node.getStart()).line + 1;
+  const end = sourceFile.getLineAndCharacterOfPosition(node.getEnd()).line + 1;
+  return start === end ? `${start}` : `${start}-${end}`;
 }
 
 function renderFunction(
@@ -197,11 +205,71 @@ function renderFunction(
     if (arrowIdx >= 0) {
       const params = sig.slice(0, arrowIdx);
       const ret = sig.slice(arrowIdx + 4);
-      return `${prefix}function ${name}${params}: ${ret}`;
+      return `${prefix}function ${name}${params}: ${ret} {}`;
     }
-    return `${prefix}function ${name}${sig}`;
+    return `${prefix}function ${name}${sig} {}`;
   }
-  return `${prefix}function ${name}()`;
+  return `${prefix}function ${name}() {}`;
+}
+
+/**
+ * Check if a symbol is private — either by TS keyword (private/protected) or naming convention (_ or #).
+ */
+function isPrivateSymbol(sym: ts.Symbol): boolean {
+  if (sym.name.startsWith("_") || sym.name.startsWith("#")) return true;
+  const decls = sym.getDeclarations();
+  if (!decls) return false;
+  for (const decl of decls) {
+    const modifiers = ts.canHaveModifiers(decl) ? ts.getModifiers(decl) : undefined;
+    if (modifiers) {
+      for (const mod of modifiers) {
+        if (
+          mod.kind === ts.SyntaxKind.PrivateKeyword ||
+          mod.kind === ts.SyntaxKind.ProtectedKeyword
+        ) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+/**
+ * Render a single class member (property or method) as a code stub line.
+ */
+function renderMember(
+  prop: ts.Symbol,
+  prefix: string,
+  checker: ts.TypeChecker,
+  sourceFile: ts.SourceFile,
+  lines: string[]
+): void {
+  const propType = checker.getTypeOfSymbolAtLocation(prop, sourceFile);
+  const callSigs = propType.getCallSignatures();
+  const range = getDeclarationLineRange(prop, sourceFile);
+  const rangeComment = range ? ` // :${range}` : "";
+
+  if (callSigs.length > 0) {
+    // It's a method
+    const sig = checker.signatureToString(
+      callSigs[0],
+      undefined,
+      ts.TypeFormatFlags.WriteArrowStyleSignature
+    );
+    const arrowIdx = sig.lastIndexOf(" => ");
+    if (arrowIdx >= 0) {
+      const params = sig.slice(0, arrowIdx);
+      const ret = sig.slice(arrowIdx + 4);
+      lines.push(`  ${prefix}${prop.name}${params}: ${ret} {}${rangeComment}`);
+    } else {
+      lines.push(`  ${prefix}${prop.name}${sig} {}${rangeComment}`);
+    }
+  } else {
+    // It's a property
+    const typeStr = checker.typeToString(propType);
+    lines.push(`  ${prefix}${prop.name}: ${typeStr}${rangeComment}`);
+  }
 }
 
 function renderClass(
@@ -227,38 +295,27 @@ function renderClass(
         return `${p.name}: ${checker.typeToString(paramType)}`;
       })
       .join(", ");
-    lines.push(`  constructor(${params})`);
+    const ctorDecl = sig.getDeclaration();
+    const ctorRange = ctorDecl ? getNodeLineRange(ctorDecl, sourceFile) : undefined;
+    const ctorComment = ctorRange ? ` // :${ctorRange}` : "";
+    lines.push(`  constructor(${params}) {}${ctorComment}`);
   }
 
-  // Properties and methods from the instance type
+  // Instance properties and methods
   const properties = type.getProperties();
   for (const prop of properties) {
-    // Skip private/internal members (starting with _ or #)
-    if (prop.name.startsWith("_") || prop.name.startsWith("#")) continue;
+    if (isPrivateSymbol(prop)) continue;
+    renderMember(prop, "", checker, sourceFile, lines);
+  }
 
-    const propType = checker.getTypeOfSymbolAtLocation(prop, sourceFile);
-    const callSigs = propType.getCallSignatures();
-
-    if (callSigs.length > 0) {
-      // It's a method
-      const sig = checker.signatureToString(
-        callSigs[0],
-        undefined,
-        ts.TypeFormatFlags.WriteArrowStyleSignature
-      );
-      const arrowIdx = sig.lastIndexOf(" => ");
-      if (arrowIdx >= 0) {
-        const params = sig.slice(0, arrowIdx);
-        const ret = sig.slice(arrowIdx + 4);
-        lines.push(`  ${prop.name}${params}: ${ret}`);
-      } else {
-        lines.push(`  ${prop.name}${sig}`);
-      }
-    } else {
-      // It's a property
-      const typeStr = checker.typeToString(propType);
-      lines.push(`  ${prop.name}: ${typeStr}`);
-    }
+  // Static properties and methods
+  const staticType = checker.getTypeOfSymbolAtLocation(sym, sourceFile);
+  const staticProps = staticType.getProperties();
+  for (const prop of staticProps) {
+    if (isPrivateSymbol(prop)) continue;
+    // Skip inherited static members (prototype, length, name, etc.)
+    if (["prototype", "length", "name", "arguments", "caller"].includes(prop.name)) continue;
+    renderMember(prop, "static ", checker, sourceFile, lines);
   }
 
   lines.push("}");
@@ -285,6 +342,8 @@ function renderInterface(
   for (const prop of properties) {
     const propType = checker.getTypeOfSymbolAtLocation(prop, sourceFile);
     const callSigs = propType.getCallSignatures();
+    const range = getDeclarationLineRange(prop, sourceFile);
+    const rangeComment = range ? ` // :${range}` : "";
 
     if (callSigs.length > 0) {
       const sig = checker.signatureToString(
@@ -296,13 +355,13 @@ function renderInterface(
       if (arrowIdx >= 0) {
         const params = sig.slice(0, arrowIdx);
         const ret = sig.slice(arrowIdx + 4);
-        lines.push(`  ${prop.name}${params}: ${ret}`);
+        lines.push(`  ${prop.name}${params}: ${ret}${rangeComment}`);
       } else {
-        lines.push(`  ${prop.name}${sig}`);
+        lines.push(`  ${prop.name}${sig}${rangeComment}`);
       }
     } else {
       const typeStr = checker.typeToString(propType);
-      lines.push(`  ${prop.name}: ${typeStr}`);
+      lines.push(`  ${prop.name}: ${typeStr}${rangeComment}`);
     }
   }
 

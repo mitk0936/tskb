@@ -5,7 +5,14 @@
  *
  * These props are extracted by the TSKB pipeline and converted to graph edges.
  */
-import type { FolderName, ModuleName, TermName, ExportName, FileName } from "./registry.js";
+import type {
+  FolderName,
+  ModuleName,
+  TermName,
+  ExportName,
+  FileName,
+  ExternalName,
+} from "./registry.js";
 
 /**
  * Type-safe semantic relation tag for TSKB knowledge graph
@@ -22,11 +29,15 @@ export function Relation({
   label,
 }: {
   from:
-    | (typeof ref & { __tskbType?: FolderName | ModuleName | TermName | ExportName | FileName })
-    | (FolderName | ModuleName | TermName | ExportName | FileName);
+    | (typeof ref & {
+        __tskbType?: FolderName | ModuleName | TermName | ExportName | FileName | ExternalName;
+      })
+    | (FolderName | ModuleName | TermName | ExportName | FileName | ExternalName);
   to:
-    | (typeof ref & { __tskbType?: FolderName | ModuleName | TermName | ExportName | FileName })
-    | (FolderName | ModuleName | TermName | ExportName | FileName);
+    | (typeof ref & {
+        __tskbType?: FolderName | ModuleName | TermName | ExportName | FileName | ExternalName;
+      })
+    | (FolderName | ModuleName | TermName | ExportName | FileName | ExternalName);
   label?: string;
 }): any {
   // Return a special marker for extraction
@@ -48,7 +59,8 @@ export type ReactNode =
   | undefined
   | ReactNode[]
   | { desc: string; path: string } // Folder ref
-  | { desc: string; type: unknown }; // Module/Export ref
+  | { desc: string; type: unknown } // Module/Export ref
+  | { desc: string; [key: string]: string }; // External ref
 
 /* ============================================================
  * Reference Helper

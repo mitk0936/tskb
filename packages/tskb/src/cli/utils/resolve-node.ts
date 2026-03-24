@@ -32,6 +32,7 @@ export function resolveNode(graph: KnowledgeGraph, identifier: string): Resolved
     ["modules", graph.nodes.modules],
     ["exports", graph.nodes.exports],
     ["files", graph.nodes.files],
+    ["externals", graph.nodes.externals],
     ["terms", graph.nodes.terms],
     ["docs", graph.nodes.docs],
   ];

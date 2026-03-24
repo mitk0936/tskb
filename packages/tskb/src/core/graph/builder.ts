@@ -5,6 +5,7 @@ import type {
   TermNode,
   ExportNode,
   FileNode,
+  ExternalNode,
   DocNode,
   GraphEdge,
 } from "./types.js";
@@ -58,6 +59,7 @@ export function buildGraph(
       terms: {},
       exports: {},
       files: {},
+      externals: {},
       docs: {},
     },
     edges: [],
@@ -71,6 +73,7 @@ export function buildGraph(
         termCount: 0,
         exportCount: 0,
         fileCount: 0,
+        externalCount: 0,
         docCount: 0,
         edgeCount: 0,
       },
@@ -86,6 +89,7 @@ export function buildGraph(
   buildTermNodes(registry, graph);
   buildExportNodes(registry, graph);
   buildFileNodes(registry, graph);
+  buildExternalNodes(registry, graph);
 
   // Enrich folder children with node IDs from registered folders/modules
   enrichFolderChildren(graph);
@@ -229,6 +233,21 @@ function buildFileNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): voi
       path: data.resolvedPath ?? data.path,
     };
     graph.nodes.files[name] = node;
+  }
+}
+
+/**
+ * Create External nodes from registry
+ */
+function buildExternalNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): void {
+  for (const [name, data] of registry.externals.entries()) {
+    const node: ExternalNode = {
+      id: name,
+      type: "external",
+      desc: data.desc,
+      metadata: data.metadata,
+    };
+    graph.nodes.externals[name] = node;
   }
 }
 
@@ -437,22 +456,40 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
+    for (const externalName of doc.references.externals) {
+      if (graph.nodes.externals[externalName]) {
+        graph.edges.push({
+          from: docId,
+          to: externalName,
+          type: "references",
+        });
+      } else {
+        throw new Error(
+          `Unresolved external reference "${externalName}" in doc "${docId}":\n` +
+            `  The doc references an external that does not exist in the registry.\n` +
+            `  Make sure "${externalName}" is declared in a \`namespace tskb { interface Externals { ... } }\` block.`
+        );
+      }
+    }
+
     // Emit "related-to" edges for each relation in doc.relations
     if (doc.relations && Array.isArray(doc.relations)) {
       for (const rel of doc.relations) {
-        // Only emit if both nodes exist (can be term, module, folder, or export)
+        // Only emit if both nodes exist
         const fromExists =
           graph.nodes.terms[rel.from] ||
           graph.nodes.modules[rel.from] ||
           graph.nodes.folders[rel.from] ||
           graph.nodes.exports[rel.from] ||
-          graph.nodes.files[rel.from];
+          graph.nodes.files[rel.from] ||
+          graph.nodes.externals[rel.from];
         const toExists =
           graph.nodes.terms[rel.to] ||
           graph.nodes.modules[rel.to] ||
           graph.nodes.folders[rel.to] ||
           graph.nodes.exports[rel.to] ||
-          graph.nodes.files[rel.to];
+          graph.nodes.files[rel.to] ||
+          graph.nodes.externals[rel.to];
         if (fromExists && toExists) {
           const edge: any = {
             from: rel.from,
@@ -824,6 +861,7 @@ function updateStats(graph: KnowledgeGraph): void {
   graph.metadata.stats.termCount = Object.keys(graph.nodes.terms).length;
   graph.metadata.stats.exportCount = Object.keys(graph.nodes.exports).length;
   graph.metadata.stats.fileCount = Object.keys(graph.nodes.files).length;
+  graph.metadata.stats.externalCount = Object.keys(graph.nodes.externals).length;
   graph.metadata.stats.docCount = Object.keys(graph.nodes.docs).length;
   graph.metadata.stats.edgeCount = graph.edges.length;
 }

@@ -9,13 +9,14 @@ export function buildQueryBody(graph: KnowledgeGraph): string {
   const folderTree = buildFolderTree(graph, 2);
   const docSummaries = buildDocSummaries(graph, true);
 
-  return `## When to Use TSKB
+  return `## When to Use
 
-Query TSKB when entering an **unfamiliar area** of the codebase or when the task could have **architectural implications**. The graph captures developer intent, constraints, and structural relationships that file reading alone will miss.
+Use tskb **first** — before grepping or reading files. It tells you where things are and how they relate, so you don't waste time exploring blind. Think of it as asking a teammate "where does X live?" instead of searching every folder yourself.
 
-- **Orientation** — Use \`search\`, \`ls\`, or \`context\` to understand where things are and how they connect.
-- **Before structural changes** — Check for constraint docs that define rules you must follow.
-- **Skip for focused tasks** — If you already know which file to edit and the change is localized, go straight to the code.
+- **Find things** — \`search\` or \`ls\` to locate modules, exports, folders by name or concept.
+- **Understand connections** — \`pick\` or \`context\` to see what a module imports, exports, and what docs reference it.
+- **Check rules** — Constraint docs define rules you must follow. They show up in \`pick\` results automatically.
+- **Skip it** — If you already know exactly which file to edit and the change is self-contained.
 
 ## Commands
 
@@ -29,24 +30,25 @@ npx --no -- tskb docs "<query>" --plain                       # Search docs
 
 Drop \`--plain\` for JSON output. Use \`--optimized\` for compact JSON (no whitespace).
 
-## Response Shapes
+## What's on the Map
 
-All paths are relative to where \`tskb build\` was run and can be used directly to read files.
+- **Folder** — a logical area (feature, layer, package). Has a path and description.
+- **Module** — a source file. Shows imports, exports, and code stubs with line numbers.
+- **Export** — a function, class, type, or constant from a module.
+- **File** — a non-JS/TS file (README, config, etc.).
+- **External** — something outside the repo (npm package, API, cloud service, database). Has free-form key-value metadata.
+- **Term** — a domain concept, not tied to a file.
+- **Doc** — a \`.tskb.tsx\` documentation file. Has priority: essential, constraint, or supplementary.
 
-- **search**: Ranked results with graph-aware scoring. Results are boosted when they are graph neighbors of higher-ranked results. Scores are relative to the top result (1.0 = best match). Folders include \`structureSummary\`, modules and exports include \`morphologySummary\`, modules include \`importsSummary\`. Use \`pick\` on any \`nodeId\` for full details.
-- **pick**: Type-specific detail. Modules and exports include \`morphology\` (code stubs with source line ranges, e.g. \`// :42-68\`) and \`morphologySummary\`. At module level, interfaces are collapsed to \`{ ... }\` — pick the specific export for full details. Modules show only library and tskb-referenced imports (local imports without refs are summarized as a count), plus \`importsSummary\` and \`importedBy\`. Exports include \`parent\` with \`morphologySummary\` when the parent is a module (shows what else the module exports). Folders include \`children\`, \`structureSummary\`, and \`packageName\` (if the folder is an npm package root). Docs include \`content\`. All types include \`referencingDocs\` — constraint docs in this list **MUST** be read.
-- **context**: Graph neighborhood traversal via BFS across all edge types (contains, belongs-to, imports, related-to). Returns connected nodes up to the specified depth, with all referencing docs and constraints surfaced at top level. Use for understanding what connects to a node — not just its structural children.
-- **ls**: Essential docs first, then folder hierarchy with \`structureSummary\`.
-- **docs**: Lists or searches all docs. Use \`pick\` on a doc \`nodeId\` to get full content.
+All paths are relative to project root and can be used directly to read files.
 
-## Graph Concepts
+## What Each Command Returns
 
-- **Folder**: Logical grouping (feature, layer, package). Has ID, description, filesystem path.
-- **Module**: A source file. Linked to parent folder via belongs-to edges and to other modules via imports edges.
-- **Export**: A specific function, class, type, or constant from a module. Type-checked via \`typeof import()\`.
-- **File**: A non-JS/TS file (README.md, yml configs, etc.). Has ID, description, filesystem path.
-- **Term**: A domain concept or pattern. Not tied to a file.
-- **Doc**: A \`.tskb.tsx\` documentation file. Has \`explains\`, \`priority\` (essential, constraint, supplementary), and references to other nodes.
+- **search** — ranked results by relevance. Use \`pick\` on any \`nodeId\` for details.
+- **pick** — full detail for one node. Modules/exports show code stubs with line ranges (\`// :42-68\`). Modules show imports, importedBy, and exports list. Folders show children. Externals show metadata key-value pairs. Constraint docs in results **MUST** be read.
+- **context** — a node and its neighbors (BFS traversal). Shows what connects to what.
+- **ls** — folder tree with essential docs.
+- **docs** — search or list all docs. Use \`pick\` on a doc ID for full content.
 
 ## Folder Structure
 
@@ -106,6 +108,9 @@ declare global {
     interface Files {
       "auth.config.yml": File<{ desc: "Auth provider configuration"; path: "src/auth/config.yml" }>;
     }
+    interface Externals {
+      "redis": External<{ desc: "Session cache and pub/sub"; url: "https://redis.io" }>;
+    }
     interface Terms {
       sessionToken: Term<"JWT issued on login for authenticating API requests">;
     }
@@ -132,9 +137,10 @@ export default (
 - \`Module<{ desc: "..."; type: typeof import("...") }>\` — Source file. Import path must resolve.
 - \`Export<{ desc: "..."; type: typeof import("...").Name }>\` — Named export. Compiler validates existence.
 - \`File<{ desc: "..."; path: "..." }>\` — Non-JS/TS file (README, config, etc.). Path relative to project root.
+- \`External<{ desc: "..."; [key: string]: "..." }>\` — Something outside the repo (npm package, API, cloud service). Free-form key-value metadata (url, version, kind, etc.).
 - \`Term<"...">\` — Domain concept. Not tied to a file.
 
-Reference nodes in JSX via type assertions: \`const X = ref as tskb.Modules["id"]\`, then use \`{X}\` in JSX.
+Reference nodes in JSX via type assertions: \`const X = ref as tskb.Modules["id"]\` or \`const R = ref as tskb.Externals["redis"]\`, then use \`{X}\` in JSX.
 
 ## JSX Components
 

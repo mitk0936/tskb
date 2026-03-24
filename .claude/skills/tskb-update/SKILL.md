@@ -1,13 +1,12 @@
 ---
 name: tskb-update
-description: "Use when you discover undocumented architecture, make structural changes, or the developer wants to record an important decision. Guides writing .tskb.tsx documentation files."
+description: "Add or update entries on the codebase map — declare folders, modules, exports, and write .tskb.tsx doc files. Use when the developer asks or when you find something important that's not on the map."
 allowed-tools: Bash(npx --no -- tskb *), Read, Write, Edit, Glob
 ---
 
-# TSKB — Documentation Authoring Guide
+# TSKB — Update the Codebase Map
 
-This project uses **TSKB**, a semantic knowledge graph of the codebase.
-This guide explains how to write and update `.tskb.tsx` documentation files.
+How to add things to the map. The map lives in `.tskb.tsx` files — they declare what exists and how it connects.
 
 ## Key Rules — READ THIS FIRST
 
@@ -47,6 +46,9 @@ declare global {
     interface Files {
       "auth.config.yml": File<{ desc: "Auth provider configuration"; path: "src/auth/config.yml" }>;
     }
+    interface Externals {
+      "redis": External<{ desc: "Session cache and pub/sub"; url: "https://redis.io" }>;
+    }
     interface Terms {
       sessionToken: Term<"JWT issued on login for authenticating API requests">;
     }
@@ -73,9 +75,10 @@ export default (
 - `Module<{ desc: "..."; type: typeof import("...") }>` — Source file. Import path must resolve.
 - `Export<{ desc: "..."; type: typeof import("...").Name }>` — Named export. Compiler validates existence.
 - `File<{ desc: "..."; path: "..." }>` — Non-JS/TS file (README, config, etc.). Path relative to project root.
+- `External<{ desc: "..."; [key: string]: "..." }>` — Something outside the repo (npm package, API, cloud service). Free-form key-value metadata (url, version, kind, etc.).
 - `Term<"...">` — Domain concept. Not tied to a file.
 
-Reference nodes in JSX via type assertions: `const X = ref as tskb.Modules["id"]`, then use `{X}` in JSX.
+Reference nodes in JSX via type assertions: `const X = ref as tskb.Modules["id"]` or `const R = ref as tskb.Externals["redis"]`, then use `{X}` in JSX.
 
 ## JSX Components
 

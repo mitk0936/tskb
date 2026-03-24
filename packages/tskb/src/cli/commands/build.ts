@@ -170,6 +170,9 @@ export async function build(config: ExtractConfig): Promise<void> {
   info(`   ├─ ${graph.metadata.stats.moduleCount} module nodes`);
   info(`   ├─ ${graph.metadata.stats.exportCount} export nodes`);
   info(`   ├─ ${graph.metadata.stats.termCount} term nodes`);
+  if (graph.metadata.stats.externalCount > 0) {
+    info(`   ├─ ${graph.metadata.stats.externalCount} external nodes`);
+  }
   info(`   ├─ ${graph.metadata.stats.docCount} doc nodes`);
   info(`   └─ ${graph.metadata.stats.edgeCount} edges`);
 

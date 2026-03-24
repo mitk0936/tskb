@@ -91,6 +91,7 @@ function findNode(graph: KnowledgeGraph, id: string): AnyNode | undefined {
     graph.nodes.modules[id] ||
     graph.nodes.exports[id] ||
     graph.nodes.files[id] ||
+    graph.nodes.externals[id] ||
     graph.nodes.terms[id] ||
     graph.nodes.docs[id]
   );
