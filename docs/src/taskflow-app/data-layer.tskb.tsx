@@ -8,7 +8,7 @@ import {
 import { Task } from "examples/taskflow-app/src/shared/types/task.types.js";
 import { PAGINATION_DEFAULT_LIMIT } from "examples/taskflow-app/src/shared/config/constants.js";
 import { Doc, H1, H2, H3, P, List, Li, Snippet, ref } from "tskb";
-import type { Export, Folder, Term } from "tskb";
+import type { Export, External, Folder, Term } from "tskb";
 
 // Declare vocabulary needed for this document
 declare global {
@@ -71,6 +71,14 @@ declare global {
       }>;
     }
 
+    interface Externals {
+      pg: External<{
+        desc: "PostgreSQL client for Node.js";
+        url: "https://node-postgres.com";
+        kind: "npm-package";
+      }>;
+    }
+
     interface Terms {
       repositoryPattern: Term<"Data access abstraction layer that separates business logic from database operations">;
       crudOperations: Term<"Create, Read, Update, Delete - fundamental data operations">;
@@ -85,6 +93,7 @@ const CrudOperationsTerm = ref as tskb.Terms["crudOperations"];
 const PaginationTerm = ref as tskb.Terms["pagination"];
 const DependencyInjectionTerm = ref as tskb.Terms["dependencyInjection"];
 
+const PgExternal = ref as tskb.Externals["pg"];
 const DatabaseFolder = ref as tskb.Folders["Database"];
 const RepositoriesFolder = ref as tskb.Folders["Repositories"];
 const TypesFolder = ref as tskb.Folders["Types"];
@@ -223,9 +232,9 @@ export default (
     <H2>Database Connection</H2>
 
     <P>
-      The {DatabaseExport} class in {DatabaseFolder} manages the connection pool and provides query
-      methods with transaction support. All repositories receive a Database instance via{" "}
-      {DependencyInjectionTerm}.
+      The {DatabaseExport} class in {DatabaseFolder} uses {PgExternal} to manage the connection pool
+      and provides query methods with transaction support. All repositories receive a Database
+      instance via {DependencyInjectionTerm}.
     </P>
 
     <Snippet

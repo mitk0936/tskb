@@ -57,6 +57,13 @@ export interface ExtractedRegistry {
       pathExists: boolean;
     }
   >;
+  externals: Map<
+    string,
+    {
+      desc: string;
+      metadata: Record<string, string>;
+    }
+  >;
 }
 
 /**
@@ -82,6 +89,7 @@ export function extractRegistry(
     terms: new Map(),
     exports: new Map(),
     files: new Map(),
+    externals: new Map(),
   };
 
   // Use the provided baseDir for all path resolution
@@ -202,6 +210,8 @@ function extractFromTskbNamespace(
       extractExports(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
     } else if (interfaceName === "Files") {
       extractFiles(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+    } else if (interfaceName === "Externals") {
+      extractExternals(statement, checker, registry, sourceFile);
     }
   }
 }
@@ -674,6 +684,87 @@ function extractFiles(
       pathExists,
     });
   }
+}
+
+/**
+ * Extract all Externals from the Externals interface.
+ *
+ * Externals have a required `desc` plus free-form string key-value metadata:
+ * ```ts
+ * interface Externals {
+ *   "redis": External<{ desc: "Session cache and pub/sub"; url: "https://redis.io" }>;
+ *   "@prisma/client": External<{ desc: "Database ORM"; version: "5.x" }>;
+ * }
+ * ```
+ */
+function extractExternals(
+  interfaceNode: ts.InterfaceDeclaration,
+  checker: ts.TypeChecker,
+  registry: ExtractedRegistry,
+  sourceFile: ts.SourceFile
+): void {
+  for (const member of interfaceNode.members) {
+    if (!ts.isPropertySignature(member)) continue;
+    if (!member.name || (!ts.isIdentifier(member.name) && !ts.isStringLiteral(member.name)))
+      continue;
+
+    const externalName = member.name.text;
+    const type = member.type;
+
+    if (!type) continue;
+
+    const data = extractExternalType(type, checker);
+    if (!data) {
+      const typeText = type.getText();
+      throw new Error(
+        `Invalid External definition for "${externalName}" in ${sourceFile.fileName}:\n` +
+          `  Expected: External<{ desc: string; ... }>\n` +
+          `  Received: ${typeText}\n` +
+          `  All properties in the Externals interface must use the External<...> helper type.`
+      );
+    }
+
+    registry.externals.set(externalName, data);
+  }
+}
+
+/**
+ * Extract desc and free-form string metadata from External<{ desc: "...", key: "value", ... }>.
+ */
+function extractExternalType(
+  typeNode: ts.TypeNode,
+  _checker: ts.TypeChecker
+): { desc: string; metadata: Record<string, string> } | null {
+  if (!ts.isTypeReferenceNode(typeNode)) return null;
+
+  const typeArgs = typeNode.typeArguments;
+  if (!typeArgs || typeArgs.length === 0) return null;
+
+  const objectType = typeArgs[0];
+  if (!ts.isTypeLiteralNode(objectType)) return null;
+
+  let desc = "";
+  const metadata: Record<string, string> = {};
+
+  for (const member of objectType.members) {
+    if (!ts.isPropertySignature(member)) continue;
+    if (!member.name || (!ts.isIdentifier(member.name) && !ts.isStringLiteral(member.name)))
+      continue;
+
+    const propName = member.name.text;
+    const propType = member.type;
+
+    if (propType && ts.isLiteralTypeNode(propType) && ts.isStringLiteral(propType.literal)) {
+      const value = propType.literal.text;
+      if (propName === "desc") {
+        desc = value;
+      } else {
+        metadata[propName] = value;
+      }
+    }
+  }
+
+  return desc ? { desc, metadata } : null;
 }
 
 /**

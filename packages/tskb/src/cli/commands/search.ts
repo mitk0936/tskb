@@ -129,6 +129,14 @@ export async function search(
       score += Math.log2(ec) * 0.05;
     }
 
+    // Shallow path boost: top-level nodes get a slight edge (up to ~0.1)
+    // depth 1 → +0.1, depth 2 → +0.05, depth 3 → +0.033, depth 4+ → diminishing
+    const pathStr = r.item.path;
+    if (pathStr) {
+      const depth = pathStr.split("/").length;
+      score += 0.1 / depth;
+    }
+
     return { item: r.item, score };
   });
 
@@ -246,6 +254,11 @@ function getContent(node: AnyNode): string {
   }
   if (node.type === "export" && node.morphology) {
     return node.morphology.join(" ");
+  }
+  if (node.type === "external" && node.metadata) {
+    return Object.entries(node.metadata)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(" ");
   }
   return "";
 }

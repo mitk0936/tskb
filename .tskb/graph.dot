@@ -470,6 +470,14 @@ digraph KnowledgeGraph {
     "typeGuards" [label="Term\<\"typeGuards\"\>\nTypeScript runtime checks that narrow types within conditional blocks", shape=diamond, fillcolor="#F0F4C3", style=filled];
   }
 
+  // Externals
+  subgraph "cluster_externals" {
+    label="Externals";
+    style=dashed;
+    color=gray;
+    "pg" [label="pg\nPostgreSQL client for Node.js\nurl: https://node-postgres.com\nkind: npm-package", shape=hexagon, fillcolor="#B2EBF2", style=filled];
+  }
+
   // Documentation
   subgraph "cluster_documentation" {
     label="Documentation";
@@ -585,6 +593,7 @@ digraph KnowledgeGraph {
   "docs/src/taskflow-app/data-layer.tskb.tsx" -> "PaginatedResponse" [color=grey, style=dashed];
   "docs/src/taskflow-app/data-layer.tskb.tsx" -> "User" [color=grey, style=dashed];
   "docs/src/taskflow-app/data-layer.tskb.tsx" -> "Project" [color=grey, style=dashed];
+  "docs/src/taskflow-app/data-layer.tskb.tsx" -> "pg" [color=grey, style=dashed];
   "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "jwt" [color=grey, style=dashed];
   "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "middlewareChain" [color=grey, style=dashed];
   "docs/src/taskflow-app/authentication-system.tskb.tsx" -> "contextProvider" [color=grey, style=dashed];

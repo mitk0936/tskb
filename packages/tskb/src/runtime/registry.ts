@@ -5,6 +5,7 @@ declare global {
     interface Terms {}
     interface Exports {}
     interface Files {}
+    interface Externals {}
   }
 }
 
@@ -34,6 +35,11 @@ interface InternalFileDefinition {
   path: string;
 }
 
+interface InternalExternalDefinition {
+  desc: string;
+  [key: string]: string;
+}
+
 /**
  * Normalized views:
  * - If a consumer provides a value that doesn't satisfy the base shape,
@@ -59,11 +65,16 @@ type NormalizeFiles<T> = {
   [K in keyof T]: T[K] extends InternalFileDefinition ? T[K] : never;
 };
 
+type NormalizeExternals<T> = {
+  [K in keyof T]: T[K] extends InternalExternalDefinition ? T[K] : never;
+};
+
 export type FolderRegistry = NormalizeFolders<tskb.Folders>;
 export type ModuleRegistry = NormalizeModules<tskb.Modules>;
 export type TermRegistry = NormalizeTerms<tskb.Terms>;
 export type ExportRegistry = NormalizeExports<tskb.Exports>;
 export type FileRegistry = NormalizeFiles<tskb.Files>;
+export type ExternalRegistry = NormalizeExternals<tskb.Externals>;
 
 /** Keys used for autocomplete. */
 export type FolderName = keyof tskb.Folders;
@@ -71,6 +82,7 @@ export type ModuleName = keyof tskb.Modules;
 export type TermName = keyof tskb.Terms;
 export type ExportName = keyof tskb.Exports;
 export type FileName = keyof tskb.Files;
+export type ExternalName = keyof tskb.Externals;
 
 /** Generic helpers for nicer authoring ergonomics. */
 export type Folder<Ext extends InternalFolderDefinition> = Ext;
@@ -78,3 +90,4 @@ export type Module<Ext extends InternalModuleDefinition> = Ext;
 export type Term<Ext extends InternalTermDefinition> = Ext;
 export type Export<Ext extends InternalExportDefinition> = Ext;
 export type File<Ext extends InternalFileDefinition> = Ext;
+export type External<Ext extends InternalExternalDefinition> = Ext;

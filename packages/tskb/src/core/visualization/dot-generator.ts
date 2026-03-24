@@ -92,6 +92,26 @@ export function generateDot(graph: KnowledgeGraph): string {
   lines.push("  }");
   lines.push("");
 
+  // Externals (outside folder hierarchy)
+  if (Object.keys(graph.nodes.externals).length > 0) {
+    lines.push("  // Externals");
+    lines.push('  subgraph "cluster_externals" {');
+    lines.push('    label="Externals";');
+    lines.push("    style=dashed;");
+    lines.push("    color=gray;");
+    for (const [id, node] of Object.entries(graph.nodes.externals)) {
+      const metaStr = Object.entries(node.metadata)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join("\\n");
+      const label = `${id.replace(/"/g, '\\"')}\\n${node.desc.replace(/"/g, '\\"')}${metaStr ? "\\n" + metaStr.replace(/"/g, '\\"') : ""}`;
+      lines.push(
+        `    "${id}" [label="${label}", shape=hexagon, fillcolor="#B2EBF2", style=filled];`
+      );
+    }
+    lines.push("  }");
+    lines.push("");
+  }
+
   // Docs (outside folder hierarchy)
   lines.push("  // Documentation");
   lines.push('  subgraph "cluster_documentation" {');

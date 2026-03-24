@@ -20,6 +20,7 @@ export interface ExtractedDoc {
     folders: string[];
     exports: string[];
     files: string[];
+    externals: string[];
   };
   /** Extracted semantic relations: {from, to, label?} */
   relations?: { from: string; to: string; label?: string }[];
@@ -68,6 +69,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
     folders: [] as string[],
     exports: [] as string[],
     files: [] as string[],
+    externals: [] as string[],
   };
 
   let content = "";
@@ -104,6 +106,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
       folders: Array.from(new Set(references.folders)),
       exports: Array.from(new Set(references.exports)),
       files: Array.from(new Set(references.files)),
+      externals: Array.from(new Set(references.externals)),
     },
     relations,
   };
@@ -211,6 +214,7 @@ function extractJsxContent(
     folders: string[];
     exports: string[];
     files: string[];
+    externals: string[];
   },
   constantReferences: Map<string, { category: string; name: string }>,
   docMeta: { explains: string; priority: DocPriority },
@@ -428,6 +432,7 @@ function extractReferenceFromTypeAssertion(
     folders: string[];
     exports: string[];
     files: string[];
+    externals: string[];
   }
 ): string | null {
   const metadata = extractTypeAssertionMetadata(assertion);
@@ -449,6 +454,7 @@ function createReferenceContent(
     folders: string[];
     exports: string[];
     files: string[];
+    externals: string[];
   }
 ): string | null {
   if (category === "Folders") {
@@ -465,6 +471,9 @@ function createReferenceContent(
     return `<nodeId: ${name}>`;
   } else if (category === "Files") {
     references.files.push(name);
+    return `<nodeId: ${name}>`;
+  } else if (category === "Externals") {
+    references.externals.push(name);
     return `<nodeId: ${name}>`;
   }
   return null;

@@ -45,6 +45,9 @@ declare global {
     interface Files {
       "auth.config.yml": File<{ desc: "Auth provider configuration"; path: "src/auth/config.yml" }>;
     }
+    interface Externals {
+      "redis": External<{ desc: "Session cache and pub/sub"; url: "https://redis.io" }>;
+    }
     interface Terms {
       sessionToken: Term<"JWT issued on login for authenticating API requests">;
     }
@@ -71,9 +74,10 @@ export default (
 - `Module<{ desc: "..."; type: typeof import("...") }>` — Source file. Import path must resolve.
 - `Export<{ desc: "..."; type: typeof import("...").Name }>` — Named export. Compiler validates existence.
 - `File<{ desc: "..."; path: "..." }>` — Non-JS/TS file (README, config, etc.). Path relative to project root.
+- `External<{ desc: "..."; [key: string]: "..." }>` — Something outside the repo (npm package, API, cloud service). Free-form key-value metadata (url, version, kind, etc.).
 - `Term<"...">` — Domain concept. Not tied to a file.
 
-Reference nodes in JSX via type assertions: `const X = ref as tskb.Modules["id"]`, then use `{X}` in JSX.
+Reference nodes in JSX via type assertions: `const X = ref as tskb.Modules["id"]` or `const R = ref as tskb.Externals["redis"]`, then use `{X}` in JSX.
 
 ## JSX Components
 

@@ -90,6 +90,18 @@ interface FilePickResult {
   relations?: Array<{ from: string; to: string; label?: string }>;
 }
 
+interface ExternalPickResult {
+  type: "external";
+  resolvedVia: ResolvedVia;
+  node: {
+    nodeId: string;
+    desc: string;
+    metadata: Record<string, string>;
+  };
+  referencingDocs: DocRef[];
+  relations?: Array<{ from: string; to: string; label?: string }>;
+}
+
 interface DocPickResult {
   type: "doc";
   resolvedVia: ResolvedVia;
@@ -110,6 +122,7 @@ type PickResult =
   | ExportPickResult
   | TermPickResult
   | FilePickResult
+  | ExternalPickResult
   | DocPickResult;
 
 // --- Per-type resolvers ---
@@ -304,6 +317,26 @@ function resolveFile(
   };
 }
 
+function resolveExternal(
+  id: string,
+  node: AnyNode,
+  edges: NodeEdges,
+  graph: KnowledgeGraph
+): ExternalPickResult {
+  const external = node as import("../../core/graph/types.js").ExternalNode;
+
+  return {
+    type: "external",
+    resolvedVia: "id",
+    node: {
+      nodeId: id,
+      desc: external.desc,
+      metadata: external.metadata,
+    },
+    referencingDocs: findReferencingDocs(edges, graph),
+  };
+}
+
 function resolveDoc(
   id: string,
   node: AnyNode,
@@ -407,6 +440,7 @@ const resolvers: Record<string, NodeResolver> = {
   export: resolveExport as NodeResolver,
   term: resolveTerm as NodeResolver,
   file: resolveFile as NodeResolver,
+  external: resolveExternal as NodeResolver,
   doc: resolveDoc as NodeResolver,
 };
 
@@ -682,6 +716,22 @@ function formatFilePlain(result: FilePickResult): string[] {
   return lines;
 }
 
+function formatExternalPlain(result: ExternalPickResult): string[] {
+  const lines: string[] = [`id: ${result.node.nodeId} (external)`, `  ${result.node.desc}`];
+
+  const meta = result.node.metadata;
+  if (Object.keys(meta).length > 0) {
+    for (const [key, value] of Object.entries(meta)) {
+      lines.push(`  ${key}: ${value}`);
+    }
+  }
+
+  lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatRelations(result.relations));
+
+  return lines;
+}
+
 function formatDocPlain(result: DocPickResult): string[] {
   const lines: string[] = [
     `id: ${result.node.nodeId} (doc, ${result.node.priority})`,
@@ -716,6 +766,9 @@ function formatPickPlain(result: PickResult): string {
       break;
     case "file":
       lines = formatFilePlain(result);
+      break;
+    case "external":
+      lines = formatExternalPlain(result);
       break;
     case "doc":
       lines = formatDocPlain(result);
