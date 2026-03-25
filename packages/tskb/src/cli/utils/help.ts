@@ -3,6 +3,7 @@
  */
 export function getHelpText(): string {
   return `Usage:
+  tskb init [--yes|-y]
   tskb build <glob> [--tsconfig <path>] [--verbose]
   tskb ls [--depth <n>] [--optimized] [--plain] [--verbose]
   tskb pick <identifier> [--optimized] [--plain] [--verbose]
@@ -11,6 +12,10 @@ export function getHelpText(): string {
   tskb docs [<query>] [--optimized] [--plain] [--verbose]
 
 Examples:
+  # Init — scaffold tskb in a new or existing repo (interactive)
+  tskb init
+  tskb init --yes                                         # Accept all defaults (non-interactive)
+
   # Build command - typically run on pre-commit hooks, post-install scripts, or CI pipelines
   # Validates that .tskb.tsx docs match the actual codebase (folders, modules, exports)
   # Produces a queryable knowledge graph artifact for code assistants

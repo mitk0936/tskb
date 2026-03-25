@@ -7,7 +7,7 @@
         "desc": "The root directory (automatically added by tskb)",
         "path": ".",
         "packageName": "tskb-workspace",
-        "edgeCount": 4
+        "edgeCount": 5
       },
       "docs": {
         "id": "docs",
@@ -113,6 +113,133 @@
         },
         "edgeCount": 1
       },
+      "tests": {
+        "id": "tests",
+        "type": "folder",
+        "desc": "End-to-end test suite for the tskb CLI, using Vitest",
+        "path": "tests",
+        "structureSummary": "1 folder",
+        "children": {
+          "folders": [
+            {
+              "name": "e2e",
+              "nodeId": "tests.e2e",
+              "desc": "E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command"
+            }
+          ],
+          "files": []
+        },
+        "edgeCount": 3
+      },
+      "tests.e2e": {
+        "id": "tests.e2e",
+        "type": "folder",
+        "desc": "E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command",
+        "path": "tests/e2e",
+        "structureSummary": "1 folder, 1 file",
+        "children": {
+          "folders": [
+            {
+              "name": "fixture",
+              "nodeId": "tests.e2e.fixture",
+              "desc": "A small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb"
+            }
+          ],
+          "files": [
+            {
+              "name": "tskb-e2e.test.ts"
+            }
+          ]
+        },
+        "edgeCount": 3
+      },
+      "tests.e2e.fixture": {
+        "id": "tests.e2e.fixture",
+        "type": "folder",
+        "desc": "A small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb",
+        "path": "tests/e2e/fixture",
+        "structureSummary": "2 folders, 2 files",
+        "children": {
+          "folders": [
+            {
+              "name": "docs",
+              "nodeId": "tests.e2e.fixture.docs",
+              "desc": "Fixture tskb docs: vocabulary, architecture, auth, tasks, and a service-isolation constraint. Covers all doc priorities"
+            },
+            {
+              "name": "src",
+              "nodeId": "tests.e2e.fixture.src",
+              "desc": "Fixture source code: models (User, Task, Project), services (Auth, Task, Project), API routes, and a logger utility"
+            }
+          ],
+          "files": [
+            {
+              "name": "package.json"
+            },
+            {
+              "name": "tsconfig.json"
+            }
+          ]
+        },
+        "packageName": "tskb-e2e-fixture",
+        "edgeCount": 4
+      },
+      "tests.e2e.fixture.src": {
+        "id": "tests.e2e.fixture.src",
+        "type": "folder",
+        "desc": "Fixture source code: models (User, Task, Project), services (Auth, Task, Project), API routes, and a logger utility",
+        "path": "tests/e2e/fixture/src",
+        "structureSummary": "4 folders",
+        "children": {
+          "folders": [
+            {
+              "name": "api"
+            },
+            {
+              "name": "models"
+            },
+            {
+              "name": "services"
+            },
+            {
+              "name": "utils"
+            }
+          ],
+          "files": []
+        },
+        "edgeCount": 1
+      },
+      "tests.e2e.fixture.docs": {
+        "id": "tests.e2e.fixture.docs",
+        "type": "folder",
+        "desc": "Fixture tskb docs: vocabulary, architecture, auth, tasks, and a service-isolation constraint. Covers all doc priorities",
+        "path": "tests/e2e/fixture/docs",
+        "structureSummary": "6 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "architecture.tskb.tsx"
+            },
+            {
+              "name": "auth.tskb.tsx"
+            },
+            {
+              "name": "constraint-service-isolation.tskb.tsx"
+            },
+            {
+              "name": "tasks.tskb.tsx"
+            },
+            {
+              "name": "tsconfig.json"
+            },
+            {
+              "name": "vocabulary.tskb.tsx"
+            }
+          ]
+        },
+        "edgeCount": 1
+      },
       "TSKB.Package.Root": {
         "id": "TSKB.Package.Root",
         "type": "folder",
@@ -159,7 +286,7 @@
             {
               "name": "commands",
               "nodeId": "tskb.cli.commands",
-              "desc": "Command implementations for build, search, pick, and ls operations"
+              "desc": "Command implementations for init, build, search, pick, context, ls, and docs"
             },
             {
               "name": "utils",
@@ -337,9 +464,9 @@
       "tskb.cli.commands": {
         "id": "tskb.cli.commands",
         "type": "folder",
-        "desc": "Command implementations for build, search, pick, and ls operations",
+        "desc": "Command implementations for init, build, search, pick, context, ls, and docs",
         "path": "packages/tskb/src/cli/commands",
-        "structureSummary": "6 files",
+        "structureSummary": "7 files",
         "children": {
           "folders": [],
           "files": [
@@ -353,6 +480,11 @@
             },
             {
               "name": "docs.ts"
+            },
+            {
+              "name": "init.ts",
+              "nodeId": "cli.commands.init",
+              "desc": "Init command module - interactive scaffolder that creates docs folder, tsconfig, starter doc, build script, and AI integration directories"
             },
             {
               "name": "ls.ts",
@@ -371,7 +503,7 @@
             }
           ]
         },
-        "edgeCount": 6
+        "edgeCount": 7
       },
       "tskb.cli.utils": {
         "id": "tskb.cli.utils",
@@ -385,12 +517,12 @@
             {
               "name": "content-builder.ts",
               "nodeId": "cli.utils.content-builder",
-              "desc": "Shared markdown content builder - produces query body (commands, response shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy, primitives, examples, best practices)"
+              "desc": "Shared markdown content builder - produces query body, update body (syntax + session triggers), and bootstrap body for generated skill/instructions files"
             },
             {
               "name": "copilot-instructions-generator.ts",
               "nodeId": "cli.utils.copilot-instructions",
-              "desc": "Generates two Copilot instructions files: tskb.instructions.md (query/explore) and tskb-update.instructions.md (doc authoring guide)"
+              "desc": "Generates three Copilot instructions files: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)"
             },
             {
               "name": "graph-finder.ts",
@@ -411,7 +543,7 @@
             {
               "name": "skill-generator.ts",
               "nodeId": "cli.utils.skill-generator",
-              "desc": "Generates two Claude Code skills: .claude/skills/tskb/SKILL.md (query/explore) and .claude/skills/tskb-update/SKILL.md (doc authoring guide)"
+              "desc": "Generates three Claude Code skills: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)"
             }
           ]
         },
@@ -890,7 +1022,7 @@
           "export type File = ",
           "export type External = ",
           "export const ref: ReactNode",
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 128 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 137 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {}",
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"tests\" | \"tests.e2e.fixture\" | \"tests.e2e.test\" | \"vitest.config\" | \"ref\" | \"docs\" | \"examples.taskflow-app\" | \"tests.e2e\" | \"tests.e2e.fixture.src\" | ... 136 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 146 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {}",
           "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {}",
           "export function H1({ children }: { children: any; }): any {}",
           "export function H2({ children }: { children: any; }): any {}",
@@ -913,7 +1045,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "10 functions, 2 types, 1 variable",
         "morphology": [
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 128 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 137 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {} // :26-45",
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"tests\" | \"tests.e2e.fixture\" | \"tests.e2e.test\" | \"vitest.config\" | \"ref\" | \"docs\" | \"examples.taskflow-app\" | \"tests.e2e\" | \"tests.e2e.fixture.src\" | ... 136 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 146 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {} // :26-45",
           "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {} // :90-100",
           "export function H1({ children }: { children: any; }): any {} // :111-113",
           "export function H2({ children }: { children: any; }): any {} // :115-117",
@@ -1019,7 +1151,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "10 functions, 2 types, 1 variable",
         "morphology": [
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 128 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 137 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {} // :26-45",
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"tests\" | \"tests.e2e.fixture\" | \"tests.e2e.test\" | \"vitest.config\" | \"ref\" | \"docs\" | \"examples.taskflow-app\" | \"tests.e2e\" | \"tests.e2e.fixture.src\" | ... 136 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 146 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {} // :26-45",
           "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {} // :90-100",
           "export function H1({ children }: { children: any; }): any {} // :111-113",
           "export function H2({ children }: { children: any; }): any {} // :115-117",
@@ -1442,7 +1574,7 @@
         "desc": "CLI entry point - handles argument parsing, command routing, and error handling",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/index.js\")",
         "resolvedPath": "packages/tskb/src/cli/index.ts",
-        "importsSummary": "9 imports from 8 paths",
+        "importsSummary": "10 imports from 9 paths",
         "imports": [
           "parseArgs from \"node:util\"",
           "search from \"./commands/search.js\"",
@@ -1450,6 +1582,7 @@
           "ls from \"./commands/ls.js\"",
           "context from \"./commands/context.js\"",
           "docs from \"./commands/docs.js\"",
+          "init from \"./commands/init.js\"",
           "printHelpAndExit from \"./utils/help.js\"",
           "configure from \"./utils/logger.js\"",
           "error from \"./utils/logger.js\""
@@ -1480,6 +1613,10 @@
             "path": "./commands/docs.js"
           },
           {
+            "symbol": "init",
+            "path": "./commands/init.js"
+          },
+          {
             "symbol": "printHelpAndExit",
             "path": "./utils/help.js"
           },
@@ -1492,7 +1629,7 @@
             "path": "./utils/logger.js"
           }
         ],
-        "edgeCount": 7
+        "edgeCount": 8
       },
       "cli.commands.build": {
         "id": "cli.commands.build",
@@ -1791,16 +1928,62 @@
         ],
         "edgeCount": 7
       },
+      "cli.commands.init": {
+        "id": "cli.commands.init",
+        "type": "module",
+        "desc": "Init command module - interactive scaffolder that creates docs folder, tsconfig, starter doc, build script, and AI integration directories",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/init.js\")",
+        "resolvedPath": "packages/tskb/src/cli/commands/init.ts",
+        "morphologySummary": "1 function, 1 interface",
+        "morphology": [
+          "export function init(options?: InitOptions): Promise<void> {} // :80-223",
+          "export interface InitOptions { // :67-69",
+          "  yes: boolean | undefined // :68",
+          "}"
+        ],
+        "importsSummary": "5 imports from 4 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "path from \"node:path\"",
+          "readline from \"node:readline\"",
+          "info from \"../utils/logger.js\"",
+          "error from \"../utils/logger.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "readline",
+            "path": "node:readline"
+          },
+          {
+            "symbol": "info",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "error",
+            "path": "../utils/logger.js"
+          }
+        ],
+        "edgeCount": 4
+      },
       "cli.utils.content-builder": {
         "id": "cli.utils.content-builder",
         "type": "module",
-        "desc": "Shared markdown content builder - produces query body (commands, response shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy, primitives, examples, best practices)",
+        "desc": "Shared markdown content builder - produces query body, update body (syntax + session triggers), and bootstrap body for generated skill/instructions files",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/content-builder.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/content-builder.ts",
-        "morphologySummary": "2 functions",
+        "morphologySummary": "3 functions",
         "morphology": [
-          "export function buildQueryBody(graph: KnowledgeGraph): string {} // :8-62",
-          "export function buildUpdateBody(graph: KnowledgeGraph): string {} // :69-175"
+          "export function buildQueryBody(graph: KnowledgeGraph): string {} // :8-65",
+          "export function buildUpdateBody(graph: KnowledgeGraph): string {} // :72-256",
+          "export function buildBootstrapBody(_graph: KnowledgeGraph): string {} // :343-468"
         ],
         "importsSummary": "1 import from 1 path",
         "imports": [
@@ -1817,20 +2000,21 @@
       "cli.utils.skill-generator": {
         "id": "cli.utils.skill-generator",
         "type": "module",
-        "desc": "Generates two Claude Code skills: .claude/skills/tskb/SKILL.md (query/explore) and .claude/skills/tskb-update/SKILL.md (doc authoring guide)",
+        "desc": "Generates three Claude Code skills: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/skill-generator.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/skill-generator.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function generateSkillFiles(graph: KnowledgeGraph): string[] {} // :16-38"
+          "export function generateSkillFiles(graph: KnowledgeGraph): string[] {} // :17-47"
         ],
-        "importsSummary": "5 imports from 4 paths",
+        "importsSummary": "6 imports from 4 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
           "KnowledgeGraph from \"../../core/graph/types.js\"",
           "buildQueryBody from \"./content-builder.js\"",
-          "buildUpdateBody from \"./content-builder.js\""
+          "buildUpdateBody from \"./content-builder.js\"",
+          "buildBootstrapBody from \"./content-builder.js\""
         ],
         "importEntries": [
           {
@@ -1851,6 +2035,10 @@
           },
           {
             "symbol": "buildUpdateBody",
+            "path": "./content-builder.js"
+          },
+          {
+            "symbol": "buildBootstrapBody",
             "path": "./content-builder.js"
           }
         ],
@@ -1859,20 +2047,21 @@
       "cli.utils.copilot-instructions": {
         "id": "cli.utils.copilot-instructions",
         "type": "module",
-        "desc": "Generates two Copilot instructions files: tskb.instructions.md (query/explore) and tskb-update.instructions.md (doc authoring guide)",
+        "desc": "Generates three Copilot instructions files: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/copilot-instructions-generator.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/copilot-instructions-generator.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[] {} // :16-36"
+          "export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[] {} // :17-43"
         ],
-        "importsSummary": "5 imports from 4 paths",
+        "importsSummary": "6 imports from 4 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
           "KnowledgeGraph from \"../../core/graph/types.js\"",
           "buildQueryBody from \"./content-builder.js\"",
-          "buildUpdateBody from \"./content-builder.js\""
+          "buildUpdateBody from \"./content-builder.js\"",
+          "buildBootstrapBody from \"./content-builder.js\""
         ],
         "importEntries": [
           {
@@ -1893,6 +2082,10 @@
           },
           {
             "symbol": "buildUpdateBody",
+            "path": "./content-builder.js"
+          },
+          {
+            "symbol": "buildBootstrapBody",
             "path": "./content-builder.js"
           }
         ],
@@ -1942,7 +2135,7 @@
           "export function plainOut(text: string): void {} // :42-44",
           "export function infoTime(label: string) => (): void {} // :50-57"
         ],
-        "edgeCount": 8
+        "edgeCount": 9
       },
       "AuthService": {
         "id": "AuthService",
@@ -2176,7 +2369,7 @@
       "commandRouting": {
         "id": "commandRouting",
         "type": "term",
-        "desc": "The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, search, pick, or ls)"
+        "desc": "The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, or docs)"
       },
       "globPattern": {
         "id": "globPattern",
@@ -2192,6 +2385,11 @@
         "id": "tskbOutputDir",
         "type": "term",
         "desc": "The .tskb/ directory containing all build outputs: graph.json and graph.dot"
+      },
+      "tskbInit": {
+        "id": "tskbInit",
+        "type": "term",
+        "desc": "Interactive scaffolder command that creates docs folder, tsconfig, starter doc, package.json script, and opt-in AI integration directories"
       },
       "repositoryPattern": {
         "id": "repositoryPattern",
@@ -2520,7 +2718,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"docs\" | \"examples.taskflow-app\" | \"TSKB.Package.Root\" | \"tskb.cli\" | \"tskb.core\" | \"tskb.runtime\" | \"tskb.typescript\" | \"core.visualization\" | ... 128 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 137 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {} // :26-45"
+          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"tests\" | \"tests.e2e.fixture\" | \"tests.e2e.test\" | \"vitest.config\" | \"ref\" | \"docs\" | \"examples.taskflow-app\" | \"tests.e2e\" | \"tests.e2e.fixture.src\" | ... 136 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 146 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {} // :26-45"
         ],
         "edgeCount": 1
       },
@@ -3056,6 +3254,20 @@
       }
     },
     "files": {
+      "vitest.config": {
+        "id": "vitest.config",
+        "type": "file",
+        "desc": "Vitest configuration — includes tests/**/*.test.ts with a 60s timeout for CLI subprocess tests",
+        "path": "vitest.config.ts",
+        "edgeCount": 1
+      },
+      "tests.e2e.test": {
+        "id": "tests.e2e.test",
+        "type": "file",
+        "desc": "Main e2e test file — tests across init scaffolding and full CLI pipeline (build, ls, search, pick, docs, context, JSON output, graph integrity)",
+        "path": "tests/e2e/tskb-e2e.test.ts",
+        "edgeCount": 2
+      },
       "npm.README.md": {
         "id": "npm.README.md",
         "type": "file",
@@ -3077,6 +3289,16 @@
       }
     },
     "docs": {
+      "docs/src/tskb/tests.tskb.tsx": {
+        "id": "docs/src/tskb/tests.tskb.tsx",
+        "type": "doc",
+        "explains": "E2E test infrastructure: Vitest suite, fixture project, and CLI validation strategy",
+        "priority": "supplementary",
+        "filePath": "docs/src/tskb/tests.tskb.tsx",
+        "content": "E2E Test Infrastructure The test suite ( <nodeId: tests>) validates the entire tskb CLI by running it as a subprocess\n      against a realistic fixture project. Tests use Vitest and spawn the built CLI binary via\n      Node's execFileSync, asserting on stdout and generated artifacts. Fixture Project The fixture at <nodeId: tests.e2e.fixture>is a small task-management TypeScript app with models,\n      services, API routes, and utilities. It includes its own tskb docs folder with 5 doc files\n      covering all three priority levels (essential, constraint, supplementary) and all registry\n      primitives (Folder, Module, Export, Term, External, Relation). This makes it a comprehensive\n      test subject for the full build and query pipeline. Test Structure The test file ( <nodeId: tests.e2e.test>) has two top-level describe blocks: tskb init — scaffolding tests. Copies the fixture src/ into a temp\n        directory, runs init --yes (non-interactive), then asserts on created files:\n        docs/tsconfig.json, architecture.tskb.tsx, package.json scripts, .claude/skills/, .github/.\n        Also verifies idempotency (re-running init does not overwrite user edits). tskb e2e — full pipeline tests. Builds the fixture graph, then tests every\n        query command (ls, search, pick, docs, context) in both plain and JSON output modes. A graph\n        integrity section validates edge consistency: belongs-to, contains, references, imports,\n        related-to edges, type signatures, external metadata, and that all edge targets reference\n        existing nodes. Running Tests Tests require the package to be built first (npm run build). Run with npm test (vitest run) or\n      npm run test:watch (vitest) for interactive mode. The 60-second timeout in <nodeId: vitest.config>accounts for CLI subprocess startup cost.",
+        "format": "tsx",
+        "edgeCount": 4
+      },
       "docs/src/tskb/main.tskb.tsx": {
         "id": "docs/src/tskb/main.tskb.tsx",
         "type": "doc",
@@ -3150,12 +3372,12 @@
       "docs/src/tskb/cli/cli-overview.tskb.tsx": {
         "id": "docs/src/tskb/cli/cli-overview.tskb.tsx",
         "type": "doc",
-        "explains": "CLI structure: commands (build, search, pick, ls) and utils (output generators, content builder, logger)",
+        "explains": "CLI structure: commands (init, build, search, pick, context, ls, docs) and utils (output generators, content builder, logger)",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/cli/cli-overview.tskb.tsx",
-        "content": "CLI Located in <nodeId: tskb.cli>. Entry point: <nodeId: cli.index>— parses arguments, routes to command\n      handlers. Commands In <nodeId: tskb.cli.commands>: <nodeId: cli.commands.build>: Full pipeline — files → TypeScript program → extraction → graph → outputs <nodeId: cli.commands.search>: Fuzzy search across all node types, returns ranked JSON results <nodeId: cli.commands.pick>: Resolve any node by ID or path, returns type-specific context <nodeId: cli.commands.ls>: List folder hierarchy with depth control, includes essential docs Utils In <nodeId: tskb.cli.utils>: <nodeId: cli.utils.content-builder>: Produces two markdown bodies — query body (commands, response\n        shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy,\n        primitives, examples, best practices) <nodeId: cli.utils.skill-generator>: Generates two Claude Code skills — tskb (query/explore) and tskb-update\n        (doc authoring guide) <nodeId: cli.utils.copilot-instructions>: Generates two Copilot instructions files — tskb (query/explore) and\n        tskb-update (doc authoring guide) <nodeId: cli.utils.graph-finder>: Finds .tskb/graph.json from cwd, used by search/pick/ls <nodeId: cli.utils.logger>: Stderr-only logger with info/verbose/error/time — configured once at startup\n        via --verbose flag",
+        "content": "CLI Located in <nodeId: tskb.cli>. Entry point: <nodeId: cli.index>— parses arguments, routes to command\n      handlers. Commands In <nodeId: tskb.cli.commands>: <nodeId: cli.commands.init>: Interactive scaffolder — creates docs folder, tsconfig, starter doc, build\n        script <nodeId: cli.commands.build>: Full pipeline — files → TypeScript program → extraction → graph → outputs <nodeId: cli.commands.search>: Fuzzy search across all node types, returns ranked JSON results <nodeId: cli.commands.pick>: Resolve any node by ID or path, returns type-specific context <nodeId: cli.commands.ls>: List folder hierarchy with depth control, includes essential docs Utils In <nodeId: tskb.cli.utils>: <nodeId: cli.utils.content-builder>: Produces three markdown bodies — query body, update body (syntax +\n        session triggers), and bootstrap body — consumed by skill and instructions generators <nodeId: cli.utils.skill-generator>: Generates three Claude Code skills — tskb, tskb-update, tskb-bootstrap <nodeId: cli.utils.copilot-instructions>: Generates three Copilot instructions — tskb, tskb-update, tskb-bootstrap <nodeId: cli.utils.graph-finder>: Finds .tskb/graph.json from cwd, used by search/pick/ls <nodeId: cli.utils.logger>: Stderr-only logger with info/verbose/error/time — configured once at startup\n        via --verbose flag",
         "format": "tsx",
-        "edgeCount": 13
+        "edgeCount": 14
       },
       "docs/src/taskflow-app/main.tskb.tsx": {
         "id": "docs/src/taskflow-app/main.tskb.tsx",
@@ -3240,6 +3462,26 @@
     }
   },
   "edges": [
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.e2e.fixture",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.e2e.test",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "vitest.config",
+      "type": "references"
+    },
     {
       "from": "docs/src/tskb/main.tskb.tsx",
       "to": "package.json",
@@ -3555,6 +3797,11 @@
     {
       "from": "docs/src/tskb/cli/cli-overview.tskb.tsx",
       "to": "cli.index",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/cli/cli-overview.tskb.tsx",
+      "to": "cli.commands.init",
       "type": "references"
     },
     {
@@ -4028,6 +4275,31 @@
       "type": "contains"
     },
     {
+      "from": "__TSKB.ROOT__",
+      "to": "tests",
+      "type": "contains"
+    },
+    {
+      "from": "tests",
+      "to": "tests.e2e",
+      "type": "contains"
+    },
+    {
+      "from": "tests.e2e",
+      "to": "tests.e2e.fixture",
+      "type": "contains"
+    },
+    {
+      "from": "tests.e2e.fixture",
+      "to": "tests.e2e.fixture.src",
+      "type": "contains"
+    },
+    {
+      "from": "tests.e2e.fixture",
+      "to": "tests.e2e.fixture.docs",
+      "type": "contains"
+    },
+    {
       "from": "packages",
       "to": "TSKB.Package.Root",
       "type": "contains"
@@ -4244,6 +4516,11 @@
     },
     {
       "from": "cli.commands.ls",
+      "to": "tskb.cli.commands",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.commands.init",
       "to": "tskb.cli.commands",
       "type": "belongs-to"
     },
@@ -4558,6 +4835,11 @@
       "type": "belongs-to"
     },
     {
+      "from": "tests.e2e.test",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
       "from": "npm.README.md",
       "to": "TSKB.Package.Root",
       "type": "belongs-to"
@@ -4615,6 +4897,11 @@
     {
       "from": "cli.index",
       "to": "cli.commands.ls",
+      "type": "imports"
+    },
+    {
+      "from": "cli.index",
+      "to": "cli.commands.init",
       "type": "imports"
     },
     {
@@ -4678,6 +4965,11 @@
       "type": "imports"
     },
     {
+      "from": "cli.commands.init",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
       "from": "cli.utils.content-builder",
       "to": "graph.types",
       "type": "imports"
@@ -4704,18 +4996,18 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-24T15:11:37.175Z",
+    "generatedAt": "2026-03-25T16:32:55.117Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
-      "folderCount": 31,
-      "moduleCount": 26,
-      "termCount": 30,
+      "folderCount": 36,
+      "moduleCount": 27,
+      "termCount": 31,
       "exportCount": 54,
-      "fileCount": 1,
+      "fileCount": 3,
       "externalCount": 1,
-      "docCount": 16,
-      "edgeCount": 292
+      "docCount": 17,
+      "edgeCount": 306
     }
   }
 }

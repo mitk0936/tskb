@@ -16,7 +16,7 @@ declare global {
   namespace tskb {
     interface Folders {
       "tskb.cli.commands": Folder<{
-        desc: "Command implementations for build, search, pick, and ls operations";
+        desc: "Command implementations for init, build, search, pick, context, ls, and docs";
         path: "packages/tskb/src/cli/commands";
       }>;
 
@@ -52,18 +52,23 @@ declare global {
         type: typeof import("packages/tskb/src/cli/commands/ls.js");
       }>;
 
+      "cli.commands.init": Module<{
+        desc: "Init command module - interactive scaffolder that creates docs folder, tsconfig, starter doc, build script, and AI integration directories";
+        type: typeof import("packages/tskb/src/cli/commands/init.js");
+      }>;
+
       "cli.utils.content-builder": Module<{
-        desc: "Shared markdown content builder - produces query body (commands, response shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy, primitives, examples, best practices)";
+        desc: "Shared markdown content builder - produces query body, update body (syntax + session triggers), and bootstrap body for generated skill/instructions files";
         type: typeof import("packages/tskb/src/cli/utils/content-builder.js");
       }>;
 
       "cli.utils.skill-generator": Module<{
-        desc: "Generates two Claude Code skills: .claude/skills/tskb/SKILL.md (query/explore) and .claude/skills/tskb-update/SKILL.md (doc authoring guide)";
+        desc: "Generates three Claude Code skills: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)";
         type: typeof import("packages/tskb/src/cli/utils/skill-generator.js");
       }>;
 
       "cli.utils.copilot-instructions": Module<{
-        desc: "Generates two Copilot instructions files: tskb.instructions.md (query/explore) and tskb-update.instructions.md (doc authoring guide)";
+        desc: "Generates three Copilot instructions files: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)";
         type: typeof import("packages/tskb/src/cli/utils/copilot-instructions-generator.js");
       }>;
 
@@ -87,10 +92,11 @@ declare global {
 
     interface Terms {
       cliPipeline: Term<"The build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, skill/instructions)">;
-      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, search, pick, or ls)">;
+      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, or docs)">;
       globPattern: Term<"File pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing">;
       folderIdNavigation: Term<"Navigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths">;
       tskbOutputDir: Term<"The .tskb/ directory containing all build outputs: graph.json and graph.dot">;
+      tskbInit: Term<"Interactive scaffolder command that creates docs folder, tsconfig, starter doc, package.json script, and opt-in AI integration directories">;
     }
   }
 }
@@ -103,6 +109,7 @@ const BuildModule = ref as tskb.Modules["cli.commands.build"];
 const SearchModule = ref as tskb.Modules["cli.commands.search"];
 const PickModule = ref as tskb.Modules["cli.commands.pick"];
 const LsModule = ref as tskb.Modules["cli.commands.ls"];
+const InitModule = ref as tskb.Modules["cli.commands.init"];
 const ContentBuilderModule = ref as tskb.Modules["cli.utils.content-builder"];
 const SkillGenModule = ref as tskb.Modules["cli.utils.skill-generator"];
 const CopilotGenModule = ref as tskb.Modules["cli.utils.copilot-instructions"];
@@ -110,7 +117,7 @@ const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
 const LoggerModule = ref as tskb.Modules["cli.utils.logger"];
 
 export default (
-  <Doc explains="CLI structure: commands (build, search, pick, ls) and utils (output generators, content builder, logger)">
+  <Doc explains="CLI structure: commands (init, build, search, pick, context, ls, docs) and utils (output generators, content builder, logger)">
     <H1>CLI</H1>
     <P>
       Located in {CliFolder}. Entry point: {IndexModule} — parses arguments, routes to command
@@ -120,6 +127,10 @@ export default (
     <H2>Commands</H2>
     <P>In {CommandsFolder}:</P>
     <List>
+      <Li>
+        {InitModule}: Interactive scaffolder — creates docs folder, tsconfig, starter doc, build
+        script
+      </Li>
       <Li>
         {BuildModule}: Full pipeline — files → TypeScript program → extraction → graph → outputs
       </Li>
@@ -132,17 +143,14 @@ export default (
     <P>In {UtilsFolder}:</P>
     <List>
       <Li>
-        {ContentBuilderModule}: Produces two markdown bodies — query body (commands, response
-        shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy,
-        primitives, examples, best practices)
+        {ContentBuilderModule}: Produces three markdown bodies — query body, update body (syntax +
+        session triggers), and bootstrap body — consumed by skill and instructions generators
       </Li>
       <Li>
-        {SkillGenModule}: Generates two Claude Code skills — tskb (query/explore) and tskb-update
-        (doc authoring guide)
+        {SkillGenModule}: Generates three Claude Code skills — tskb, tskb-update, tskb-bootstrap
       </Li>
       <Li>
-        {CopilotGenModule}: Generates two Copilot instructions files — tskb (query/explore) and
-        tskb-update (doc authoring guide)
+        {CopilotGenModule}: Generates three Copilot instructions — tskb, tskb-update, tskb-bootstrap
       </Li>
       <Li>{GraphFinderModule}: Finds .tskb/graph.json from cwd, used by search/pick/ls</Li>
       <Li>

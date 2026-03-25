@@ -1,12 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
-import { buildQueryBody, buildUpdateBody } from "./content-builder.js";
+import { buildQueryBody, buildUpdateBody, buildBootstrapBody } from "./content-builder.js";
 
 /**
  * Generate Claude Code skill files:
  * - .claude/skills/tskb/SKILL.md (query/explore)
- * - .claude/skills/tskb-update/SKILL.md (update docs)
+ * - .claude/skills/tskb-update/SKILL.md (update/write docs)
+ * - .claude/skills/tskb-bootstrap/SKILL.md (initial setup)
  *
  * Directories are created automatically if they don't exist.
  *
@@ -34,6 +35,14 @@ export function generateSkillFiles(graph: KnowledgeGraph): string[] {
   fs.writeFileSync(updatePath, updateContent, "utf-8");
   paths.push(updatePath);
 
+  // Bootstrap skill
+  const bootstrapDir = path.join(skillsDir, "tskb-bootstrap");
+  fs.mkdirSync(bootstrapDir, { recursive: true });
+  const bootstrapContent = buildBootstrapSkillContent(graph);
+  const bootstrapPath = path.join(bootstrapDir, "SKILL.md");
+  fs.writeFileSync(bootstrapPath, bootstrapContent, "utf-8");
+  paths.push(bootstrapPath);
+
   return paths;
 }
 
@@ -56,14 +65,27 @@ ${buildQueryBody(graph)}
 function buildUpdateSkillContent(graph: KnowledgeGraph): string {
   return `---
 name: tskb-update
-description: "Add or update entries on the codebase map — declare folders, modules, exports, and write .tskb.tsx doc files. Use when the developer asks or when you find something important that's not on the map."
+description: "Write, update, and maintain .tskb.tsx documentation files — covers JSX syntax, registry primitives, session triggers, and best practices. Use when the developer asks to document or when you encounter something structurally important that's missing from the map."
 allowed-tools: Bash(npx --no -- tskb *), Read, Write, Edit, Glob
 ---
 
-# TSKB — Update the Codebase Map
+# TSKB — Write & Update Documentation
 
-How to add things to the map. The map lives in \`.tskb.tsx\` files — they declare what exists and how it connects.
+How to write and maintain the codebase map. The map lives in \`.tskb.tsx\` files — they declare what exists and how it connects.
 
 ${buildUpdateBody(graph)}
+`;
+}
+
+function buildBootstrapSkillContent(graph: KnowledgeGraph): string {
+  return `---
+name: tskb-bootstrap
+description: "Initial tskb setup in a new or existing repo — install, scaffold docs folder, configure TypeScript, add AI integrations. Use when the developer wants to add tskb to their project for the first time."
+allowed-tools: Bash(npx tskb init), Bash(npx --no -- tskb *), Read, Write, Edit
+---
+
+# TSKB — Bootstrap Initial Setup
+
+${buildBootstrapBody(graph)}
 `;
 }

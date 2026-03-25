@@ -58,6 +58,12 @@ All paths are relative to project root and can be used directly to read files.
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [1 folder]
     - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [2 folders, 4 files]
   - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [2 files]
+  - **tests** (`tests`) — End-to-end test suite for the tskb CLI, using Vitest [1 folder]
+    - **tests.e2e** (`tests/e2e`) — E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command [1 folder, 1 file]
+
+## Externals
+
+- **pg** — PostgreSQL client for Node.js (url: https://node-postgres.com, kind: npm-package)
 
 ## Documentation
 
@@ -66,6 +72,6 @@ All paths are relative to project root and can be used directly to read files.
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — Runtime module structure: JSX primitives and registry type definitions
 - `docs/src/tskb/typescript/typescript.tskb.tsx` — TypeScript Program creation for static analysis without compilation
 
-_Plus 12 supplementary docs available via `npx --no -- tskb docs --optimized`._
+_Plus 13 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 Constraint docs define architectural rules that **MUST** be followed when working on related code.
