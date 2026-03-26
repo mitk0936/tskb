@@ -276,7 +276,7 @@ digraph KnowledgeGraph {
             fillcolor="#E3F2FD";
             color="#1976D2";
 
-            "tskb.cli.commands" [label="Folder\<\"tskb.cli.commands\"\>\nCommand implementations for build, search, pick, and ls operations\n📁 packages/tskb/src/cli/commands", shape=box, fillcolor="#BBDEFB", style=filled];
+            "tskb.cli.commands" [label="Folder\<\"tskb.cli.commands\"\>\nCommand implementations for init, build, search, pick, context, ls, and docs\n📁 packages/tskb/src/cli/commands", shape=box, fillcolor="#BBDEFB", style=filled];
 
             // Modules in tskb.cli.commands
             "cli.commands.build" [label="Module\<\"cli.commands.build\"\>\nBuild command module - orchestrates the complete pipeline from source files to knowledge graph, DOT visualization, and agent guidance\n📁 packages/tskb/src/cli/commands/build.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
@@ -288,6 +288,7 @@ digraph KnowledgeGraph {
               "cli.pick" [label="Export\<\"cli.pick\"\>\nResolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs\n📁 packages/tskb/src/cli/commands/pick.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "cli.commands.ls" [label="Module\<\"cli.commands.ls\"\>\nList command module - recursively lists all folders from root with controllable depth, returning flat JSON hierarchy\n📁 packages/tskb/src/cli/commands/ls.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "cli.ls" [label="Export\<\"cli.ls\"\>\nLists all folders in the knowledge graph from TSKB.Package.Root with controllable depth, returning flat JSON hierarchy\n📁 packages/tskb/src/cli/commands/ls.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "cli.commands.init" [label="Module\<\"cli.commands.init\"\>\nInit command module - interactive scaffolder that creates docs folder, tsconfig, starter doc, build script, and AI integration directories\n📁 packages/tskb/src/cli/commands/init.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
           }
 
@@ -300,9 +301,9 @@ digraph KnowledgeGraph {
             "tskb.cli.utils" [label="Folder\<\"tskb.cli.utils\"\>\nCLI utilities - output generators (skill, copilot instructions), shared content builder, graph file finder\n📁 packages/tskb/src/cli/utils", shape=box, fillcolor="#BBDEFB", style=filled];
 
             // Modules in tskb.cli.utils
-            "cli.utils.content-builder" [label="Module\<\"cli.utils.content-builder\"\>\nShared markdown content builder - produces query body (commands, response shapes, folder tree, docs, constraints, workflow) and update body (authoring philosophy, primitives, examples, best practices)\n📁 packages/tskb/src/cli/utils/content-builder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-            "cli.utils.skill-generator" [label="Module\<\"cli.utils.skill-generator\"\>\nGenerates two Claude Code skills: .claude/skills/tskb/SKILL.md (query/explore) and .claude/skills/tskb-update/SKILL.md (doc authoring guide)\n📁 packages/tskb/src/cli/utils/skill-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-            "cli.utils.copilot-instructions" [label="Module\<\"cli.utils.copilot-instructions\"\>\nGenerates two Copilot instructions files: tskb.instructions.md (query/explore) and tskb-update.instructions.md (doc authoring guide)\n📁 packages/tskb/src/cli/utils/copilot-instructions-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.content-builder" [label="Module\<\"cli.utils.content-builder\"\>\nShared markdown content builder - produces query body and update body (syntax + session triggers) for generated skill/instructions files\n📁 packages/tskb/src/cli/utils/content-builder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.skill-generator" [label="Module\<\"cli.utils.skill-generator\"\>\nGenerates two Claude Code skills: tskb (query/explore) and tskb-update (write & update docs)\n📁 packages/tskb/src/cli/utils/skill-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.copilot-instructions" [label="Module\<\"cli.utils.copilot-instructions\"\>\nGenerates two Copilot instructions files: tskb (query/explore) and tskb-update (write & update docs)\n📁 packages/tskb/src/cli/utils/copilot-instructions-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "cli.utils.graph-finder" [label="Module\<\"cli.utils.graph-finder\"\>\nLocates .tskb/graph.json from the current working directory, used by search/pick/ls commands\n📁 packages/tskb/src/cli/utils/graph-finder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "cli.utils.logger" [label="Module\<\"cli.utils.logger\"\>\nCLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })\n📁 packages/tskb/src/cli/utils/logger.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
@@ -431,6 +432,56 @@ digraph KnowledgeGraph {
 
     }
 
+    subgraph "cluster_tests" {
+      label="tests";
+      style=filled;
+      fillcolor="#E3F2FD";
+      color="#1976D2";
+
+      "tests" [label="Folder\<\"tests\"\>\nEnd-to-end test suite for the tskb CLI, using Vitest\n📁 tests", shape=box, fillcolor="#BBDEFB", style=filled];
+
+      subgraph "cluster_tests_e2e" {
+        label="tests.e2e";
+        style=filled;
+        fillcolor="#E3F2FD";
+        color="#1976D2";
+
+        "tests.e2e" [label="Folder\<\"tests.e2e\"\>\nE2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command\n📁 tests/e2e", shape=box, fillcolor="#BBDEFB", style=filled];
+
+        subgraph "cluster_tests_e2e_fixture" {
+          label="tests.e2e.fixture";
+          style=filled;
+          fillcolor="#E3F2FD";
+          color="#1976D2";
+
+          "tests.e2e.fixture" [label="Folder\<\"tests.e2e.fixture\"\>\nA small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb\n📁 tests/e2e/fixture", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          subgraph "cluster_tests_e2e_fixture_src" {
+            label="tests.e2e.fixture.src";
+            style=filled;
+            fillcolor="#E3F2FD";
+            color="#1976D2";
+
+            "tests.e2e.fixture.src" [label="Folder\<\"tests.e2e.fixture.src\"\>\nFixture source code: models (User, Task, Project), services (Auth, Task, Project), API routes, and a logger utility\n📁 tests/e2e/fixture/src", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          }
+
+          subgraph "cluster_tests_e2e_fixture_docs" {
+            label="tests.e2e.fixture.docs";
+            style=filled;
+            fillcolor="#E3F2FD";
+            color="#1976D2";
+
+            "tests.e2e.fixture.docs" [label="Folder\<\"tests.e2e.fixture.docs\"\>\nFixture tskb docs: vocabulary, architecture, auth, tasks, and a service-isolation constraint. Covers all doc priorities\n📁 tests/e2e/fixture/docs", shape=box, fillcolor="#BBDEFB", style=filled];
+
+          }
+
+        }
+
+      }
+
+    }
+
   }
 
   // Terms
@@ -455,10 +506,11 @@ digraph KnowledgeGraph {
     "typeAssertion" [label="Term\<\"typeAssertion\"\>\nTypeScript 'as' syntax that casts a value to a specific type, used in tskb to reference vocabulary items: {ref as tskb.Modules['X']}", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "depthFirstTraversal" [label="Term\<\"depthFirstTraversal\"\>\nTree traversal algorithm that explores as far as possible along each branch before backtracking, used to visit all JSX nodes in order", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "cliPipeline" [label="Term\<\"cliPipeline\"\>\nThe build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, skill/instructions)", shape=diamond, fillcolor="#F0F4C3", style=filled];
-    "commandRouting" [label="Term\<\"commandRouting\"\>\nThe CLI's mechanism for parsing arguments and delegating to the appropriate command handler (build, search, pick, or ls)", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "commandRouting" [label="Term\<\"commandRouting\"\>\nThe CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, or docs)", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "globPattern" [label="Term\<\"globPattern\"\>\nFile pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "folderIdNavigation" [label="Term\<\"folderIdNavigation\"\>\nNavigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "tskbOutputDir" [label="Term\<\"tskbOutputDir\"\>\nThe .tskb/ directory containing all build outputs: graph.json and graph.dot", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "tskbInit" [label="Term\<\"tskbInit\"\>\nInteractive scaffolder command that creates docs folder, tsconfig, starter doc, package.json script, and opt-in AI integration directories", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "repositoryPattern" [label="Term\<\"repositoryPattern\"\>\nData access abstraction layer that separates business logic from database operations", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "serviceLayer" [label="Term\<\"serviceLayer\"\>\nBusiness logic layer that orchestrates operations between controllers and repositories", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "contextProvider" [label="Term\<\"contextProvider\"\>\nReact pattern for managing and sharing state across component tree without prop drilling", shape=diamond, fillcolor="#F0F4C3", style=filled];
@@ -483,6 +535,7 @@ digraph KnowledgeGraph {
     label="Documentation";
     style=dashed;
     color=gray;
+    "docs/src/tskb/tests.tskb.tsx" [label="docs/src/tskb/tests.tskb.tsx\nE2E Test Infrastructure The test suite ( ) validates the entire tskb CLI by running it as a subproce...\n📄 docs/src/tskb/tests.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/main.tskb.tsx" [label="docs/src/tskb/main.tskb.tsx\nArchitecture and implementation docs for the  library The package is located in , with its and for n...\n📄 docs/src/tskb/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/typescript/typescript.tskb.tsx" [label="docs/src/tskb/typescript/typescript.tskb.tsx\nTypeScript Program Located in . Creates for analyzing code without compilation. Key Module : Exports...\n📄 docs/src/tskb/typescript/typescript.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/runtime/runtime.tskb.tsx" [label="docs/src/tskb/runtime/runtime.tskb.tsx\nRuntime Located in . Contains registry type definitions and JSX primitives - no actual\n      runtime...\n📄 docs/src/tskb/runtime/runtime.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
@@ -503,6 +556,10 @@ digraph KnowledgeGraph {
 
   // Relationships
   // references edges
+  "docs/src/tskb/tests.tskb.tsx" -> "tests" [color=grey, style=dashed];
+  "docs/src/tskb/tests.tskb.tsx" -> "tests.e2e.fixture" [color=grey, style=dashed];
+  "docs/src/tskb/tests.tskb.tsx" -> "tests.e2e.test" [color=grey, style=dashed];
+  "docs/src/tskb/tests.tskb.tsx" -> "vitest.config" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "package.json" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "Main.index.js" [color=grey, style=dashed];
   "docs/src/tskb/main.tskb.tsx" -> "Jsx.runtime.js" [color=grey, style=dashed];
@@ -558,6 +615,7 @@ digraph KnowledgeGraph {
   "docs/src/tskb/cli/logging.tskb.tsx" -> "cli.index" [color=grey, style=dashed];
   "docs/src/tskb/cli/logging.tskb.tsx" -> "cli.commands.build" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.index" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.init" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.build" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.search" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.commands.pick" [color=grey, style=dashed];
@@ -671,6 +729,7 @@ digraph KnowledgeGraph {
   "cli.index" -> "cli.commands.search" ;
   "cli.index" -> "cli.commands.pick" ;
   "cli.index" -> "cli.commands.ls" ;
+  "cli.index" -> "cli.commands.init" ;
   "cli.index" -> "cli.utils.logger" ;
   "cli.commands.build" -> "typescript.index" ;
   "cli.commands.build" -> "cli.utils.logger" ;
@@ -683,6 +742,7 @@ digraph KnowledgeGraph {
   "cli.commands.ls" -> "graph.types" ;
   "cli.commands.ls" -> "cli.utils.graph-finder" ;
   "cli.commands.ls" -> "cli.utils.logger" ;
+  "cli.commands.init" -> "cli.utils.logger" ;
   "cli.utils.content-builder" -> "graph.types" ;
   "cli.utils.skill-generator" -> "graph.types" ;
   "cli.utils.skill-generator" -> "cli.utils.content-builder" ;

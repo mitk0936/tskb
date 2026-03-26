@@ -13,6 +13,7 @@ import { pick } from "./commands/pick.js";
 import { ls } from "./commands/ls.js";
 import { context } from "./commands/context.js";
 import { docs } from "./commands/docs.js";
+import { init } from "./commands/init.js";
 import { printHelpAndExit } from "./utils/help.js";
 import { configure, error } from "./utils/logger.js";
 
@@ -28,6 +29,7 @@ async function main() {
       verbose: { type: "boolean", default: false },
       optimized: { type: "boolean", default: false },
       plain: { type: "boolean", default: false },
+      yes: { type: "boolean", default: false, short: "y" },
     },
     allowPositionals: true,
   });
@@ -87,6 +89,10 @@ async function main() {
       }
       case "docs": {
         await docs(positionals[1], values.optimized!, values.plain!);
+        break;
+      }
+      case "init": {
+        await init({ yes: values.yes });
         break;
       }
       default:

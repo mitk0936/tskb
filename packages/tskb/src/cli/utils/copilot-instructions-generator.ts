@@ -6,7 +6,7 @@ import { buildQueryBody, buildUpdateBody } from "./content-builder.js";
 /**
  * Generate GitHub Copilot instructions files:
  * - .github/instructions/tskb.instructions.md (query/explore)
- * - .github/instructions/tskb-update.instructions.md (update docs)
+ * - .github/instructions/tskb-update.instructions.md (update/write docs)
  *
  * Directories are created automatically if they don't exist.
  *
@@ -53,10 +53,10 @@ function buildUpdateInstructionsContent(graph: KnowledgeGraph): string {
 applyTo: "**/*.tskb.tsx"
 ---
 
-# TSKB — Documentation Authoring Guide
+# TSKB — Write & Update Documentation
 
 This project uses **TSKB**, a semantic knowledge graph of the codebase.
-This guide explains how to write and update \`.tskb.tsx\` documentation files.
+This guide covers how to write, update, and maintain \`.tskb.tsx\` documentation files — syntax, registry primitives, session triggers, and best practices.
 
 ${buildUpdateBody(graph)}
 `;

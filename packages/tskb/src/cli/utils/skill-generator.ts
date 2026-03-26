@@ -6,7 +6,7 @@ import { buildQueryBody, buildUpdateBody } from "./content-builder.js";
 /**
  * Generate Claude Code skill files:
  * - .claude/skills/tskb/SKILL.md (query/explore)
- * - .claude/skills/tskb-update/SKILL.md (update docs)
+ * - .claude/skills/tskb-update/SKILL.md (update/write docs)
  *
  * Directories are created automatically if they don't exist.
  *
@@ -56,13 +56,13 @@ ${buildQueryBody(graph)}
 function buildUpdateSkillContent(graph: KnowledgeGraph): string {
   return `---
 name: tskb-update
-description: "Add or update entries on the codebase map — declare folders, modules, exports, and write .tskb.tsx doc files. Use when the developer asks or when you find something important that's not on the map."
+description: "Write, update, and maintain .tskb.tsx documentation files — covers JSX syntax, registry primitives, session triggers, and best practices. Use when the developer asks to document or when you encounter something structurally important that's missing from the map."
 allowed-tools: Bash(npx --no -- tskb *), Read, Write, Edit, Glob
 ---
 
-# TSKB — Update the Codebase Map
+# TSKB — Write & Update Documentation
 
-How to add things to the map. The map lives in \`.tskb.tsx\` files — they declare what exists and how it connects.
+How to write and maintain the codebase map. The map lives in \`.tskb.tsx\` files — they declare what exists and how it connects.
 
 ${buildUpdateBody(graph)}
 `;

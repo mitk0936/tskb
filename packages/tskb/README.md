@@ -1,6 +1,6 @@
 # tskb
 
-Build **living architecture documentation as code**. Declaratively define architectural intent in large TypeScript codebases and monorepos, and turn that intent into a **compiler-verified artifact**.
+Build **architecture docs as code**. Declaratively define architectural intent in large TypeScript codebases and monorepos, and turn that intent into a **compiler-verified artifact**.
 
 > **Documentation physically bound to your code, so you can trust it.**
 
@@ -81,105 +81,44 @@ tskb addresses this by making architecture documentation:
 npm install --save-dev tskb
 ```
 
-**Create docs folder with config:**
+**Run the interactive scaffolder:**
 
 ```bash
-mkdir docs
+npx tskb init
 ```
 
-**Repo structure:**
+This will ask you:
+
+1. Where to put the docs folder (default: `docs/`)
+2. The glob pattern and tsconfig path
+3. Whether to enable **Claude Code** (`.claude/skills/`) and/or **GitHub Copilot** (`.github/instructions/`) integrations
+
+It creates everything you need:
 
 ```
 your-repo/
-├── src/              # Your source code
-├── docs/             # Architecture documentation
-│   ├── tsconfig.json # TypeScript config for docs
-│   └── *.tskb.tsx    # Documentation files
-└── package.json      # Add tskb script here
+├── docs/
+│   ├── tsconfig.json          # TypeScript config for docs (jsxImportSource: "tskb")
+│   └── architecture.tskb.tsx  # Starter doc — edit this first
+├── package.json               # "docs" script added automatically
+├── .claude/skills/            # Created if Claude Code was selected
+└── .github/                   # Created if Copilot was selected
 ```
 
-> For monorepos: create `docs/` at workspace root, and ensure `tsconfig.json` can resolve all packages you want to document.
-
----
-
-### 1) Configure TypeScript for docs
-
-Create `docs/tsconfig.json` that can type-check your real code:
-
-```json
-{
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "allowJs": true,
-    "esModuleInterop": true,
-
-    "jsx": "react-jsx",
-    "jsxImportSource": "tskb",
-
-    "baseUrl": "../",
-    "rootDir": "../",
-
-    "paths": {
-      "@/*": ["src/*"]
-    }
-  },
-  "include": ["**/*.tskb.tsx"]
-}
-```
-
-**Key settings:**
-
-- `baseUrl: "../"` - Points to repo root so docs can import from `src/`
-- `jsxImportSource: "tskb"` - Enables TSX syntax for documentation
-- `moduleResolution: "NodeNext"` - Use ESM-style imports with explicit extensions (`.js`)
-
----
-
-### 2) Add a build script
-
-Add to your root `package.json`:
-
-```json
-{
-  "scripts": {
-    "docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json"
-  }
-}
-```
-
-> **Note:** `tskb <pattern>` is shorthand for `tskb build <pattern>`
-
-Run it from repo root:
+**Build the knowledge graph:**
 
 ```bash
 npm run docs
 ```
 
-This creates a `.tskb/` directory in your repo root containing:
-
-- `graph.json` - the knowledge graph (queryable via CLI)
-- `graph.dot` - Graphviz visualization
-
-**AI assistant integrations (auto-generated on build):**
-
-- `.claude/skills/tskb/SKILL.md` - Claude Code skill with baked-in folder tree and doc summaries (generated when `.claude/skills/` exists)
-- `.github/instructions/tskb.instructions.md` - GitHub Copilot instructions (generated when `.github/` exists)
-
-Create the directories to opt in:
+**Verify:**
 
 ```bash
-mkdir -p .claude/skills   # For Claude Code
-mkdir -p .github          # For GitHub Copilot
+npx tskb ls --plain       # Should show your folder structure
+npx tskb docs --plain     # Should list your starter doc
 ```
 
-Then re-run `npm run docs` to generate the integration files.
+> For monorepos: create `docs/` at workspace root, and ensure `tsconfig.json` can resolve all packages you want to document.
 
 ---
 
@@ -237,6 +176,19 @@ declare global {
       "repository-pattern": Term<"Repository Pattern for data access abstraction">;
       jwt: Term<"JSON Web Tokens for stateless authentication">;
       "layered-architecture": Term<"Layered architecture pattern (API → Service → Data)">;
+    }
+
+    interface Externals {
+      postgres: External<{
+        desc: "Primary relational database";
+        kind: "database";
+        url: "https://www.postgresql.org";
+      }>;
+      redis: External<{
+        desc: "Session cache and pub/sub messaging";
+        kind: "cache";
+        url: "https://redis.io";
+      }>;
     }
   }
 }
@@ -658,6 +610,23 @@ Instead of blindly exploring files, AI assistants can:
 
 This dramatically reduces tokens spent on exploration and increases accuracy.
 
+### Generated skills
+
+The build produces two skills for each integration (Claude Code and GitHub Copilot):
+
+| Skill           | Purpose                                                                                                                                      | Generated files                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **tskb**        | Codebase map — folder tree, essential doc summaries, CLI commands. Loaded on every prompt.                                                   | `.claude/skills/tskb/SKILL.md`<br>`.github/instructions/tskb.instructions.md`               |
+| **tskb-update** | Writing and maintaining `.tskb.tsx` files — JSX syntax, registry primitives, session triggers, best practices. Applies to `.tskb.tsx` files. | `.claude/skills/tskb-update/SKILL.md`<br>`.github/instructions/tskb-update.instructions.md` |
+
+**How they work:**
+
+- **Claude Code**: Skills in `.claude/skills/` are loaded automatically based on context. The main `tskb` skill is always available; `tskb-update` activates when working with `.tskb.tsx` files.
+- **GitHub Copilot**: Instructions in `.github/instructions/` use `applyTo` frontmatter patterns. `tskb.instructions.md` applies to all files (`**`), `tskb-update.instructions.md` applies to `**/*.tskb.tsx`.
+- **Content is auto-generated**: Every `npm run docs` build regenerates these files from the current graph. Don't edit them manually — they'll be overwritten.
+
+To enable these integrations, select them during `npx tskb init` or create the directories manually (`.claude/skills/` and/or `.github/`). The build detects their presence and writes the corresponding files.
+
 ---
 
 ## How is this different?
@@ -683,7 +652,7 @@ This dramatically reduces tokens spent on exploration and increases accuracy.
 ## Roadmap
 
 - ~~Enhanced graph querying & filtering~~ ✅ (`context` command)
-- Automatic documentation scaffolding from codebase analysis
+- ~~Automatic documentation scaffolding~~ ✅ (`tskb init` command)
 - Architectural constraints validation
 - Interactive visualization (beyond Graphviz)
 - Plugin system for custom node types
