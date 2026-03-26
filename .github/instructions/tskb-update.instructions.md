@@ -140,6 +140,8 @@ import type { UserRepository } from "../src/db/user.repository.js";
 
 If the API changes and `findByEmail` is removed, the build fails. That's the point.
 
+Snippets are **never executed** — they are parsed, type-checked, and stringified at build time. To support all the types your snippets need, extend the docs `tsconfig.json` — add `lib` entries (e.g., `"DOM"`, `"ES2022"`), `paths` aliases, or `types` for ambient declarations. The docs tsconfig is independent from the project's build config, so you can tailor it for documentation without affecting production builds.
+
 ## Writing Style
 
 **Do:**
@@ -168,15 +170,18 @@ If the API changes and `findByEmail` is removed, the build fails. That's the poi
 
 ## File Organization
 
-- **Keep files focused.** One `.tskb.tsx` file per feature area or architectural concern. If a file grows beyond ~15-20 registry declarations, split it.
-- **Mirror the project filesystem** in `docs/` for top-level structure.
-- **Split the registry across files.** Don't put all Folders, Modules, and Terms in one giant file:
+- **Organize `docs/` by architectural boundaries, not 1:1 with the filesystem.** Create folders for packages, feature areas, and important layers — but don't replicate every directory. The goal is to map what matters structurally.
+- **Keep each file focused on one area.** A file should only declare things directly related to its concern. Don't put the auth service module and the payment gateway external in the same file just because they're both "backend." If a file grows beyond ~15-20 registry declarations, split it.
+- **Leverage the global registry.** All `declare global { namespace tskb { ... } }` declarations merge across files — that's distributed authorship. Declare a Term in `vocabulary.tskb.tsx`, declare a Module in `auth/auth.tskb.tsx`, and reference both from a third file. No single file needs to contain everything.
+- **Typical layout:**
   - `architecture.tskb.tsx` — top-level overview: main Folders, high-level relationships (`essential`)
-  - `externals.tskb.tsx` — all External declarations (databases, APIs, npm packages) in one place
-  - `vocabulary.tskb.tsx` — shared Terms used across multiple docs
-  - `auth/auth.tskb.tsx` — Modules, Exports, and doc for the auth area
-- ADRs belong in their own files under an `adr/` subfolder.
-- Constraints belong in `constraints/` with `priority="constraint"`.
+  - `vocabulary.tskb.tsx` — shared Terms and Externals used across multiple docs
+  - `auth/auth.tskb.tsx` — Modules, Exports, and doc scoped to the auth area
+  - `data/data.tskb.tsx` — data layer: repositories, database connections
+  - `adr/` subfolder — Architecture Decision Records
+  - `constraints/` — constraint docs with `priority="constraint"`
+- **Import source files, not build output.** Always point `typeof import()` at the source (`src/`), never at `dist/`, `build/`, or compiled output. The compiler resolves source — built files may not exist at doc-build time and their types can differ.
+- **Use `.js` extensions in import paths.** TypeScript's NodeNext module resolution requires `.js` even when the source file is `.ts`. Write `typeof import("../src/auth/service.js")`, not `typeof import("../src/auth/service")` or `typeof import("../src/auth/service.ts")`.
 
 ## After Editing
 
@@ -187,3 +192,15 @@ npm run docs
 ```
 
 The build fails if any import path, export name, or folder path doesn't resolve. Fix the error before committing.
+
+## Troubleshooting
+
+If the build fails with a TypeScript error, check:
+- `docs/tsconfig.json` has `"jsxImportSource": "tskb"`
+- `baseUrl` and `rootDir` point to the repo root (e.g., `"../"`)
+- Import paths in `.tskb.tsx` files end with `.js` (NodeNext module resolution)
+
+**Monorepo tips:**
+- Place `docs/` at the workspace root
+- Set `baseUrl` and `rootDir` to `"../"` from the docs folder (or adjust for your layout)
+- Add `paths` entries for workspace packages if needed

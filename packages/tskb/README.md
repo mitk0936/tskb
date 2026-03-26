@@ -612,13 +612,12 @@ This dramatically reduces tokens spent on exploration and increases accuracy.
 
 ### Generated skills
 
-The build produces three skills for each integration (Claude Code and GitHub Copilot):
+The build produces two skills for each integration (Claude Code and GitHub Copilot):
 
-| Skill              | Purpose                                                                                                                                      | Generated files                                                                                   |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **tskb**           | Codebase map — folder tree, essential doc summaries, CLI commands. Loaded on every prompt.                                                   | `.claude/skills/tskb/SKILL.md`<br>`.github/instructions/tskb.instructions.md`                     |
-| **tskb-update**    | Writing and maintaining `.tskb.tsx` files — JSX syntax, registry primitives, session triggers, best practices. Applies to `.tskb.tsx` files. | `.claude/skills/tskb-update/SKILL.md`<br>`.github/instructions/tskb-update.instructions.md`       |
-| **tskb-bootstrap** | First-time setup — `tskb init` walkthrough, orientation questions, guided workflow for building the initial architecture map.                | `.claude/skills/tskb-bootstrap/SKILL.md`<br>`.github/instructions/tskb-bootstrap.instructions.md` |
+| Skill           | Purpose                                                                                                                                      | Generated files                                                                             |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **tskb**        | Codebase map — folder tree, essential doc summaries, CLI commands. Loaded on every prompt.                                                   | `.claude/skills/tskb/SKILL.md`<br>`.github/instructions/tskb.instructions.md`               |
+| **tskb-update** | Writing and maintaining `.tskb.tsx` files — JSX syntax, registry primitives, session triggers, best practices. Applies to `.tskb.tsx` files. | `.claude/skills/tskb-update/SKILL.md`<br>`.github/instructions/tskb-update.instructions.md` |
 
 **How they work:**
 

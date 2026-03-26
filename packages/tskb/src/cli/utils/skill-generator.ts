@@ -1,13 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
-import { buildQueryBody, buildUpdateBody, buildBootstrapBody } from "./content-builder.js";
+import { buildQueryBody, buildUpdateBody } from "./content-builder.js";
 
 /**
  * Generate Claude Code skill files:
  * - .claude/skills/tskb/SKILL.md (query/explore)
  * - .claude/skills/tskb-update/SKILL.md (update/write docs)
- * - .claude/skills/tskb-bootstrap/SKILL.md (initial setup)
  *
  * Directories are created automatically if they don't exist.
  *
@@ -34,14 +33,6 @@ export function generateSkillFiles(graph: KnowledgeGraph): string[] {
   const updatePath = path.join(updateDir, "SKILL.md");
   fs.writeFileSync(updatePath, updateContent, "utf-8");
   paths.push(updatePath);
-
-  // Bootstrap skill
-  const bootstrapDir = path.join(skillsDir, "tskb-bootstrap");
-  fs.mkdirSync(bootstrapDir, { recursive: true });
-  const bootstrapContent = buildBootstrapSkillContent(graph);
-  const bootstrapPath = path.join(bootstrapDir, "SKILL.md");
-  fs.writeFileSync(bootstrapPath, bootstrapContent, "utf-8");
-  paths.push(bootstrapPath);
 
   return paths;
 }
@@ -74,18 +65,5 @@ allowed-tools: Bash(npx --no -- tskb *), Read, Write, Edit, Glob
 How to write and maintain the codebase map. The map lives in \`.tskb.tsx\` files — they declare what exists and how it connects.
 
 ${buildUpdateBody(graph)}
-`;
-}
-
-function buildBootstrapSkillContent(graph: KnowledgeGraph): string {
-  return `---
-name: tskb-bootstrap
-description: "Initial tskb setup in a new or existing repo — install, scaffold docs folder, configure TypeScript, add AI integrations. Use when the developer wants to add tskb to their project for the first time."
-allowed-tools: Bash(npx tskb init), Bash(npx --no -- tskb *), Read, Write, Edit
----
-
-# TSKB — Bootstrap Initial Setup
-
-${buildBootstrapBody(graph)}
 `;
 }

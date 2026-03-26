@@ -206,6 +206,8 @@ import type { UserRepository } from "../src/db/user.repository.js";
 
 If the API changes and \`findByEmail\` is removed, the build fails. That's the point.
 
+Snippets are **never executed** — they are parsed, type-checked, and stringified at build time. To support all the types your snippets need, extend the docs \`tsconfig.json\` — add \`lib\` entries (e.g., \`"DOM"\`, \`"ES2022"\`), \`paths\` aliases, or \`types\` for ambient declarations. The docs tsconfig is independent from the project's build config, so you can tailor it for documentation without affecting production builds.
+
 ## Writing Style
 
 **Do:**
@@ -234,15 +236,18 @@ If the API changes and \`findByEmail\` is removed, the build fails. That's the p
 
 ## File Organization
 
-- **Keep files focused.** One \`.tskb.tsx\` file per feature area or architectural concern. If a file grows beyond ~15-20 registry declarations, split it.
-- **Mirror the project filesystem** in \`${docsPath}/\` for top-level structure.
-- **Split the registry across files.** Don't put all Folders, Modules, and Terms in one giant file:
+- **Organize \`${docsPath}/\` by architectural boundaries, not 1:1 with the filesystem.** Create folders for packages, feature areas, and important layers — but don't replicate every directory. The goal is to map what matters structurally.
+- **Keep each file focused on one area.** A file should only declare things directly related to its concern. Don't put the auth service module and the payment gateway external in the same file just because they're both "backend." If a file grows beyond ~15-20 registry declarations, split it.
+- **Leverage the global registry.** All \`declare global { namespace tskb { ... } }\` declarations merge across files — that's distributed authorship. Declare a Term in \`vocabulary.tskb.tsx\`, declare a Module in \`auth/auth.tskb.tsx\`, and reference both from a third file. No single file needs to contain everything.
+- **Typical layout:**
   - \`architecture.tskb.tsx\` — top-level overview: main Folders, high-level relationships (\`essential\`)
-  - \`externals.tskb.tsx\` — all External declarations (databases, APIs, npm packages) in one place
-  - \`vocabulary.tskb.tsx\` — shared Terms used across multiple docs
-  - \`auth/auth.tskb.tsx\` — Modules, Exports, and doc for the auth area
-- ADRs belong in their own files under an \`adr/\` subfolder.
-- Constraints belong in \`constraints/\` with \`priority="constraint"\`.
+  - \`vocabulary.tskb.tsx\` — shared Terms and Externals used across multiple docs
+  - \`auth/auth.tskb.tsx\` — Modules, Exports, and doc scoped to the auth area
+  - \`data/data.tskb.tsx\` — data layer: repositories, database connections
+  - \`adr/\` subfolder — Architecture Decision Records
+  - \`constraints/\` — constraint docs with \`priority="constraint"\`
+- **Import source files, not build output.** Always point \`typeof import()\` at the source (\`src/\`), never at \`dist/\`, \`build/\`, or compiled output. The compiler resolves source — built files may not exist at doc-build time and their types can differ.
+- **Use \`.js\` extensions in import paths.** TypeScript's NodeNext module resolution requires \`.js\` even when the source file is \`.ts\`. Write \`typeof import("../src/auth/service.js")\`, not \`typeof import("../src/auth/service")\` or \`typeof import("../src/auth/service.ts")\`.
 
 ## After Editing
 
@@ -252,7 +257,19 @@ Always rebuild to validate references and update the graph:
 npm run docs
 \`\`\`
 
-The build fails if any import path, export name, or folder path doesn't resolve. Fix the error before committing.`;
+The build fails if any import path, export name, or folder path doesn't resolve. Fix the error before committing.
+
+## Troubleshooting
+
+If the build fails with a TypeScript error, check:
+- \`${docsPath}/tsconfig.json\` has \`"jsxImportSource": "tskb"\`
+- \`baseUrl\` and \`rootDir\` point to the repo root (e.g., \`"../"\`)
+- Import paths in \`.tskb.tsx\` files end with \`.js\` (NodeNext module resolution)
+
+**Monorepo tips:**
+- Place \`${docsPath}/\` at the workspace root
+- Set \`baseUrl\` and \`rootDir\` to \`"../"\` from the docs folder (or adjust for your layout)
+- Add \`paths\` entries for workspace packages if needed`;
 }
 
 /**
@@ -333,136 +350,4 @@ function buildExternalsSummary(graph: KnowledgeGraph): string {
     .join("\n");
 
   return `## Externals\n\n${lines}`;
-}
-
-/**
- * Build the bootstrap body used by the tskb-bootstrap skill and instructions.
- *
- * Covers: initial setup, questions to ask the user, the init command, and first steps.
- */
-export function buildBootstrapBody(_graph: KnowledgeGraph): string {
-  return `## Purpose
-
-Guide a developer through adding tskb to their repo for the first time — from install to first successful build.
-
-## Step 1 — Ask orientation questions
-
-Before doing anything, ask the user:
-
-1. **Do you already have a \`docs/\` folder or preferred docs location?** (default: \`docs/\`)
-2. **Are you in a monorepo?** If yes, should the docs folder live at the workspace root?
-3. **Which AI assistant integrations do you want?**
-   - Claude Code (\`.claude/skills/\`)
-   - GitHub Copilot (\`.github/instructions/\`)
-   - Both, or neither
-
-Then run the interactive scaffolder:
-
-\`\`\`bash
-npx tskb init
-\`\`\`
-
-This will prompt for the same answers and scaffold everything in one step.
-
-## Step 2 — What init creates
-
-After running \`tskb init\`, check that the following exist:
-
-\`\`\`
-your-repo/
-├── docs/
-│   ├── tsconfig.json          # TypeScript config for docs (jsxImportSource: "tskb")
-│   └── architecture.tskb.tsx  # Starter doc — edit this first
-├── package.json               # "docs" script added automatically
-├── .claude/skills/            # Created if Claude Code was selected
-└── .github/                   # Created if Copilot was selected
-\`\`\`
-
-## Step 3 — Build the knowledge graph
-
-\`\`\`bash
-npm run docs
-\`\`\`
-
-This compiles all \`.tskb.tsx\` files, validates references, and writes:
-
-- \`.tskb/graph.json\` — queryable knowledge graph
-- \`.tskb/graph.dot\` — Graphviz visualization
-- \`.claude/skills/tskb/SKILL.md\` — Claude Code skill (if \`.claude/skills/\` exists)
-- \`.github/instructions/tskb.instructions.md\` — Copilot instructions (if \`.github/\` exists)
-
-## Step 4 — Verify setup
-
-\`\`\`bash
-npx tskb ls --plain       # Should show your folder structure
-npx tskb docs --plain     # Should list your starter doc
-\`\`\`
-
-If the build fails with a TypeScript error, check:
-- \`docs/tsconfig.json\` has \`"jsxImportSource": "tskb"\`
-- \`baseUrl\` and \`rootDir\` point to the repo root (e.g., \`"../"\`)
-- Import paths in \`.tskb.tsx\` files end with \`.js\` (NodeNext module resolution)
-
-## Common tsconfig for docs
-
-\`\`\`json
-{
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "strict": true,
-    "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "tskb",
-    "baseUrl": "../",
-    "rootDir": "../"
-  },
-  "include": ["**/*.tskb.tsx"]
-}
-\`\`\`
-
-## Monorepo notes
-
-- Place \`docs/\` at the workspace root
-- Set \`baseUrl\` and \`rootDir\` to \`"../"\` from the docs folder (or adjust for your layout)
-- Add \`paths\` entries for workspace packages if needed
-- Run the build from the workspace root where \`package.json\` lives
-
-## Next step — Start building the architecture map
-
-Once the first build succeeds, begin iteratively documenting the codebase. Use the **tskb-update** skill for syntax, best practices, and when to trigger updates during a session.
-
-### Recommended workflow
-
-1. **Explore the project structure.** Look at top-level folders in \`src/\` (or equivalent). Identify the major areas: features, layers, shared utilities, configs.
-
-2. **Mirror the project filesystem in \`docs/\`.** Create \`.tskb.tsx\` files that reflect the top-level structure:
-   \`\`\`
-   docs/
-   ├── architecture.tskb.tsx     # Top-level overview (essential)
-   ├── vocabulary.tskb.tsx        # Shared terms and externals
-   ├── auth/
-   │   └── auth.tskb.tsx          # Auth feature area
-   ├── api/
-   │   └── api.tskb.tsx           # API layer
-   └── data/
-       └── data.tskb.tsx          # Data layer
-   \`\`\`
-
-3. **Start top-down.** Declare top-level Folders first, then key Modules and Exports. Add Terms for domain concepts and Externals for dependencies (databases, APIs, npm packages).
-
-4. **Ask the developer questions.** Don't guess — ask about:
-   - What are the main feature areas?
-   - Are there architectural layers (API → Service → Data)?
-   - What external services or databases does the project depend on?
-   - Are there naming conventions or patterns (repository pattern, service pattern)?
-   - What constraints should be documented?
-
-5. **Build incrementally.** After each round of additions, run \`npm run docs\` to validate. Fix any broken references before adding more.
-
-6. **Use all registry primitives.** A well-documented project uses Folders (areas), Modules (key files), Exports (important APIs), Terms (domain vocabulary), Externals (dependencies), and Files (configs, specs).
-
-7. **Set priorities deliberately.** Mark the top-level overview as \`essential\`. Add \`constraint\` docs for rules that must not be violated. Leave everything else as \`supplementary\`.
-`;
 }

@@ -58,17 +58,17 @@ declare global {
       }>;
 
       "cli.utils.content-builder": Module<{
-        desc: "Shared markdown content builder - produces query body, update body (syntax + session triggers), and bootstrap body for generated skill/instructions files";
+        desc: "Shared markdown content builder - produces query body and update body (syntax + session triggers) for generated skill/instructions files";
         type: typeof import("packages/tskb/src/cli/utils/content-builder.js");
       }>;
 
       "cli.utils.skill-generator": Module<{
-        desc: "Generates three Claude Code skills: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)";
+        desc: "Generates two Claude Code skills: tskb (query/explore) and tskb-update (write & update docs)";
         type: typeof import("packages/tskb/src/cli/utils/skill-generator.js");
       }>;
 
       "cli.utils.copilot-instructions": Module<{
-        desc: "Generates three Copilot instructions files: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)";
+        desc: "Generates two Copilot instructions files: tskb (query/explore) and tskb-update (write & update docs)";
         type: typeof import("packages/tskb/src/cli/utils/copilot-instructions-generator.js");
       }>;
 
@@ -143,15 +143,11 @@ export default (
     <P>In {UtilsFolder}:</P>
     <List>
       <Li>
-        {ContentBuilderModule}: Produces three markdown bodies — query body, update body (syntax +
-        session triggers), and bootstrap body — consumed by skill and instructions generators
+        {ContentBuilderModule}: Produces two markdown bodies — query body and update body (syntax +
+        session triggers) — consumed by skill and instructions generators
       </Li>
-      <Li>
-        {SkillGenModule}: Generates three Claude Code skills — tskb, tskb-update, tskb-bootstrap
-      </Li>
-      <Li>
-        {CopilotGenModule}: Generates three Copilot instructions — tskb, tskb-update, tskb-bootstrap
-      </Li>
+      <Li>{SkillGenModule}: Generates two Claude Code skills — tskb and tskb-update</Li>
+      <Li>{CopilotGenModule}: Generates two Copilot instructions — tskb and tskb-update</Li>
       <Li>{GraphFinderModule}: Finds .tskb/graph.json from cwd, used by search/pick/ls</Li>
       <Li>
         {LoggerModule}: Stderr-only logger with info/verbose/error/time — configured once at startup

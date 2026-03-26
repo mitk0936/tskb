@@ -517,12 +517,12 @@
             {
               "name": "content-builder.ts",
               "nodeId": "cli.utils.content-builder",
-              "desc": "Shared markdown content builder - produces query body, update body (syntax + session triggers), and bootstrap body for generated skill/instructions files"
+              "desc": "Shared markdown content builder - produces query body and update body (syntax + session triggers) for generated skill/instructions files"
             },
             {
               "name": "copilot-instructions-generator.ts",
               "nodeId": "cli.utils.copilot-instructions",
-              "desc": "Generates three Copilot instructions files: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)"
+              "desc": "Generates two Copilot instructions files: tskb (query/explore) and tskb-update (write & update docs)"
             },
             {
               "name": "graph-finder.ts",
@@ -543,7 +543,7 @@
             {
               "name": "skill-generator.ts",
               "nodeId": "cli.utils.skill-generator",
-              "desc": "Generates three Claude Code skills: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)"
+              "desc": "Generates two Claude Code skills: tskb (query/explore) and tskb-update (write & update docs)"
             }
           ]
         },
@@ -1976,14 +1976,13 @@
       "cli.utils.content-builder": {
         "id": "cli.utils.content-builder",
         "type": "module",
-        "desc": "Shared markdown content builder - produces query body, update body (syntax + session triggers), and bootstrap body for generated skill/instructions files",
+        "desc": "Shared markdown content builder - produces query body and update body (syntax + session triggers) for generated skill/instructions files",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/content-builder.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/content-builder.ts",
-        "morphologySummary": "3 functions",
+        "morphologySummary": "2 functions",
         "morphology": [
           "export function buildQueryBody(graph: KnowledgeGraph): string {} // :8-65",
-          "export function buildUpdateBody(graph: KnowledgeGraph): string {} // :72-256",
-          "export function buildBootstrapBody(_graph: KnowledgeGraph): string {} // :343-468"
+          "export function buildUpdateBody(graph: KnowledgeGraph): string {} // :72-273"
         ],
         "importsSummary": "1 import from 1 path",
         "imports": [
@@ -2000,21 +1999,20 @@
       "cli.utils.skill-generator": {
         "id": "cli.utils.skill-generator",
         "type": "module",
-        "desc": "Generates three Claude Code skills: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)",
+        "desc": "Generates two Claude Code skills: tskb (query/explore) and tskb-update (write & update docs)",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/skill-generator.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/skill-generator.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function generateSkillFiles(graph: KnowledgeGraph): string[] {} // :17-47"
+          "export function generateSkillFiles(graph: KnowledgeGraph): string[] {} // :16-38"
         ],
-        "importsSummary": "6 imports from 4 paths",
+        "importsSummary": "5 imports from 4 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
           "KnowledgeGraph from \"../../core/graph/types.js\"",
           "buildQueryBody from \"./content-builder.js\"",
-          "buildUpdateBody from \"./content-builder.js\"",
-          "buildBootstrapBody from \"./content-builder.js\""
+          "buildUpdateBody from \"./content-builder.js\""
         ],
         "importEntries": [
           {
@@ -2035,10 +2033,6 @@
           },
           {
             "symbol": "buildUpdateBody",
-            "path": "./content-builder.js"
-          },
-          {
-            "symbol": "buildBootstrapBody",
             "path": "./content-builder.js"
           }
         ],
@@ -2047,21 +2041,20 @@
       "cli.utils.copilot-instructions": {
         "id": "cli.utils.copilot-instructions",
         "type": "module",
-        "desc": "Generates three Copilot instructions files: tskb (query/explore), tskb-update (write & update docs), and tskb-bootstrap (initial setup)",
+        "desc": "Generates two Copilot instructions files: tskb (query/explore) and tskb-update (write & update docs)",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/copilot-instructions-generator.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/copilot-instructions-generator.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[] {} // :17-43"
+          "export function generateCopilotInstructionsFiles(graph: KnowledgeGraph): string[] {} // :16-36"
         ],
-        "importsSummary": "6 imports from 4 paths",
+        "importsSummary": "5 imports from 4 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
           "KnowledgeGraph from \"../../core/graph/types.js\"",
           "buildQueryBody from \"./content-builder.js\"",
-          "buildUpdateBody from \"./content-builder.js\"",
-          "buildBootstrapBody from \"./content-builder.js\""
+          "buildUpdateBody from \"./content-builder.js\""
         ],
         "importEntries": [
           {
@@ -2082,10 +2075,6 @@
           },
           {
             "symbol": "buildUpdateBody",
-            "path": "./content-builder.js"
-          },
-          {
-            "symbol": "buildBootstrapBody",
             "path": "./content-builder.js"
           }
         ],
@@ -3375,7 +3364,7 @@
         "explains": "CLI structure: commands (init, build, search, pick, context, ls, docs) and utils (output generators, content builder, logger)",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/cli/cli-overview.tskb.tsx",
-        "content": "CLI Located in <nodeId: tskb.cli>. Entry point: <nodeId: cli.index>— parses arguments, routes to command\n      handlers. Commands In <nodeId: tskb.cli.commands>: <nodeId: cli.commands.init>: Interactive scaffolder — creates docs folder, tsconfig, starter doc, build\n        script <nodeId: cli.commands.build>: Full pipeline — files → TypeScript program → extraction → graph → outputs <nodeId: cli.commands.search>: Fuzzy search across all node types, returns ranked JSON results <nodeId: cli.commands.pick>: Resolve any node by ID or path, returns type-specific context <nodeId: cli.commands.ls>: List folder hierarchy with depth control, includes essential docs Utils In <nodeId: tskb.cli.utils>: <nodeId: cli.utils.content-builder>: Produces three markdown bodies — query body, update body (syntax +\n        session triggers), and bootstrap body — consumed by skill and instructions generators <nodeId: cli.utils.skill-generator>: Generates three Claude Code skills — tskb, tskb-update, tskb-bootstrap <nodeId: cli.utils.copilot-instructions>: Generates three Copilot instructions — tskb, tskb-update, tskb-bootstrap <nodeId: cli.utils.graph-finder>: Finds .tskb/graph.json from cwd, used by search/pick/ls <nodeId: cli.utils.logger>: Stderr-only logger with info/verbose/error/time — configured once at startup\n        via --verbose flag",
+        "content": "CLI Located in <nodeId: tskb.cli>. Entry point: <nodeId: cli.index>— parses arguments, routes to command\n      handlers. Commands In <nodeId: tskb.cli.commands>: <nodeId: cli.commands.init>: Interactive scaffolder — creates docs folder, tsconfig, starter doc, build\n        script <nodeId: cli.commands.build>: Full pipeline — files → TypeScript program → extraction → graph → outputs <nodeId: cli.commands.search>: Fuzzy search across all node types, returns ranked JSON results <nodeId: cli.commands.pick>: Resolve any node by ID or path, returns type-specific context <nodeId: cli.commands.ls>: List folder hierarchy with depth control, includes essential docs Utils In <nodeId: tskb.cli.utils>: <nodeId: cli.utils.content-builder>: Produces two markdown bodies — query body and update body (syntax +\n        session triggers) — consumed by skill and instructions generators <nodeId: cli.utils.skill-generator>: Generates two Claude Code skills — tskb and tskb-update <nodeId: cli.utils.copilot-instructions>: Generates two Copilot instructions — tskb and tskb-update <nodeId: cli.utils.graph-finder>: Finds .tskb/graph.json from cwd, used by search/pick/ls <nodeId: cli.utils.logger>: Stderr-only logger with info/verbose/error/time — configured once at startup\n        via --verbose flag",
         "format": "tsx",
         "edgeCount": 14
       },
@@ -4996,7 +4985,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-25T16:32:55.117Z",
+    "generatedAt": "2026-03-26T12:21:55.098Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
