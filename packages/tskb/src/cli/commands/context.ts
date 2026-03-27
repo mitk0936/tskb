@@ -6,6 +6,7 @@ import {
   resolveNode,
   getNodeEdges,
   findReferencingDocs,
+  findAllNodesById,
   type DocRef,
   type ResolvedVia,
 } from "../utils/resolve-node.js";
@@ -85,18 +86,6 @@ function buildNeighborIndex(edges: GraphEdge[]): Map<string, string[]> {
   return index;
 }
 
-function findNode(graph: KnowledgeGraph, id: string): AnyNode | undefined {
-  return (
-    graph.nodes.folders[id] ||
-    graph.nodes.modules[id] ||
-    graph.nodes.exports[id] ||
-    graph.nodes.files[id] ||
-    graph.nodes.externals[id] ||
-    graph.nodes.terms[id] ||
-    graph.nodes.docs[id]
-  );
-}
-
 function getNodeDesc(node: AnyNode): string {
   if (node.type === "doc") return node.explains;
   return node.desc;
@@ -129,24 +118,29 @@ function buildContext(
     if (visited.has(id)) continue;
     visited.add(id);
 
-    const node = findNode(graph, id);
-    if (!node || node.type === "doc") continue;
+    // Resolve all nodes sharing this ID (handles folder+module collision)
+    const allMatches = findAllNodesById(graph, id);
+    if (allMatches.length === 0) continue;
 
-    // Collect node (skip root at depth 0 — it goes in root field)
-    if (depth > 0) {
-      collectedNodes.push({
-        nodeId: id,
-        type: node.type,
-        desc: getNodeDesc(node),
-        path: getNodePath(node),
-        ...(node.type === "folder" && node.structureSummary
-          ? { structureSummary: node.structureSummary }
-          : {}),
-        ...(node.type === "module" && node.morphologySummary
-          ? { morphologySummary: node.morphologySummary }
-          : {}),
-        depth,
-      });
+    for (const { node } of allMatches) {
+      if (node.type === "doc") continue;
+
+      // Collect node (skip root at depth 0 — it goes in root field)
+      if (depth > 0) {
+        collectedNodes.push({
+          nodeId: id,
+          type: node.type,
+          desc: getNodeDesc(node),
+          path: getNodePath(node),
+          ...(node.type === "folder" && node.structureSummary
+            ? { structureSummary: node.structureSummary }
+            : {}),
+          ...(node.type === "module" && node.morphologySummary
+            ? { morphologySummary: node.morphologySummary }
+            : {}),
+          depth,
+        });
+      }
     }
 
     // Collect referencing docs for this node
@@ -247,18 +241,27 @@ export async function context(
   verbose(
     `   Resolved "${identifier}" via ${resolved.resolvedVia} → ${resolved.node.type} "${resolved.id}"`
   );
+  if (resolved.ambiguousTypes) {
+    verbose(
+      `   ⚠ Ambiguous ID: "${resolved.id}" matches ${resolved.ambiguousTypes.join(", ")}. Showing ${resolved.node.type}.`
+    );
+  }
   verbose(
     `   ${nodes.length} nodes, ${docs.length} docs, ${constraints.length} constraints (depth=${depth})`
   );
 
   if (plain) {
-    plainOut(formatContextPlain(result, depth));
+    plainOut(formatContextPlain(result, depth, resolved.ambiguousTypes));
   } else {
     jsonOut(result, optimized);
   }
 }
 
-function formatContextPlain(result: ContextResult, depth: number): string {
+function formatContextPlain(
+  result: ContextResult,
+  depth: number,
+  ambiguousTypes?: AnyNode["type"][]
+): string {
   const { root, nodes, docs, constraints } = result;
   const lines: string[] = [];
 
@@ -266,6 +269,11 @@ function formatContextPlain(result: ContextResult, depth: number): string {
   lines.push(
     `Context: "${root.nodeId}" → ${root.type} (resolved via ${root.resolvedVia}) — depth ${depth}, ${nodes.length} nodes, ${docs.length} docs, ${constraints.length} ${constraints.length === 1 ? "constraint" : "constraints"}`
   );
+  if (ambiguousTypes && ambiguousTypes.length > 1) {
+    lines.push(
+      `⚠ Ambiguous ID: "${root.nodeId}" exists as ${ambiguousTypes.join(", ")}. Showing ${root.type}.`
+    );
+  }
 
   // Root
   lines.push("");

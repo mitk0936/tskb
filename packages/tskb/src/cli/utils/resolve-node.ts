@@ -23,6 +23,28 @@ export interface ResolvedNode {
   id: string;
   node: AnyNode;
   resolvedVia: ResolvedVia;
+  /** When multiple nodes share the same ID across different type dictionaries */
+  ambiguousTypes?: AnyNode["type"][];
+}
+
+/**
+ * Find all nodes matching an ID across all type dictionaries.
+ * Returns an array of matches (usually 1, but can be >1 if different types share an ID).
+ */
+export function findAllNodesById(
+  graph: KnowledgeGraph,
+  id: string
+): Array<{ node: AnyNode; type: AnyNode["type"] }> {
+  const results: Array<{ node: AnyNode; type: AnyNode["type"] }> = [];
+  if (graph.nodes.folders[id]) results.push({ node: graph.nodes.folders[id], type: "folder" });
+  if (graph.nodes.modules[id]) results.push({ node: graph.nodes.modules[id], type: "module" });
+  if (graph.nodes.exports[id]) results.push({ node: graph.nodes.exports[id], type: "export" });
+  if (graph.nodes.files[id]) results.push({ node: graph.nodes.files[id], type: "file" });
+  if (graph.nodes.externals[id])
+    results.push({ node: graph.nodes.externals[id], type: "external" });
+  if (graph.nodes.terms[id]) results.push({ node: graph.nodes.terms[id], type: "term" });
+  if (graph.nodes.docs[id]) results.push({ node: graph.nodes.docs[id], type: "doc" });
+  return results;
 }
 
 export function resolveNode(graph: KnowledgeGraph, identifier: string): ResolvedNode | null {
@@ -37,10 +59,25 @@ export function resolveNode(graph: KnowledgeGraph, identifier: string): Resolved
     ["docs", graph.nodes.docs],
   ];
 
+  // Collect all matches to detect ambiguous IDs
+  const matches: Array<{ node: AnyNode }> = [];
   for (const [, dict] of dictionaries) {
     if (dict[identifier]) {
-      return { id: identifier, node: dict[identifier], resolvedVia: "id" };
+      matches.push({ node: dict[identifier] });
     }
+  }
+
+  if (matches.length === 1) {
+    return { id: identifier, node: matches[0].node, resolvedVia: "id" };
+  }
+
+  if (matches.length > 1) {
+    return {
+      id: identifier,
+      node: matches[0].node,
+      resolvedVia: "id",
+      ambiguousTypes: matches.map((m) => m.node.type),
+    };
   }
 
   // 2. Path match — normalize and compare against node paths
