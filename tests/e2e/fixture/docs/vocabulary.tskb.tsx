@@ -30,6 +30,11 @@ declare global {
         desc: "Structured logging utility";
         type: typeof import("../src/utils/logger.js");
       }>;
+      /** Barrel module — intentionally shares ID with the utils Folder */
+      utils: Module<{
+        desc: "Utils barrel re-exporting all utilities";
+        type: typeof import("../src/utils/index.js");
+      }>;
     }
 
     interface Exports {

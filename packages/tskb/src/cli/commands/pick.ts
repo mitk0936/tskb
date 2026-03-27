@@ -8,6 +8,7 @@ import {
   getNodeEdges,
   findReferencingDocs,
   findParent,
+  findAllNodesById,
   type NodeEdges,
   type DocRef,
   type ResolvedVia,
@@ -30,7 +31,13 @@ interface FolderPickResult {
   exports: Array<{ nodeId: string; desc: string; path?: string }>;
   importedBy?: Array<{ moduleId: string; desc: string }>;
   referencingDocs: DocRef[];
-  relations?: Array<{ from: string; to: string; label?: string }>;
+  relations?: Array<{
+    from: string;
+    fromType?: string;
+    to: string;
+    toType?: string;
+    label?: string;
+  }>;
 }
 
 interface ModulePickResult {
@@ -44,13 +51,19 @@ interface ModulePickResult {
     morphologySummary?: string;
     morphology?: string[];
     importsSummary?: string;
-    imports?: Array<{ entry: string; moduleId?: string }>;
+    imports?: Array<{ entry: string; moduleId?: string; moduleType?: string }>;
   };
   parentFolder?: { nodeId: string; desc: string; path?: string };
   exports: Array<{ nodeId: string; desc: string; typeSignature?: string }>;
   importedBy?: Array<{ moduleId: string; desc: string }>;
   referencingDocs: DocRef[];
-  relations?: Array<{ from: string; to: string; label?: string }>;
+  relations?: Array<{
+    from: string;
+    fromType?: string;
+    to: string;
+    toType?: string;
+    label?: string;
+  }>;
 }
 
 interface ExportPickResult {
@@ -66,7 +79,13 @@ interface ExportPickResult {
   };
   parent?: { nodeId: string; type: string; desc: string; morphologySummary?: string };
   referencingDocs: DocRef[];
-  relations?: Array<{ from: string; to: string; label?: string }>;
+  relations?: Array<{
+    from: string;
+    fromType?: string;
+    to: string;
+    toType?: string;
+    label?: string;
+  }>;
 }
 
 interface TermPickResult {
@@ -74,7 +93,13 @@ interface TermPickResult {
   resolvedVia: ResolvedVia;
   node: { nodeId: string; desc: string };
   referencingDocs: DocRef[];
-  relations?: Array<{ from: string; to: string; label?: string }>;
+  relations?: Array<{
+    from: string;
+    fromType?: string;
+    to: string;
+    toType?: string;
+    label?: string;
+  }>;
 }
 
 interface FilePickResult {
@@ -87,7 +112,13 @@ interface FilePickResult {
   };
   parentFolder?: { nodeId: string; desc: string; path?: string };
   referencingDocs: DocRef[];
-  relations?: Array<{ from: string; to: string; label?: string }>;
+  relations?: Array<{
+    from: string;
+    fromType?: string;
+    to: string;
+    toType?: string;
+    label?: string;
+  }>;
 }
 
 interface ExternalPickResult {
@@ -99,7 +130,13 @@ interface ExternalPickResult {
     metadata: Record<string, string>;
   };
   referencingDocs: DocRef[];
-  relations?: Array<{ from: string; to: string; label?: string }>;
+  relations?: Array<{
+    from: string;
+    fromType?: string;
+    to: string;
+    toType?: string;
+    label?: string;
+  }>;
 }
 
 interface DocPickResult {
@@ -113,7 +150,13 @@ interface DocPickResult {
     priority: string;
     content: string;
   };
-  relations?: Array<{ from: string; to: string; label?: string }>;
+  relations?: Array<{
+    from: string;
+    fromType?: string;
+    to: string;
+    toType?: string;
+    label?: string;
+  }>;
 }
 
 type PickResult =
@@ -369,7 +412,7 @@ function enrichImportsWithModuleIds(
   moduleResolvedPath: string | undefined,
   edges: NodeEdges,
   graph: KnowledgeGraph
-): Array<{ entry: string; moduleId?: string }> {
+): Array<{ entry: string; moduleId?: string; moduleType?: string }> {
   // Collect target node IDs from "imports" edges (can be modules or folders)
   const importTargetIds = new Set<string>();
   for (const edge of edges.outgoing) {
@@ -415,12 +458,12 @@ function enrichImportsWithModuleIds(
     if (moduleDir && (importPath.startsWith("./") || importPath.startsWith("../"))) {
       const resolved = stripExt(path.posix.normalize(path.posix.join(moduleDir, importPath)));
       const moduleId = pathToModuleId.get(resolved);
-      if (moduleId) return { entry, moduleId };
+      if (moduleId) return { entry, moduleId, moduleType: "module" };
     } else {
       // Bare specifier — check if it matches a registered package
       for (const [pkgName, folderId] of packageNameToFolderId) {
         if (importPath === pkgName || importPath.startsWith(pkgName + "/")) {
-          return { entry, moduleId: folderId };
+          return { entry, moduleId: folderId, moduleType: "folder" };
         }
       }
     }
@@ -492,19 +535,34 @@ export async function pick(
   const result = resolver(resolved.id, resolved.node, edges, graph);
   result.resolvedVia = resolved.resolvedVia;
 
-  // Add relations: all related-to edges where this node is from or to
+  // Add relations: all related-to edges where this node is from or to (with types for disambiguation)
   result.relations = graph.edges
     .filter((e) => e.type === "related-to" && (e.from === resolved.id || e.to === resolved.id))
-    .map((e) => ({ from: e.from, to: e.to, ...(e.label ? { label: e.label } : {}) }));
+    .map((e) => {
+      const fromNodes = findAllNodesById(graph, e.from);
+      const toNodes = findAllNodesById(graph, e.to);
+      return {
+        from: e.from,
+        ...(fromNodes.length > 0 ? { fromType: fromNodes[0].type } : {}),
+        to: e.to,
+        ...(toNodes.length > 0 ? { toType: toNodes[0].type } : {}),
+        ...(e.label ? { label: e.label } : {}),
+      };
+    });
 
   resolveDone();
 
   verbose(
     `   Resolved "${identifier}" via ${resolved.resolvedVia} → ${resolved.node.type} "${resolved.id}"`
   );
+  if (resolved.ambiguousTypes) {
+    verbose(
+      `   ⚠ Ambiguous ID: "${resolved.id}" matches ${resolved.ambiguousTypes.join(", ")}. Showing ${resolved.node.type}.`
+    );
+  }
 
   if (plain) {
-    plainOut(formatPickPlain(result));
+    plainOut(formatPickPlain(result, resolved.ambiguousTypes));
   } else {
     jsonOut(result, optimized);
   }
@@ -522,13 +580,21 @@ function formatDocs(docs: DocRef[]): string[] {
 }
 
 function formatRelations(
-  relations?: Array<{ from: string; to: string; label?: string }>
+  relations?: Array<{
+    from: string;
+    fromType?: string;
+    to: string;
+    toType?: string;
+    label?: string;
+  }>
 ): string[] {
   if (!relations || relations.length === 0) return [];
   const lines = ["  relations:"];
   for (const r of relations) {
     const label = r.label ? ` (${r.label})` : "";
-    lines.push(`    ${r.from} → ${r.to}${label}`);
+    const fromLabel = r.fromType ? `${r.from} (${r.fromType})` : r.from;
+    const toLabel = r.toType ? `${r.to} (${r.toType})` : r.to;
+    lines.push(`    ${fromLabel} → ${toLabel}${label}`);
   }
   return lines;
 }
@@ -553,7 +619,9 @@ function formatModulePlain(result: ModulePickResult): string[] {
     if (tskbImports.length > 0 || libraryImports.length > 0) {
       lines.push("");
       for (const imp of [...tskbImports, ...libraryImports]) {
-        const target = imp.moduleId ? ` → ${imp.moduleId}` : "";
+        const target = imp.moduleId
+          ? ` → ${imp.moduleId}${imp.moduleType ? ` (${imp.moduleType})` : ""}`
+          : "";
         lines.push(`  import ${imp.entry}${target}`);
       }
       if (localSkipped > 0) {
@@ -598,13 +666,15 @@ function formatModulePlain(result: ModulePickResult): string[] {
 
   if (result.parentFolder) {
     lines.push("");
-    lines.push(`  parent: id: ${result.parentFolder.nodeId} — ${result.parentFolder.desc}`);
+    lines.push(
+      `  parent: id: ${result.parentFolder.nodeId} (folder) — ${result.parentFolder.desc}`
+    );
   }
 
   if (result.importedBy && result.importedBy.length > 0) {
     lines.push("  importedBy:");
     for (const ib of result.importedBy) {
-      lines.push(`    id: ${ib.moduleId} — ${ib.desc}`);
+      lines.push(`    id: ${ib.moduleId} (module) — ${ib.desc}`);
     }
   }
 
@@ -645,14 +715,14 @@ function formatFolderPlain(result: FolderPickResult): string[] {
   if (result.exports.length > 0) {
     lines.push("  exports:");
     for (const exp of result.exports) {
-      lines.push(`    id: ${exp.nodeId} — ${exp.desc}`);
+      lines.push(`    id: ${exp.nodeId} (export) — ${exp.desc}`);
     }
   }
 
   if (result.importedBy && result.importedBy.length > 0) {
     lines.push("  importedBy:");
     for (const ib of result.importedBy) {
-      lines.push(`    id: ${ib.moduleId} — ${ib.desc}`);
+      lines.push(`    id: ${ib.moduleId} (module) — ${ib.desc}`);
     }
   }
 
@@ -707,7 +777,9 @@ function formatFilePlain(result: FilePickResult): string[] {
   if (result.node.path) lines.push(`  path: ${result.node.path}`);
 
   if (result.parentFolder) {
-    lines.push(`  parent: id: ${result.parentFolder.nodeId} — ${result.parentFolder.desc}`);
+    lines.push(
+      `  parent: id: ${result.parentFolder.nodeId} (folder) — ${result.parentFolder.desc}`
+    );
   }
 
   lines.push(...formatDocs(result.referencingDocs));
@@ -746,9 +818,16 @@ function formatDocPlain(result: DocPickResult): string[] {
   return lines;
 }
 
-function formatPickPlain(result: PickResult): string {
+function formatPickPlain(result: PickResult, ambiguousTypes?: AnyNode["type"][]): string {
   const nodeId = result.type === "doc" ? result.node.nodeId : result.node.nodeId;
   const header = `Pick: "${nodeId}" → ${result.type} (resolved via ${result.resolvedVia})`;
+
+  const preamble: string[] = [header];
+  if (ambiguousTypes && ambiguousTypes.length > 1) {
+    preamble.push(
+      `⚠ Ambiguous ID: "${nodeId}" exists as ${ambiguousTypes.join(", ")}. Showing ${result.type}.`
+    );
+  }
 
   let lines: string[];
   switch (result.type) {
@@ -774,5 +853,5 @@ function formatPickPlain(result: PickResult): string {
       lines = formatDocPlain(result);
       break;
   }
-  return [header, "", ...lines].join("\n").trimEnd();
+  return [...preamble, "", ...lines].join("\n").trimEnd();
 }

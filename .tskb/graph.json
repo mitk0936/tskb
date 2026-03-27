@@ -1777,9 +1777,9 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :449-511"
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :492-569"
         ],
-        "importsSummary": "16 imports from 6 paths",
+        "importsSummary": "17 imports from 6 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
@@ -1794,6 +1794,7 @@
           "getNodeEdges from \"../utils/resolve-node.js\"",
           "findReferencingDocs from \"../utils/resolve-node.js\"",
           "findParent from \"../utils/resolve-node.js\"",
+          "findAllNodesById from \"../utils/resolve-node.js\"",
           "NodeEdges from \"../utils/resolve-node.js\"",
           "DocRef from \"../utils/resolve-node.js\"",
           "ResolvedVia from \"../utils/resolve-node.js\""
@@ -1849,6 +1850,10 @@
           },
           {
             "symbol": "findParent",
+            "path": "../utils/resolve-node.js"
+          },
+          {
+            "symbol": "findAllNodesById",
             "path": "../utils/resolve-node.js"
           },
           {
@@ -2539,7 +2544,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :449-511"
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :492-569"
         ],
         "edgeCount": 2
       },
@@ -4985,7 +4990,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-26T12:25:07.129Z",
+    "generatedAt": "2026-03-27T14:12:13.502Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {

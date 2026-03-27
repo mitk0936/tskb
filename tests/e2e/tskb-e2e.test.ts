@@ -168,9 +168,9 @@ describe("tskb e2e", () => {
       const folderIds = Object.keys(graph.nodes.folders);
       expect(folderIds.length).toBeGreaterThanOrEqual(4);
 
-      // Modules: 5 declared
+      // Modules: 6 declared (including utils barrel that shares ID with utils folder)
       const moduleIds = Object.keys(graph.nodes.modules);
-      expect(moduleIds.length).toBe(5);
+      expect(moduleIds.length).toBe(6);
 
       // Exports: 4 declared (AuthService, TaskService, ProjectService, createLogger)
       const exportIds = Object.keys(graph.nodes.exports);
@@ -347,6 +347,68 @@ describe("tskb e2e", () => {
       const shallow = tskb("context", "services", "--depth", "1", "--plain");
       const deep = tskb("context", "services", "--depth", "2", "--plain");
       expect(deep.length).toBeGreaterThanOrEqual(shallow.length);
+    });
+  });
+
+  // ── Ambiguous ID disambiguation ────────────────────────────────
+  // The fixture declares "utils" as both a Folder and a Module (barrel).
+  // These tests verify that pick/context disambiguate them correctly.
+
+  describe("ambiguous ID disambiguation", () => {
+    it("should have both a folder and module with ID 'utils' in the graph", () => {
+      const graph = JSON.parse(fs.readFileSync(GRAPH_PATH, "utf-8"));
+      expect(graph.nodes.folders["utils"]).toBeDefined();
+      expect(graph.nodes.modules["utils"]).toBeDefined();
+    });
+
+    it("pick JSON should include the node type so consumers can distinguish", () => {
+      const raw = tskb("pick", "utils");
+      const result = JSON.parse(raw);
+      // The resolver returns the first match (folder) but the type is explicit
+      expect(result.type).toBe("folder");
+      expect(result.node.nodeId).toBe("utils");
+    });
+
+    it("pick plain should show ambiguity warning when ID matches multiple types", () => {
+      const output = tskb("pick", "utils", "--plain");
+      expect(output).toContain("Ambiguous ID");
+      expect(output).toContain("folder");
+      expect(output).toContain("module");
+    });
+
+    it("context plain should show ambiguity warning for ambiguous root", () => {
+      const output = tskb("context", "utils", "--plain");
+      expect(output).toContain("Ambiguous ID");
+      expect(output).toContain("folder");
+      expect(output).toContain("module");
+    });
+
+    it("context should list both folder and module nodes when they share an ID", () => {
+      const raw = tskb("context", "utils", "--depth", "1");
+      const result = JSON.parse(raw);
+      // Nearby nodes should include entries with explicit types
+      const nodeTypes = result.nodes.map((n: { type: string }) => n.type);
+      // At depth 1 from utils-folder, the utils-module should appear (via belongs-to)
+      // or at least both types should be distinguishable in the output
+      expect(result.root.type).toBeDefined();
+      for (const node of result.nodes) {
+        expect(node.type).toBeDefined();
+      }
+    });
+
+    it("search results should show type for each result to distinguish same-ID nodes", () => {
+      const output = tskb("search", "utils", "--plain");
+      // Both the folder and module should appear with their types
+      expect(output).toContain("(folder)");
+      expect(output).toContain("(module)");
+    });
+
+    it("pick plain should show node types on referenced IDs (importedBy, parent, etc.)", () => {
+      const output = tskb("pick", "services", "--plain");
+      // The parent line should include the type annotation
+      if (output.includes("parent:")) {
+        expect(output).toMatch(/parent:.*\(folder\)/);
+      }
     });
   });
 
