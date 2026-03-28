@@ -15,9 +15,12 @@ How to write and maintain the codebase map. The map lives in `.tskb.tsx` files �
 - A new feature area is being built (declare it before or alongside implementation)
 - An architectural decision is being made that should be recorded (use `<Adr>`)
 - A constraint is identified that future changes must respect (use `priority="constraint"`)
+- An important process or sequence spans multiple modules — capture it as a `<Flow>`
 - The developer explicitly asks to update the map
 
 **Don't update for:** routine bug fixes, refactoring internals, temporary code, or anything that doesn't change the architecture.
+
+**Prefer flows for processes.** When you encounter an important multi-step process (authentication, build pipelines, request handling, data sync, deployment), document it as a `<Flow>` rather than describing steps in prose. Flows become first-class graph nodes — searchable, visualized, and included in generated skill files when marked `priority="essential"`.
 
 **How to check what's missing:**
 
@@ -122,6 +125,10 @@ The `ref` value is a placeholder — only the type matters. The compiler validat
 - **`<Snippet code={() => { ... }} />`** — Type-checked code example. Real imports, not strings.
 - **`<Relation from={NodeA} to={NodeB} label?="..." />`** — Explicit semantic relationship edge.
 - **`<Adr id="..." title="..." status="accepted|proposed|deprecated|superseded">`** — Architecture Decision Record.
+- **`<Flow name="..." desc="..." priority?>`** — Named, ordered sequence of steps through the system. Becomes a first-class graph node. Only `<Step>` children allowed.
+  - `priority="essential"` — included in generated skill/instructions files and `tskb flows` output.
+  - `priority="supplementary"` (default) — graph-only, queryable via `tskb flows`.
+- **`<Step node={NodeRef} label?="..." />`** — A single participant in a Flow. References any registered node.
 
 ## Type-Checked Snippets
 
@@ -157,12 +164,19 @@ Snippets are **never executed** — they are parsed, type-checked, and stringifi
 - Write implementation-level prose — focus on structural relationships and intent.
 
 ```tsx
-// GOOD
+// GOOD — use <Flow> for multi-step processes
+<Flow name="task-dispatch" desc="Task scheduling through queue and workers" priority="essential">
+  <Step node={TaskQueue} />
+  <Step node={WorkerPool} label="picks and executes" />
+  <Step node={ResultCollector} label="reports back" />
+</Flow>
+
+// GOOD — use prose for static relationships
 <Doc explains="Task scheduling: queue, workers, retry policy">
   <P>{TaskQueue} dispatches jobs to {WorkerPool}.</P>
 </Doc>
 
-// BAD
+// BAD — describing a process in prose instead of a Flow
 <Doc explains="Task scheduling system">
   <P>The system works by accepting tasks into a prioritized queue. Workers pick
   tasks using round-robin, process them, and report results back to the coordinator...</P>

@@ -61,9 +61,10 @@ tskb addresses this by making architecture documentation:
 - Compiler-verified references via `typeof import()`
 - **Type-checked code snippets** (not copied text)
 - **Doc priority** (`essential`, `constraint`, `supplementary`) to control AI guidance and enforce architectural rules
+- **Flows** — named, ordered sequences through the system (`<Flow>` + `<Step>`), surfaced in queries and AI skill files
 - Native IDE support (autocomplete, refactoring, go-to-definition)
 - Zero runtime impact (pure build-time tooling)
-- **CLI for querying** (`ls`, `pick`, `search`, `docs`, `context` commands)
+- **CLI for querying** (`ls`, `pick`, `search`, `docs`, `flows`, `context` commands)
 - JSON knowledge graph output
 - Graphviz visualization
 - Monorepo-friendly by design
@@ -314,18 +315,19 @@ This graph is the primary output. Everything else (diagrams, markdown, AI contex
     exports: Record<string, ExportNode>;   // id, desc, resolvedPath, typeSignature
     files:   Record<string, FileNode>;     // id, desc, path
     terms:   Record<string, TermNode>;     // id, desc
+    flows:   Record<string, FlowNode>;     // id, desc, priority, steps[]
     docs:    Record<string, DocNode>;       // id, explains, priority, filePath, content
   },
   edges: Array<{
     from: string;
     to: string;
-    type: "references" | "contains" | "belongs-to" | "imports" | "related-to";
-    label?: string; // Only for related-to edges, optional
+    type: "references" | "contains" | "belongs-to" | "imports" | "related-to" | "flow-step";
+    label?: string;
   }>,
   metadata: {
     generatedAt: string;
     version: string;
-    stats: { folderCount, moduleCount, exportCount, fileCount, termCount, docCount, edgeCount };
+    stats: { folderCount, moduleCount, exportCount, fileCount, termCount, flowCount, docCount, edgeCount };
   }
 }
 ```
@@ -405,82 +407,47 @@ The graph combines **authored intent** with **structural truth**.
 
 ---
 
+## Flows
+
+Flows model **named, ordered sequences** through the system — login pipelines, build processes, request handling chains.
+
+```tsx
+import { Doc, H1, Flow, Step, ref } from "tskb";
+
+const AuthMiddleware = ref as tskb.Exports["AuthMiddleware"];
+const AuthService = ref as tskb.Modules["AuthServiceModule"];
+const UserRepository = ref as tskb.Exports["UserRepository"];
+
+export default (
+  <Doc explains="Authentication flows">
+    <H1>Auth Flows</H1>
+
+    <Flow name="login" desc="User login from HTTP request to session token" priority="essential">
+      <Step node={AuthMiddleware} label="Validates request format" />
+      <Step node={AuthService} label="Checks credentials, generates JWT" />
+      <Step node={UserRepository} label="Queries user record" />
+    </Flow>
+  </Doc>
+);
+```
+
+Each `<Flow>` becomes a first-class node in the graph with `flow-step` edges connecting it to its participants. Only `<Step>` children are allowed (validated at build time).
+
+**Priority** controls visibility:
+
+- `priority="essential"` — included in generated skill/instructions files and `tskb flows` output
+- `priority="supplementary"` (default) — graph-only, queryable via `tskb flows` and `search`
+
+---
+
 ## Why JSX: semantics, not rendering
 
 JSX in tskb is **not about UI**.
 
 It is a **semantic DSL** that allows you to declare meaning in a structured, type-safe way.
-Each JSX element becomes semantic data - not HTML.
+Each JSX element becomes semantic data — not HTML.
 
 JSX provides composability, static analysis, and extensibility without inventing a new syntax.
-
----
-
-## Defining semantics with JSX
-
-Because JSX is just TypeScript, it can evolve into richer semantics:
-
-```tsx
-<Relation from={AuthService} to={UserRepository} type="depends-on" />
-
-<Constraint kind="layering">
-  <Layer name="ui" cannotImport="data" />
-</Constraint>
-
-<Flow>
-  <Step component={LoginForm} />
-  <Step component={AuthService} />
-  <Step component={UserRepository} />
-</Flow>
-```
-
-These are **semantic primitives** that compile into graph structure - not UI components.
-
----
-
-## Example real output
-
-This is the **actual CLI output** users will see:
-
-```text
-tskb build
-   Pattern: **/*.tskb.tsx
-   Tsconfig: tsconfig.json
-
-Found 19 documentation files
-Creating TypeScript program...
-Extracting registry (Folders, Modules, Terms)...
-   Base directory: /home/user/project
-   ├─ 27 folders
-   │  └─ Paths: 27 valid, 0 missing
-   ├─ 18 modules
-   │  └─ Imports: 18 valid, 0 missing
-   └─ 30 terms
-Extracting documentation...
-└─ 11 docs
-Building knowledge graph...
-   ├─ 28 folder nodes
-   ├─ 18 module nodes
-   ├─ 48 export nodes
-   ├─ 30 term nodes
-   ├─ 11 doc nodes
-   └─ 201 edges
-Creating output directory: /home/user/project/.tskb
-Writing graph to /home/user/project/.tskb/graph.json...
-Generating visualization: /home/user/project/.tskb/graph.dot...
-Writing Claude Code skill: /home/user/project/.claude/skills/tskb/SKILL.md...
-Writing Copilot instructions: /home/user/project/.github/instructions/tskb.instructions.md...
-
-✓ Done!
-
-Output directory: .tskb/
-   ├─ graph.json     Knowledge graph data
-   └─ graph.dot      Graphviz visualization
-   └─ .claude/skills/tskb/SKILL.md  Claude Code skill
-   └─ .github/instructions/tskb.instructions.md  Copilot instructions
-
-Visualize with: dot -Tpng .tskb/graph.dot -o .tskb/graph.png
-```
 
 ---
 
@@ -525,6 +492,15 @@ npx tskb docs "auth"                     # Search docs by query (matches explain
 ```
 
 Lists all docs sorted by priority (constraints first, then essential, then supplementary). With a query, returns fuzzy-matched results with scores, filtered to relevant matches. Use `pick` on a doc `nodeId` to get its full content.
+
+### List and search flows
+
+```bash
+npx tskb flows                           # List all flows sorted by priority
+npx tskb flows "build"                   # Search flows by query
+```
+
+Lists all flows sorted by priority. Essential flows are shown first. Use `pick` on a flow `nodeId` to see its steps and referenced nodes.
 
 ### Get full context for an area
 
@@ -597,7 +573,8 @@ TSKB is designed to help AI assistants understand codebases efficiently:
 - **Docs command**: `docs` lists or searches all documentation, with fuzzy matching across explains, content, and file paths — essential docs are boosted in search results
 - **Context command**: `context` returns a node's full neighborhood (children, modules, exports) with referencing docs — replacing multi-step `pick` → read → `pick` workflows with a single call
 - **Plain text mode**: `--plain` outputs structured text instead of JSON — ~30% fewer tokens for AI consumption while preserving all semantic content
-- **Structured queries**: AI can use `ls`, `pick`, `search`, `docs`, and `context` to navigate architecture — all return JSON (or plain text with `--plain`) with priority metadata on doc results
+- **Flows command**: `flows` lists or searches named sequences through the system — essential flows are included in generated skill/instructions files
+- **Structured queries**: AI can use `ls`, `pick`, `search`, `docs`, `flows`, and `context` to navigate architecture — all return JSON (or plain text with `--plain`) with priority metadata on doc results
 
 Instead of blindly exploring files, AI assistants can:
 
@@ -644,6 +621,7 @@ To enable these integrations, select them during `npx tskb init` or create the d
 - CLI for querying the graph (no file scanning needed)
 - Documents whole systems (multiple packages, monorepos)
 - Type-checked code snippets (not string literals)
+- First-class flows — named, ordered sequences as graph nodes
 - Doc priority system (essential, constraint, supplementary) for AI guidance
 - Optimized for AI assistants with structured queries and constraint enforcement
 
@@ -651,12 +629,9 @@ To enable these integrations, select them during `npx tskb init` or create the d
 
 ## Roadmap
 
-- ~~Enhanced graph querying & filtering~~ ✅ (`context` command)
-- ~~Automatic documentation scaffolding~~ ✅ (`tskb init` command)
 - Architectural constraints validation
 - Interactive visualization (beyond Graphviz)
 - Plugin system for custom node types
-- Integration helpers (pre-commit hooks, CI templates)
 
 ---
 

@@ -112,6 +112,24 @@ export function generateDot(graph: KnowledgeGraph): string {
     lines.push("");
   }
 
+  // Flows (outside folder hierarchy)
+  if (Object.keys(graph.nodes.flows).length > 0) {
+    lines.push("  // Flows");
+    lines.push('  subgraph "cluster_flows" {');
+    lines.push('    label="Flows";');
+    lines.push("    style=dashed;");
+    lines.push("    color=gray;");
+    for (const [id, node] of Object.entries(graph.nodes.flows)) {
+      const stepsStr = node.steps
+        .map((s) => `${s.order + 1}. ${s.nodeId}${s.label ? ` (${s.label})` : ""}`)
+        .join("\\n");
+      const label = `${id.replace(/"/g, '\\"')}\\n${node.desc.replace(/"/g, '\\"')}\\n${stepsStr.replace(/"/g, '\\"')}`;
+      lines.push(`    "${id}" [label="${label}", shape=cds, fillcolor="#C8E6C9", style=filled];`);
+    }
+    lines.push("  }");
+    lines.push("");
+  }
+
   // Docs (outside folder hierarchy)
   lines.push("  // Documentation");
   lines.push('  subgraph "cluster_documentation" {');

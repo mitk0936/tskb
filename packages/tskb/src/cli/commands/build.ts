@@ -173,6 +173,9 @@ export async function build(config: ExtractConfig): Promise<void> {
   if (graph.metadata.stats.externalCount > 0) {
     info(`   ├─ ${graph.metadata.stats.externalCount} external nodes`);
   }
+  if (graph.metadata.stats.flowCount > 0) {
+    info(`   ├─ ${graph.metadata.stats.flowCount} flow nodes`);
+  }
   info(`   ├─ ${graph.metadata.stats.docCount} doc nodes`);
   info(`   └─ ${graph.metadata.stats.edgeCount} edges`);
 

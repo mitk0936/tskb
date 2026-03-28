@@ -24,6 +24,13 @@ export interface ExtractedDoc {
   };
   /** Extracted semantic relations: {from, to, label?} */
   relations?: { from: string; to: string; label?: string }[];
+  /** Extracted flows: { name, desc, priority, steps[] } */
+  flows?: {
+    name: string;
+    desc: string;
+    priority: import("../../runtime/jsx.js").DocPriority;
+    steps: { nodeId: string; label?: string }[];
+  }[];
 }
 
 /**
@@ -84,12 +91,27 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
   // Collect relations
   const relations: { from: string; to: string }[] = [];
 
+  // Collect flows
+  const flows: {
+    name: string;
+    desc: string;
+    priority: DocPriority;
+    steps: { nodeId: string; label?: string }[];
+  }[] = [];
+
   // Find the default export
   const defaultExport = findDefaultExport(sourceFile);
   if (!defaultExport) return null;
 
-  // Extract content and references from JSX, now also collects relations
-  content = extractJsxContent(defaultExport, references, constantReferences, docMeta, relations);
+  // Extract content and references from JSX, now also collects relations and flows
+  content = extractJsxContent(
+    defaultExport,
+    references,
+    constantReferences,
+    docMeta,
+    relations,
+    flows
+  );
 
   // Convert absolute path to relative path (for portability across repos/machines)
   const relativePath = path.relative(process.cwd(), sourceFile.fileName).replace(/\\/g, "/");
@@ -109,6 +131,7 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
       externals: Array.from(new Set(references.externals)),
     },
     relations,
+    flows,
   };
 }
 
@@ -218,7 +241,13 @@ function extractJsxContent(
   },
   constantReferences: Map<string, { category: string; name: string }>,
   docMeta: { explains: string; priority: DocPriority },
-  relations?: { from: string; to: string; label?: string }[]
+  relations?: { from: string; to: string; label?: string }[],
+  flows?: {
+    name: string;
+    desc: string;
+    priority: DocPriority;
+    steps: { nodeId: string; label?: string }[];
+  }[]
 ): string {
   let content = "";
 
@@ -327,6 +356,80 @@ function extractJsxContent(
           }
           // Fallback: print the expression as source
           return expr.getText();
+        }
+
+        // Handle Flow component: extract name, desc, and validate + extract Step children
+        if (name === "Flow" && flows && ts.isJsxElement(n)) {
+          const flowName = getStringAttribute(attributes, "name");
+          const flowDesc = getStringAttribute(attributes, "desc");
+          const flowPriority = getStringAttribute(attributes, "priority");
+          const resolvedPriority: DocPriority =
+            flowPriority === "essential" || flowPriority === "constraint"
+              ? flowPriority
+              : "supplementary";
+          if (flowName && flowDesc) {
+            const steps: { nodeId: string; label?: string }[] = [];
+            for (const child of n.children) {
+              // Skip whitespace text nodes
+              if (ts.isJsxText(child)) {
+                if (child.text.trim()) {
+                  throw new Error(
+                    `<Flow name="${flowName}"> contains text content. Flows may only contain <Step> elements.`
+                  );
+                }
+                continue;
+              }
+              // Validate: only <Step> elements allowed
+              if (
+                ts.isJsxSelfClosingElement(child) &&
+                ts.isIdentifier(child.tagName) &&
+                child.tagName.text === "Step"
+              ) {
+                const stepNodeId = extractStepNode(child.attributes, constantReferences);
+                const stepLabel = getStringAttribute(child.attributes, "label");
+                if (stepNodeId) {
+                  steps.push(
+                    stepLabel ? { nodeId: stepNodeId, label: stepLabel } : { nodeId: stepNodeId }
+                  );
+                }
+              } else if (
+                ts.isJsxElement(child) &&
+                ts.isIdentifier(child.openingElement.tagName) &&
+                child.openingElement.tagName.text === "Step"
+              ) {
+                const stepNodeId = extractStepNode(
+                  child.openingElement.attributes,
+                  constantReferences
+                );
+                const stepLabel = getStringAttribute(child.openingElement.attributes, "label");
+                if (stepNodeId) {
+                  steps.push(
+                    stepLabel ? { nodeId: stepNodeId, label: stepLabel } : { nodeId: stepNodeId }
+                  );
+                }
+              } else {
+                const childName =
+                  ts.isJsxSelfClosingElement(child) && ts.isIdentifier(child.tagName)
+                    ? child.tagName.text
+                    : ts.isJsxElement(child) && ts.isIdentifier(child.openingElement.tagName)
+                      ? child.openingElement.tagName.text
+                      : "unknown";
+                throw new Error(
+                  `<Flow name="${flowName}"> contains a non-<Step> child: <${childName}>. Flows may only contain <Step> elements.`
+                );
+              }
+            }
+            flows.push({ name: flowName, desc: flowDesc, priority: resolvedPriority, steps });
+            // Add content marker
+            const stepMarkers = steps
+              .map(
+                (s, i) =>
+                  `<step order="${i}" nodeId="${s.nodeId}"${s.label ? ` label="${s.label}"` : ""} />`
+              )
+              .join("");
+            content += `<flow name="${flowName}" desc="${flowDesc}">${stepMarkers}</flow>`;
+          }
+          return;
         }
 
         // Handle ADR component specially
@@ -553,4 +656,39 @@ function getAdrAttributes(attributes: ts.JsxAttributes): string | undefined {
   }
 
   return attrs.length > 0 ? attrs.join(" ") : undefined;
+}
+
+/**
+ * Extract the node ID from a Step's `node` attribute.
+ * Handles both expression references ({MyConst}) and string literals.
+ */
+function extractStepNode(
+  attributes: ts.JsxAttributes,
+  constantReferences: Map<string, { category: string; name: string }>
+): string | undefined {
+  for (const prop of attributes.properties) {
+    if (
+      ts.isJsxAttribute(prop) &&
+      ts.isIdentifier(prop.name) &&
+      prop.name.text === "node" &&
+      prop.initializer
+    ) {
+      if (ts.isStringLiteral(prop.initializer)) {
+        return prop.initializer.text;
+      }
+      if (ts.isJsxExpression(prop.initializer) && prop.initializer.expression) {
+        const expr = prop.initializer.expression;
+        if (ts.isIdentifier(expr)) {
+          const ref = constantReferences.get(expr.text);
+          if (ref) return ref.name;
+          return expr.text;
+        }
+        if (ts.isAsExpression(expr)) {
+          const metadata = extractTypeAssertionMetadata(expr);
+          if (metadata) return metadata.name;
+        }
+      }
+    }
+  }
+  return undefined;
 }

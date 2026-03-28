@@ -1,4 +1,4 @@
-import { type Folder, type File, Doc, H1, H2, P, List, Li, ref } from "tskb";
+import { type Folder, type File, Doc, H1, H2, P, List, Li, Flow, Step, ref } from "tskb";
 
 declare global {
   namespace tskb {
@@ -27,21 +27,53 @@ declare global {
 
     interface Files {
       "vitest.config": File<{
-        desc: "Vitest configuration — includes tests/**/*.test.ts with a 60s timeout for CLI subprocess tests";
+        desc: "Vitest configuration — includes tests/**/*.test.ts with a 60s timeout for CLI subprocess tests, registers global setup";
         path: "vitest.config.ts";
       }>;
-      "tests.e2e.test": File<{
-        desc: "Main e2e test file — tests across init scaffolding and full CLI pipeline (build, ls, search, pick, docs, context, JSON output, graph integrity)";
-        path: "tests/e2e/tskb-e2e.test.ts";
+      "tests.global-setup": File<{
+        desc: "Vitest global setup — builds the fixture graph once before all tests, cleans .tskb/ on teardown";
+        path: "tests/e2e/global-setup.ts";
+      }>;
+      "tests.helpers": File<{
+        desc: "Shared test utilities — CLI runners (tskb, tskbIn), graph loader, path constants, and copyDir helper";
+        path: "tests/e2e/helpers.ts";
+      }>;
+      "tests.init": File<{
+        desc: "Scaffolding tests — copies fixture to temp dir, runs init --yes, asserts generated files and idempotency";
+        path: "tests/e2e/init.test.ts";
+      }>;
+      "tests.build": File<{
+        desc: "Build output tests — asserts graph.json/dot exist, verifies node counts, doc priorities, and relation edges";
+        path: "tests/e2e/build.test.ts";
+      }>;
+      "tests.commands": File<{
+        desc: "Command tests — exercises every query command (ls, search, pick, docs, flows, context) in plain and JSON modes";
+        path: "tests/e2e/commands.test.ts";
+      }>;
+      "tests.disambiguation": File<{
+        desc: "Disambiguation tests — ambiguous ID resolution across search, pick, and context commands";
+        path: "tests/e2e/disambiguation.test.ts";
+      }>;
+      "tests.graph-integrity": File<{
+        desc: "Graph integrity tests — validates edge consistency, type signatures, external metadata, and all edge targets resolve";
+        path: "tests/e2e/graph-integrity.test.ts";
       }>;
     }
   }
 }
 
 const TestsFolder = ref as tskb.Folders["tests"];
+const E2eFolder = ref as tskb.Folders["tests.e2e"];
 const FixtureFolder = ref as tskb.Folders["tests.e2e.fixture"];
-const TestFile = ref as tskb.Files["tests.e2e.test"];
 const VitestConfig = ref as tskb.Files["vitest.config"];
+const GlobalSetup = ref as tskb.Files["tests.global-setup"];
+const Helpers = ref as tskb.Files["tests.helpers"];
+const InitTest = ref as tskb.Files["tests.init"];
+const BuildTest = ref as tskb.Files["tests.build"];
+const CommandsTest = ref as tskb.Files["tests.commands"];
+const DisambiguationTest = ref as tskb.Files["tests.disambiguation"];
+const GraphIntegrityTest = ref as tskb.Files["tests.graph-integrity"];
+const CliBuild = ref as tskb.Exports["cli.build"];
 
 export default (
   <Doc
@@ -55,31 +87,49 @@ export default (
       Node's execFileSync, asserting on stdout and generated artifacts.
     </P>
 
+    <Flow
+      name="e2e-test-execution"
+      priority="essential"
+      desc="Full E2E run: global setup builds fixture graph, test files exercise every CLI command, teardown cleans output"
+    >
+      <Step node={VitestConfig} label="Discovers test files, registers global setup" />
+      <Step node={GlobalSetup} label="Builds fixture graph once via tskb build" />
+      <Step node={Helpers} label="Provides CLI runners and graph loader to all test files" />
+      <Step node={GlobalSetup} label="Teardown cleans .tskb/ output directory" />
+    </Flow>
+
+    <Flow
+      name="init-scaffolding-test"
+      desc="How the init command is tested: copies fixture to temp dir, runs init, asserts generated files"
+    >
+      <Step node={Helpers} label="Copies fixture src/ into a temp directory" />
+      <Step node={CliBuild} label="Runs tskb init --yes in the temp directory" />
+      <Step
+        node={E2eFolder}
+        label="Asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs"
+      />
+    </Flow>
+
     <H2>Fixture Project</H2>
     <P>
       The fixture at {FixtureFolder} is a small task-management TypeScript app with models,
-      services, API routes, and utilities. It includes its own tskb docs folder with 5 doc files
+      services, API routes, and utilities. It includes its own tskb docs folder with 6 doc files
       covering all three priority levels (essential, constraint, supplementary) and all registry
-      primitives (Folder, Module, Export, Term, External, Relation). This makes it a comprehensive
-      test subject for the full build and query pipeline.
+      primitives (Folder, Module, Export, Term, External, Relation, Flow). This makes it a
+      comprehensive test subject for the full build and query pipeline.
     </P>
 
     <H2>Test Structure</H2>
-    <P>The test file ({TestFile}) has two top-level describe blocks:</P>
+    <P>
+      Tests are split into focused files under {E2eFolder}, sharing utilities from {Helpers}. A
+      Vitest global setup ({GlobalSetup}) builds the fixture graph once before any test runs.
+    </P>
     <List>
-      <Li>
-        <strong>tskb init</strong> — scaffolding tests. Copies the fixture src/ into a temp
-        directory, runs init --yes (non-interactive), then asserts on created files:
-        docs/tsconfig.json, architecture.tskb.tsx, package.json scripts, .claude/skills/, .github/.
-        Also verifies idempotency (re-running init does not overwrite user edits).
-      </Li>
-      <Li>
-        <strong>tskb e2e</strong> — full pipeline tests. Builds the fixture graph, then tests every
-        query command (ls, search, pick, docs, context) in both plain and JSON output modes. A graph
-        integrity section validates edge consistency: belongs-to, contains, references, imports,
-        related-to edges, type signatures, external metadata, and that all edge targets reference
-        existing nodes.
-      </Li>
+      <Li>{InitTest} — scaffolding tests with idempotency checks</Li>
+      <Li>{BuildTest} — graph output validation: node counts, priorities, edges</Li>
+      <Li>{CommandsTest} — exercises every query command in plain and JSON modes</Li>
+      <Li>{DisambiguationTest} — ambiguous ID resolution across commands</Li>
+      <Li>{GraphIntegrityTest} — edge consistency, type signatures, external metadata</Li>
     </List>
 
     <H2>Running Tests</H2>

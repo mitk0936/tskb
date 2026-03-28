@@ -212,6 +212,7 @@ function buildSearchableNodes(graph: KnowledgeGraph): SearchableNode[] {
         content: getContent(node),
         ...(node.edgeCount ? { edgeCount: node.edgeCount } : {}),
         ...(node.type === "doc" ? { priority: node.priority } : {}),
+        ...(node.type === "flow" ? { priority: node.priority } : {}),
         ...(node.type === "folder" && node.structureSummary
           ? { structureSummary: node.structureSummary }
           : {}),
@@ -259,6 +260,9 @@ function getContent(node: AnyNode): string {
     return Object.entries(node.metadata)
       .map(([k, v]) => `${k}: ${v}`)
       .join(" ");
+  }
+  if (node.type === "flow") {
+    return node.steps.map((s) => `${s.nodeId}${s.label ? ` ${s.label}` : ""}`).join(" ");
   }
   return "";
 }

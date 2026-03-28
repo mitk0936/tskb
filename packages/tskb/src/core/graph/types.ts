@@ -12,7 +12,7 @@ import type { ImportEntry } from "../extraction/module-morphology.js";
 
 export interface GraphNode {
   id: string;
-  type: "folder" | "module" | "term" | "export" | "doc" | "file" | "external";
+  type: "folder" | "module" | "term" | "export" | "doc" | "file" | "external" | "flow";
   /**
    * Number of edges connected to this node (computed during build)
    */
@@ -117,6 +117,22 @@ export interface ExternalNode extends GraphNode {
   metadata: Record<string, string>;
 }
 
+export interface FlowStep {
+  /** ID of the referenced node */
+  nodeId: string;
+  /** Step order (0-based) */
+  order: number;
+  /** What this node does in the context of the flow */
+  label?: string;
+}
+
+export interface FlowNode extends GraphNode {
+  type: "flow";
+  desc: string;
+  priority: DocPriority;
+  steps: FlowStep[];
+}
+
 export interface DocNode extends GraphNode {
   type: "doc";
   /**
@@ -148,6 +164,7 @@ export type AnyNode =
   | ExportNode
   | FileNode
   | ExternalNode
+  | FlowNode
   | DocNode;
 
 /**
@@ -158,7 +175,8 @@ export type EdgeType =
   | "belongs-to" // Module/Export belongs to a Folder or Module
   | "contains" // Folder contains another Folder (path hierarchy)
   | "imports" // Module imports from another Module
-  | "related-to"; // General relationship
+  | "related-to" // General relationship
+  | "flow-step"; // Flow references a step participant (ordered)
 
 export interface GraphEdge {
   from: string; // Source node ID
@@ -181,6 +199,7 @@ export interface KnowledgeGraph {
     exports: Record<string, ExportNode>;
     files: Record<string, FileNode>;
     externals: Record<string, ExternalNode>;
+    flows: Record<string, FlowNode>;
     docs: Record<string, DocNode>;
   };
   /**
@@ -204,6 +223,7 @@ export interface KnowledgeGraph {
       exportCount: number;
       fileCount: number;
       externalCount: number;
+      flowCount: number;
       docCount: number;
       edgeCount: number;
     };

@@ -57,6 +57,11 @@ declare global {
         type: typeof import("packages/tskb/src/cli/commands/init.js");
       }>;
 
+      "cli.commands.flows": Module<{
+        desc: "Flows command module - lists all flows sorted by priority, with optional fuzzy search";
+        type: typeof import("packages/tskb/src/cli/commands/flows.js");
+      }>;
+
       "cli.utils.content-builder": Module<{
         desc: "Shared markdown content builder - produces query body and update body (syntax + session triggers) for generated skill/instructions files";
         type: typeof import("packages/tskb/src/cli/utils/content-builder.js");
@@ -92,7 +97,7 @@ declare global {
 
     interface Terms {
       cliPipeline: Term<"The build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, skill/instructions)">;
-      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, or docs)">;
+      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, docs, or flows)">;
       globPattern: Term<"File pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing">;
       folderIdNavigation: Term<"Navigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths">;
       tskbOutputDir: Term<"The .tskb/ directory containing all build outputs: graph.json and graph.dot">;
@@ -110,6 +115,7 @@ const SearchModule = ref as tskb.Modules["cli.commands.search"];
 const PickModule = ref as tskb.Modules["cli.commands.pick"];
 const LsModule = ref as tskb.Modules["cli.commands.ls"];
 const InitModule = ref as tskb.Modules["cli.commands.init"];
+const FlowsModule = ref as tskb.Modules["cli.commands.flows"];
 const ContentBuilderModule = ref as tskb.Modules["cli.utils.content-builder"];
 const SkillGenModule = ref as tskb.Modules["cli.utils.skill-generator"];
 const CopilotGenModule = ref as tskb.Modules["cli.utils.copilot-instructions"];
@@ -117,7 +123,7 @@ const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
 const LoggerModule = ref as tskb.Modules["cli.utils.logger"];
 
 export default (
-  <Doc explains="CLI structure: commands (init, build, search, pick, context, ls, docs) and utils (output generators, content builder, logger)">
+  <Doc explains="CLI structure: commands (init, build, search, pick, context, ls, docs, flows) and utils (output generators, content builder, logger)">
     <H1>CLI</H1>
     <P>
       Located in {CliFolder}. Entry point: {IndexModule} — parses arguments, routes to command
@@ -137,6 +143,10 @@ export default (
       <Li>{SearchModule}: Fuzzy search across all node types, returns ranked JSON results</Li>
       <Li>{PickModule}: Resolve any node by ID or path, returns type-specific context</Li>
       <Li>{LsModule}: List folder hierarchy with depth control, includes essential docs</Li>
+      <Li>
+        {FlowsModule}: List or search flows sorted by priority (constraint → essential →
+        supplementary)
+      </Li>
     </List>
 
     <H2>Utils</H2>

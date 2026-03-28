@@ -136,7 +136,7 @@
         "type": "folder",
         "desc": "E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command",
         "path": "tests/e2e",
-        "structureSummary": "1 folder, 1 file",
+        "structureSummary": "1 folder, 7 files",
         "children": {
           "folders": [
             {
@@ -147,11 +147,29 @@
           ],
           "files": [
             {
-              "name": "tskb-e2e.test.ts"
+              "name": "build.test.ts"
+            },
+            {
+              "name": "commands.test.ts"
+            },
+            {
+              "name": "disambiguation.test.ts"
+            },
+            {
+              "name": "global-setup.ts"
+            },
+            {
+              "name": "graph-integrity.test.ts"
+            },
+            {
+              "name": "helpers.ts"
+            },
+            {
+              "name": "init.test.ts"
             }
           ]
         },
-        "edgeCount": 3
+        "edgeCount": 11
       },
       "tests.e2e.fixture": {
         "id": "tests.e2e.fixture",
@@ -424,7 +442,9 @@
               "name": "index.ts"
             },
             {
-              "name": "module-morphology.ts"
+              "name": "module-morphology.ts",
+              "nodeId": "extraction.module-morphology",
+              "desc": "Extracts public API shape from TypeScript modules — exports, imports, type stubs, and line ranges using the type checker"
             },
             {
               "name": "registry.ts",
@@ -433,7 +453,7 @@
             }
           ]
         },
-        "edgeCount": 3
+        "edgeCount": 4
       },
       "core.extraction.graph": {
         "id": "core.extraction.graph",
@@ -466,7 +486,7 @@
         "type": "folder",
         "desc": "Command implementations for init, build, search, pick, context, ls, and docs",
         "path": "packages/tskb/src/cli/commands",
-        "structureSummary": "7 files",
+        "structureSummary": "8 files",
         "children": {
           "folders": [],
           "files": [
@@ -480,6 +500,11 @@
             },
             {
               "name": "docs.ts"
+            },
+            {
+              "name": "flows.ts",
+              "nodeId": "cli.commands.flows",
+              "desc": "Flows command module - lists all flows sorted by priority, with optional fuzzy search"
             },
             {
               "name": "init.ts",
@@ -503,7 +528,7 @@
             }
           ]
         },
-        "edgeCount": 7
+        "edgeCount": 8
       },
       "tskb.cli.utils": {
         "id": "tskb.cli.utils",
@@ -902,7 +927,7 @@
             }
           ]
         },
-        "edgeCount": 6
+        "edgeCount": 7
       },
       "Repositories": {
         "id": "Repositories",
@@ -1013,7 +1038,7 @@
         "desc": "The main package export",
         "typeSignature": "typeof import(\"packages/tskb/src/index.js\")",
         "resolvedPath": "packages/tskb/src/index.ts",
-        "morphologySummary": "10 functions, 8 types, 1 variable",
+        "morphologySummary": "12 functions, 9 types, 1 variable",
         "morphology": [
           "export type Term = ",
           "export type Module = ",
@@ -1022,7 +1047,7 @@
           "export type File = ",
           "export type External = ",
           "export const ref: ReactNode",
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"tests\" | \"tests.e2e.fixture\" | \"tests.e2e.test\" | \"vitest.config\" | \"ref\" | \"docs\" | \"examples.taskflow-app\" | \"tests.e2e\" | \"tests.e2e.fixture.src\" | ... 136 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 146 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {}",
+          "export function Relation({ from, to, label, }: { from: AnyNodeRef; to: AnyNodeRef; label?: string | undefined; }): any {}",
           "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {}",
           "export function H1({ children }: { children: any; }): any {}",
           "export function H2({ children }: { children: any; }): any {}",
@@ -1030,8 +1055,11 @@
           "export function P({ children }: { children: any; }): any {}",
           "export function List({ children }: { children: any; }): any {}",
           "export function Li({ children }: { children: any; }): any {}",
-          "export function Snippet({ code }: { code: () => any; }): any {}",
+          "export function Snippet({ code }: { code: () => unknown; }): any {}",
           "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any {}",
+          "export function Flow({ name, desc, priority, children, }: { name: string; desc: string; priority?: DocPriority | undefined; children: any; }): any {}",
+          "export function Step({ node, label }: { node: AnyNodeRef; label?: string | undefined; }): any {}",
+          "export type AnyNodeRef = ",
           "export type ReactNode = ",
           "export type DocPriority = "
         ],
@@ -1043,21 +1071,24 @@
         "desc": "The JSX runtime, provided by the package. Includes all available jsx tags in tskb as functions.",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\")",
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
-        "morphologySummary": "10 functions, 2 types, 1 variable",
+        "morphologySummary": "12 functions, 3 types, 1 variable",
         "morphology": [
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"tests\" | \"tests.e2e.fixture\" | \"tests.e2e.test\" | \"vitest.config\" | \"ref\" | \"docs\" | \"examples.taskflow-app\" | \"tests.e2e\" | \"tests.e2e.fixture.src\" | ... 136 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 146 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {} // :26-45",
-          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {} // :90-100",
-          "export function H1({ children }: { children: any; }): any {} // :111-113",
-          "export function H2({ children }: { children: any; }): any {} // :115-117",
-          "export function H3({ children }: { children: any; }): any {} // :119-121",
-          "export function P({ children }: { children: any; }): any {} // :123-125",
-          "export function List({ children }: { children: any; }): any {} // :127-129",
-          "export function Li({ children }: { children: any; }): any {} // :131-133",
-          "export function Snippet({ code }: { code: () => any; }): any {} // :146-149",
-          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any {} // :172-198",
-          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r... // :54-63",
-          "export const ref: ReactNode // :77",
-          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\" // :85"
+          "export function Relation({ from, to, label, }: { from: AnyNodeRef; to: AnyNodeRef; label?: string | undefined; }): any {} // :31-41",
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {} // :86-96",
+          "export function H1({ children }: { children: any; }): any {} // :107-109",
+          "export function H2({ children }: { children: any; }): any {} // :111-113",
+          "export function H3({ children }: { children: any; }): any {} // :115-117",
+          "export function P({ children }: { children: any; }): any {} // :119-121",
+          "export function List({ children }: { children: any; }): any {} // :123-125",
+          "export function Li({ children }: { children: any; }): any {} // :127-129",
+          "export function Snippet({ code }: { code: () => unknown; }): any {} // :142-145",
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any {} // :168-194",
+          "export function Flow({ name, desc, priority, children, }: { name: string; desc: string; priority?: DocPriority | undefined; children: any; }): any {} // :209-221",
+          "export function Step({ node, label }: { node: AnyNodeRef; label?: string | undefined; }): any {} // :232-234",
+          "export type AnyNodeRef = (typeof ref & { __tskbType?: AnyNodeName }) | AnyNodeName // :20",
+          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r... // :50-59",
+          "export const ref: ReactNode // :73",
+          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\" // :81"
         ],
         "importsSummary": "6 imports from 1 path",
         "imports": [
@@ -1094,7 +1125,7 @@
             "path": "./registry.js"
           }
         ],
-        "edgeCount": 15
+        "edgeCount": 17
       },
       "sample.tsconfig.json": {
         "id": "sample.tsconfig.json",
@@ -1129,7 +1160,7 @@
             "path": "node:path"
           }
         ],
-        "edgeCount": 6
+        "edgeCount": 4
       },
       "typescript.index": {
         "id": "typescript.index",
@@ -1149,21 +1180,24 @@
         "desc": "JSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper",
         "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\")",
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
-        "morphologySummary": "10 functions, 2 types, 1 variable",
+        "morphologySummary": "12 functions, 3 types, 1 variable",
         "morphology": [
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"tests\" | \"tests.e2e.fixture\" | \"tests.e2e.test\" | \"vitest.config\" | \"ref\" | \"docs\" | \"examples.taskflow-app\" | \"tests.e2e\" | \"tests.e2e.fixture.src\" | ... 136 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 146 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {} // :26-45",
-          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {} // :90-100",
-          "export function H1({ children }: { children: any; }): any {} // :111-113",
-          "export function H2({ children }: { children: any; }): any {} // :115-117",
-          "export function H3({ children }: { children: any; }): any {} // :119-121",
-          "export function P({ children }: { children: any; }): any {} // :123-125",
-          "export function List({ children }: { children: any; }): any {} // :127-129",
-          "export function Li({ children }: { children: any; }): any {} // :131-133",
-          "export function Snippet({ code }: { code: () => any; }): any {} // :146-149",
-          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any {} // :172-198",
-          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r... // :54-63",
-          "export const ref: ReactNode // :77",
-          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\" // :85"
+          "export function Relation({ from, to, label, }: { from: AnyNodeRef; to: AnyNodeRef; label?: string | undefined; }): any {} // :31-41",
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {} // :86-96",
+          "export function H1({ children }: { children: any; }): any {} // :107-109",
+          "export function H2({ children }: { children: any; }): any {} // :111-113",
+          "export function H3({ children }: { children: any; }): any {} // :115-117",
+          "export function P({ children }: { children: any; }): any {} // :119-121",
+          "export function List({ children }: { children: any; }): any {} // :123-125",
+          "export function Li({ children }: { children: any; }): any {} // :127-129",
+          "export function Snippet({ code }: { code: () => unknown; }): any {} // :142-145",
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any {} // :168-194",
+          "export function Flow({ name, desc, priority, children, }: { name: string; desc: string; priority?: DocPriority | undefined; children: any; }): any {} // :209-221",
+          "export function Step({ node, label }: { node: AnyNodeRef; label?: string | undefined; }): any {} // :232-234",
+          "export type AnyNodeRef = (typeof ref & { __tskbType?: AnyNodeName }) | AnyNodeName // :20",
+          "export type ReactNode = | string\n  | number\n  | boolean\n  | null\n  | undefined\n  | ReactNode[]\n  | { desc: string; path: string } // Folder r... // :50-59",
+          "export const ref: ReactNode // :73",
+          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\" // :81"
         ],
         "importsSummary": "6 imports from 1 path",
         "imports": [
@@ -1239,7 +1273,7 @@
         "resolvedPath": "packages/tskb/src/core/visualization/dot-generator.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function generateDot(graph: KnowledgeGraph): string {} // :13-168"
+          "export function generateDot(graph: KnowledgeGraph): string {} // :13-186"
         ],
         "importsSummary": "2 imports from 1 path",
         "imports": [
@@ -1326,7 +1360,44 @@
             "path": "./module-morphology.js"
           }
         ],
-        "edgeCount": 4
+        "edgeCount": 6
+      },
+      "extraction.module-morphology": {
+        "id": "extraction.module-morphology",
+        "type": "module",
+        "desc": "Extracts public API shape from TypeScript modules — exports, imports, type stubs, and line ranges using the type checker",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/module-morphology.js\")",
+        "resolvedPath": "packages/tskb/src/core/extraction/module-morphology.ts",
+        "morphologySummary": "3 functions, 3 interfaces",
+        "morphology": [
+          "export function extractModuleMorphology(program: Program, resolvedPath: string): ModuleMorphology | null {} // :32-111",
+          "export function extractExportMorphology(program: Program, resolvedPath: string, exportName: string): ModuleMorphology | null {} // :449-494",
+          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :506-564",
+          "export interface ModuleMorphology { // :3-6",
+          "  summary: string // :4",
+          "  morphology: string[] // :5",
+          "}",
+          "export interface ImportEntry { // :8-11",
+          "  symbol: string // :9",
+          "  path: string // :10",
+          "}",
+          "export interface ModuleImports { // :13-17",
+          "  imports: string[] // :14",
+          "  importEntries: ImportEntry[] // :15",
+          "  importsSummary: string // :16",
+          "}"
+        ],
+        "importsSummary": "1 import from 1 path",
+        "imports": [
+          "ts from \"typescript\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "ts",
+            "path": "typescript"
+          }
+        ],
+        "edgeCount": 6
       },
       "graph.builder": {
         "id": "graph.builder",
@@ -1336,9 +1407,9 @@
         "resolvedPath": "packages/tskb/src/core/graph/builder.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph {} // :50-122"
+          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph {} // :51-128"
         ],
-        "importsSummary": "14 imports from 6 paths",
+        "importsSummary": "15 imports from 6 paths",
         "imports": [
           "KnowledgeGraph from \"./types.js\"",
           "FolderNode from \"./types.js\"",
@@ -1347,6 +1418,7 @@
           "ExportNode from \"./types.js\"",
           "FileNode from \"./types.js\"",
           "ExternalNode from \"./types.js\"",
+          "FlowNode from \"./types.js\"",
           "DocNode from \"./types.js\"",
           "GraphEdge from \"./types.js\"",
           "ExtractedRegistry from \"../extraction/registry.js\"",
@@ -1385,6 +1457,10 @@
             "path": "./types.js"
           },
           {
+            "symbol": "FlowNode",
+            "path": "./types.js"
+          },
+          {
             "symbol": "DocNode",
             "path": "./types.js"
           },
@@ -1413,7 +1489,7 @@
             "path": "../constants.js"
           }
         ],
-        "edgeCount": 8
+        "edgeCount": 9
       },
       "graph.types": {
         "id": "graph.types",
@@ -1421,11 +1497,11 @@
         "desc": "Type definitions for the knowledge graph data model - all node types, edge types, and the KnowledgeGraph structure",
         "typeSignature": "typeof import(\"packages/tskb/src/core/graph/types.js\")",
         "resolvedPath": "packages/tskb/src/core/graph/types.ts",
-        "morphologySummary": "10 interfaces, 2 types",
+        "morphologySummary": "12 interfaces, 2 types",
         "morphology": [
           "export interface GraphNode { // :13-20",
           "  id: string // :14",
-          "  type: \"module\" | \"folder\" | \"term\" | \"export\" | \"doc\" | \"file\" | \"external\" // :15",
+          "  type: \"module\" | \"folder\" | \"term\" | \"export\" | \"doc\" | \"file\" | \"external\" | \"flow\" // :15",
           "  edgeCount: number | undefined // :19",
           "}",
           "export interface FolderNode { // :22-41",
@@ -1481,28 +1557,41 @@
           "  id: string // :14",
           "  edgeCount: number | undefined // :19",
           "}",
-          "export interface DocNode { // :120-142",
-          "  type: \"doc\" // :121",
-          "  explains: string // :125",
-          "  priority: DocPriority // :129",
-          "  filePath: string // :133",
-          "  content: string // :137",
-          "  format: \"tsx\" | \"ts\" // :141",
+          "export interface FlowStep { // :120-127",
+          "  nodeId: string // :122",
+          "  order: number // :124",
+          "  label: string | undefined // :126",
+          "}",
+          "export interface FlowNode { // :129-134",
+          "  type: \"flow\" // :130",
+          "  desc: string // :131",
+          "  priority: DocPriority // :132",
+          "  steps: FlowStep[] // :133",
           "  id: string // :14",
           "  edgeCount: number | undefined // :19",
           "}",
-          "export type AnyNode = | FolderNode\n  | ModuleNode\n  | TermNode\n  | ExportNode\n  | FileNode\n  | ExternalNode\n  | DocNode // :144-151",
-          "export type EdgeType = | \"references\" // Doc references a Folder/Module/Term/Export\n  | \"belongs-to\" // Module/Export belongs to a Folder or... // :156-161",
-          "export interface GraphEdge { // :163-168",
-          "  from: string // :164",
-          "  to: string // :165",
-          "  type: EdgeType // :166",
-          "  label: string | undefined // :167",
+          "export interface DocNode { // :136-158",
+          "  type: \"doc\" // :137",
+          "  explains: string // :141",
+          "  priority: DocPriority // :145",
+          "  filePath: string // :149",
+          "  content: string // :153",
+          "  format: \"tsx\" | \"ts\" // :157",
+          "  id: string // :14",
+          "  edgeCount: number | undefined // :19",
           "}",
-          "export interface KnowledgeGraph { // :173-211",
-          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; externals: Record<...>; docs: Record<...>; } // :177-185",
-          "  edges: GraphEdge[] // :189",
-          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; docCount: number; edgeCount: number; }; } // :193-210",
+          "export type AnyNode = | FolderNode\n  | ModuleNode\n  | TermNode\n  | ExportNode\n  | FileNode\n  | ExternalNode\n  | FlowNode\n  | DocNode // :160-168",
+          "export type EdgeType = | \"references\" // Doc references a Folder/Module/Term/Export\n  | \"belongs-to\" // Module/Export belongs to a Folder or... // :173-179",
+          "export interface GraphEdge { // :181-186",
+          "  from: string // :182",
+          "  to: string // :183",
+          "  type: EdgeType // :184",
+          "  label: string | undefined // :185",
+          "}",
+          "export interface KnowledgeGraph { // :191-231",
+          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; externals: Record<...>; flows: Record<...>; docs: Record<...>; } // :195-204",
+          "  edges: GraphEdge[] // :208",
+          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; flowCount: number; docCount: number; edgeCount: number; }; } // :212-230",
           "}"
         ],
         "importsSummary": "3 imports from 3 paths",
@@ -1525,7 +1614,7 @@
             "path": "../extraction/module-morphology.js"
           }
         ],
-        "edgeCount": 12
+        "edgeCount": 16
       },
       "extraction.documentation": {
         "id": "extraction.documentation",
@@ -1535,8 +1624,8 @@
         "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
         "morphologySummary": "1 function, 1 interface",
         "morphology": [
-          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[] {} // :38-60",
-          "export interface ExtractedDoc { // :8-27",
+          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[] {} // :45-67",
+          "export interface ExtractedDoc { // :8-34",
           "  filePath: string // :10",
           "  format: \"tsx\" // :11",
           "  explains: string // :13",
@@ -1544,6 +1633,7 @@
           "  content: string // :16",
           "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; } // :17-24",
           "  relations: { from: string; to: string; label?: string | undefined; }[] | undefined // :26",
+          "  flows: { name: string; desc: string; priority: DocPriority; steps: { nodeId: string; label?: string | undefined; }[]; }[] | undefined // :28-33",
           "}"
         ],
         "importsSummary": "3 imports from 3 paths",
@@ -1639,7 +1729,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
         "morphologySummary": "1 function, 1 interface",
         "morphology": [
-          "export function build(config: ExtractConfig): Promise<void> {} // :65-227",
+          "export function build(config: ExtractConfig): Promise<void> {} // :65-230",
           "export interface ExtractConfig { // :13-22",
           "  pattern: string // :17",
           "  tsconfig: string // :21",
@@ -1777,7 +1867,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :492-569"
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :545-622"
         ],
         "importsSummary": "17 imports from 6 paths",
         "imports": [
@@ -1978,6 +2068,68 @@
         ],
         "edgeCount": 4
       },
+      "cli.commands.flows": {
+        "id": "cli.commands.flows",
+        "type": "module",
+        "desc": "Flows command module - lists all flows sorted by priority, with optional fuzzy search",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/flows.js\")",
+        "resolvedPath": "packages/tskb/src/cli/commands/flows.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function flows(query?: string | undefined, optimized?: boolean, plain?: boolean): Promise<void> {} // :42-121"
+        ],
+        "importsSummary": "9 imports from 5 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "Fuse from \"fuse.js\"",
+          "KnowledgeGraph from \"../../core/graph/types.js\"",
+          "FlowNode from \"../../core/graph/types.js\"",
+          "findGraphFile from \"../utils/graph-finder.js\"",
+          "verbose from \"../utils/logger.js\"",
+          "time from \"../utils/logger.js\"",
+          "jsonOut from \"../utils/logger.js\"",
+          "plainOut from \"../utils/logger.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "Fuse",
+            "path": "fuse.js"
+          },
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "FlowNode",
+            "path": "../../core/graph/types.js"
+          },
+          {
+            "symbol": "findGraphFile",
+            "path": "../utils/graph-finder.js"
+          },
+          {
+            "symbol": "verbose",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "time",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "jsonOut",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "plainOut",
+            "path": "../utils/logger.js"
+          }
+        ],
+        "edgeCount": 5
+      },
       "cli.utils.content-builder": {
         "id": "cli.utils.content-builder",
         "type": "module",
@@ -1986,8 +2138,8 @@
         "resolvedPath": "packages/tskb/src/cli/utils/content-builder.ts",
         "morphologySummary": "2 functions",
         "morphology": [
-          "export function buildQueryBody(graph: KnowledgeGraph): string {} // :8-65",
-          "export function buildUpdateBody(graph: KnowledgeGraph): string {} // :72-273"
+          "export function buildQueryBody(graph: KnowledgeGraph): string {} // :8-71",
+          "export function buildUpdateBody(graph: KnowledgeGraph): string {} // :78-293"
         ],
         "importsSummary": "1 import from 1 path",
         "imports": [
@@ -2110,7 +2262,7 @@
             "path": "node:path"
           }
         ],
-        "edgeCount": 5
+        "edgeCount": 6
       },
       "cli.utils.logger": {
         "id": "cli.utils.logger",
@@ -2129,7 +2281,7 @@
           "export function plainOut(text: string): void {} // :42-44",
           "export function infoTime(label: string) => (): void {} // :50-57"
         ],
-        "edgeCount": 9
+        "edgeCount": 10
       },
       "AuthService": {
         "id": "AuthService",
@@ -2178,7 +2330,7 @@
             "path": "../../shared/types"
           }
         ],
-        "edgeCount": 4
+        "edgeCount": 5
       },
       "TaskRepository": {
         "id": "TaskRepository",
@@ -2222,7 +2374,7 @@
             "path": "../connection"
           }
         ],
-        "edgeCount": 5
+        "edgeCount": 6
       },
       "AuthContext": {
         "id": "AuthContext",
@@ -2363,7 +2515,7 @@
       "commandRouting": {
         "id": "commandRouting",
         "type": "term",
-        "desc": "The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, or docs)"
+        "desc": "The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, docs, or flows)"
       },
       "globPattern": {
         "id": "globPattern",
@@ -2520,9 +2672,9 @@
         "resolvedPath": "packages/tskb/src/cli/commands/build.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function build(config: ExtractConfig): Promise<void> {} // :65-227"
+          "export function build(config: ExtractConfig): Promise<void> {} // :65-230"
         ],
-        "edgeCount": 2
+        "edgeCount": 4
       },
       "cli.search": {
         "id": "cli.search",
@@ -2544,7 +2696,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :492-569"
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :545-622"
         ],
         "edgeCount": 2
       },
@@ -2570,7 +2722,7 @@
         "morphology": [
           "export function generateDot(graph: KnowledgeGraph): string {}"
         ],
-        "edgeCount": 4
+        "edgeCount": 5
       },
       "ts.createProgram": {
         "id": "ts.createProgram",
@@ -2582,7 +2734,7 @@
         "morphology": [
           "export function createProgram(files: string[], tsconfigPath: string): Program {} // :34-97"
         ],
-        "edgeCount": 2
+        "edgeCount": 3
       },
       "jsx.Doc": {
         "id": "jsx.Doc",
@@ -2592,7 +2744,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {} // :90-100"
+          "export function Doc({ explains, priority, children, }: { explains: string; priority?: DocPriority | undefined; children: any; }): any {} // :86-96"
         ],
         "edgeCount": 2
       },
@@ -2604,7 +2756,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function H1({ children }: { children: any; }): any {} // :111-113"
+          "export function H1({ children }: { children: any; }): any {} // :107-109"
         ],
         "edgeCount": 1
       },
@@ -2616,7 +2768,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function H2({ children }: { children: any; }): any {} // :115-117"
+          "export function H2({ children }: { children: any; }): any {} // :111-113"
         ],
         "edgeCount": 1
       },
@@ -2628,7 +2780,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function H3({ children }: { children: any; }): any {} // :119-121"
+          "export function H3({ children }: { children: any; }): any {} // :115-117"
         ],
         "edgeCount": 1
       },
@@ -2640,7 +2792,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function P({ children }: { children: any; }): any {} // :123-125"
+          "export function P({ children }: { children: any; }): any {} // :119-121"
         ],
         "edgeCount": 1
       },
@@ -2652,7 +2804,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function List({ children }: { children: any; }): any {} // :127-129"
+          "export function List({ children }: { children: any; }): any {} // :123-125"
         ],
         "edgeCount": 1
       },
@@ -2664,7 +2816,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Li({ children }: { children: any; }): any {} // :131-133"
+          "export function Li({ children }: { children: any; }): any {} // :127-129"
         ],
         "edgeCount": 1
       },
@@ -2676,7 +2828,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Snippet({ code }: { code: () => any; }): any {} // :146-149"
+          "export function Snippet({ code }: { code: () => unknown; }): any {} // :142-145"
         ],
         "edgeCount": 1
       },
@@ -2688,7 +2840,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any {} // :172-198"
+          "export function Adr({ id, title, status, date, deciders, children, }: { id: string; title: string; status: \"proposed\" | \"accepted\" | \"deprecated\" | \"superseded\"; date?: string | undefined; deciders?: string | undefined; children: any; }): any {} // :168-194"
         ],
         "edgeCount": 2
       },
@@ -2700,7 +2852,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 variable",
         "morphology": [
-          "export const ref: ReactNode // :77"
+          "export const ref: ReactNode // :73"
         ],
         "edgeCount": 2
       },
@@ -2712,7 +2864,7 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function Relation({ from, to, label, }: { from: \"packages\" | \"references\" | \"tests\" | \"tests.e2e.fixture\" | \"tests.e2e.test\" | \"vitest.config\" | \"ref\" | \"docs\" | \"examples.taskflow-app\" | \"tests.e2e\" | \"tests.e2e.fixture.src\" | ... 136 more ... | (ReactNode & { ...; }); to: \"packages\" | ... 146 more ... | (ReactNode & { ...; }); label?: string | undefined; }): any {} // :26-45"
+          "export function Relation({ from, to, label, }: { from: AnyNodeRef; to: AnyNodeRef; label?: string | undefined; }): any {} // :31-41"
         ],
         "edgeCount": 1
       },
@@ -2724,7 +2876,31 @@
         "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
         "morphologySummary": "1 type",
         "morphology": [
-          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\" // :85"
+          "export type DocPriority = \"essential\" | \"constraint\" | \"supplementary\" // :81"
+        ],
+        "edgeCount": 2
+      },
+      "jsx.Flow": {
+        "id": "jsx.Flow",
+        "type": "export",
+        "desc": "Flow component — defines a named, ordered sequence of steps through the system. Becomes a first-class graph node. Props: name, desc, optional priority. Only <Step> children allowed (validated at build time).",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Flow",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function Flow({ name, desc, priority, children, }: { name: string; desc: string; priority?: DocPriority | undefined; children: any; }): any {} // :209-221"
+        ],
+        "edgeCount": 2
+      },
+      "jsx.Step": {
+        "id": "jsx.Step",
+        "type": "export",
+        "desc": "Step component — a single participant in a Flow. The node prop references a registry node, optional label describes its role in the flow.",
+        "typeSignature": "typeof import(\"packages/tskb/src/runtime/jsx.js\").Step",
+        "resolvedPath": "packages/tskb/src/runtime/jsx.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function Step({ node, label }: { node: AnyNodeRef; label?: string | undefined; }): any {} // :232-234"
         ],
         "edgeCount": 2
       },
@@ -2738,7 +2914,7 @@
         "morphology": [
           "export function extractRegistry(program: Program, baseDir: string, tsconfigPath: string): ExtractedRegistry {} // :80-152"
         ],
-        "edgeCount": 1
+        "edgeCount": 4
       },
       "ExtractedRegistry": {
         "id": "ExtractedRegistry",
@@ -2759,6 +2935,30 @@
         ],
         "edgeCount": 1
       },
+      "extractModuleMorphology": {
+        "id": "extractModuleMorphology",
+        "type": "export",
+        "desc": "Resolves a module's source file and extracts its export surface — classifies each export by kind (function, class, interface, type, enum, variable) and renders a code stub with line ranges",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/module-morphology.js\").extractModuleMorphology",
+        "resolvedPath": "packages/tskb/src/core/extraction/module-morphology.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function extractModuleMorphology(program: Program, resolvedPath: string): ModuleMorphology | null {} // :32-111"
+        ],
+        "edgeCount": 2
+      },
+      "extractModuleImports": {
+        "id": "extractModuleImports",
+        "type": "export",
+        "desc": "Walks import declarations in a module's AST to extract symbol names, paths, and display strings",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/module-morphology.js\").extractModuleImports",
+        "resolvedPath": "packages/tskb/src/core/extraction/module-morphology.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :506-564"
+        ],
+        "edgeCount": 2
+      },
       "buildGraph": {
         "id": "buildGraph",
         "type": "export",
@@ -2767,25 +2967,60 @@
         "resolvedPath": "packages/tskb/src/core/graph/builder.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph {} // :50-122"
+          "export function buildGraph(registry: ExtractedRegistry, docs: ExtractedDoc[], baseDir: string): KnowledgeGraph {} // :51-128"
         ],
-        "edgeCount": 4
+        "edgeCount": 5
       },
       "KnowledgeGraph": {
         "id": "KnowledgeGraph",
         "type": "export",
-        "desc": "The top-level graph structure containing all nodes (folders, modules, terms, exports, docs), edges, and metadata",
+        "desc": "The top-level graph structure containing all nodes (folders, modules, terms, exports, flows, docs), edges, and metadata",
         "typeSignature": "import(\"packages/tskb/src/core/graph/types.js\").KnowledgeGraph",
         "resolvedPath": "packages/tskb/src/core/graph/types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface KnowledgeGraph { // :173-211",
-          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; externals: Record<...>; docs: Record<...>; } // :177-185",
-          "  edges: GraphEdge[] // :189",
-          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; docCount: number; edgeCount: number; }; } // :193-210",
+          "export interface KnowledgeGraph { // :191-231",
+          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; externals: Record<...>; flows: Record<...>; docs: Record<...>; } // :195-204",
+          "  edges: GraphEdge[] // :208",
+          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; flowCount: number; docCount: number; edgeCount: number; }; } // :212-230",
           "}"
         ],
         "edgeCount": 3
+      },
+      "FlowNode": {
+        "id": "FlowNode",
+        "type": "export",
+        "desc": "Graph node for an ordered flow through the system — contains steps referencing other nodes, with priority for skill file inclusion",
+        "typeSignature": "import(\"packages/tskb/src/core/graph/types.js\").FlowNode",
+        "resolvedPath": "packages/tskb/src/core/graph/types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface FlowNode { // :129-134",
+          "  type: \"flow\" // :130",
+          "  desc: string // :131",
+          "  priority: DocPriority // :132",
+          "  steps: FlowStep[] // :133",
+          "  id: string // :14",
+          "  edgeCount: number | undefined // :19",
+          "}"
+        ],
+        "edgeCount": 2
+      },
+      "FlowStep": {
+        "id": "FlowStep",
+        "type": "export",
+        "desc": "A single step within a flow — references a node ID with order and optional label",
+        "typeSignature": "import(\"packages/tskb/src/core/graph/types.js\").FlowStep",
+        "resolvedPath": "packages/tskb/src/core/graph/types.ts",
+        "morphologySummary": "1 interface",
+        "morphology": [
+          "export interface FlowStep { // :120-127",
+          "  nodeId: string // :122",
+          "  order: number // :124",
+          "  label: string | undefined // :126",
+          "}"
+        ],
+        "edgeCount": 1
       },
       "extractDocs": {
         "id": "extractDocs",
@@ -2795,9 +3030,9 @@
         "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[] {} // :38-60"
+          "export function extractDocs(program: Program, filePaths: Set<string>): ExtractedDoc[] {} // :45-67"
         ],
-        "edgeCount": 1
+        "edgeCount": 2
       },
       "ExtractedDoc": {
         "id": "ExtractedDoc",
@@ -2807,7 +3042,7 @@
         "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface ExtractedDoc { // :8-27",
+          "export interface ExtractedDoc { // :8-34",
           "  filePath: string // :10",
           "  format: \"tsx\" // :11",
           "  explains: string // :13",
@@ -2815,6 +3050,7 @@
           "  content: string // :16",
           "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; } // :17-24",
           "  relations: { from: string; to: string; label?: string | undefined; }[] | undefined // :26",
+          "  flows: { name: string; desc: string; priority: DocPriority; steps: { nodeId: string; label?: string | undefined; }[]; }[] | undefined // :28-33",
           "}"
         ],
         "edgeCount": 1
@@ -2851,7 +3087,7 @@
           "  getCurrentUser(): Promise<User | null> {} // :22-24",
           "}"
         ],
-        "edgeCount": 4
+        "edgeCount": 5
       },
       "TaskService": {
         "id": "TaskService",
@@ -2873,7 +3109,7 @@
           "  updatePriority(id: string, priority: TaskPriority): Promise<Task | null> {} // :52-54",
           "}"
         ],
-        "edgeCount": 5
+        "edgeCount": 6
       },
       "ProjectService": {
         "id": "ProjectService",
@@ -2934,7 +3170,7 @@
           "  sendMentionNotification(userId: string, mentionedByUserId: string, contextId: string): Promise<void> {} // :26-30",
           "}"
         ],
-        "edgeCount": 1
+        "edgeCount": 2
       },
       "TaskRepository": {
         "id": "TaskRepository",
@@ -2953,7 +3189,7 @@
           "  delete(id: string): Promise<boolean> {} // :34-36",
           "}"
         ],
-        "edgeCount": 5
+        "edgeCount": 6
       },
       "UserRepository": {
         "id": "UserRepository",
@@ -3072,7 +3308,7 @@
           "  transaction<T>(callback: () => Promise<T>): Promise<T> {} // :22-24",
           "}"
         ],
-        "edgeCount": 6
+        "edgeCount": 7
       },
       "Task": {
         "id": "Task",
@@ -3224,7 +3460,7 @@
         "morphology": [
           "export function authenticate(): void {} // :6"
         ],
-        "edgeCount": 3
+        "edgeCount": 4
       },
       "ApiClient": {
         "id": "ApiClient",
@@ -3251,15 +3487,57 @@
       "vitest.config": {
         "id": "vitest.config",
         "type": "file",
-        "desc": "Vitest configuration — includes tests/**/*.test.ts with a 60s timeout for CLI subprocess tests",
+        "desc": "Vitest configuration — includes tests/**/*.test.ts with a 60s timeout for CLI subprocess tests, registers global setup",
         "path": "vitest.config.ts",
-        "edgeCount": 1
+        "edgeCount": 2
       },
-      "tests.e2e.test": {
-        "id": "tests.e2e.test",
+      "tests.global-setup": {
+        "id": "tests.global-setup",
         "type": "file",
-        "desc": "Main e2e test file — tests across init scaffolding and full CLI pipeline (build, ls, search, pick, docs, context, JSON output, graph integrity)",
-        "path": "tests/e2e/tskb-e2e.test.ts",
+        "desc": "Vitest global setup — builds the fixture graph once before all tests, cleans .tskb/ on teardown",
+        "path": "tests/e2e/global-setup.ts",
+        "edgeCount": 4
+      },
+      "tests.helpers": {
+        "id": "tests.helpers",
+        "type": "file",
+        "desc": "Shared test utilities — CLI runners (tskb, tskbIn), graph loader, path constants, and copyDir helper",
+        "path": "tests/e2e/helpers.ts",
+        "edgeCount": 4
+      },
+      "tests.init": {
+        "id": "tests.init",
+        "type": "file",
+        "desc": "Scaffolding tests — copies fixture to temp dir, runs init --yes, asserts generated files and idempotency",
+        "path": "tests/e2e/init.test.ts",
+        "edgeCount": 2
+      },
+      "tests.build": {
+        "id": "tests.build",
+        "type": "file",
+        "desc": "Build output tests — asserts graph.json/dot exist, verifies node counts, doc priorities, and relation edges",
+        "path": "tests/e2e/build.test.ts",
+        "edgeCount": 2
+      },
+      "tests.commands": {
+        "id": "tests.commands",
+        "type": "file",
+        "desc": "Command tests — exercises every query command (ls, search, pick, docs, flows, context) in plain and JSON modes",
+        "path": "tests/e2e/commands.test.ts",
+        "edgeCount": 2
+      },
+      "tests.disambiguation": {
+        "id": "tests.disambiguation",
+        "type": "file",
+        "desc": "Disambiguation tests — ambiguous ID resolution across search, pick, and context commands",
+        "path": "tests/e2e/disambiguation.test.ts",
+        "edgeCount": 2
+      },
+      "tests.graph-integrity": {
+        "id": "tests.graph-integrity",
+        "type": "file",
+        "desc": "Graph integrity tests — validates edge consistency, type signatures, external metadata, and all edge targets resolve",
+        "path": "tests/e2e/graph-integrity.test.ts",
         "edgeCount": 2
       },
       "npm.README.md": {
@@ -3282,6 +3560,201 @@
         "edgeCount": 1
       }
     },
+    "flows": {
+      "e2e-test-execution": {
+        "id": "e2e-test-execution",
+        "type": "flow",
+        "desc": "Full E2E run: global setup builds fixture graph, test files exercise every CLI command, teardown cleans output",
+        "priority": "essential",
+        "steps": [
+          {
+            "nodeId": "vitest.config",
+            "order": 0,
+            "label": "Discovers test files, registers global setup"
+          },
+          {
+            "nodeId": "tests.global-setup",
+            "order": 1,
+            "label": "Builds fixture graph once via tskb build"
+          },
+          {
+            "nodeId": "tests.helpers",
+            "order": 2,
+            "label": "Provides CLI runners and graph loader to all test files"
+          },
+          {
+            "nodeId": "tests.global-setup",
+            "order": 3,
+            "label": "Teardown cleans .tskb/ output directory"
+          }
+        ],
+        "edgeCount": 4
+      },
+      "init-scaffolding-test": {
+        "id": "init-scaffolding-test",
+        "type": "flow",
+        "desc": "How the init command is tested: copies fixture to temp dir, runs init, asserts generated files",
+        "priority": "supplementary",
+        "steps": [
+          {
+            "nodeId": "tests.helpers",
+            "order": 0,
+            "label": "Copies fixture src/ into a temp directory"
+          },
+          {
+            "nodeId": "cli.build",
+            "order": 1,
+            "label": "Runs tskb init --yes in the temp directory"
+          },
+          {
+            "nodeId": "tests.e2e",
+            "order": 2,
+            "label": "Asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs"
+          }
+        ],
+        "edgeCount": 3
+      },
+      "build-pipeline": {
+        "id": "build-pipeline",
+        "type": "flow",
+        "desc": "The tskb build process: source files through extraction to knowledge graph outputs",
+        "priority": "essential",
+        "steps": [
+          {
+            "nodeId": "cli.build",
+            "order": 0,
+            "label": "Orchestrates the pipeline: file discovery, extraction, graph building, output generation"
+          },
+          {
+            "nodeId": "extractRegistry",
+            "order": 1,
+            "label": "Scans TypeScript AST for global tskb namespace declarations (Folders, Modules, Exports, Terms)"
+          },
+          {
+            "nodeId": "extractDocs",
+            "order": 2,
+            "label": "Traverses JSX trees in .tskb.tsx files, extracting content, references, relations, and flows"
+          },
+          {
+            "nodeId": "buildGraph",
+            "order": 3,
+            "label": "Merges registry and docs into a unified graph with nodes, edges, and hierarchy"
+          },
+          {
+            "nodeId": "generateDot",
+            "order": 4,
+            "label": "Transforms the graph into DOT format for Graphviz visualization"
+          }
+        ],
+        "edgeCount": 5
+      },
+      "static-analysis": {
+        "id": "static-analysis",
+        "type": "flow",
+        "desc": "TypeScript Program creation through extraction to graph",
+        "priority": "essential",
+        "steps": [
+          {
+            "nodeId": "ts.createProgram",
+            "order": 0,
+            "label": "creates Program from tsconfig + source files"
+          },
+          {
+            "nodeId": "extraction.registry",
+            "order": 1,
+            "label": "walks AST for Folders, Modules, Terms, Exports"
+          },
+          {
+            "nodeId": "extraction.documentation",
+            "order": 2,
+            "label": "parses JSX trees for content and references"
+          },
+          {
+            "nodeId": "graph.builder",
+            "order": 3,
+            "label": "assembles nodes and edges into knowledge graph"
+          }
+        ],
+        "edgeCount": 4
+      },
+      "module-morphology-extraction": {
+        "id": "module-morphology-extraction",
+        "type": "flow",
+        "desc": "How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs",
+        "priority": "essential",
+        "steps": [
+          {
+            "nodeId": "extractRegistry",
+            "order": 0,
+            "label": "collects Module declarations from tskb namespace"
+          },
+          {
+            "nodeId": "extractModuleMorphology",
+            "order": 1,
+            "label": "resolves source file, classifies exports, renders code stubs"
+          },
+          {
+            "nodeId": "extractModuleImports",
+            "order": 2,
+            "label": "walks import declarations for symbols and paths"
+          },
+          {
+            "nodeId": "graph.builder",
+            "order": 3,
+            "label": "assembles enriched ModuleNode with edges"
+          }
+        ],
+        "edgeCount": 4
+      },
+      "login-flow": {
+        "id": "login-flow",
+        "type": "flow",
+        "desc": "User authentication from HTTP request to session token",
+        "priority": "supplementary",
+        "steps": [
+          {
+            "nodeId": "AuthMiddleware",
+            "order": 0,
+            "label": "Validates request format"
+          },
+          {
+            "nodeId": "AuthService",
+            "order": 1,
+            "label": "Checks credentials, generates JWT"
+          },
+          {
+            "nodeId": "Database",
+            "order": 2,
+            "label": "Queries user record"
+          }
+        ],
+        "edgeCount": 3
+      },
+      "task-creation": {
+        "id": "task-creation",
+        "type": "flow",
+        "desc": "Task creation with validation and notification",
+        "priority": "supplementary",
+        "steps": [
+          {
+            "nodeId": "TaskService",
+            "order": 0,
+            "label": "Validates input, applies business rules"
+          },
+          {
+            "nodeId": "TaskRepository",
+            "order": 1,
+            "label": "Persists task to database"
+          },
+          {
+            "nodeId": "NotificationService",
+            "order": 2,
+            "label": "Notifies assigned users"
+          }
+        ],
+        "edgeCount": 3
+      }
+    },
     "docs": {
       "docs/src/tskb/tests.tskb.tsx": {
         "id": "docs/src/tskb/tests.tskb.tsx",
@@ -3289,9 +3762,9 @@
         "explains": "E2E test infrastructure: Vitest suite, fixture project, and CLI validation strategy",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/tests.tskb.tsx",
-        "content": "E2E Test Infrastructure The test suite ( <nodeId: tests>) validates the entire tskb CLI by running it as a subprocess\n      against a realistic fixture project. Tests use Vitest and spawn the built CLI binary via\n      Node's execFileSync, asserting on stdout and generated artifacts. Fixture Project The fixture at <nodeId: tests.e2e.fixture>is a small task-management TypeScript app with models,\n      services, API routes, and utilities. It includes its own tskb docs folder with 5 doc files\n      covering all three priority levels (essential, constraint, supplementary) and all registry\n      primitives (Folder, Module, Export, Term, External, Relation). This makes it a comprehensive\n      test subject for the full build and query pipeline. Test Structure The test file ( <nodeId: tests.e2e.test>) has two top-level describe blocks: tskb init — scaffolding tests. Copies the fixture src/ into a temp\n        directory, runs init --yes (non-interactive), then asserts on created files:\n        docs/tsconfig.json, architecture.tskb.tsx, package.json scripts, .claude/skills/, .github/.\n        Also verifies idempotency (re-running init does not overwrite user edits). tskb e2e — full pipeline tests. Builds the fixture graph, then tests every\n        query command (ls, search, pick, docs, context) in both plain and JSON output modes. A graph\n        integrity section validates edge consistency: belongs-to, contains, references, imports,\n        related-to edges, type signatures, external metadata, and that all edge targets reference\n        existing nodes. Running Tests Tests require the package to be built first (npm run build). Run with npm test (vitest run) or\n      npm run test:watch (vitest) for interactive mode. The 60-second timeout in <nodeId: vitest.config>accounts for CLI subprocess startup cost.",
+        "content": "E2E Test Infrastructure The test suite ( <nodeId: tests>) validates the entire tskb CLI by running it as a subprocess\n      against a realistic fixture project. Tests use Vitest and spawn the built CLI binary via\n      Node's execFileSync, asserting on stdout and generated artifacts. <flow name=\"e2e-test-execution\" desc=\"Full E2E run: global setup builds fixture graph, test files exercise every CLI command, teardown cleans output\"><step order=\"0\" nodeId=\"vitest.config\" label=\"Discovers test files, registers global setup\" /><step order=\"1\" nodeId=\"tests.global-setup\" label=\"Builds fixture graph once via tskb build\" /><step order=\"2\" nodeId=\"tests.helpers\" label=\"Provides CLI runners and graph loader to all test files\" /><step order=\"3\" nodeId=\"tests.global-setup\" label=\"Teardown cleans .tskb/ output directory\" /></flow><flow name=\"init-scaffolding-test\" desc=\"How the init command is tested: copies fixture to temp dir, runs init, asserts generated files\"><step order=\"0\" nodeId=\"tests.helpers\" label=\"Copies fixture src/ into a temp directory\" /><step order=\"1\" nodeId=\"cli.build\" label=\"Runs tskb init --yes in the temp directory\" /><step order=\"2\" nodeId=\"tests.e2e\" label=\"Asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs\" /></flow>Fixture Project The fixture at <nodeId: tests.e2e.fixture>is a small task-management TypeScript app with models,\n      services, API routes, and utilities. It includes its own tskb docs folder with 6 doc files\n      covering all three priority levels (essential, constraint, supplementary) and all registry\n      primitives (Folder, Module, Export, Term, External, Relation, Flow). This makes it a\n      comprehensive test subject for the full build and query pipeline. Test Structure Tests are split into focused files under <nodeId: tests.e2e>, sharing utilities from <nodeId: tests.helpers>. A\n      Vitest global setup ( <nodeId: tests.global-setup>) builds the fixture graph once before any test runs. <nodeId: tests.init>— scaffolding tests with idempotency checks <nodeId: tests.build>— graph output validation: node counts, priorities, edges <nodeId: tests.commands>— exercises every query command in plain and JSON modes <nodeId: tests.disambiguation>— ambiguous ID resolution across commands <nodeId: tests.graph-integrity>— edge consistency, type signatures, external metadata Running Tests Tests require the package to be built first (npm run build). Run with npm test (vitest run) or\n      npm run test:watch (vitest) for interactive mode. The 60-second timeout in <nodeId: vitest.config>accounts for CLI subprocess startup cost.",
         "format": "tsx",
-        "edgeCount": 4
+        "edgeCount": 11
       },
       "docs/src/tskb/main.tskb.tsx": {
         "id": "docs/src/tskb/main.tskb.tsx",
@@ -3299,7 +3772,7 @@
         "explains": "Architecture, API surface, and usage flow of the TSKB library",
         "priority": "essential",
         "filePath": "docs/src/tskb/main.tskb.tsx",
-        "content": "Architecture and implementation docs for the <TSKB> library The package is located in <nodeId: TSKB.Package.Root>, with its <nodeId: package.json>and <nodeId: npm.README.md>for npm. What is <TSKB> ? A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge\n      graphs and diagrams with type-checked references. What it provides in terms of interfaces (API's) and tools In the root folder: <nodeId: TSKB.Package.Root>. In the <nodeId: package.json>file, it declares a bin command named 'tskb' that runs the <nodeId: cli>The package exports two main modules, in addition to the <nodeId: cli>: the index module   <nodeId: Main.index.js>and the jsxRuntime ( <nodeId: jsxRuntime>), defined in: <nodeId: Jsx.runtime.js>Core Primitives for Type-Safe Documentation Main exports (primitives) of the library for creating type-safe architectural documentation: <nodeId: Folder>: Represents logical groupings in the codebase (features, layers, packages) <nodeId: Module>: Represents concrete code units (classes, services, components) <nodeId: Export>: Creates type-safe references to actual code exports using TypeScript's\n          typeof import() syntax - ensures documentation stays in sync with codebase <nodeId: Term>: Represents domain concepts, patterns, or terminology <nodeId: File>: References non-JS/TS files (README.md, yml configs, etc.) by path <nodeId: ref>: A placeholder for referencing anything from the global tskb registry into jsx\n          tags with type assertions Plus all the JSX documentation components exported from <nodeId: Jsx.runtime.js>: Doc, H1, H2, H3,\n      P, List, Li, Snippet - providing a familiar TSX syntax for structured content A typical flow of usage Create a docs folder in your repository for documentation files Define a tsconfig.json similar to <nodeId: sample.tsconfig.json>pointing to repo root with jsx:\n        \"react-jsx\" and jsxImportSource: \"tskb\" Declare vocabulary (Folders, Modules, Exports, Terms, Files) using global namespace\n        augmentation. Use typeof import() for type-safe references. Write *.tskb.tsx files using JSX components. TypeScript validates all references at compile\n        time. Run <nodeId: cli.build>: \"tskb \\\"**/*.tskb.tsx\\\" --tsconfig tsconfig.json\" The <nodeId: cli>creates a <nodeId: tsProgram>and type-checks all documentation files against\n        actual source code <relation from=\"tsProgram\" to=\"typescript.program\" /><relation from=\"tsProgram\" to=\"ref\" />Extracts vocabulary from the <nodeId: registry>(Folders, Modules, Exports, Terms) Processes *.tskb.tsx files, extracting content and references Constructs the <nodeId: graph>by analyzing relationships and hierarchies Outputs JSON knowledge graph optimized for AI agents and tooling Generating a visual representation: <nodeId: cli.build>automatically generates a <nodeId: dotFile>in .tskb/graph.dot using   <nodeId: generateDot><nodeId: generateDot>transforms the <nodeId: graph>into a <nodeId: dotFile>with nodes and\n        relationship edges Render with Graphviz: \"dot -Tpng .tskb/graph.dot -o .tskb/graph.png\" Or use interactive viewers like xdot or online Graphviz tools Key Benefits Type-checked references: Renames, moves, or API changes break the build - enforcing\n        correctness Validated snippets: Code examples are type-checked against actual source Living documentation: Stays in sync through the compiler - CI catches drift AI-optimized: Queryable knowledge graph reduces hallucination Docs as infrastructure: Compile-time validation, not afterthought Navigating the knowledge graph Three commands for exploring and querying the knowledge graph - optimized for AI agents List all folders Run <nodeId: cli.ls>: \"tskb ls ./dist/taskflow-graph.json\" or \"tskb ls\n        ./dist/taskflow-graph.json --depth 2\" Always starts from Package.Root, lists all folders hierarchically Controllable depth: default 1 (immediate children), -1 for unlimited Returns flat JSON with folder ID, depth level, description, and path Use for initial orientation and discovering folder IDs Pick any node Run <nodeId: cli.pick>: \"tskb pick tskb.cli\" (by ID) or \"tskb pick packages/tskb/src/cli\" (by\n        path) Resolves any node type: folder, module, export, term, or doc Returns type-specific data: parent, children, modules, exports, referencing docs Falls back to nearest parent folder when no exact match is found Search the graph Run <nodeId: cli.search>: \"tskb search auth\" or \"tskb search build command\" Fuzzy searches the entire graph across IDs, descriptions, and paths using Fuse.js <nodeId: searchResult>includes: top 10 ranked results with score (0-1, higher = better match) Searches across all node types: folders, modules, exports, terms, and docs Use pick to get full details on any result Documentation Philosophy: Map, Not Manual Write structural signposts showing what exists where and how pieces connect - not\n      implementation details. Document structure: Declare folders, locations, and key relationships Use type-safe references: typeof import() ensures TypeScript validates existence and catches\n        renames Focus on WHAT and WHERE, not HOW: Describe purpose and location, not algorithms Trust validation: TSKB catches broken references, not behavior changes Major relationships only: Document architectural connections, not every dependency",
+        "content": "Architecture and implementation docs for the <TSKB> library The package is located in <nodeId: TSKB.Package.Root>, with its <nodeId: package.json>and <nodeId: npm.README.md>for npm. What is <TSKB> ? A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge\n      graphs and diagrams with type-checked references. What it provides in terms of interfaces (API's) and tools In the root folder: <nodeId: TSKB.Package.Root>. In the <nodeId: package.json>file, it declares a bin command named 'tskb' that runs the <nodeId: cli>The package exports two main modules, in addition to the <nodeId: cli>: the index module   <nodeId: Main.index.js>and the jsxRuntime ( <nodeId: jsxRuntime>), defined in: <nodeId: Jsx.runtime.js>Core Primitives for Type-Safe Documentation Main exports (primitives) of the library for creating type-safe architectural documentation: <nodeId: Folder>: Represents logical groupings in the codebase (features, layers, packages) <nodeId: Module>: Represents concrete code units (classes, services, components) <nodeId: Export>: Creates type-safe references to actual code exports using TypeScript's\n          typeof import() syntax - ensures documentation stays in sync with codebase <nodeId: Term>: Represents domain concepts, patterns, or terminology <nodeId: File>: References non-JS/TS files (README.md, yml configs, etc.) by path <nodeId: ref>: A placeholder for referencing anything from the global tskb registry into jsx\n          tags with type assertions Plus all the JSX documentation components exported from <nodeId: Jsx.runtime.js>: Doc, H1, H2, H3,\n      P, List, Li, Snippet - providing a familiar TSX syntax for structured content A typical flow of usage Create a docs folder in your repository for documentation files Define a tsconfig.json similar to <nodeId: sample.tsconfig.json>pointing to repo root with jsx:\n        \"react-jsx\" and jsxImportSource: \"tskb\" Declare vocabulary (Folders, Modules, Exports, Terms, Files) using global namespace\n        augmentation. Use typeof import() for type-safe references. Write *.tskb.tsx files using JSX components. TypeScript validates all references at compile\n        time. Run <nodeId: cli.build>: \"tskb \\\"**/*.tskb.tsx\\\" --tsconfig tsconfig.json\" The <nodeId: cli>creates a <nodeId: tsProgram>and type-checks all documentation files against\n        actual source code <relation from=\"tsProgram\" to=\"typescript.program\" /><relation from=\"tsProgram\" to=\"ref\" />Extracts vocabulary from the <nodeId: registry>(Folders, Modules, Exports, Terms) Processes *.tskb.tsx files, extracting content and references Constructs the <nodeId: graph>by analyzing relationships and hierarchies Outputs JSON knowledge graph optimized for AI agents and tooling Generating a visual representation: <nodeId: cli.build>automatically generates a <nodeId: dotFile>in .tskb/graph.dot using   <nodeId: generateDot><nodeId: generateDot>transforms the <nodeId: graph>into a <nodeId: dotFile>with nodes and\n        relationship edges Render with Graphviz: \"dot -Tpng .tskb/graph.dot -o .tskb/graph.png\" Or use interactive viewers like xdot or online Graphviz tools Key Benefits Type-checked references: Renames, moves, or API changes break the build - enforcing\n        correctness Validated snippets: Code examples are type-checked against actual source Living documentation: Stays in sync through the compiler - CI catches drift AI-optimized: Queryable knowledge graph reduces hallucination Docs as infrastructure: Compile-time validation, not afterthought Navigating the knowledge graph Three commands for exploring and querying the knowledge graph - optimized for AI agents List all folders Run <nodeId: cli.ls>: \"tskb ls ./dist/taskflow-graph.json\" or \"tskb ls\n        ./dist/taskflow-graph.json --depth 2\" Always starts from Package.Root, lists all folders hierarchically Controllable depth: default 1 (immediate children), -1 for unlimited Returns flat JSON with folder ID, depth level, description, and path Use for initial orientation and discovering folder IDs Pick any node Run <nodeId: cli.pick>: \"tskb pick tskb.cli\" (by ID) or \"tskb pick packages/tskb/src/cli\" (by\n        path) Resolves any node type: folder, module, export, term, or doc Returns type-specific data: parent, children, modules, exports, referencing docs Falls back to nearest parent folder when no exact match is found Search the graph Run <nodeId: cli.search>: \"tskb search auth\" or \"tskb search build command\" Fuzzy searches the entire graph across IDs, descriptions, and paths using Fuse.js <nodeId: searchResult>includes: top 10 ranked results with score (0-1, higher = better match) Searches across all node types: folders, modules, exports, terms, and docs Use pick to get full details on any result Documentation Philosophy: Map, Not Manual Write structural signposts showing what exists where and how pieces connect - not\n      implementation details. Document structure: Declare folders, locations, and key relationships Use type-safe references: typeof import() ensures TypeScript validates existence and catches\n        renames Focus on WHAT and WHERE, not HOW: Describe purpose and location, not algorithms Trust validation: TSKB catches broken references, not behavior changes Major relationships only: Document architectural connections, not every dependency <flow name=\"build-pipeline\" desc=\"The tskb build process: source files through extraction to knowledge graph outputs\"><step order=\"0\" nodeId=\"cli.build\" label=\"Orchestrates the pipeline: file discovery, extraction, graph building, output generation\" /><step order=\"1\" nodeId=\"extractRegistry\" label=\"Scans TypeScript AST for global tskb namespace declarations (Folders, Modules, Exports, Terms)\" /><step order=\"2\" nodeId=\"extractDocs\" label=\"Traverses JSX trees in .tskb.tsx files, extracting content, references, relations, and flows\" /><step order=\"3\" nodeId=\"buildGraph\" label=\"Merges registry and docs into a unified graph with nodes, edges, and hierarchy\" /><step order=\"4\" nodeId=\"generateDot\" label=\"Transforms the graph into DOT format for Graphviz visualization\" /></flow>",
         "format": "tsx",
         "edgeCount": 24
       },
@@ -3309,7 +3782,7 @@
         "explains": "TypeScript Program creation for static analysis without compilation",
         "priority": "essential",
         "filePath": "docs/src/tskb/typescript/typescript.tskb.tsx",
-        "content": "TypeScript Program Located in <nodeId: tskb.typescript>. Creates <nodeId: tsProgram>for analyzing code without compilation. Key Module <nodeId: typescript.program>: Exports <nodeId: ts.createProgram>which: Reads and parses tsconfig.json for compiler options Creates TypeScript Program with noEmit=true (analysis only) Validates TypeScript errors in specified files Returns Program with AST, type checker, and symbol resolution Purpose Provides the <nodeId: tsProgram>used by extraction logic to parse *.tskb.tsx files, resolve\n      types, and walk ASTs for registry and documentation extraction. <relation from=\"typescript.program\" to=\"extraction.documentation\" label=\"used for doc extraction\" /><relation from=\"typescript.program\" to=\"graph.builder\" label=\"feeds graph builder\" />",
+        "content": "TypeScript Program Located in <nodeId: tskb.typescript>. <nodeId: typescript.program>exports <nodeId: ts.createProgram>which creates a   <nodeId: tsProgram>for analyzing code without compilation (noEmit=true). Reads and parses tsconfig.json for compiler options Validates TypeScript errors in specified files Returns Program with AST, type checker, and symbol resolution <flow name=\"static-analysis\" desc=\"TypeScript Program creation through extraction to graph\"><step order=\"0\" nodeId=\"ts.createProgram\" label=\"creates Program from tsconfig + source files\" /><step order=\"1\" nodeId=\"extraction.registry\" label=\"walks AST for Folders, Modules, Terms, Exports\" /><step order=\"2\" nodeId=\"extraction.documentation\" label=\"parses JSX trees for content and references\" /><step order=\"3\" nodeId=\"graph.builder\" label=\"assembles nodes and edges into knowledge graph\" /></flow>",
         "format": "tsx",
         "edgeCount": 4
       },
@@ -3319,9 +3792,9 @@
         "explains": "Runtime module structure: JSX primitives and registry type definitions",
         "priority": "essential",
         "filePath": "docs/src/tskb/runtime/runtime.tskb.tsx",
-        "content": "Runtime Located in <nodeId: tskb.runtime>. Contains registry type definitions and JSX primitives - no actual\n      runtime execution. Modules <nodeId: runtime.jsx>: JSX runtime with <nodeId: jsx.Doc>(requires explains prop and optional priority via   <nodeId: DocPriority>: essential, constraint, or supplementary). Includes\n        heading/paragraph/list components, <nodeId: jsx.Adr>for Architecture Decision Records, and   <nodeId: jsx.ref>for type-safe registry references. <nodeId: runtime.registry>: Type definitions for Folder, Module, Export, Term interfaces used in\n        global namespace augmentation. Purpose Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry\n      interfaces enable type-safe vocabulary declarations. JSX components structure documentation\n      content. Semantic Relations The Relation tag creates a semantic edge in the knowledge graph between two nodes. It\n      is type-safe and supports any registered Folder, Module, Term, or Export. The optional   label prop allows you to describe the relationship (e.g., \"depends on\"). <snippet>() => <Relation from={JsxModule} to={ExampleTerm} label=\"runtime describes graph\" /></snippet>This will emit a related-to edge from the runtime.jsx module to the Graph   term in the TSKB graph, with the label \"runtime describes graph\".",
+        "content": "Runtime Located in <nodeId: tskb.runtime>. Contains registry type definitions and JSX primitives - no actual\n      runtime execution. Modules <nodeId: runtime.jsx>: JSX runtime with <nodeId: jsx.Doc>(requires explains prop and optional priority via   <nodeId: DocPriority>: essential, constraint, or supplementary). Includes\n        heading/paragraph/list components, <nodeId: jsx.Adr>for Architecture Decision Records, and   <nodeId: jsx.ref>for type-safe registry references. <nodeId: runtime.jsx>also provides <nodeId: jsx.Flow>and <nodeId: jsx.Step>for defining named, ordered\n        sequences through the system. Flows become first-class graph nodes with priority support.\n        Only Step children are allowed inside Flow (validated at build time). <nodeId: runtime.registry>: Type definitions for Folder, Module, Export, Term interfaces used in\n        global namespace augmentation. Purpose Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry\n      interfaces enable type-safe vocabulary declarations. JSX components structure documentation\n      content. Semantic Relations The Relation tag creates a semantic edge in the knowledge graph between two nodes. It\n      is type-safe and supports any registered Folder, Module, Term, or Export. The optional   label prop allows you to describe the relationship (e.g., \"depends on\"). <snippet>() => <Relation from={JsxModule} to={ExampleTerm} label=\"runtime describes graph\" /></snippet>This will emit a related-to edge from the runtime.jsx module to the Graph   term in the TSKB graph, with the label \"runtime describes graph\".",
         "format": "tsx",
-        "edgeCount": 7
+        "edgeCount": 9
       },
       "docs/src/tskb/core/visualization.tskb.tsx": {
         "id": "docs/src/tskb/core/visualization.tskb.tsx",
@@ -3333,15 +3806,25 @@
         "format": "tsx",
         "edgeCount": 3
       },
+      "docs/src/tskb/core/registry-extraction.tskb.tsx": {
+        "id": "docs/src/tskb/core/registry-extraction.tskb.tsx",
+        "type": "doc",
+        "explains": "Registry extraction: how TypeScript AST is traversed to extract Folders, Modules, Terms, Exports, and module morphology",
+        "priority": "supplementary",
+        "filePath": "docs/src/tskb/core/registry-extraction.tskb.tsx",
+        "content": "Registry Extraction <nodeId: extractRegistry>walks the TypeScript AST for registry declarations, then enriches each\n      module with its public API shape via <nodeId: extraction.module-morphology>. <flow name=\"module-morphology-extraction\" desc=\"How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs\"><step order=\"0\" nodeId=\"extractRegistry\" label=\"collects Module declarations from tskb namespace\" /><step order=\"1\" nodeId=\"extractModuleMorphology\" label=\"resolves source file, classifies exports, renders code stubs\" /><step order=\"2\" nodeId=\"extractModuleImports\" label=\"walks import declarations for symbols and paths\" /><step order=\"3\" nodeId=\"graph.builder\" label=\"assembles enriched ModuleNode with edges\" /></flow>",
+        "format": "tsx",
+        "edgeCount": 2
+      },
       "docs/src/tskb/core/graph-builder.tskb.tsx": {
         "id": "docs/src/tskb/core/graph-builder.tskb.tsx",
         "type": "doc",
         "explains": "Graph module: data model (types) and construction (builder) of the knowledge graph",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/core/graph-builder.tskb.tsx",
-        "content": "Graph Module Located in <nodeId: core.extraction.graph>. Takes extracted registry and documentation, produces a   <nodeId: KnowledgeGraph>. Modules <nodeId: graph.types>: Defines the graph data model. Node types: FolderNode, ModuleNode, TermNode,\n        ExportNode, DocNode. Edge types: references, belongs-to, contains, related-to. Top-level\n        structure: <nodeId: KnowledgeGraph>with nodes, edges, and metadata. <nodeId: graph.builder>: <nodeId: buildGraph>creates nodes from registry items and docs, then builds\n        edges — explicit references from docs and inferred hierarchy from folder paths\n        (contains/belongs-to). <relation from=\"buildGraph\" to=\"KnowledgeGraph\" /><relation from=\"buildGraph\" to=\"visualization.dot-generator\" />",
+        "content": "Graph Module Located in <nodeId: core.extraction.graph>. Takes extracted registry and documentation, produces a   <nodeId: KnowledgeGraph>. Modules <nodeId: graph.types>: Defines the graph data model. Node types: FolderNode, ModuleNode, TermNode,\n        ExportNode, <nodeId: FlowNode>, DocNode. Edge types: references, belongs-to, contains,\n        related-to, flow-step. Top-level structure: <nodeId: KnowledgeGraph>with nodes, edges, and\n        metadata. <nodeId: graph.builder>: <nodeId: buildGraph>creates nodes from registry items and docs, then builds\n        edges — explicit references from docs and inferred hierarchy from folder paths\n        (contains/belongs-to). <relation from=\"buildGraph\" to=\"KnowledgeGraph\" /><relation from=\"buildGraph\" to=\"visualization.dot-generator\" />",
         "format": "tsx",
-        "edgeCount": 5
+        "edgeCount": 6
       },
       "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx": {
         "id": "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx",
@@ -3366,12 +3849,12 @@
       "docs/src/tskb/cli/cli-overview.tskb.tsx": {
         "id": "docs/src/tskb/cli/cli-overview.tskb.tsx",
         "type": "doc",
-        "explains": "CLI structure: commands (init, build, search, pick, context, ls, docs) and utils (output generators, content builder, logger)",
+        "explains": "CLI structure: commands (init, build, search, pick, context, ls, docs, flows) and utils (output generators, content builder, logger)",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/cli/cli-overview.tskb.tsx",
-        "content": "CLI Located in <nodeId: tskb.cli>. Entry point: <nodeId: cli.index>— parses arguments, routes to command\n      handlers. Commands In <nodeId: tskb.cli.commands>: <nodeId: cli.commands.init>: Interactive scaffolder — creates docs folder, tsconfig, starter doc, build\n        script <nodeId: cli.commands.build>: Full pipeline — files → TypeScript program → extraction → graph → outputs <nodeId: cli.commands.search>: Fuzzy search across all node types, returns ranked JSON results <nodeId: cli.commands.pick>: Resolve any node by ID or path, returns type-specific context <nodeId: cli.commands.ls>: List folder hierarchy with depth control, includes essential docs Utils In <nodeId: tskb.cli.utils>: <nodeId: cli.utils.content-builder>: Produces two markdown bodies — query body and update body (syntax +\n        session triggers) — consumed by skill and instructions generators <nodeId: cli.utils.skill-generator>: Generates two Claude Code skills — tskb and tskb-update <nodeId: cli.utils.copilot-instructions>: Generates two Copilot instructions — tskb and tskb-update <nodeId: cli.utils.graph-finder>: Finds .tskb/graph.json from cwd, used by search/pick/ls <nodeId: cli.utils.logger>: Stderr-only logger with info/verbose/error/time — configured once at startup\n        via --verbose flag",
+        "content": "CLI Located in <nodeId: tskb.cli>. Entry point: <nodeId: cli.index>— parses arguments, routes to command\n      handlers. Commands In <nodeId: tskb.cli.commands>: <nodeId: cli.commands.init>: Interactive scaffolder — creates docs folder, tsconfig, starter doc, build\n        script <nodeId: cli.commands.build>: Full pipeline — files → TypeScript program → extraction → graph → outputs <nodeId: cli.commands.search>: Fuzzy search across all node types, returns ranked JSON results <nodeId: cli.commands.pick>: Resolve any node by ID or path, returns type-specific context <nodeId: cli.commands.ls>: List folder hierarchy with depth control, includes essential docs <nodeId: cli.commands.flows>: List or search flows sorted by priority (constraint → essential →\n        supplementary) Utils In <nodeId: tskb.cli.utils>: <nodeId: cli.utils.content-builder>: Produces two markdown bodies — query body and update body (syntax +\n        session triggers) — consumed by skill and instructions generators <nodeId: cli.utils.skill-generator>: Generates two Claude Code skills — tskb and tskb-update <nodeId: cli.utils.copilot-instructions>: Generates two Copilot instructions — tskb and tskb-update <nodeId: cli.utils.graph-finder>: Finds .tskb/graph.json from cwd, used by search/pick/ls <nodeId: cli.utils.logger>: Stderr-only logger with info/verbose/error/time — configured once at startup\n        via --verbose flag",
         "format": "tsx",
-        "edgeCount": 14
+        "edgeCount": 15
       },
       "docs/src/taskflow-app/main.tskb.tsx": {
         "id": "docs/src/taskflow-app/main.tskb.tsx",
@@ -3382,6 +3865,15 @@
         "content": "TaskFlow Application Full-stack task management application demonstrating modern web architecture patterns.\n      Three-layer separation: <nodeId: Client>(React), <nodeId: Server>(Node.js), <nodeId: Shared>(TypeScript types). Architecture Layers <nodeId: Client>: React frontend with <nodeId: contextProvider>for state, hooks for data\n        fetching, WebSocket for real-time updates. Details in client-overview. <nodeId: Server>: Node.js backend with <nodeId: serviceLayer>and <nodeId: repositoryPattern>.\n        Controllers, services, repositories, middleware. Details in server-overview. <nodeId: Shared>: Type definitions shared across client/server ensuring end-to-end type\n        safety. API contracts, domain types. Core Patterns <nodeId: repositoryPattern>: Abstract data access through repository interfaces. Details in\n        data-layer. <nodeId: serviceLayer>: Business logic isolated from HTTP and data layers. <nodeId: contextProvider>: React Context for state management instead of Redux. See\n        adr-context-over-redux. <nodeId: jwt>: Token-based authentication with refresh flow. Details in authentication-system. Technology Stack Frontend: React, TypeScript, Vite Backend: Node.js, Express, PostgreSQL Real-time: WebSocket for notifications and live updates Type Safety: Shared TypeScript types across full stack Domain Models Tasks: Core entity with status, priority, assignments. See task-domain. Projects: Workspace organization with team management. See project-domain. Authentication: User auth with JWT tokens. See auth-domain. Notifications: Real-time updates via WebSocket. See notification-domain. Documentation Navigation High-Level: architecture-overview for complete architectural picture Client: client-overview for frontend architecture and patterns Server: server-overview for backend layering and request flow Data: data-layer for repository pattern implementation Auth: authentication-system for auth flow and JWT handling Decisions: adr/ folder for architectural decision records Rules: constraints/ folder for enforced architectural constraints",
         "format": "tsx",
         "edgeCount": 7
+      },
+      "docs/src/taskflow-app/flows.tskb.tsx": {
+        "id": "docs/src/taskflow-app/flows.tskb.tsx",
+        "type": "doc",
+        "explains": "Core application flows: authentication and task creation sequences",
+        "priority": "supplementary",
+        "filePath": "docs/src/taskflow-app/flows.tskb.tsx",
+        "content": "Application Flows Login User authentication from HTTP request through service layer to database and back. <flow name=\"login-flow\" desc=\"User authentication from HTTP request to session token\"><step order=\"0\" nodeId=\"AuthMiddleware\" label=\"Validates request format\" /><step order=\"1\" nodeId=\"AuthService\" label=\"Checks credentials, generates JWT\" /><step order=\"2\" nodeId=\"Database\" label=\"Queries user record\" /></flow>Task Creation Creating a new task with validation, persistence, and notification dispatch. <flow name=\"task-creation\" desc=\"Task creation with validation and notification\"><step order=\"0\" nodeId=\"TaskService\" label=\"Validates input, applies business rules\" /><step order=\"1\" nodeId=\"TaskRepository\" label=\"Persists task to database\" /><step order=\"2\" nodeId=\"NotificationService\" label=\"Notifies assigned users\" /></flow>",
+        "format": "tsx"
       },
       "docs/src/taskflow-app/data-layer.tskb.tsx": {
         "id": "docs/src/taskflow-app/data-layer.tskb.tsx",
@@ -3457,6 +3949,162 @@
   },
   "edges": [
     {
+      "from": "e2e-test-execution",
+      "to": "vitest.config",
+      "type": "flow-step",
+      "label": "Discovers test files, registers global setup"
+    },
+    {
+      "from": "e2e-test-execution",
+      "to": "tests.global-setup",
+      "type": "flow-step",
+      "label": "Builds fixture graph once via tskb build"
+    },
+    {
+      "from": "e2e-test-execution",
+      "to": "tests.helpers",
+      "type": "flow-step",
+      "label": "Provides CLI runners and graph loader to all test files"
+    },
+    {
+      "from": "e2e-test-execution",
+      "to": "tests.global-setup",
+      "type": "flow-step",
+      "label": "Teardown cleans .tskb/ output directory"
+    },
+    {
+      "from": "init-scaffolding-test",
+      "to": "tests.helpers",
+      "type": "flow-step",
+      "label": "Copies fixture src/ into a temp directory"
+    },
+    {
+      "from": "init-scaffolding-test",
+      "to": "cli.build",
+      "type": "flow-step",
+      "label": "Runs tskb init --yes in the temp directory"
+    },
+    {
+      "from": "init-scaffolding-test",
+      "to": "tests.e2e",
+      "type": "flow-step",
+      "label": "Asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs"
+    },
+    {
+      "from": "build-pipeline",
+      "to": "cli.build",
+      "type": "flow-step",
+      "label": "Orchestrates the pipeline: file discovery, extraction, graph building, output generation"
+    },
+    {
+      "from": "build-pipeline",
+      "to": "extractRegistry",
+      "type": "flow-step",
+      "label": "Scans TypeScript AST for global tskb namespace declarations (Folders, Modules, Exports, Terms)"
+    },
+    {
+      "from": "build-pipeline",
+      "to": "extractDocs",
+      "type": "flow-step",
+      "label": "Traverses JSX trees in .tskb.tsx files, extracting content, references, relations, and flows"
+    },
+    {
+      "from": "build-pipeline",
+      "to": "buildGraph",
+      "type": "flow-step",
+      "label": "Merges registry and docs into a unified graph with nodes, edges, and hierarchy"
+    },
+    {
+      "from": "build-pipeline",
+      "to": "generateDot",
+      "type": "flow-step",
+      "label": "Transforms the graph into DOT format for Graphviz visualization"
+    },
+    {
+      "from": "static-analysis",
+      "to": "ts.createProgram",
+      "type": "flow-step",
+      "label": "creates Program from tsconfig + source files"
+    },
+    {
+      "from": "static-analysis",
+      "to": "extraction.registry",
+      "type": "flow-step",
+      "label": "walks AST for Folders, Modules, Terms, Exports"
+    },
+    {
+      "from": "static-analysis",
+      "to": "extraction.documentation",
+      "type": "flow-step",
+      "label": "parses JSX trees for content and references"
+    },
+    {
+      "from": "static-analysis",
+      "to": "graph.builder",
+      "type": "flow-step",
+      "label": "assembles nodes and edges into knowledge graph"
+    },
+    {
+      "from": "module-morphology-extraction",
+      "to": "extractRegistry",
+      "type": "flow-step",
+      "label": "collects Module declarations from tskb namespace"
+    },
+    {
+      "from": "module-morphology-extraction",
+      "to": "extractModuleMorphology",
+      "type": "flow-step",
+      "label": "resolves source file, classifies exports, renders code stubs"
+    },
+    {
+      "from": "module-morphology-extraction",
+      "to": "extractModuleImports",
+      "type": "flow-step",
+      "label": "walks import declarations for symbols and paths"
+    },
+    {
+      "from": "module-morphology-extraction",
+      "to": "graph.builder",
+      "type": "flow-step",
+      "label": "assembles enriched ModuleNode with edges"
+    },
+    {
+      "from": "login-flow",
+      "to": "AuthMiddleware",
+      "type": "flow-step",
+      "label": "Validates request format"
+    },
+    {
+      "from": "login-flow",
+      "to": "AuthService",
+      "type": "flow-step",
+      "label": "Checks credentials, generates JWT"
+    },
+    {
+      "from": "login-flow",
+      "to": "Database",
+      "type": "flow-step",
+      "label": "Queries user record"
+    },
+    {
+      "from": "task-creation",
+      "to": "TaskService",
+      "type": "flow-step",
+      "label": "Validates input, applies business rules"
+    },
+    {
+      "from": "task-creation",
+      "to": "TaskRepository",
+      "type": "flow-step",
+      "label": "Persists task to database"
+    },
+    {
+      "from": "task-creation",
+      "to": "NotificationService",
+      "type": "flow-step",
+      "label": "Notifies assigned users"
+    },
+    {
       "from": "docs/src/tskb/tests.tskb.tsx",
       "to": "tests",
       "type": "references"
@@ -3468,7 +4116,42 @@
     },
     {
       "from": "docs/src/tskb/tests.tskb.tsx",
-      "to": "tests.e2e.test",
+      "to": "tests.e2e",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.helpers",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.global-setup",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.init",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.build",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.commands",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.disambiguation",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.graph-integrity",
       "type": "references"
     },
     {
@@ -3627,18 +4310,6 @@
       "type": "references"
     },
     {
-      "from": "typescript.program",
-      "to": "extraction.documentation",
-      "type": "related-to",
-      "label": "used for doc extraction"
-    },
-    {
-      "from": "typescript.program",
-      "to": "graph.builder",
-      "type": "related-to",
-      "label": "feeds graph builder"
-    },
-    {
       "from": "docs/src/tskb/runtime/runtime.tskb.tsx",
       "to": "runtime.jsx",
       "type": "references"
@@ -3674,6 +4345,16 @@
       "type": "references"
     },
     {
+      "from": "docs/src/tskb/runtime/runtime.tskb.tsx",
+      "to": "jsx.Flow",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/runtime/runtime.tskb.tsx",
+      "to": "jsx.Step",
+      "type": "references"
+    },
+    {
       "from": "docs/src/tskb/core/visualization.tskb.tsx",
       "to": "visualization.dot-generator",
       "type": "references"
@@ -3699,6 +4380,16 @@
       "type": "related-to"
     },
     {
+      "from": "docs/src/tskb/core/registry-extraction.tskb.tsx",
+      "to": "extraction.module-morphology",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/core/registry-extraction.tskb.tsx",
+      "to": "extractRegistry",
+      "type": "references"
+    },
+    {
       "from": "docs/src/tskb/core/graph-builder.tskb.tsx",
       "to": "graph.types",
       "type": "references"
@@ -3716,6 +4407,11 @@
     {
       "from": "docs/src/tskb/core/graph-builder.tskb.tsx",
       "to": "KnowledgeGraph",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/core/graph-builder.tskb.tsx",
+      "to": "FlowNode",
       "type": "references"
     },
     {
@@ -3816,6 +4512,11 @@
     {
       "from": "docs/src/tskb/cli/cli-overview.tskb.tsx",
       "to": "cli.commands.ls",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/cli/cli-overview.tskb.tsx",
+      "to": "cli.commands.flows",
       "type": "references"
     },
     {
@@ -4474,6 +5175,11 @@
       "type": "belongs-to"
     },
     {
+      "from": "extraction.module-morphology",
+      "to": "core.extraction",
+      "type": "belongs-to"
+    },
+    {
       "from": "graph.builder",
       "to": "core.extraction.graph",
       "type": "belongs-to"
@@ -4515,6 +5221,11 @@
     },
     {
       "from": "cli.commands.init",
+      "to": "tskb.cli.commands",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.commands.flows",
       "to": "tskb.cli.commands",
       "type": "belongs-to"
     },
@@ -4679,6 +5390,16 @@
       "type": "belongs-to"
     },
     {
+      "from": "jsx.Flow",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
+      "from": "jsx.Step",
+      "to": "Jsx.runtime.js",
+      "type": "belongs-to"
+    },
+    {
       "from": "extractRegistry",
       "to": "extraction.registry",
       "type": "belongs-to"
@@ -4689,12 +5410,32 @@
       "type": "belongs-to"
     },
     {
+      "from": "extractModuleMorphology",
+      "to": "extraction.module-morphology",
+      "type": "belongs-to"
+    },
+    {
+      "from": "extractModuleImports",
+      "to": "extraction.module-morphology",
+      "type": "belongs-to"
+    },
+    {
       "from": "buildGraph",
       "to": "graph.builder",
       "type": "belongs-to"
     },
     {
       "from": "KnowledgeGraph",
+      "to": "graph.types",
+      "type": "belongs-to"
+    },
+    {
+      "from": "FlowNode",
+      "to": "graph.types",
+      "type": "belongs-to"
+    },
+    {
+      "from": "FlowStep",
       "to": "graph.types",
       "type": "belongs-to"
     },
@@ -4829,7 +5570,37 @@
       "type": "belongs-to"
     },
     {
-      "from": "tests.e2e.test",
+      "from": "tests.global-setup",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.helpers",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.init",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.build",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.commands",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.disambiguation",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.graph-integrity",
       "to": "tests.e2e",
       "type": "belongs-to"
     },
@@ -4854,6 +5625,11 @@
       "type": "imports"
     },
     {
+      "from": "extraction.registry",
+      "to": "extraction.module-morphology",
+      "type": "imports"
+    },
+    {
       "from": "graph.builder",
       "to": "graph.types",
       "type": "imports"
@@ -4871,6 +5647,11 @@
     {
       "from": "graph.types",
       "to": "runtime.jsx",
+      "type": "imports"
+    },
+    {
+      "from": "graph.types",
+      "to": "extraction.module-morphology",
       "type": "imports"
     },
     {
@@ -4964,6 +5745,21 @@
       "type": "imports"
     },
     {
+      "from": "cli.commands.flows",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.flows",
+      "to": "cli.utils.graph-finder",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.flows",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
       "from": "cli.utils.content-builder",
       "to": "graph.types",
       "type": "imports"
@@ -4990,18 +5786,19 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-27T14:12:13.502Z",
+    "generatedAt": "2026-03-28T11:04:42.151Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
       "folderCount": 36,
-      "moduleCount": 27,
+      "moduleCount": 29,
       "termCount": 31,
-      "exportCount": 54,
-      "fileCount": 3,
+      "exportCount": 60,
+      "fileCount": 9,
       "externalCount": 1,
-      "docCount": 17,
-      "edgeCount": 306
+      "flowCount": 7,
+      "docCount": 19,
+      "edgeCount": 362
     }
   }
 }

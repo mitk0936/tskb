@@ -79,6 +79,10 @@ function buildNeighborIndex(edges: GraphEdge[]): Map<string, string[]> {
       // any → any (both directions)
       addEntry(edge.from, edge.to);
       addEntry(edge.to, edge.from);
+    } else if (edge.type === "flow-step") {
+      // flow → step participant (both directions for traversal)
+      addEntry(edge.from, edge.to);
+      addEntry(edge.to, edge.from);
     }
     // skip "references" — doc edges are collected separately via findReferencingDocs
   }

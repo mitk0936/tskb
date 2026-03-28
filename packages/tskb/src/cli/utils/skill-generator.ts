@@ -40,14 +40,16 @@ export function generateSkillFiles(graph: KnowledgeGraph): string[] {
 function buildQuerySkillContent(graph: KnowledgeGraph): string {
   return `---
 name: tskb
-description: "A map of the codebase — folders, modules, exports, and how they connect. Use it before grep/glob to find where things are, what depends on what, and what docs exist. Incomplete but fast."
+description: "Codebase map — check it whenever you enter unfamiliar territory. Shows where things live, how they connect, what constraints apply. Use before grepping or reading files."
 argument-hint: [query]
 allowed-tools: Bash(npx --no -- tskb *)
 ---
 
 # TSKB — Codebase Map
 
-Like an open-source map of the codebase — not satellite imagery, but what people thought was important to map. Folders, modules, exports, their connections, and developer-written docs. Won't have everything, but gets you oriented fast.
+A curated map of the codebase. Not every file — the parts that matter architecturally: folders, modules, exports, flows, constraints, and how they connect.
+
+Consult the map whenever you step into unfamiliar territory — not just the first question, but every time the conversation moves to a new area. A quick \`search\` or \`pick\` is cheaper than guessing from file names.
 
 ${buildQueryBody(graph)}
 `;

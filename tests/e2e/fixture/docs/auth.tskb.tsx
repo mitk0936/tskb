@@ -1,10 +1,12 @@
-import { Doc, H1, P, Snippet, Relation, ref } from "tskb";
+import { Doc, H1, P, Snippet, Relation, Flow, Step, ref } from "tskb";
 import { AuthService } from "../src/services/auth.service.js";
 
 const AuthServiceExport = ref as tskb.Exports["AuthService"];
 const ServicesFolder = ref as tskb.Folders["services"];
+const ApiRoutes = ref as tskb.Modules["api.routes"];
 const Jwt = ref as tskb.Terms["jwt"];
 const Rbac = ref as tskb.Terms["rbac"];
+const Postgres = ref as tskb.Externals["postgres"];
 
 export default (
   <Doc
@@ -27,5 +29,15 @@ export default (
     />
 
     <Relation from={AuthServiceExport} to={Jwt} label="uses" />
+
+    <Flow
+      name="auth-login"
+      desc="Login request from API route through auth service to database"
+      priority="essential"
+    >
+      <Step node={ApiRoutes} label="receives login request" />
+      <Step node={AuthServiceExport} label="validates credentials" />
+      <Step node={Postgres} label="queries user record" />
+    </Flow>
   </Doc>
 );

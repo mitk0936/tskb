@@ -12,6 +12,7 @@
     "build:docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json",
     "clean": "npx rimraf --glob node_modules **/node_modules **/dist **/.tskb",
     "test": "vitest run",
+    "test:coverage": "c8 --src packages/tskb/src --include \"packages/tskb/dist/**\" --reporter text --reporter html -o coverage vitest run",
     "test:watch": "vitest",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
@@ -21,6 +22,8 @@
     "tskb": "workspace:*"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.1",
+    "c8": "^11.0.0",
     "husky": "^9.1.7",
     "mkdirp": "^3.0.1",
     "prettier": "^3.2.4",

@@ -12,6 +12,8 @@ import {
   Li,
   List,
   Relation,
+  Flow,
+  Step,
 } from "tskb";
 
 declare global {
@@ -136,6 +138,9 @@ const ProgramModule = ref as tskb.Modules["typescript.program"];
 const RegistryTerm = ref as tskb.Terms["registry"];
 const GraphTerm = ref as tskb.Terms["graph"];
 const CliBuildExport = ref as tskb.Exports["cli.build"];
+const ExtractRegistryExport = ref as tskb.Exports["extractRegistry"];
+const ExtractDocsExport = ref as tskb.Exports["extractDocs"];
+const BuildGraphExport = ref as tskb.Exports["buildGraph"];
 const GenerateDotExport = ref as tskb.Exports["generateDot"];
 const DotFileTerm = ref as tskb.Terms["dotFile"];
 const CliSearchExport = ref as tskb.Exports["cli.search"];
@@ -296,5 +301,32 @@ export default (
       <Li>Trust validation: TSKB catches broken references, not behavior changes</Li>
       <Li>Major relationships only: Document architectural connections, not every dependency</Li>
     </List>
+
+    <Flow
+      name="build-pipeline"
+      desc="The tskb build process: source files through extraction to knowledge graph outputs"
+      priority="essential"
+    >
+      <Step
+        node={CliBuildExport}
+        label="Orchestrates the pipeline: file discovery, extraction, graph building, output generation"
+      />
+      <Step
+        node={ExtractRegistryExport}
+        label="Scans TypeScript AST for global tskb namespace declarations (Folders, Modules, Exports, Terms)"
+      />
+      <Step
+        node={ExtractDocsExport}
+        label="Traverses JSX trees in .tskb.tsx files, extracting content, references, relations, and flows"
+      />
+      <Step
+        node={BuildGraphExport}
+        label="Merges registry and docs into a unified graph with nodes, edges, and hierarchy"
+      />
+      <Step
+        node={GenerateDotExport}
+        label="Transforms the graph into DOT format for Graphviz visualization"
+      />
+    </Flow>
   </Doc>
 );
