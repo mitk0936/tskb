@@ -76,6 +76,14 @@ declare global {
         desc: "Type for doc importance level: 'essential' (included in generated skill/instructions), 'constraint' (architectural rules for related areas), or 'supplementary' (graph-only, default)";
         type: import("packages/tskb/src/runtime/jsx.js").DocPriority;
       }>;
+      "jsx.Flow": Export<{
+        desc: "Flow component — defines a named, ordered sequence of steps through the system. Becomes a first-class graph node. Props: name, desc, optional priority. Only <Step> children allowed (validated at build time).";
+        type: typeof import("packages/tskb/src/runtime/jsx.js").Flow;
+      }>;
+      "jsx.Step": Export<{
+        desc: "Step component — a single participant in a Flow. The node prop references a registry node, optional label describes its role in the flow.";
+        type: typeof import("packages/tskb/src/runtime/jsx.js").Step;
+      }>;
     }
   }
 }
@@ -87,6 +95,8 @@ const DocExport = ref as tskb.Exports["jsx.Doc"];
 const AdrExport = ref as tskb.Exports["jsx.Adr"];
 const RefExport = ref as tskb.Exports["jsx.ref"];
 const DocPriorityExport = ref as tskb.Exports["DocPriority"];
+const FlowExport = ref as tskb.Exports["jsx.Flow"];
+const StepExport = ref as tskb.Exports["jsx.Step"];
 const ExampleTerm = ref as tskb.Terms["graph"];
 
 export default (
@@ -106,6 +116,11 @@ export default (
         {DocPriorityExport}: essential, constraint, or supplementary). Includes
         heading/paragraph/list components, {AdrExport} for Architecture Decision Records, and{" "}
         {RefExport} for type-safe registry references.
+      </Li>
+      <Li>
+        {JsxModule} also provides {FlowExport} and {StepExport} for defining named, ordered
+        sequences through the system. Flows become first-class graph nodes with priority support.
+        Only Step children are allowed inside Flow (validated at build time).
       </Li>
       <Li>
         {RegistryModule}: Type definitions for Folder, Module, Export, Term interfaces used in

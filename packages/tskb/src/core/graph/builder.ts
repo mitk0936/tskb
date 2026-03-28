@@ -6,6 +6,7 @@ import type {
   ExportNode,
   FileNode,
   ExternalNode,
+  FlowNode,
   DocNode,
   GraphEdge,
 } from "./types.js";
@@ -60,6 +61,7 @@ export function buildGraph(
       exports: {},
       files: {},
       externals: {},
+      flows: {},
       docs: {},
     },
     edges: [],
@@ -74,6 +76,7 @@ export function buildGraph(
         exportCount: 0,
         fileCount: 0,
         externalCount: 0,
+        flowCount: 0,
         docCount: 0,
         edgeCount: 0,
       },
@@ -96,6 +99,9 @@ export function buildGraph(
 
   // Detect npm packages (folders with package.json containing a name)
   detectPackageFolders(graph);
+
+  // Build flow nodes from doc-extracted flows
+  buildFlowNodes(docs, graph);
 
   // Build nodes from docs
   buildDocNodes(docs, graph);
@@ -321,6 +327,59 @@ function detectPackageFolders(graph: KnowledgeGraph): void {
       }
     } catch {
       // No package.json or invalid — skip
+    }
+  }
+}
+
+/**
+ * Create Flow nodes from extracted documentation flows and emit flow-step edges.
+ * Flows are defined via <Flow> JSX elements inside docs — they become first-class
+ * graph nodes with ordered steps referencing other nodes.
+ */
+function buildFlowNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
+  for (const doc of docs) {
+    if (!doc.flows || doc.flows.length === 0) continue;
+
+    for (const flow of doc.flows) {
+      const node: FlowNode = {
+        id: flow.name,
+        type: "flow",
+        desc: flow.desc,
+        priority: flow.priority,
+        steps: flow.steps.map((s, i) => ({
+          nodeId: s.nodeId,
+          order: i,
+          ...(s.label ? { label: s.label } : {}),
+        })),
+      };
+      graph.nodes.flows[flow.name] = node;
+
+      // Create flow-step edges
+      for (let i = 0; i < flow.steps.length; i++) {
+        const step = flow.steps[i];
+        // Verify the step target exists in the graph
+        const exists =
+          graph.nodes.folders[step.nodeId] ||
+          graph.nodes.modules[step.nodeId] ||
+          graph.nodes.terms[step.nodeId] ||
+          graph.nodes.exports[step.nodeId] ||
+          graph.nodes.files[step.nodeId] ||
+          graph.nodes.externals[step.nodeId];
+        if (exists) {
+          graph.edges.push({
+            from: flow.name,
+            to: step.nodeId,
+            type: "flow-step",
+            label: step.label,
+          });
+        } else {
+          throw new Error(
+            `Unresolved flow step reference "${step.nodeId}" in flow "${flow.name}" (doc "${doc.filePath}"):\n` +
+              `  The step references a node that does not exist in the registry.\n` +
+              `  Make sure "${step.nodeId}" is declared in a registry interface.`
+          );
+        }
+      }
     }
   }
 }
@@ -862,6 +921,7 @@ function updateStats(graph: KnowledgeGraph): void {
   graph.metadata.stats.exportCount = Object.keys(graph.nodes.exports).length;
   graph.metadata.stats.fileCount = Object.keys(graph.nodes.files).length;
   graph.metadata.stats.externalCount = Object.keys(graph.nodes.externals).length;
+  graph.metadata.stats.flowCount = Object.keys(graph.nodes.flows).length;
   graph.metadata.stats.docCount = Object.keys(graph.nodes.docs).length;
   graph.metadata.stats.edgeCount = graph.edges.length;
 }

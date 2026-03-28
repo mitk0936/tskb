@@ -8,38 +8,38 @@
  *
  * No React dependency required - these are just type definitions.
  *
- * This overrides React's JSX types to work with tskb's ReactNode.
+ * IMPORTANT: The JSX interop layer uses `any` intentionally. When @types/react is loaded
+ * (e.g., docs that import React for Snippet examples), React's JSX types take partial
+ * precedence. tskb's ReactNode is structurally different from React.ReactNode, so JSX.Element
+ * must stay loose to avoid conflicts. The actual component functions in jsx.ts are properly
+ * typed with tskb's ReactNode — the `any` here only affects JSX expression evaluation.
  */
 
 import type { ReactNode } from "./runtime/jsx.js";
 
 declare global {
   namespace JSX {
-    // Explicitly type Relation for label prop
     interface IntrinsicElements {
       [elemName: string]: any;
     }
 
-    // What JSX expressions evaluate to
+    // Must be `any` for React type interop — see note above
     type Element = any;
 
-    // Allow any component to be used
     interface ElementClass {
       render(): any;
     }
 
-    // Props that all elements can accept
     interface ElementAttributesProperty {
       props: {};
     }
 
-    // Children property name
     interface ElementChildrenAttribute {
       children: {};
     }
   }
 
-  // Override React namespace if it exists
+  // Override React namespace if it exists — must be `any` to coexist with @types/react
   namespace React {
     type ReactNode = any;
     type ReactElement = any;

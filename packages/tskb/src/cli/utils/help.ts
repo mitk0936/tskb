@@ -10,6 +10,7 @@ export function getHelpText(): string {
   tskb search <query> [--optimized] [--plain] [--verbose]
   tskb context <identifier> [--depth <n>] [--optimized] [--plain] [--verbose]
   tskb docs [<query>] [--optimized] [--plain] [--verbose]
+  tskb flows [<query>] [--optimized] [--plain] [--verbose]
 
 Examples:
   # Init — scaffold tskb in a new or existing repo (interactive)
@@ -33,7 +34,9 @@ Examples:
   tskb context "tskb.cli"                                 # Get full context for an area (depth 1)
   tskb context "tskb.cli" --depth 2                       # Deeper traversal with docs
   tskb docs                                               # List all docs sorted by priority
-  tskb docs "auth"                                        # Search docs by query`;
+  tskb docs "auth"                                        # Search docs by query
+  tskb flows                                               # List all flows sorted by priority
+  tskb flows "login"                                      # Search flows by query`;
 }
 
 /**

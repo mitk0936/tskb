@@ -159,6 +159,25 @@ interface DocPickResult {
   }>;
 }
 
+interface FlowPickResult {
+  type: "flow";
+  resolvedVia: ResolvedVia;
+  node: {
+    nodeId: string;
+    desc: string;
+    priority: string;
+    steps: Array<{ nodeId: string; order: number; label?: string; nodeType?: string }>;
+  };
+  referencingDocs: DocRef[];
+  relations?: Array<{
+    from: string;
+    fromType?: string;
+    to: string;
+    toType?: string;
+    label?: string;
+  }>;
+}
+
 type PickResult =
   | FolderPickResult
   | ModulePickResult
@@ -166,6 +185,7 @@ type PickResult =
   | TermPickResult
   | FilePickResult
   | ExternalPickResult
+  | FlowPickResult
   | DocPickResult;
 
 // --- Per-type resolvers ---
@@ -402,6 +422,38 @@ function resolveDoc(
   };
 }
 
+function resolveFlow(
+  id: string,
+  node: AnyNode,
+  edges: NodeEdges,
+  graph: KnowledgeGraph
+): FlowPickResult {
+  const flow = node as import("../../core/graph/types.js").FlowNode;
+
+  // Enrich steps with their node types
+  const steps = flow.steps.map((s) => {
+    const allNodes = findAllNodesById(graph, s.nodeId);
+    return {
+      nodeId: s.nodeId,
+      order: s.order,
+      ...(s.label ? { label: s.label } : {}),
+      ...(allNodes.length > 0 ? { nodeType: allNodes[0].type } : {}),
+    };
+  });
+
+  return {
+    type: "flow",
+    resolvedVia: "id",
+    node: {
+      nodeId: id,
+      desc: flow.desc,
+      priority: flow.priority,
+      steps,
+    },
+    referencingDocs: findReferencingDocs(edges, graph),
+  };
+}
+
 /**
  * Enrich raw import entries with moduleId when the import target is a known module in the graph.
  * Uses "imports" edges to find which modules this module imports from, then maps import paths
@@ -484,6 +536,7 @@ const resolvers: Record<string, NodeResolver> = {
   term: resolveTerm as NodeResolver,
   file: resolveFile as NodeResolver,
   external: resolveExternal as NodeResolver,
+  flow: resolveFlow as NodeResolver,
   doc: resolveDoc as NodeResolver,
 };
 
@@ -804,6 +857,27 @@ function formatExternalPlain(result: ExternalPickResult): string[] {
   return lines;
 }
 
+function formatFlowPlain(result: FlowPickResult): string[] {
+  const lines: string[] = [
+    `id: ${result.node.nodeId} (flow, ${result.node.priority})`,
+    `  ${result.node.desc}`,
+  ];
+
+  if (result.node.steps.length > 0) {
+    lines.push("  steps:");
+    for (const step of result.node.steps) {
+      const typeTag = step.nodeType ? ` (${step.nodeType})` : "";
+      const label = step.label ? ` — ${step.label}` : "";
+      lines.push(`    ${step.order + 1}. ${step.nodeId}${typeTag}${label}`);
+    }
+  }
+
+  lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatRelations(result.relations));
+
+  return lines;
+}
+
 function formatDocPlain(result: DocPickResult): string[] {
   const lines: string[] = [
     `id: ${result.node.nodeId} (doc, ${result.node.priority})`,
@@ -848,6 +922,9 @@ function formatPickPlain(result: PickResult, ambiguousTypes?: AnyNode["type"][])
       break;
     case "external":
       lines = formatExternalPlain(result);
+      break;
+    case "flow":
+      lines = formatFlowPlain(result);
       break;
     case "doc":
       lines = formatDocPlain(result);

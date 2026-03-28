@@ -43,6 +43,7 @@ export function findAllNodesById(
   if (graph.nodes.externals[id])
     results.push({ node: graph.nodes.externals[id], type: "external" });
   if (graph.nodes.terms[id]) results.push({ node: graph.nodes.terms[id], type: "term" });
+  if (graph.nodes.flows[id]) results.push({ node: graph.nodes.flows[id], type: "flow" });
   if (graph.nodes.docs[id]) results.push({ node: graph.nodes.docs[id], type: "doc" });
   return results;
 }
@@ -56,6 +57,7 @@ export function resolveNode(graph: KnowledgeGraph, identifier: string): Resolved
     ["files", graph.nodes.files],
     ["externals", graph.nodes.externals],
     ["terms", graph.nodes.terms],
+    ["flows", graph.nodes.flows],
     ["docs", graph.nodes.docs],
   ];
 

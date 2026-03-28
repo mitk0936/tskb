@@ -39,8 +39,16 @@ declare global {
         type: typeof import("packages/tskb/src/core/graph/builder.js").buildGraph;
       }>;
       KnowledgeGraph: Export<{
-        desc: "The top-level graph structure containing all nodes (folders, modules, terms, exports, docs), edges, and metadata";
+        desc: "The top-level graph structure containing all nodes (folders, modules, terms, exports, flows, docs), edges, and metadata";
         type: import("packages/tskb/src/core/graph/types.js").KnowledgeGraph;
+      }>;
+      FlowNode: Export<{
+        desc: "Graph node for an ordered flow through the system — contains steps referencing other nodes, with priority for skill file inclusion";
+        type: import("packages/tskb/src/core/graph/types.js").FlowNode;
+      }>;
+      FlowStep: Export<{
+        desc: "A single step within a flow — references a node ID with order and optional label";
+        type: import("packages/tskb/src/core/graph/types.js").FlowStep;
       }>;
     }
   }
@@ -51,6 +59,7 @@ const BuilderModule = ref as tskb.Modules["graph.builder"];
 const TypesModule = ref as tskb.Modules["graph.types"];
 const BuildGraphExport = ref as tskb.Exports["buildGraph"];
 const KnowledgeGraphExport = ref as tskb.Exports["KnowledgeGraph"];
+const FlowNodeExport = ref as tskb.Exports["FlowNode"];
 const VisualizationDotGenModule = ref as tskb.Modules["visualization.dot-generator"];
 
 export default (
@@ -65,8 +74,9 @@ export default (
     <List>
       <Li>
         {TypesModule}: Defines the graph data model. Node types: FolderNode, ModuleNode, TermNode,
-        ExportNode, DocNode. Edge types: references, belongs-to, contains, related-to. Top-level
-        structure: {KnowledgeGraphExport} with nodes, edges, and metadata.
+        ExportNode, {FlowNodeExport}, DocNode. Edge types: references, belongs-to, contains,
+        related-to, flow-step. Top-level structure: {KnowledgeGraphExport} with nodes, edges, and
+        metadata.
       </Li>
       <Li>
         {BuilderModule}: {BuildGraphExport} creates nodes from registry items and docs, then builds

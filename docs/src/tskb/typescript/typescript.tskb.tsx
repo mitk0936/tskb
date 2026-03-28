@@ -1,4 +1,4 @@
-import { type Module, type Export, Doc, H1, ref, P, H2, List, Li, Relation } from "tskb";
+import { type Module, type Export, Doc, H1, ref, P, H2, List, Li, Flow, Step } from "tskb";
 
 declare global {
   namespace tskb {
@@ -27,6 +27,7 @@ const TypescriptFolder = ref as tskb.Folders["tskb.typescript"];
 const ProgramModule = ref as tskb.Modules["typescript.program"];
 const CreateProgramExport = ref as tskb.Exports["ts.createProgram"];
 const TsProgramTerm = ref as tskb.Terms["tsProgram"];
+const ExtractionRegistryModule = ref as tskb.Modules["extraction.registry"];
 const ExtractionDocModule = ref as tskb.Modules["extraction.documentation"];
 const GraphBuilderModule = ref as tskb.Modules["graph.builder"];
 
@@ -37,27 +38,27 @@ export default (
   >
     <H1>TypeScript Program</H1>
     <P>
-      Located in {TypescriptFolder}. Creates {TsProgramTerm} for analyzing code without compilation.
-    </P>
-
-    <H2>Key Module</H2>
-
-    <P>
-      {ProgramModule}: Exports {CreateProgramExport} which:
+      Located in {TypescriptFolder}. {ProgramModule} exports {CreateProgramExport} which creates a{" "}
+      {TsProgramTerm} for analyzing code without compilation (noEmit=true).
     </P>
     <List>
       <Li>Reads and parses tsconfig.json for compiler options</Li>
-      <Li>Creates TypeScript Program with noEmit=true (analysis only)</Li>
       <Li>Validates TypeScript errors in specified files</Li>
       <Li>Returns Program with AST, type checker, and symbol resolution</Li>
     </List>
 
-    <H2>Purpose</H2>
-    <P>
-      Provides the {TsProgramTerm} used by extraction logic to parse *.tskb.tsx files, resolve
-      types, and walk ASTs for registry and documentation extraction.
-    </P>
-    <Relation from={ProgramModule} to={ExtractionDocModule} label="used for doc extraction" />
-    <Relation from={ProgramModule} to={GraphBuilderModule} label="feeds graph builder" />
+    <Flow
+      name="static-analysis"
+      desc="TypeScript Program creation through extraction to graph"
+      priority="essential"
+    >
+      <Step node={CreateProgramExport} label="creates Program from tsconfig + source files" />
+      <Step
+        node={ExtractionRegistryModule}
+        label="walks AST for Folders, Modules, Terms, Exports"
+      />
+      <Step node={ExtractionDocModule} label="parses JSX trees for content and references" />
+      <Step node={GraphBuilderModule} label="assembles nodes and edges into knowledge graph" />
+    </Flow>
   </Doc>
 );

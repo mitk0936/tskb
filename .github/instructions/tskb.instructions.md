@@ -4,7 +4,9 @@ applyTo: "**"
 
 # TSKB — Codebase Architecture
 
-This project uses **TSKB**, a semantic knowledge graph of the codebase. It captures architectural intent, constraints, and structural relationships that filesystem exploration alone will miss.
+This project has a curated codebase map. Not every file — the parts that matter architecturally: folders, modules, exports, flows, constraints, and how they connect.
+
+Consult the map whenever you step into unfamiliar territory — not just the first question, but every time the conversation moves to a new area. A quick `search` or `pick` is cheaper than guessing from file names.
 
 ## When to Use
 
@@ -23,6 +25,7 @@ npx --no -- tskb pick "<identifier>" --plain                  # Detailed info on
 npx --no -- tskb context "<identifier>" --depth=2 --plain     # Node + neighborhood + docs (BFS traversal)
 npx --no -- tskb ls --depth=4 --plain                         # Folder hierarchy
 npx --no -- tskb docs "<query>" --plain                       # Search docs
+npx --no -- tskb flows [<query>] --plain                       # List flows sorted by priority
 ```
 
 Drop `--plain` for JSON output. Use `--optimized` for compact JSON (no whitespace).
@@ -35,6 +38,7 @@ Drop `--plain` for JSON output. Use `--optimized` for compact JSON (no whitespac
 - **File** — a non-JS/TS file (README, config, etc.).
 - **External** — something outside the repo (npm package, API, cloud service, database). Has free-form key-value metadata.
 - **Term** — a domain concept, not tied to a file.
+- **Flow** — a named, ordered sequence of steps through the system. Has priority like docs.
 - **Doc** — a `.tskb.tsx` documentation file. Has priority: essential, constraint, or supplementary.
 
 All paths are relative to project root and can be used directly to read files.
@@ -46,6 +50,7 @@ All paths are relative to project root and can be used directly to read files.
 - **context** — a node and its neighbors (BFS traversal). Shows what connects to what.
 - **ls** — folder tree with essential docs.
 - **docs** — search or list all docs. Use `pick` on a doc ID for full content.
+- **flows** — list or search flows, sorted by priority. Use `pick` on a flow ID for steps.
 
 ## Folder Structure
 
@@ -56,11 +61,24 @@ All paths are relative to project root and can be used directly to read files.
     - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [2 folders, 4 files]
   - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [2 files]
   - **tests** (`tests`) — End-to-end test suite for the tskb CLI, using Vitest [1 folder]
-    - **tests.e2e** (`tests/e2e`) — E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command [1 folder, 1 file]
+    - **tests.e2e** (`tests/e2e`) — E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command [1 folder, 7 files]
 
 ## Externals
 
 - **pg** — PostgreSQL client for Node.js (url: https://node-postgres.com, kind: npm-package)
+
+## Flows
+
+- **e2e-test-execution** [essential] — Full E2E run: global setup builds fixture graph, test files exercise every CLI command, teardown cleans output
+  vitest.config → tests.global-setup → tests.helpers → tests.global-setup
+- **build-pipeline** [essential] — The tskb build process: source files through extraction to knowledge graph outputs
+  cli.build → extractRegistry → extractDocs → buildGraph → generateDot
+- **static-analysis** [essential] — TypeScript Program creation through extraction to graph
+  ts.createProgram → extraction.registry → extraction.documentation → graph.builder
+- **module-morphology-extraction** [essential] — How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs
+  extractRegistry → extractModuleMorphology → extractModuleImports → graph.builder
+
+_Plus 3 supplementary flows available via `npx --no -- tskb flows --plain`._
 
 ## Documentation
 
@@ -69,6 +87,6 @@ All paths are relative to project root and can be used directly to read files.
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — Runtime module structure: JSX primitives and registry type definitions
 - `docs/src/tskb/typescript/typescript.tskb.tsx` — TypeScript Program creation for static analysis without compilation
 
-_Plus 13 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 15 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 Constraint docs define architectural rules that **MUST** be followed when working on related code.

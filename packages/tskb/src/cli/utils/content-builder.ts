@@ -9,6 +9,7 @@ export function buildQueryBody(graph: KnowledgeGraph): string {
   const folderTree = buildFolderTree(graph, 2);
   const docSummaries = buildDocSummaries(graph, true);
   const externalsSummary = buildExternalsSummary(graph);
+  const flowsSummary = buildFlowsSummary(graph);
 
   return `## When to Use
 
@@ -27,6 +28,7 @@ npx --no -- tskb pick "<identifier>" --plain                  # Detailed info on
 npx --no -- tskb context "<identifier>" --depth=2 --plain     # Node + neighborhood + docs (BFS traversal)
 npx --no -- tskb ls --depth=4 --plain                         # Folder hierarchy
 npx --no -- tskb docs "<query>" --plain                       # Search docs
+npx --no -- tskb flows [<query>] --plain                       # List flows sorted by priority
 \`\`\`
 
 Drop \`--plain\` for JSON output. Use \`--optimized\` for compact JSON (no whitespace).
@@ -39,6 +41,7 @@ Drop \`--plain\` for JSON output. Use \`--optimized\` for compact JSON (no white
 - **File** — a non-JS/TS file (README, config, etc.).
 - **External** — something outside the repo (npm package, API, cloud service, database). Has free-form key-value metadata.
 - **Term** — a domain concept, not tied to a file.
+- **Flow** — a named, ordered sequence of steps through the system. Has priority like docs.
 - **Doc** — a \`.tskb.tsx\` documentation file. Has priority: essential, constraint, or supplementary.
 
 All paths are relative to project root and can be used directly to read files.
@@ -50,12 +53,15 @@ All paths are relative to project root and can be used directly to read files.
 - **context** — a node and its neighbors (BFS traversal). Shows what connects to what.
 - **ls** — folder tree with essential docs.
 - **docs** — search or list all docs. Use \`pick\` on a doc ID for full content.
+- **flows** — list or search flows, sorted by priority. Use \`pick\` on a flow ID for steps.
 
 ## Folder Structure
 
 ${folderTree}
 
 ${externalsSummary}
+
+${flowsSummary}
 
 ## Documentation
 
@@ -80,9 +86,12 @@ export function buildUpdateBody(graph: KnowledgeGraph): string {
 - A new feature area is being built (declare it before or alongside implementation)
 - An architectural decision is being made that should be recorded (use \`<Adr>\`)
 - A constraint is identified that future changes must respect (use \`priority="constraint"\`)
+- An important process or sequence spans multiple modules — capture it as a \`<Flow>\`
 - The developer explicitly asks to update the map
 
 **Don't update for:** routine bug fixes, refactoring internals, temporary code, or anything that doesn't change the architecture.
+
+**Prefer flows for processes.** When you encounter an important multi-step process (authentication, build pipelines, request handling, data sync, deployment), document it as a \`<Flow>\` rather than describing steps in prose. Flows become first-class graph nodes — searchable, visualized, and included in generated skill files when marked \`priority="essential"\`.
 
 **How to check what's missing:**
 
@@ -187,6 +196,10 @@ The \`ref\` value is a placeholder — only the type matters. The compiler valid
 - **\`<Snippet code={() => { ... }} />\`** — Type-checked code example. Real imports, not strings.
 - **\`<Relation from={NodeA} to={NodeB} label?="..." />\`** — Explicit semantic relationship edge.
 - **\`<Adr id="..." title="..." status="accepted|proposed|deprecated|superseded">\`** — Architecture Decision Record.
+- **\`<Flow name="..." desc="..." priority?>\`** — Named, ordered sequence of steps through the system. Becomes a first-class graph node. Only \`<Step>\` children allowed.
+  - \`priority="essential"\` — included in generated skill/instructions files and \`tskb flows\` output.
+  - \`priority="supplementary"\` (default) — graph-only, queryable via \`tskb flows\`.
+- **\`<Step node={NodeRef} label?="..." />\`** — A single participant in a Flow. References any registered node.
 
 ## Type-Checked Snippets
 
@@ -222,12 +235,19 @@ Snippets are **never executed** — they are parsed, type-checked, and stringifi
 - Write implementation-level prose — focus on structural relationships and intent.
 
 \`\`\`tsx
-// GOOD
+// GOOD — use <Flow> for multi-step processes
+<Flow name="task-dispatch" desc="Task scheduling through queue and workers" priority="essential">
+  <Step node={TaskQueue} />
+  <Step node={WorkerPool} label="picks and executes" />
+  <Step node={ResultCollector} label="reports back" />
+</Flow>
+
+// GOOD — use prose for static relationships
 <Doc explains="Task scheduling: queue, workers, retry policy">
   <P>{TaskQueue} dispatches jobs to {WorkerPool}.</P>
 </Doc>
 
-// BAD
+// BAD — describing a process in prose instead of a Flow
 <Doc explains="Task scheduling system">
   <P>The system works by accepting tasks into a prioritized queue. Workers pick
   tasks using round-robin, process them, and report results back to the coordinator...</P>
@@ -328,6 +348,36 @@ function buildDocSummaries(graph: KnowledgeGraph, essentialOnly: boolean): strin
   }
 
   return lines;
+}
+
+/**
+ * Build a markdown list of essential/constraint flows from the knowledge graph.
+ */
+function buildFlowsSummary(graph: KnowledgeGraph): string {
+  const flows = Object.values(graph.nodes.flows).sort((a, b) => {
+    const order: Record<string, number> = { essential: 0, constraint: 1, supplementary: 2 };
+    return (order[a.priority] ?? 3) - (order[b.priority] ?? 3);
+  });
+
+  if (flows.length === 0) return "";
+
+  const important = flows.filter((f) => f.priority === "essential" || f.priority === "constraint");
+  if (important.length === 0) return "";
+
+  const lines = important
+    .map((f) => {
+      const steps = f.steps.map((s) => s.nodeId).join(" → ");
+      return `- **${f.id}** [${f.priority}] — ${f.desc}\n  ${steps}`;
+    })
+    .join("\n");
+
+  const supplementaryCount = flows.length - important.length;
+  const suffix =
+    supplementaryCount > 0
+      ? `\n\n_Plus ${supplementaryCount} supplementary flow${supplementaryCount === 1 ? "" : "s"} available via \`npx --no -- tskb flows --plain\`._`
+      : "";
+
+  return `## Flows\n\n${lines}${suffix}`;
 }
 
 /**

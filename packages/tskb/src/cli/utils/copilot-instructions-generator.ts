@@ -42,7 +42,9 @@ applyTo: "**"
 
 # TSKB — Codebase Architecture
 
-This project uses **TSKB**, a semantic knowledge graph of the codebase. It captures architectural intent, constraints, and structural relationships that filesystem exploration alone will miss.
+This project has a curated codebase map. Not every file — the parts that matter architecturally: folders, modules, exports, flows, constraints, and how they connect.
+
+Consult the map whenever you step into unfamiliar territory — not just the first question, but every time the conversation moves to a new area. A quick \`search\` or \`pick\` is cheaper than guessing from file names.
 
 ${buildQueryBody(graph)}
 `;

@@ -91,6 +91,11 @@ async function main() {
         await docs(positionals[1], values.optimized!, values.plain!);
         break;
       }
+      case "flows": {
+        const { flows } = await import("./commands/flows.js");
+        await flows(positionals[1], values.optimized!, values.plain!);
+        break;
+      }
       case "init": {
         await init({ yes: values.yes });
         break;
