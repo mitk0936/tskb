@@ -15,8 +15,8 @@ export function buildQueryBody(graph: KnowledgeGraph): string {
 
 Use tskb **first** — before grepping or reading files. It tells you where things are and how they relate, so you don't waste time exploring blind. Think of it as asking a teammate "where does X live?" instead of searching every folder yourself.
 
-- **Find things** — \`search\` or \`ls\` to locate modules, exports, folders by name or concept.
-- **Understand connections** — \`pick\` or \`context\` to see what a module imports, exports, and what docs reference it.
+- **Know a node ID or path** — \`context\` gets the full picture in one call: children, modules, exports, all referencing docs and constraints. Pass a node ID or a repo path.
+- **Don't know where to start** — \`search\` for keywords to find relevant node IDs, then use \`context\` or \`pick\`.
 - **Check rules** — Constraint docs define rules you must follow. They show up in \`pick\` results automatically.
 - **Skip it** — If you already know exactly which file to edit and the change is self-contained.
 
@@ -48,9 +48,9 @@ All paths are relative to project root and can be used directly to read files.
 
 ## What Each Command Returns
 
-- **search** — ranked results by relevance. Use \`pick\` on any \`nodeId\` for details.
+- **context** — the most efficient single call: returns a node's full neighborhood (children, modules, exports) plus all referencing docs, deduplicated and sorted by priority. Takes a node ID or repo path. Constraint doc IDs are surfaced at the top level.
+- **search** — free-text keyword search across the entire graph. Returns ranked results. Use \`pick\` or \`context\` on any \`nodeId\` for details.
 - **pick** — full detail for one node. Modules/exports show code stubs with line ranges (\`// :42-68\`). Modules show imports, importedBy, and exports list. Folders show children. Externals show metadata key-value pairs. Constraint docs in results **MUST** be read.
-- **context** — a node and its neighbors (BFS traversal). Shows what connects to what.
 - **ls** — folder tree with essential docs.
 - **docs** — search or list all docs. Use \`pick\` on a doc ID for full content.
 - **flows** — list or search flows, sorted by priority. Use \`pick\` on a flow ID for steps.
@@ -58,6 +58,8 @@ All paths are relative to project root and can be used directly to read files.
 ## Folder Structure
 
 ${folderTree}
+
+_Snapshot from last \`npm run docs\` build._
 
 ${externalsSummary}
 
@@ -93,11 +95,12 @@ export function buildUpdateBody(graph: KnowledgeGraph): string {
 
 **Prefer flows for processes.** When you encounter an important multi-step process (authentication, build pipelines, request handling, data sync, deployment), document it as a \`<Flow>\` rather than describing steps in prose. Flows become first-class graph nodes — searchable, visualized, and included in generated skill files when marked \`priority="essential"\`.
 
-**How to check what's missing:**
+**Before writing docs for an area, check what's already there:**
 
 \`\`\`bash
-npx --no -- tskb ls --plain              # See what folders are mapped
-npx --no -- tskb search "<area>" --plain # Check if something already exists
+npx --no -- tskb context "<nodeId|path>" --plain  # Full picture: children, modules, docs for this node
+npx --no -- tskb ls --plain                       # See what folders are mapped
+npx --no -- tskb search "<keywords>" --plain      # Check if something already exists
 \`\`\`
 
 ## Key Rules

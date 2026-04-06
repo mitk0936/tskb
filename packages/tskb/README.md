@@ -1,8 +1,8 @@
 # tskb
 
-Build **architecture docs as code**. Declaratively define architectural intent in large TypeScript codebases and monorepos, and turn that intent into a **compiler-verified artifact**.
+Let your **AI assistant document your codebase** as it works. Architecture knowledge accumulates in a **compiler-verified artifact** — query it, ask questions about your system, navigate it with your AI.
 
-> **Documentation physically bound to your code, so you can trust it.**
+> **Your AI writes the docs. You navigate them.**
 
 [![npm version](https://badge.fury.io/js/tskb.svg)](https://www.npmjs.com/package/tskb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -23,19 +23,19 @@ Build **architecture docs as code**. Declaratively define architectural intent i
 
 **tskb** is a TypeScript-native DSL for expressing **architectural intent** as code.
 
-You write documentation in `.tskb.tsx` files that:
+Your AI assistant writes and maintains documentation in `.tskb.tsx` files that:
 
 - are **type-checked by the TypeScript compiler**
 - reference **real folders, files, and exports**
 - fail the build when documentation and code drift apart
 
-The result is a **structured knowledge graph** that can be:
+The result is a **structured knowledge graph** you can:
 
-- visualized (Graphviz, diagrams)
-- queried programmatically
-- consumed efficiently by AI assistants
+- query with natural language through your AI assistant
+- navigate programmatically via the CLI
+- visualize (Graphviz, diagrams)
 
-> Refactor your code → stale documentation breaks at compile time.
+> Refactor your code → stale documentation breaks at compile time. The AI fixes it.
 
 ---
 
@@ -57,6 +57,7 @@ tskb addresses this by making architecture documentation:
 
 ## Core features
 
+- **AI-maintained docs** — generated skills let your AI assistant write, update, and validate docs during development sessions
 - Architecture as code using TSX
 - Compiler-verified references via `typeof import()`
 - **Type-checked code snippets** (not copied text)
@@ -197,9 +198,9 @@ declare global {
 
 ---
 
-## Write documentation
+## Documentation format
 
-Reference your global vocabulary to document architecture. Multiple teams can author docs that all use the same shared architectural terms.
+This is the format your AI assistant writes into. Multiple docs across multiple teams share the same global vocabulary — the AI navigates and extends it as the codebase evolves.
 
 ```tsx
 // docs/authentication.tskb.tsx
@@ -453,7 +454,7 @@ JSX provides composability, static analysis, and extensibility without inventing
 
 ## Querying the graph
 
-Once built, query the knowledge graph using the CLI:
+These commands are embedded in the generated skill files — AI assistants use them automatically during sessions to orient themselves and look things up. You can also run them directly:
 
 ### List folder structure
 
@@ -565,7 +566,7 @@ This ensures documentation stays synchronized with code changes.
 
 ## AI assistant integration
 
-TSKB is designed to help AI assistants understand codebases efficiently:
+TSKB closes a loop: **your AI assistant writes the docs, then reads them** — so architectural knowledge accumulates and carries forward across sessions. You navigate the graph, ask questions about your system, interrupt when something is wrong, and steer what gets documented.
 
 - **Auto-generated integrations**: Build produces a Claude Code skill (`.claude/skills/tskb/SKILL.md`) and Copilot instructions (`.github/instructions/tskb.instructions.md`) with folder tree, essential doc summaries, command response shapes, and workflow guidance baked in
 - **Doc priority**: Controls what AI assistants see — `essential` docs appear in generated files and `ls` output, `constraint` docs surface in `pick`/`search` with their priority visible, `supplementary` docs are graph-only
@@ -576,14 +577,16 @@ TSKB is designed to help AI assistants understand codebases efficiently:
 - **Flows command**: `flows` lists or searches named sequences through the system — essential flows are included in generated skill/instructions files
 - **Structured queries**: AI can use `ls`, `pick`, `search`, `docs`, `flows`, and `context` to navigate architecture — all return JSON (or plain text with `--plain`) with priority metadata on doc results
 
-Instead of blindly exploring files, AI assistants can:
+The AI assistant both writes and reads the graph. During development it documents what it builds; at the start of a session it consults what was documented before. You can query it at any point.
 
-1. Read the baked-in folder tree and essential doc summaries from the generated skill/instructions
-2. Use `search` to find relevant nodes for a task
-3. Use `docs` to find and filter documentation by topic
-4. Use `context` to get the full neighborhood — nodes, docs, and constraints in one call
-5. Use `pick` for targeted single-node lookups or to read a doc's full content
-6. Read only the files that matter
+**How it works in practice:** The generated skill files embed the CLI commands and teach assistants when and how to use them — no manual instruction needed. At the start of a session the assistant already knows the folder tree and essential docs; when it needs more detail it runs `search`, `context`, or `pick` on its own:
+
+1. Folder tree and essential doc summaries are baked into the skill — loaded before the first message
+2. `search` finds relevant nodes for a task
+3. `docs` filters documentation by topic
+4. `context` gets the full neighborhood — nodes, docs, and constraints in one call
+5. `pick` reads a single node or full doc content
+6. Only the files that matter get read
 
 This dramatically reduces tokens spent on exploration and increases accuracy.
 
@@ -591,10 +594,10 @@ This dramatically reduces tokens spent on exploration and increases accuracy.
 
 The build produces two skills for each integration (Claude Code and GitHub Copilot):
 
-| Skill           | Purpose                                                                                                                                      | Generated files                                                                             |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| **tskb**        | Codebase map — folder tree, essential doc summaries, CLI commands. Loaded on every prompt.                                                   | `.claude/skills/tskb/SKILL.md`<br>`.github/instructions/tskb.instructions.md`               |
-| **tskb-update** | Writing and maintaining `.tskb.tsx` files — JSX syntax, registry primitives, session triggers, best practices. Applies to `.tskb.tsx` files. | `.claude/skills/tskb-update/SKILL.md`<br>`.github/instructions/tskb-update.instructions.md` |
+| Skill           | Purpose                                                                                                                                                                        | Generated files                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| **tskb**        | Codebase map — folder tree, essential doc summaries, CLI commands. Loaded on every prompt.                                                                                     | `.claude/skills/tskb/SKILL.md`<br>`.github/instructions/tskb.instructions.md`               |
+| **tskb-update** | How the AI writes and maintains `.tskb.tsx` files — JSX syntax, registry primitives, when to trigger an update, best practices. Activates when working with `.tskb.tsx` files. | `.claude/skills/tskb-update/SKILL.md`<br>`.github/instructions/tskb-update.instructions.md` |
 
 **How they work:**
 

@@ -15,8 +15,8 @@ Consult the map whenever you step into unfamiliar territory — not just the fir
 
 Use tskb **first** — before grepping or reading files. It tells you where things are and how they relate, so you don't waste time exploring blind. Think of it as asking a teammate "where does X live?" instead of searching every folder yourself.
 
-- **Find things** — `search` or `ls` to locate modules, exports, folders by name or concept.
-- **Understand connections** — `pick` or `context` to see what a module imports, exports, and what docs reference it.
+- **Know a node ID or path** — `context` gets the full picture in one call: children, modules, exports, all referencing docs and constraints. Pass a node ID or a repo path.
+- **Don't know where to start** — `search` for keywords to find relevant node IDs, then use `context` or `pick`.
 - **Check rules** — Constraint docs define rules you must follow. They show up in `pick` results automatically.
 - **Skip it** — If you already know exactly which file to edit and the change is self-contained.
 
@@ -48,9 +48,9 @@ All paths are relative to project root and can be used directly to read files.
 
 ## What Each Command Returns
 
-- **search** — ranked results by relevance. Use `pick` on any `nodeId` for details.
+- **context** — the most efficient single call: returns a node's full neighborhood (children, modules, exports) plus all referencing docs, deduplicated and sorted by priority. Takes a node ID or repo path. Constraint doc IDs are surfaced at the top level.
+- **search** — free-text keyword search across the entire graph. Returns ranked results. Use `pick` or `context` on any `nodeId` for details.
 - **pick** — full detail for one node. Modules/exports show code stubs with line ranges (`// :42-68`). Modules show imports, importedBy, and exports list. Folders show children. Externals show metadata key-value pairs. Constraint docs in results **MUST** be read.
-- **context** — a node and its neighbors (BFS traversal). Shows what connects to what.
 - **ls** — folder tree with essential docs.
 - **docs** — search or list all docs. Use `pick` on a doc ID for full content.
 - **flows** — list or search flows, sorted by priority. Use `pick` on a flow ID for steps.
@@ -63,8 +63,10 @@ All paths are relative to project root and can be used directly to read files.
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [1 folder]
     - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [2 folders, 4 files]
   - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [2 files]
-  - **tests** (`tests`) — End-to-end test suite for the tskb CLI, using Vitest [1 folder]
+  - **tests** (`tests`) — End-to-end test suite for the tskb CLI, using Vitest [2 folders]
     - **tests.e2e** (`tests/e2e`) — E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command [1 folder, 7 files]
+
+_Snapshot from last `npm run docs` build._
 
 ## Externals
 
