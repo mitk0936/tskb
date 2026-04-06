@@ -21,11 +21,12 @@ This guide covers how to write, update, and maintain `.tskb.tsx` documentation f
 
 **Prefer flows for processes.** When you encounter an important multi-step process (authentication, build pipelines, request handling, data sync, deployment), document it as a `<Flow>` rather than describing steps in prose. Flows become first-class graph nodes — searchable, visualized, and included in generated skill files when marked `priority="essential"`.
 
-**How to check what's missing:**
+**Before writing docs for an area, check what's already there:**
 
 ```bash
-npx --no -- tskb ls --plain              # See what folders are mapped
-npx --no -- tskb search "<area>" --plain # Check if something already exists
+npx --no -- tskb context "<nodeId|path>" --plain  # Full picture: children, modules, docs for this node
+npx --no -- tskb ls --plain                       # See what folders are mapped
+npx --no -- tskb search "<keywords>" --plain      # Check if something already exists
 ```
 
 ## Key Rules
