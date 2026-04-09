@@ -61,7 +61,7 @@ All paths are relative to project root and can be used directly to read files.
   - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [1 folder, 1 file]
     - **examples.taskflow-app** (`examples/taskflow-app`) — Example application, not meant to be run, but used as reference for example docs [3 folders, 7 files]
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [1 folder]
-    - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [2 folders, 4 files]
+    - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [4 folders, 4 files]
   - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [2 files]
   - **tests** (`tests`) — End-to-end test suite for the tskb CLI, using Vitest [2 folders]
     - **tests.e2e** (`tests/e2e`) — E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command [1 folder, 7 files]
@@ -80,14 +80,17 @@ _Snapshot from last `npm run docs` build._
   cli.build → extractRegistry → extractDocs → buildGraph → generateDot
 - **static-analysis** [essential] — TypeScript Program creation through extraction to graph
   ts.createProgram → extraction.registry → extraction.documentation → graph.builder
+- **explorer-serve-flow** [essential] — tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand
+  explorer.explore → explorer.transformGraph → explorer.serveExplorer → explorer.spa.main → explorer.spa.lane-engine → explorer.spa.node-base
 - **module-morphology-extraction** [essential] — How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs
   extractRegistry → extractModuleMorphology → extractModuleImports → graph.builder
 
-_Plus 3 supplementary flows available via `npx --no -- tskb flows --plain`._
+_Plus 4 supplementary flows available via `npx --no -- tskb flows --plain`._
 
 ## Documentation
 
 - `docs/src/tskb/cli/logging.tskb.tsx` — CLI logging: stderr-only output, --verbose flag, timing support
+- `docs/src/tskb/explorer/explorer.tskb.tsx` — tskb Explorer: interactive visual graph browser opened via `tskb explore`. Architecture, data flow, SPA layout, and extension points.
 - `docs/src/tskb/main.tskb.tsx` — Architecture, API surface, and usage flow of the TSKB library
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — Runtime module structure: JSX primitives and registry type definitions
 - `docs/src/tskb/typescript/typescript.tskb.tsx` — TypeScript Program creation for static analysis without compilation

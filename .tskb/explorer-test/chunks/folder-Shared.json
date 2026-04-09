@@ -1,0 +1,40 @@
+{
+  "kind": "folder",
+  "folderId": "Shared",
+  "subfolders": [
+    {
+      "id": "Types",
+      "type": "folder",
+      "label": "Types",
+      "description": "TypeScript type definitions shared across the application",
+      "path": "examples/taskflow-app/src/shared/types",
+      "parentId": "Shared",
+      "edgeCount": 11,
+      "detail": { "_hasChildren": "false" }
+    },
+    {
+      "id": "Utils",
+      "type": "folder",
+      "label": "Utils",
+      "description": "Utility functions for validation, formatting, and common operations",
+      "path": "examples/taskflow-app/src/shared/utils",
+      "parentId": "Shared",
+      "edgeCount": 1,
+      "detail": { "_hasChildren": "false" }
+    },
+    {
+      "id": "Config",
+      "type": "folder",
+      "label": "Config",
+      "description": "Configuration constants and environment variables",
+      "path": "examples/taskflow-app/src/shared/config",
+      "parentId": "Shared",
+      "edgeCount": 1,
+      "detail": { "_hasChildren": "false" }
+    }
+  ],
+  "modules": [],
+  "exports": [],
+  "internalEdges": [],
+  "externalEdges": []
+}

@@ -1,0 +1,20 @@
+{
+  "kind": "folder",
+  "folderId": "tests.e2e",
+  "subfolders": [
+    {
+      "id": "tests.e2e.fixture",
+      "type": "folder",
+      "label": "fixture",
+      "description": "A small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb",
+      "path": "tests/e2e/fixture",
+      "parentId": "tests.e2e",
+      "edgeCount": 4,
+      "detail": { "_hasChildren": "true" }
+    }
+  ],
+  "modules": [],
+  "exports": [],
+  "internalEdges": [],
+  "externalEdges": []
+}

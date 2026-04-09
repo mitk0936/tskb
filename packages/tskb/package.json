@@ -23,8 +23,11 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build:explorer": "vite build --config explorer-app/vite.config.ts",
+    "build:lib": "tsc",
+    "build": "npm run build:explorer && npm run build:lib",
     "dev": "tsc --watch",
+    "dev:explorer": "vite --config explorer-app/vite.config.ts",
     "clean": "rimraf dist",
     "pack:test": "npm run build && npm pack",
     "prepublishOnly": "npm run clean && npm run build",
@@ -69,6 +72,9 @@
     "typescript": ">=5.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.0.0"
   }
 }

@@ -1,0 +1,102 @@
+{
+  "kind": "folder",
+  "folderId": "tskb.cli.utils",
+  "subfolders": [],
+  "modules": [
+    {
+      "id": "cli.utils.content-builder",
+      "type": "module",
+      "label": "content-builder",
+      "description": "Shared markdown content builder - produces query body and update body (syntax + session triggers) for generated skill/instructions files",
+      "path": "packages/tskb/src/cli/utils/content-builder.ts",
+      "parentId": "tskb.cli.utils",
+      "edgeCount": 5,
+      "detail": {
+        "_hasChildren": "false",
+        "morphology": "2 functions",
+        "imports": "1 import from 1 path"
+      }
+    },
+    {
+      "id": "cli.utils.skill-generator",
+      "type": "module",
+      "label": "skill-generator",
+      "description": "Generates two Claude Code skills: tskb (query/explore) and tskb-update (write & update docs)",
+      "path": "packages/tskb/src/cli/utils/skill-generator.ts",
+      "parentId": "tskb.cli.utils",
+      "edgeCount": 5,
+      "detail": {
+        "_hasChildren": "false",
+        "morphology": "1 function",
+        "imports": "5 imports from 4 paths"
+      }
+    },
+    {
+      "id": "cli.utils.copilot-instructions",
+      "type": "module",
+      "label": "copilot-instructions",
+      "description": "Generates two Copilot instructions files: tskb (query/explore) and tskb-update (write & update docs)",
+      "path": "packages/tskb/src/cli/utils/copilot-instructions-generator.ts",
+      "parentId": "tskb.cli.utils",
+      "edgeCount": 5,
+      "detail": {
+        "_hasChildren": "false",
+        "morphology": "1 function",
+        "imports": "5 imports from 4 paths"
+      }
+    },
+    {
+      "id": "cli.utils.graph-finder",
+      "type": "module",
+      "label": "graph-finder",
+      "description": "Locates .tskb/graph.json from the current working directory, used by search/pick/ls commands",
+      "path": "packages/tskb/src/cli/utils/graph-finder.ts",
+      "parentId": "tskb.cli.utils",
+      "edgeCount": 6,
+      "detail": {
+        "_hasChildren": "false",
+        "morphology": "1 function",
+        "imports": "2 imports from 2 paths"
+      }
+    },
+    {
+      "id": "cli.utils.logger",
+      "type": "module",
+      "label": "logger",
+      "description": "CLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })",
+      "path": "packages/tskb/src/cli/utils/logger.ts",
+      "parentId": "tskb.cli.utils",
+      "edgeCount": 10,
+      "detail": { "_hasChildren": "false", "morphology": "8 functions" }
+    }
+  ],
+  "exports": [],
+  "internalEdges": [
+    {
+      "source": "cli.utils.skill-generator",
+      "target": "cli.utils.content-builder",
+      "type": "imports"
+    },
+    {
+      "source": "cli.utils.copilot-instructions",
+      "target": "cli.utils.content-builder",
+      "type": "imports"
+    }
+  ],
+  "externalEdges": [
+    { "source": "cli.index", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.build", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.search", "target": "cli.utils.graph-finder", "type": "imports" },
+    { "source": "cli.commands.search", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.pick", "target": "cli.utils.graph-finder", "type": "imports" },
+    { "source": "cli.commands.pick", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.ls", "target": "cli.utils.graph-finder", "type": "imports" },
+    { "source": "cli.commands.ls", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.init", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.flows", "target": "cli.utils.graph-finder", "type": "imports" },
+    { "source": "cli.commands.flows", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.utils.content-builder", "target": "graph.types", "type": "imports" },
+    { "source": "cli.utils.skill-generator", "target": "graph.types", "type": "imports" },
+    { "source": "cli.utils.copilot-instructions", "target": "graph.types", "type": "imports" }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "kind": "folder",
+  "folderId": "tskb.core",
+  "subfolders": [
+    {
+      "id": "core.visualization",
+      "type": "folder",
+      "label": "visualization",
+      "description": "Graphviz DOT visualization generator - transforms the knowledge graph into a hierarchical diagram",
+      "path": "packages/tskb/src/core/visualization",
+      "parentId": "tskb.core",
+      "edgeCount": 4,
+      "detail": { "_hasChildren": "true" }
+    },
+    {
+      "id": "core.extraction",
+      "type": "folder",
+      "label": "extraction",
+      "description": "Contains the logic for extracting registry and documentation from TypeScript AST",
+      "path": "packages/tskb/src/core/extraction",
+      "parentId": "tskb.core",
+      "edgeCount": 4,
+      "detail": { "_hasChildren": "true" }
+    },
+    {
+      "id": "core.extraction.graph",
+      "type": "folder",
+      "label": "graph",
+      "description": "Part of the core of the library responsible for building the graph structure, mapping nodes and relations between them into nodes - edges",
+      "path": "packages/tskb/src/core/graph",
+      "parentId": "tskb.core",
+      "edgeCount": 4,
+      "detail": { "_hasChildren": "true" }
+    }
+  ],
+  "modules": [],
+  "exports": [],
+  "internalEdges": [],
+  "externalEdges": []
+}

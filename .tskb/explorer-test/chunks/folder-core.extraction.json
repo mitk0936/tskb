@@ -1,0 +1,138 @@
+{
+  "kind": "folder",
+  "folderId": "core.extraction",
+  "subfolders": [],
+  "modules": [
+    {
+      "id": "extraction.registry",
+      "type": "module",
+      "label": "registry",
+      "description": "Main registry extraction module that traverses TypeScript AST to extract Folders, Modules, Terms, and Exports from the global tskb namespace",
+      "path": "packages/tskb/src/core/extraction/registry.ts",
+      "parentId": "core.extraction",
+      "edgeCount": 6,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "1 function, 1 interface",
+        "imports": "9 imports from 4 paths"
+      }
+    },
+    {
+      "id": "extraction.module-morphology",
+      "type": "module",
+      "label": "module-morphology",
+      "description": "Extracts public API shape from TypeScript modules — exports, imports, type stubs, and line ranges using the type checker",
+      "path": "packages/tskb/src/core/extraction/module-morphology.ts",
+      "parentId": "core.extraction",
+      "edgeCount": 6,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "3 functions, 3 interfaces",
+        "imports": "1 import from 1 path"
+      }
+    },
+    {
+      "id": "extraction.documentation",
+      "type": "module",
+      "label": "documentation",
+      "description": "Documentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files",
+      "path": "packages/tskb/src/core/extraction/documentation.ts",
+      "parentId": "core.extraction",
+      "edgeCount": 6,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "1 function, 1 interface",
+        "imports": "3 imports from 3 paths"
+      }
+    }
+  ],
+  "exports": [
+    {
+      "id": "extractRegistry",
+      "type": "export",
+      "label": "extractRegistry",
+      "description": "Main function that extracts the vocabulary (Folders, Modules, Terms, Exports) from TypeScript's type system using the compiler API",
+      "path": "packages/tskb/src/core/extraction/registry.ts",
+      "parentId": "extraction.registry",
+      "edgeCount": 4,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/core/extraction/registry.js\").extractRegistry",
+        "morphology": "1 function"
+      }
+    },
+    {
+      "id": "ExtractedRegistry",
+      "type": "export",
+      "label": "ExtractedRegistry",
+      "description": "Type definition for the registry data structure containing Maps of folders, modules, terms, and exports",
+      "path": "packages/tskb/src/core/extraction/registry.ts",
+      "parentId": "extraction.registry",
+      "edgeCount": 1,
+      "detail": {
+        "signature": "import(\"packages/tskb/src/core/extraction/registry.js\").ExtractedRegistry",
+        "morphology": "1 interface"
+      }
+    },
+    {
+      "id": "extractModuleMorphology",
+      "type": "export",
+      "label": "extractModuleMorphology",
+      "description": "Resolves a module's source file and extracts its export surface — classifies each export by kind (function, class, interface, type, enum, variable) and renders a code stub with line ranges",
+      "path": "packages/tskb/src/core/extraction/module-morphology.ts",
+      "parentId": "extraction.module-morphology",
+      "edgeCount": 2,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/core/extraction/module-morphology.js\").extractModuleMorphology",
+        "morphology": "1 function"
+      }
+    },
+    {
+      "id": "extractModuleImports",
+      "type": "export",
+      "label": "extractModuleImports",
+      "description": "Walks import declarations in a module's AST to extract symbol names, paths, and display strings",
+      "path": "packages/tskb/src/core/extraction/module-morphology.ts",
+      "parentId": "extraction.module-morphology",
+      "edgeCount": 2,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/core/extraction/module-morphology.js\").extractModuleImports",
+        "morphology": "1 function"
+      }
+    },
+    {
+      "id": "extractDocs",
+      "type": "export",
+      "label": "extractDocs",
+      "description": "Main function that extracts documentation content and references from TSX files by traversing JSX AST",
+      "path": "packages/tskb/src/core/extraction/documentation.ts",
+      "parentId": "extraction.documentation",
+      "edgeCount": 2,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\").extractDocs",
+        "morphology": "1 function"
+      }
+    },
+    {
+      "id": "ExtractedDoc",
+      "type": "export",
+      "label": "ExtractedDoc",
+      "description": "Type definition for extracted documentation containing file path, content, and all references to vocabulary items",
+      "path": "packages/tskb/src/core/extraction/documentation.ts",
+      "parentId": "extraction.documentation",
+      "edgeCount": 1,
+      "detail": {
+        "signature": "import(\"packages/tskb/src/core/extraction/documentation.js\").ExtractedDoc",
+        "morphology": "1 interface"
+      }
+    }
+  ],
+  "internalEdges": [
+    { "source": "extraction.registry", "target": "extraction.module-morphology", "type": "imports" }
+  ],
+  "externalEdges": [
+    { "source": "graph.builder", "target": "extraction.registry", "type": "imports" },
+    { "source": "graph.builder", "target": "extraction.documentation", "type": "imports" },
+    { "source": "graph.types", "target": "extraction.module-morphology", "type": "imports" },
+    { "source": "extraction.documentation", "target": "runtime.jsx", "type": "imports" }
+  ]
+}

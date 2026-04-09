@@ -266,11 +266,19 @@
         "type": "folder",
         "desc": "The root folder of the package, with its package.json and main npm README.md",
         "path": "packages/tskb",
-        "structureSummary": "2 folders, 4 files",
+        "structureSummary": "4 folders, 4 files",
         "children": {
           "folders": [
             {
               "name": "dist"
+            },
+            {
+              "name": "explorer-app",
+              "nodeId": "tskb.explorer.app",
+              "desc": "Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/"
+            },
+            {
+              "name": "node_modules"
             },
             {
               "name": "src"
@@ -294,7 +302,7 @@
           ]
         },
         "packageName": "tskb",
-        "edgeCount": 10
+        "edgeCount": 11
       },
       "tskb.cli": {
         "id": "tskb.cli",
@@ -330,9 +338,14 @@
         "type": "folder",
         "desc": "Source code for the core - extraction logic for registry (TS interfaces used as a registry) and 'doc' processing <Doc>...</Doc>",
         "path": "packages/tskb/src/core",
-        "structureSummary": "3 folders, 1 file",
+        "structureSummary": "4 folders, 1 file",
         "children": {
           "folders": [
+            {
+              "name": "explorer",
+              "nodeId": "tskb.explorer.core",
+              "desc": "CLI-side explorer layer: graph→chunk transform, HTTP server, and static export"
+            },
             {
               "name": "extraction",
               "nodeId": "core.extraction",
@@ -355,7 +368,7 @@
             }
           ]
         },
-        "edgeCount": 4
+        "edgeCount": 5
       },
       "tskb.runtime": {
         "id": "tskb.runtime",
@@ -402,6 +415,163 @@
           ]
         },
         "edgeCount": 4
+      },
+      "tskb.explorer.core": {
+        "id": "tskb.explorer.core",
+        "type": "folder",
+        "desc": "CLI-side explorer layer: graph→chunk transform, HTTP server, and static export",
+        "path": "packages/tskb/src/core/explorer",
+        "structureSummary": "4 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "export.ts",
+              "nodeId": "explorer.export",
+              "desc": "Copies pre-built SPA assets to an output directory and writes all chunk JSON files alongside them, producing a fully self-contained static explorer"
+            },
+            {
+              "name": "index.ts"
+            },
+            {
+              "name": "server.ts",
+              "nodeId": "explorer.server",
+              "desc": "Node built-in HTTP server that serves the pre-built SPA assets and generates chunk JSON responses on demand. Reads graph.json once and caches all chunks in memory."
+            },
+            {
+              "name": "transform.ts",
+              "nodeId": "explorer.transform",
+              "desc": "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms) plus one FolderChunk per folder that has modules or sub-folders"
+            }
+          ]
+        },
+        "edgeCount": 5
+      },
+      "tskb.explorer.app": {
+        "id": "tskb.explorer.app",
+        "type": "folder",
+        "desc": "Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/",
+        "path": "packages/tskb/explorer-app",
+        "structureSummary": "1 folder, 4 files",
+        "children": {
+          "folders": [
+            {
+              "name": "src"
+            }
+          ],
+          "files": [
+            {
+              "name": "EXPLORER.md"
+            },
+            {
+              "name": "index.html"
+            },
+            {
+              "name": "tsconfig.json"
+            },
+            {
+              "name": "vite.config.ts"
+            }
+          ]
+        },
+        "edgeCount": 8
+      },
+      "tskb.explorer.app.components": {
+        "id": "tskb.explorer.app.components",
+        "type": "folder",
+        "desc": "Node and edge rendering components for the D3 canvas. Each node type implements NodeComponent; edges are drawn by EdgeRenderer",
+        "path": "packages/tskb/explorer-app/src/components",
+        "structureSummary": "2 folders",
+        "children": {
+          "folders": [
+            {
+              "name": "edges"
+            },
+            {
+              "name": "nodes"
+            }
+          ],
+          "files": []
+        },
+        "edgeCount": 3
+      },
+      "tskb.explorer.app.graph": {
+        "id": "tskb.explorer.app.graph",
+        "type": "folder",
+        "desc": "SPA data layer: chunk type registry, type-safe loader with LRU cache",
+        "path": "packages/tskb/explorer-app/src/graph",
+        "structureSummary": "2 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "chunk-types.ts",
+              "nodeId": "explorer.spa.chunk-types",
+              "desc": "Discriminated union types for all chunk shapes (MetaChunk, FolderChunk) plus the ChunkRegistry map and a typed URL builder. Extend ChunkRegistry here to add new chunk kinds."
+            },
+            {
+              "name": "loader.ts",
+              "nodeId": "explorer.spa.loader",
+              "desc": "ChunkLoader: type-safe generic fetch keyed by ChunkKind, LRU-bounded in-memory cache (50 chunks), deduplication of in-flight requests"
+            }
+          ]
+        },
+        "edgeCount": 3
+      },
+      "tskb.explorer.app.layout": {
+        "id": "tskb.explorer.app.layout",
+        "type": "folder",
+        "desc": "Lane layout engine: computes SVG positions for structure (d3.tree), docs, and other lanes",
+        "path": "packages/tskb/explorer-app/src/layout",
+        "structureSummary": "1 file",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "lane-engine.ts",
+              "nodeId": "explorer.spa.lane-engine",
+              "desc": "computeLayout(): builds a d3.hierarchy from visible structure nodes, runs d3.tree for left-to-right positioning, then lays docs and other nodes as horizontal lists below"
+            }
+          ]
+        },
+        "edgeCount": 2
+      },
+      "tskb.explorer.app.store": {
+        "id": "tskb.explorer.app.store",
+        "type": "folder",
+        "desc": "Pure graph data store (loaded chunks only). UI state lives outside the store in main.ts",
+        "path": "packages/tskb/explorer-app/src/store",
+        "structureSummary": "1 file",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "graph-store.ts",
+              "nodeId": "explorer.spa.store",
+              "desc": "GraphStore: pure data store holding meta chunk and folder chunks. UI state (expanded set, selected node, search query) lives outside in main.ts"
+            }
+          ]
+        },
+        "edgeCount": 2
+      },
+      "tskb.explorer.app.ui": {
+        "id": "tskb.explorer.app.ui",
+        "type": "folder",
+        "desc": "UI shell components: global spinner, per-node spinner, and the sketched detail panel",
+        "path": "packages/tskb/explorer-app/src/ui",
+        "structureSummary": "2 files",
+        "children": {
+          "folders": [],
+          "files": [
+            {
+              "name": "DetailPanel.ts"
+            },
+            {
+              "name": "Spinner.ts"
+            }
+          ]
+        },
+        "edgeCount": 1
       },
       "core.visualization": {
         "id": "core.visualization",
@@ -489,7 +659,7 @@
         "type": "folder",
         "desc": "Command implementations for init, build, search, pick, context, ls, and docs",
         "path": "packages/tskb/src/cli/commands",
-        "structureSummary": "8 files",
+        "structureSummary": "9 files",
         "children": {
           "folders": [],
           "files": [
@@ -503,6 +673,11 @@
             },
             {
               "name": "docs.ts"
+            },
+            {
+              "name": "explore.ts",
+              "nodeId": "cli.commands.explore",
+              "desc": "Entry point for `tskb explore`: loads graph.json, then either serves locally or exports static files depending on --export flag"
             },
             {
               "name": "flows.ts",
@@ -531,7 +706,7 @@
             }
           ]
         },
-        "edgeCount": 8
+        "edgeCount": 9
       },
       "tskb.cli.utils": {
         "id": "tskb.cli.utils",
@@ -1268,6 +1443,620 @@
         ],
         "edgeCount": 10
       },
+      "explorer.transform": {
+        "id": "explorer.transform",
+        "type": "module",
+        "desc": "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms) plus one FolderChunk per folder that has modules or sub-folders",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/explorer/transform.js\")",
+        "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
+        "morphologySummary": "2 functions, 5 interfaces, 1 type",
+        "morphology": [
+          "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :66-166",
+          "export function sanitizeFolderId(id: string): string {} // :355-357",
+          "export type NodeType = | \"folder\"\n  | \"module\"\n  | \"export\"\n  | \"doc\"\n  | \"flow\"\n  | \"term\"\n  | \"external\"\n  | \"file\" // :7-15",
+          "export interface ExplorerNode { // :17-27",
+          "  id: string // :18",
+          "  type: NodeType // :19",
+          "  label: string // :20",
+          "  description: string // :21",
+          "  path: string | undefined // :22",
+          "  parentId: string | undefined // :23",
+          "  priority: \"supplementary\" | \"essential\" | \"constraint\" | undefined // :24",
+          "  edgeCount: number // :25",
+          "  detail: Record<string, string | string[]> // :26",
+          "}",
+          "export interface ExplorerLink { // :29-34",
+          "  source: string // :30",
+          "  target: string // :31",
+          "  type: \"references\" | \"imports\" | \"related-to\" | \"flow-step\" // :32",
+          "  label: string | undefined // :33",
+          "}",
+          "export interface MetaChunk { // :36-46",
+          "  kind: \"meta\" // :37",
+          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; flowCount: number; docCount: number; edgeCount: number; }; } // :38",
+          "  root: ExplorerNode // :39",
+          "  topFolders: ExplorerNode[] // :40",
+          "  docs: ExplorerNode[] // :41",
+          "  flows: ExplorerNode[] // :42",
+          "  terms: ExplorerNode[] // :43",
+          "  externals: ExplorerNode[] // :44",
+          "  crossEdges: ExplorerLink[] // :45",
+          "}",
+          "export interface FolderChunk { // :48-57",
+          "  kind: \"folder\" // :49",
+          "  folderId: string // :50",
+          "  subfolders: ExplorerNode[] // :52",
+          "  modules: ExplorerNode[] // :53",
+          "  exports: ExplorerNode[] // :54",
+          "  internalEdges: ExplorerLink[] // :55",
+          "  externalEdges: ExplorerLink[] // :56",
+          "}",
+          "export interface ExplorerChunks { // :61-64",
+          "  meta: MetaChunk // :62",
+          "  folders: Map<string, FolderChunk> // :63",
+          "}"
+        ],
+        "importsSummary": "3 imports from 2 paths",
+        "imports": [
+          "KnowledgeGraph from \"../graph/types.js\"",
+          "GraphEdge from \"../graph/types.js\"",
+          "ROOT_FOLDER_NAME from \"../constants.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../graph/types.js"
+          },
+          {
+            "symbol": "GraphEdge",
+            "path": "../graph/types.js"
+          },
+          {
+            "symbol": "ROOT_FOLDER_NAME",
+            "path": "../constants.js"
+          }
+        ],
+        "edgeCount": 6
+      },
+      "explorer.server": {
+        "id": "explorer.server",
+        "type": "module",
+        "desc": "Node built-in HTTP server that serves the pre-built SPA assets and generates chunk JSON responses on demand. Reads graph.json once and caches all chunks in memory.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/explorer/server.js\")",
+        "resolvedPath": "packages/tskb/src/core/explorer/server.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function serveExplorer(graph: KnowledgeGraph, port: number, autoOpen: boolean): Promise<void> {} // :27-111"
+        ],
+        "importsSummary": "9 imports from 8 paths",
+        "imports": [
+          "http from \"node:http\"",
+          "fs from \"node:fs\"",
+          "path from \"node:path\"",
+          "exec from \"node:child_process\"",
+          "fileURLToPath from \"node:url\"",
+          "info from \"../../cli/utils/logger.js\"",
+          "transformGraph from \"./transform.js\"",
+          "sanitizeFolderId from \"./transform.js\"",
+          "KnowledgeGraph from \"../graph/types.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "http",
+            "path": "node:http"
+          },
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "exec",
+            "path": "node:child_process"
+          },
+          {
+            "symbol": "fileURLToPath",
+            "path": "node:url"
+          },
+          {
+            "symbol": "info",
+            "path": "../../cli/utils/logger.js"
+          },
+          {
+            "symbol": "transformGraph",
+            "path": "./transform.js"
+          },
+          {
+            "symbol": "sanitizeFolderId",
+            "path": "./transform.js"
+          },
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../graph/types.js"
+          }
+        ],
+        "edgeCount": 6
+      },
+      "explorer.export": {
+        "id": "explorer.export",
+        "type": "module",
+        "desc": "Copies pre-built SPA assets to an output directory and writes all chunk JSON files alongside them, producing a fully self-contained static explorer",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/explorer/export.js\")",
+        "resolvedPath": "packages/tskb/src/core/explorer/export.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function exportExplorer(graph: KnowledgeGraph, outputDir: string): Promise<void> {} // :16-44"
+        ],
+        "importsSummary": "6 imports from 5 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "path from \"node:path\"",
+          "fileURLToPath from \"node:url\"",
+          "transformGraph from \"./transform.js\"",
+          "sanitizeFolderId from \"./transform.js\"",
+          "KnowledgeGraph from \"../graph/types.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "fileURLToPath",
+            "path": "node:url"
+          },
+          {
+            "symbol": "transformGraph",
+            "path": "./transform.js"
+          },
+          {
+            "symbol": "sanitizeFolderId",
+            "path": "./transform.js"
+          },
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../graph/types.js"
+          }
+        ],
+        "edgeCount": 5
+      },
+      "cli.commands.explore": {
+        "id": "cli.commands.explore",
+        "type": "module",
+        "desc": "Entry point for `tskb explore`: loads graph.json, then either serves locally or exports static files depending on --export flag",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/explore.js\")",
+        "resolvedPath": "packages/tskb/src/cli/commands/explore.ts",
+        "morphologySummary": "1 function, 1 interface",
+        "morphology": [
+          "export function explore(opts: ExploreOptions): Promise<void> {} // :14-28",
+          "export interface ExploreOptions { // :7-12",
+          "  port: number // :8",
+          "  open: boolean // :9",
+          "  exportPath: string | undefined // :11",
+          "}"
+        ],
+        "importsSummary": "6 imports from 5 paths",
+        "imports": [
+          "fs from \"node:fs\"",
+          "path from \"node:path\"",
+          "findGraphFile from \"../utils/graph-finder.js\"",
+          "info from \"../utils/logger.js\"",
+          "error from \"../utils/logger.js\"",
+          "KnowledgeGraph from \"../../core/graph/types.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "fs",
+            "path": "node:fs"
+          },
+          {
+            "symbol": "path",
+            "path": "node:path"
+          },
+          {
+            "symbol": "findGraphFile",
+            "path": "../utils/graph-finder.js"
+          },
+          {
+            "symbol": "info",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "error",
+            "path": "../utils/logger.js"
+          },
+          {
+            "symbol": "KnowledgeGraph",
+            "path": "../../core/graph/types.js"
+          }
+        ],
+        "edgeCount": 6
+      },
+      "explorer.spa.main": {
+        "id": "explorer.spa.main",
+        "type": "module",
+        "desc": "SPA entry point: creates D3 SVG canvas with zoom/pan, fetches meta.json, wires expand/select handlers, subscribes to store, and drives the render loop",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/main.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
+        "importsSummary": "15 imports from 10 paths",
+        "imports": [
+          "* as d3 from \"d3\"",
+          "ChunkLoader from \"./graph/loader\"",
+          "GraphStore from \"./store/graph-store\"",
+          "computeLayout from \"./layout/lane-engine\"",
+          "createNodeRenderer from \"./components/nodes/index\"",
+          "buildStructureLinks from \"./components/edges/EdgeRenderer\"",
+          "renderStructureEdges from \"./components/edges/EdgeRenderer\"",
+          "renderLaneBands from \"./components/edges/EdgeRenderer\"",
+          "showGlobalSpinner from \"./ui/Spinner\"",
+          "hideGlobalSpinner from \"./ui/Spinner\"",
+          "showNodeSpinner from \"./ui/Spinner\"",
+          "removeNodeSpinner from \"./ui/Spinner\"",
+          "mountDetailPanel from \"./ui/DetailPanel\"",
+          "PositionedNode from \"./types\"",
+          "NodeComponent from \"./components/nodes/base\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "* as d3",
+            "path": "d3"
+          },
+          {
+            "symbol": "ChunkLoader",
+            "path": "./graph/loader"
+          },
+          {
+            "symbol": "GraphStore",
+            "path": "./store/graph-store"
+          },
+          {
+            "symbol": "computeLayout",
+            "path": "./layout/lane-engine"
+          },
+          {
+            "symbol": "createNodeRenderer",
+            "path": "./components/nodes/index"
+          },
+          {
+            "symbol": "buildStructureLinks",
+            "path": "./components/edges/EdgeRenderer"
+          },
+          {
+            "symbol": "renderStructureEdges",
+            "path": "./components/edges/EdgeRenderer"
+          },
+          {
+            "symbol": "renderLaneBands",
+            "path": "./components/edges/EdgeRenderer"
+          },
+          {
+            "symbol": "showGlobalSpinner",
+            "path": "./ui/Spinner"
+          },
+          {
+            "symbol": "hideGlobalSpinner",
+            "path": "./ui/Spinner"
+          },
+          {
+            "symbol": "showNodeSpinner",
+            "path": "./ui/Spinner"
+          },
+          {
+            "symbol": "removeNodeSpinner",
+            "path": "./ui/Spinner"
+          },
+          {
+            "symbol": "mountDetailPanel",
+            "path": "./ui/DetailPanel"
+          },
+          {
+            "symbol": "PositionedNode",
+            "path": "./types"
+          },
+          {
+            "symbol": "NodeComponent",
+            "path": "./components/nodes/base"
+          }
+        ],
+        "edgeCount": 12
+      },
+      "explorer.spa.chunk-types": {
+        "id": "explorer.spa.chunk-types",
+        "type": "module",
+        "desc": "Discriminated union types for all chunk shapes (MetaChunk, FolderChunk) plus the ChunkRegistry map and a typed URL builder. Extend ChunkRegistry here to add new chunk kinds.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/graph/chunk-types.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/graph/chunk-types.ts",
+        "morphologySummary": "1 function, 3 interfaces, 1 type",
+        "morphology": [
+          "export function chunkUrl(kind: \"meta\"): string {} // :48",
+          "export interface MetaChunk { // :5-23",
+          "  kind: \"meta\" // :6",
+          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: Record<string, number>; } // :7-12",
+          "  root: ExplorerNode // :14",
+          "  topFolders: ExplorerNode[] // :16",
+          "  docs: ExplorerNode[] // :17",
+          "  flows: ExplorerNode[] // :18",
+          "  terms: ExplorerNode[] // :19",
+          "  externals: ExplorerNode[] // :20",
+          "  crossEdges: ExplorerLink[] // :22",
+          "}",
+          "export interface FolderChunk { // :25-36",
+          "  kind: \"folder\" // :26",
+          "  folderId: string // :27",
+          "  subfolders: ExplorerNode[] // :29",
+          "  modules: ExplorerNode[] // :30",
+          "  exports: ExplorerNode[] // :31",
+          "  internalEdges: ExplorerLink[] // :33",
+          "  externalEdges: ExplorerLink[] // :35",
+          "}",
+          "export interface ChunkRegistry { // :40-43",
+          "  meta: MetaChunk // :41",
+          "  folder: FolderChunk // :42",
+          "}",
+          "export type ChunkKind = keyof ChunkRegistry // :45"
+        ],
+        "importsSummary": "2 imports from 1 path",
+        "imports": [
+          "ExplorerNode from \"../types\"",
+          "ExplorerLink from \"../types\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "ExplorerNode",
+            "path": "../types"
+          },
+          {
+            "symbol": "ExplorerLink",
+            "path": "../types"
+          }
+        ],
+        "edgeCount": 6
+      },
+      "explorer.spa.loader": {
+        "id": "explorer.spa.loader",
+        "type": "module",
+        "desc": "ChunkLoader: type-safe generic fetch keyed by ChunkKind, LRU-bounded in-memory cache (50 chunks), deduplication of in-flight requests",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/graph/loader.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/graph/loader.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class ChunkLoader { // :52-90",
+          "  load<K extends ChunkKind>(kind: K, ...args: ChunkArgs<K>): Promise<ChunkRegistry> {} // :56-83",
+          "  cancel(kind: ChunkKind, ...args: string[]): void {} // :86-89",
+          "}"
+        ],
+        "importsSummary": "3 imports from 1 path",
+        "imports": [
+          "chunkUrl from \"./chunk-types\"",
+          "ChunkKind from \"./chunk-types\"",
+          "ChunkRegistry from \"./chunk-types\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "chunkUrl",
+            "path": "./chunk-types"
+          },
+          {
+            "symbol": "ChunkKind",
+            "path": "./chunk-types"
+          },
+          {
+            "symbol": "ChunkRegistry",
+            "path": "./chunk-types"
+          }
+        ],
+        "edgeCount": 6
+      },
+      "explorer.spa.store": {
+        "id": "explorer.spa.store",
+        "type": "module",
+        "desc": "GraphStore: pure data store holding meta chunk and folder chunks. UI state (expanded set, selected node, search query) lives outside in main.ts",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/store/graph-store.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/store/graph-store.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class GraphStore { // :10-78",
+          "  meta: any // :11",
+          "  folderChunks: Map<string, FolderChunk> // :12",
+          "  setMeta(meta: MetaChunk): void {} // :16-19",
+          "  addFolderChunk(chunk: FolderChunk): void {} // :21-24",
+          "  getVisibleStructureNodes(expanded: ReadonlySet<string>): ExplorerNode[] {} // :27-33",
+          "  getVisibleLinks(expanded: ReadonlySet<string>): ExplorerLink[] {} // :62-68",
+          "  subscribe(listener: Listener) => (): void {} // :70-73",
+          "}"
+        ],
+        "importsSummary": "4 imports from 2 paths",
+        "imports": [
+          "MetaChunk from \"../graph/chunk-types\"",
+          "FolderChunk from \"../graph/chunk-types\"",
+          "ExplorerNode from \"../types\"",
+          "ExplorerLink from \"../types\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "MetaChunk",
+            "path": "../graph/chunk-types"
+          },
+          {
+            "symbol": "FolderChunk",
+            "path": "../graph/chunk-types"
+          },
+          {
+            "symbol": "ExplorerNode",
+            "path": "../types"
+          },
+          {
+            "symbol": "ExplorerLink",
+            "path": "../types"
+          }
+        ],
+        "edgeCount": 8
+      },
+      "explorer.spa.lane-engine": {
+        "id": "explorer.spa.lane-engine",
+        "type": "module",
+        "desc": "computeLayout(): builds a d3.hierarchy from visible structure nodes, runs d3.tree for left-to-right positioning, then lays docs and other nodes as horizontal lists below",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/layout/lane-engine.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/layout/lane-engine.ts",
+        "morphologySummary": "1 function, 1 interface, 1 variable",
+        "morphology": [
+          "export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>): LaneLayout {} // :87-178",
+          "export const NODE_SIZES: Record<NodeType, { w: number; h: number; }> // :7-16",
+          "export interface LaneLayout { // :73-83",
+          "  structureNodes: PositionedNode[] // :74",
+          "  docsNodes: PositionedNode[] // :75",
+          "  otherNodes: PositionedNode[] // :76",
+          "  docsLaneY: number // :78",
+          "  otherLaneY: number // :80",
+          "  totalHeight: number // :82",
+          "}"
+        ],
+        "importsSummary": "5 imports from 3 paths",
+        "imports": [
+          "* as d3 from \"d3\"",
+          "ExplorerNode from \"../types\"",
+          "PositionedNode from \"../types\"",
+          "NodeType from \"../types\"",
+          "GraphStore from \"../store/graph-store\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "* as d3",
+            "path": "d3"
+          },
+          {
+            "symbol": "ExplorerNode",
+            "path": "../types"
+          },
+          {
+            "symbol": "PositionedNode",
+            "path": "../types"
+          },
+          {
+            "symbol": "NodeType",
+            "path": "../types"
+          },
+          {
+            "symbol": "GraphStore",
+            "path": "../store/graph-store"
+          }
+        ],
+        "edgeCount": 11
+      },
+      "explorer.spa.node-base": {
+        "id": "explorer.spa.node-base",
+        "type": "module",
+        "desc": "NodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with expand button and edge-count badge",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/components/nodes/base.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
+        "morphologySummary": "1 class, 1 interface, 4 types, 2 variables",
+        "morphology": [
+          "export const NODE_COLORS: Record<NodeType, string> // :7-16",
+          "export const NODE_ICON: Record<NodeType, string> // :18-27",
+          "export interface NodeComponent { // :31-42",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :33",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :35",
+          "  getSize(node: PositionedNode): { w: number; h: number; } // :37",
+          "  rightAnchor(node: PositionedNode): { x: number; y: number; } // :39",
+          "  leftAnchor(node: PositionedNode): { x: number; y: number; } // :41",
+          "}",
+          "export type ExpandHandler = (node: PositionedNode) => void // :46",
+          "export type SelectHandler = (node: PositionedNode) => void // :47",
+          "export type TraceLinkHandler = (node: PositionedNode) => void // :48",
+          "export type HasChildrenFn = (node: PositionedNode) => boolean // :49",
+          "export class BaseNodeRenderer { // :63-227",
+          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :71-73",
+          "  rightAnchor(node: PositionedNode): { x: any; y: any; } {} // :75-78",
+          "  leftAnchor(node: PositionedNode): { x: any; y: any; } {} // :80-83",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :85-167",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :169-226",
+          "}"
+        ],
+        "importsSummary": "4 imports from 3 paths",
+        "imports": [
+          "* as d3 from \"d3\"",
+          "PositionedNode from \"../../types\"",
+          "NodeType from \"../../types\"",
+          "NODE_SIZES from \"../../layout/lane-engine\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "* as d3",
+            "path": "d3"
+          },
+          {
+            "symbol": "PositionedNode",
+            "path": "../../types"
+          },
+          {
+            "symbol": "NodeType",
+            "path": "../../types"
+          },
+          {
+            "symbol": "NODE_SIZES",
+            "path": "../../layout/lane-engine"
+          }
+        ],
+        "edgeCount": 10
+      },
+      "explorer.spa.edge-renderer": {
+        "id": "explorer.spa.edge-renderer",
+        "type": "module",
+        "desc": "buildStructureLinks() derives parent→child links from parentId; renderStructureEdges() draws cubic-bezier SVG paths; renderLaneBands() renders lane background bands with labels",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/components/edges/EdgeRenderer.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts",
+        "morphologySummary": "3 functions, 1 interface",
+        "morphology": [
+          "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :17-39",
+          "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :44-63",
+          "export function renderLaneBands(container: Selection<SVGGElement, unknown, null, undefined>, layout: LaneLayout, canvasWidth: number): void {} // :68-138",
+          "export interface StructureLink { // :6-12",
+          "  sourceX: number // :7",
+          "  sourceY: number // :8",
+          "  targetX: number // :9",
+          "  targetY: number // :10",
+          "  targetType: PositionedNode // :11",
+          "}"
+        ],
+        "importsSummary": "5 imports from 4 paths",
+        "imports": [
+          "* as d3 from \"d3\"",
+          "PositionedNode from \"../../types\"",
+          "NODE_SIZES from \"../../layout/lane-engine\"",
+          "LaneLayout from \"../../layout/lane-engine\"",
+          "NODE_COLORS from \"../nodes/base\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "* as d3",
+            "path": "d3"
+          },
+          {
+            "symbol": "PositionedNode",
+            "path": "../../types"
+          },
+          {
+            "symbol": "NODE_SIZES",
+            "path": "../../layout/lane-engine"
+          },
+          {
+            "symbol": "LaneLayout",
+            "path": "../../layout/lane-engine"
+          },
+          {
+            "symbol": "NODE_COLORS",
+            "path": "../nodes/base"
+          }
+        ],
+        "edgeCount": 8
+      },
       "visualization.dot-generator": {
         "id": "visualization.dot-generator",
         "type": "module",
@@ -1617,7 +2406,7 @@
             "path": "../extraction/module-morphology.js"
           }
         ],
-        "edgeCount": 16
+        "edgeCount": 20
       },
       "extraction.documentation": {
         "id": "extraction.documentation",
@@ -2265,7 +3054,7 @@
             "path": "node:path"
           }
         ],
-        "edgeCount": 6
+        "edgeCount": 8
       },
       "cli.utils.logger": {
         "id": "cli.utils.logger",
@@ -2284,7 +3073,7 @@
           "export function plainOut(text: string): void {} // :42-44",
           "export function infoTime(label: string) => (): void {} // :50-57"
         ],
-        "edgeCount": 10
+        "edgeCount": 12
       },
       "AuthService": {
         "id": "AuthService",
@@ -2456,7 +3245,7 @@
         "id": "graph",
         "type": "term",
         "desc": "Refers to th raw output of the library, where it constructs all the relations and connections between folders, modules, exports, terms, docs, etc. In its raw form it is a json file",
-        "edgeCount": 1
+        "edgeCount": 2
       },
       "dotFile": {
         "id": "dotFile",
@@ -2468,6 +3257,36 @@
         "id": "searchResult",
         "type": "term",
         "desc": "Result from searching the knowledge graph - includes ranked matches with scores across the entire graph, found via fuzzy matching on IDs, descriptions, and paths",
+        "edgeCount": 1
+      },
+      "knowledgeChunk": {
+        "id": "knowledgeChunk",
+        "type": "term",
+        "desc": "An on-demand JSON fragment of the knowledge graph. meta.json contains root folder, top-level folder summaries, docs, flows, and terms. folder-{id}.json contains modules, exports, sub-folders, and import edges for one folder.",
+        "edgeCount": 1
+      },
+      "explorerLane": {
+        "id": "explorerLane",
+        "type": "term",
+        "desc": "A horizontal section of the explorer SVG canvas. Three lanes stack vertically: Structure (code hierarchy, d3.tree), Docs (priority-ordered horizontal list), and Terms/Flows. Each lane has a labeled background band.",
+        "edgeCount": 1
+      },
+      "nodeComponent": {
+        "id": "nodeComponent",
+        "type": "term",
+        "desc": "Interface for rendering a node type in the D3 canvas: enter() appends SVG elements, update() repositions them, anchor() returns edge connection points, getSize() returns bounding box. Implemented by BaseNodeRenderer; override per type.",
+        "edgeCount": 1
+      },
+      "lruChunkCache": {
+        "id": "lruChunkCache",
+        "type": "term",
+        "desc": "Bounded LRU cache inside ChunkLoader (max 50 entries). Map insertion order is used for O(1) LRU: on get, entry is deleted and re-inserted; on set overflow, oldest key is evicted. Chunks are immutable so no invalidation is needed.",
+        "edgeCount": 1
+      },
+      "explorerStaticExport": {
+        "id": "explorerStaticExport",
+        "type": "term",
+        "desc": "Self-contained static export produced by `tskb explore --export`. Contains the pre-built SPA (index.html + hashed JS chunks) and all graph chunk JSON files. Works offline via file:// because the SPA uses relative fetch paths.",
         "edgeCount": 1
       },
       "ast": {
@@ -2904,6 +3723,54 @@
         "morphologySummary": "1 function",
         "morphology": [
           "export function Step({ node, label }: { node: AnyNodeRef; label?: string | undefined; }): any {} // :232-234"
+        ],
+        "edgeCount": 2
+      },
+      "explorer.transformGraph": {
+        "id": "explorer.transformGraph",
+        "type": "export",
+        "desc": "Transforms a KnowledgeGraph into ExplorerChunks. Recursively builds folder chunks for every folder with modules or sub-folders; computes _hasChildren flags.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/explorer/transform.js\").transformGraph",
+        "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :66-166"
+        ],
+        "edgeCount": 3
+      },
+      "explorer.serveExplorer": {
+        "id": "explorer.serveExplorer",
+        "type": "export",
+        "desc": "Starts a Node http server that serves the pre-built SPA + chunk API. Resolves SPA assets via import.meta.url so it works after npm pack.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/explorer/server.js\").serveExplorer",
+        "resolvedPath": "packages/tskb/src/core/explorer/server.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function serveExplorer(graph: KnowledgeGraph, port: number, autoOpen: boolean): Promise<void> {} // :27-111"
+        ],
+        "edgeCount": 3
+      },
+      "explorer.exportExplorer": {
+        "id": "explorer.exportExplorer",
+        "type": "export",
+        "desc": "Copies SPA assets and writes chunk JSON files to an output directory. The SPA fetches chunks via relative ./chunks/*.json paths so it works under file://.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/explorer/export.js\").exportExplorer",
+        "resolvedPath": "packages/tskb/src/core/explorer/export.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function exportExplorer(graph: KnowledgeGraph, outputDir: string): Promise<void> {} // :16-44"
+        ],
+        "edgeCount": 2
+      },
+      "explorer.explore": {
+        "id": "explorer.explore",
+        "type": "export",
+        "desc": "CLI command handler: finds graph.json, branches to serve or export based on --export flag",
+        "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/explore.js\").explore",
+        "resolvedPath": "packages/tskb/src/cli/commands/explore.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function explore(opts: ExploreOptions): Promise<void> {} // :14-28"
         ],
         "edgeCount": 2
       },
@@ -3680,6 +4547,84 @@
         ],
         "edgeCount": 4
       },
+      "explorer-serve-flow": {
+        "id": "explorer-serve-flow",
+        "type": "flow",
+        "desc": "tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand",
+        "priority": "essential",
+        "steps": [
+          {
+            "nodeId": "explorer.explore",
+            "order": 0,
+            "label": "Reads graph.json, branches on --export flag"
+          },
+          {
+            "nodeId": "explorer.transformGraph",
+            "order": 1,
+            "label": "Converts KnowledgeGraph into MetaChunk + FolderChunks, caches in memory"
+          },
+          {
+            "nodeId": "explorer.serveExplorer",
+            "order": 2,
+            "label": "Starts http server serving SPA assets + /chunks/*.json routes"
+          },
+          {
+            "nodeId": "explorer.spa.main",
+            "order": 3,
+            "label": "Browser fetches meta.json, mounts SVG canvas with zoom/pan"
+          },
+          {
+            "nodeId": "explorer.spa.lane-engine",
+            "order": 4,
+            "label": "computeLayout() positions all visible nodes across three lanes"
+          },
+          {
+            "nodeId": "explorer.spa.node-base",
+            "order": 5,
+            "label": "D3 enter/update renders node cards into SVG groups"
+          }
+        ],
+        "edgeCount": 6
+      },
+      "explorer-expand-flow": {
+        "id": "explorer-expand-flow",
+        "type": "flow",
+        "desc": "User expands a folder node: chunk is fetched, store updated, layout recomputed, SVG re-rendered",
+        "priority": "supplementary",
+        "steps": [
+          {
+            "nodeId": "explorer.spa.node-base",
+            "order": 0,
+            "label": "User clicks ▶ expand button; onExpand handler fires"
+          },
+          {
+            "nodeId": "explorer.spa.loader",
+            "order": 1,
+            "label": "ChunkLoader.load('folder', id) — returns cache hit or fetches /chunks/folder-{id}.json"
+          },
+          {
+            "nodeId": "explorer.spa.store",
+            "order": 2,
+            "label": "store.addFolderChunk() stores chunk; expanded set updated in main.ts"
+          },
+          {
+            "nodeId": "explorer.spa.lane-engine",
+            "order": 3,
+            "label": "computeLayout() rebuilds d3.hierarchy with expanded folder's modules"
+          },
+          {
+            "nodeId": "explorer.spa.edge-renderer",
+            "order": 4,
+            "label": "buildStructureLinks() + renderStructureEdges() redraws parent→child bezier paths"
+          },
+          {
+            "nodeId": "explorer.spa.node-base",
+            "order": 5,
+            "label": "D3 enter/update/exit adds new node cards, removes collapsed ones"
+          }
+        ],
+        "edgeCount": 6
+      },
       "module-morphology-extraction": {
         "id": "module-morphology-extraction",
         "type": "flow",
@@ -3798,6 +4743,16 @@
         "content": "Runtime Located in <nodeId: tskb.runtime>. Contains registry type definitions and JSX primitives - no actual\n      runtime execution. Modules <nodeId: runtime.jsx>: JSX runtime with <nodeId: jsx.Doc>(requires explains prop and optional priority via   <nodeId: DocPriority>: essential, constraint, or supplementary). Includes\n        heading/paragraph/list components, <nodeId: jsx.Adr>for Architecture Decision Records, and   <nodeId: jsx.ref>for type-safe registry references. <nodeId: runtime.jsx>also provides <nodeId: jsx.Flow>and <nodeId: jsx.Step>for defining named, ordered\n        sequences through the system. Flows become first-class graph nodes with priority support.\n        Only Step children are allowed inside Flow (validated at build time). <nodeId: runtime.registry>: Type definitions for Folder, Module, Export, Term interfaces used in\n        global namespace augmentation. Purpose Provides TypeScript types and JSX functions for authoring *.tskb.tsx files. Registry\n      interfaces enable type-safe vocabulary declarations. JSX components structure documentation\n      content. Semantic Relations The Relation tag creates a semantic edge in the knowledge graph between two nodes. It\n      is type-safe and supports any registered Folder, Module, Term, or Export. The optional   label prop allows you to describe the relationship (e.g., \"depends on\"). <snippet>() => <Relation from={JsxModule} to={ExampleTerm} label=\"runtime describes graph\" /></snippet>This will emit a related-to edge from the runtime.jsx module to the Graph   term in the TSKB graph, with the label \"runtime describes graph\".",
         "format": "tsx",
         "edgeCount": 9
+      },
+      "docs/src/tskb/explorer/explorer.tskb.tsx": {
+        "id": "docs/src/tskb/explorer/explorer.tskb.tsx",
+        "type": "doc",
+        "explains": "tskb Explorer: interactive visual graph browser opened via `tskb explore`. Architecture, data flow, SPA layout, and extension points.",
+        "priority": "essential",
+        "filePath": "docs/src/tskb/explorer/explorer.tskb.tsx",
+        "content": "Explorer The explorer is a D3-powered SPA that renders the knowledge graph as a visual, interactive\n      diagram. It opens via tskb explore (local HTTP server) or exports to a\n      self-contained static folder via tskb explore --export ( <nodeId: explorerStaticExport>). The implementation splits into two layers: the CLI-side layer in <nodeId: tskb.explorer.core>(graph\n      transform, server, static export) and the Vite SPA in <nodeId: tskb.explorer.app>(D3 canvas, chunk\n      loading, layout, node components). CLI layer <nodeId: cli.commands.explore>is the command entry point. It locates graph.json via   <nodeId: cli.utils.graph-finder>, then either calls <nodeId: explorer.serveExplorer>or <nodeId: explorer.exportExplorer>. <nodeId: explorer.transform>converts the flat <nodeId: graph>into <nodeId: knowledgeChunk>s via   <nodeId: explorer.transformGraph>. The transform recurses through all folders, building one   folder-&#123;id&#125;.json per folder that has direct modules or sub-folders. The\n      root and top-level folder summaries go into meta.json alongside all doc, flow,\n      term, and external nodes. <nodeId: explorer.server>uses only Node built-in http — no external server dependency. It\n      caches all chunk JSON strings in memory after the first transform, so subsequent chunk\n      requests are pure string writes. <nodeId: explorer.export>copies the pre-built SPA assets from dist/explorer/ to the output\n      directory and writes chunk JSON files alongside them. The SPA uses relative   ./chunks/*.json fetch paths so it works under file:// without a\n      server. SPA architecture The SPA is built with Vite (D3 in a separate vendor chunk) and lives in <nodeId: tskb.explorer.app>.\n      It is pre-built into dist/explorer/ and shipped inside the tskb npm package. Data layer <nodeId: explorer.spa.chunk-types>defines the <nodeId: knowledgeChunk>discriminated union (   MetaChunk | FolderChunk ) and the ChunkRegistry map. Adding a new\n      chunk kind requires only changing this file. <nodeId: explorer.spa.loader>provides ChunkLoader : a generic load(kind, ...args)   method whose return type is inferred from ChunkRegistry[K] . It deduplicates\n      in-flight requests and uses a <nodeId: lruChunkCache>(max 50 entries). <nodeId: explorer.spa.store>holds only graph data (meta chunk, folder chunks map). UI state — the expanded\n      node set, selected node, and search query — lives as plain variables in <nodeId: explorer.spa.main>and is\n      passed to layout and rendering functions explicitly. The store exposes   subscribe(listener) for reactive re-render. <relation from=\"explorer.spa.store\" to=\"explorer.spa.chunk-types\" label=\"stores chunks typed by\" /><relation from=\"explorer.spa.loader\" to=\"explorer.spa.chunk-types\" label=\"types fetch results via\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.store\" label=\"subscribes to\" />Layout — three lanes <nodeId: explorer.spa.lane-engine>computes all SVG positions in a single pass. The canvas has three   <nodeId: explorerLane>s stacked vertically: Structure — builds a d3.hierarchy from the visible tree (root\n        → expanded folders → modules → exports, including sub-folder nesting). Runs   d3.tree().nodeSize() for left-to-right positioning; the tree's   node.y maps to SVG x (depth) and node.x maps to SVG y (sibling\n        spread). Docs — horizontal list ordered by priority (essential → constraint →\n        supplementary). Terms / Flows — horizontal list below docs. On every expand or collapse, <nodeId: explorer.spa.main>calls computeLayout() and fully\n      re-renders the D3 selection with enter/update/exit. Node components <nodeId: explorer.spa.node-base>defines the <nodeId: nodeComponent>interface and BaseNodeRenderer —\n      the default renderer for all node types. Each node is an SVG &lt;g&gt; containing\n      a rounded-rect card, type icon, label, description, edge-count badge, and an optional expand\n      button. Subclass BaseNodeRenderer and register in   components/nodes/index.ts to customise rendering per type. <nodeId: explorer.spa.edge-renderer>derives parent→child links from parentId fields and draws\n      them as horizontal cubic-bezier SVG paths. It also renders the lane background bands. <relation from=\"explorer.spa.node-base\" to=\"explorer.spa.lane-engine\" label=\"reads NODE_SIZES from\" /><relation from=\"explorer.spa.edge-renderer\" to=\"explorer.spa.lane-engine\" label=\"reads LaneLayout from\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.lane-engine\" label=\"calls computeLayout on each render\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.node-base\" label=\"calls enter/update on node selections\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.edge-renderer\" label=\"calls renderStructureEdges\" />Build integration npm run build:explorer runs Vite, outputting to dist/explorer/ .   npm run build:lib runs tsc , outputting to dist/ . The\n      full npm run build runs explorer first, then lib — so the SPA assets are inside   dist/ when the package is published. During development, npm run dev:explorer starts Vite's HMR dev server against a\n      fixed chunks/ directory. The CLI build:lib must be run at least once\n      so the dist/ server code exists. Flows <flow name=\"explorer-serve-flow\" desc=\"tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand\"><step order=\"0\" nodeId=\"explorer.explore\" label=\"Reads graph.json, branches on --export flag\" /><step order=\"1\" nodeId=\"explorer.transformGraph\" label=\"Converts KnowledgeGraph into MetaChunk + FolderChunks, caches in memory\" /><step order=\"2\" nodeId=\"explorer.serveExplorer\" label=\"Starts http server serving SPA assets + /chunks/*.json routes\" /><step order=\"3\" nodeId=\"explorer.spa.main\" label=\"Browser fetches meta.json, mounts SVG canvas with zoom/pan\" /><step order=\"4\" nodeId=\"explorer.spa.lane-engine\" label=\"computeLayout() positions all visible nodes across three lanes\" /><step order=\"5\" nodeId=\"explorer.spa.node-base\" label=\"D3 enter/update renders node cards into SVG groups\" /></flow><flow name=\"explorer-expand-flow\" desc=\"User expands a folder node: chunk is fetched, store updated, layout recomputed, SVG re-rendered\"><step order=\"0\" nodeId=\"explorer.spa.node-base\" label=\"User clicks ▶ expand button; onExpand handler fires\" /><step order=\"1\" nodeId=\"explorer.spa.loader\" label=\"ChunkLoader.load('folder', id) — returns cache hit or fetches /chunks/folder-{id}.json\" /><step order=\"2\" nodeId=\"explorer.spa.store\" label=\"store.addFolderChunk() stores chunk; expanded set updated in main.ts\" /><step order=\"3\" nodeId=\"explorer.spa.lane-engine\" label=\"computeLayout() rebuilds d3.hierarchy with expanded folder's modules\" /><step order=\"4\" nodeId=\"explorer.spa.edge-renderer\" label=\"buildStructureLinks() + renderStructureEdges() redraws parent→child bezier paths\" /><step order=\"5\" nodeId=\"explorer.spa.node-base\" label=\"D3 enter/update/exit adds new node cards, removes collapsed ones\" /></flow>",
+        "format": "tsx",
+        "edgeCount": 23
       },
       "docs/src/tskb/core/visualization.tskb.tsx": {
         "id": "docs/src/tskb/core/visualization.tskb.tsx",
@@ -4046,6 +5001,78 @@
       "to": "graph.builder",
       "type": "flow-step",
       "label": "assembles nodes and edges into knowledge graph"
+    },
+    {
+      "from": "explorer-serve-flow",
+      "to": "explorer.explore",
+      "type": "flow-step",
+      "label": "Reads graph.json, branches on --export flag"
+    },
+    {
+      "from": "explorer-serve-flow",
+      "to": "explorer.transformGraph",
+      "type": "flow-step",
+      "label": "Converts KnowledgeGraph into MetaChunk + FolderChunks, caches in memory"
+    },
+    {
+      "from": "explorer-serve-flow",
+      "to": "explorer.serveExplorer",
+      "type": "flow-step",
+      "label": "Starts http server serving SPA assets + /chunks/*.json routes"
+    },
+    {
+      "from": "explorer-serve-flow",
+      "to": "explorer.spa.main",
+      "type": "flow-step",
+      "label": "Browser fetches meta.json, mounts SVG canvas with zoom/pan"
+    },
+    {
+      "from": "explorer-serve-flow",
+      "to": "explorer.spa.lane-engine",
+      "type": "flow-step",
+      "label": "computeLayout() positions all visible nodes across three lanes"
+    },
+    {
+      "from": "explorer-serve-flow",
+      "to": "explorer.spa.node-base",
+      "type": "flow-step",
+      "label": "D3 enter/update renders node cards into SVG groups"
+    },
+    {
+      "from": "explorer-expand-flow",
+      "to": "explorer.spa.node-base",
+      "type": "flow-step",
+      "label": "User clicks ▶ expand button; onExpand handler fires"
+    },
+    {
+      "from": "explorer-expand-flow",
+      "to": "explorer.spa.loader",
+      "type": "flow-step",
+      "label": "ChunkLoader.load('folder', id) — returns cache hit or fetches /chunks/folder-{id}.json"
+    },
+    {
+      "from": "explorer-expand-flow",
+      "to": "explorer.spa.store",
+      "type": "flow-step",
+      "label": "store.addFolderChunk() stores chunk; expanded set updated in main.ts"
+    },
+    {
+      "from": "explorer-expand-flow",
+      "to": "explorer.spa.lane-engine",
+      "type": "flow-step",
+      "label": "computeLayout() rebuilds d3.hierarchy with expanded folder's modules"
+    },
+    {
+      "from": "explorer-expand-flow",
+      "to": "explorer.spa.edge-renderer",
+      "type": "flow-step",
+      "label": "buildStructureLinks() + renderStructureEdges() redraws parent→child bezier paths"
+    },
+    {
+      "from": "explorer-expand-flow",
+      "to": "explorer.spa.node-base",
+      "type": "flow-step",
+      "label": "D3 enter/update/exit adds new node cards, removes collapsed ones"
     },
     {
       "from": "module-morphology-extraction",
@@ -4356,6 +5383,169 @@
       "from": "docs/src/tskb/runtime/runtime.tskb.tsx",
       "to": "jsx.Step",
       "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "cli.commands.explore",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "cli.utils.graph-finder",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.transform",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.server",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.export",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.spa.chunk-types",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.spa.loader",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.spa.store",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.spa.main",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.spa.lane-engine",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.spa.node-base",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.spa.edge-renderer",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorerStaticExport",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "graph",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "knowledgeChunk",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "lruChunkCache",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorerLane",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "nodeComponent",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "tskb.explorer.core",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "tskb.explorer.app",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.serveExplorer",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.exportExplorer",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
+      "to": "explorer.transformGraph",
+      "type": "references"
+    },
+    {
+      "from": "explorer.spa.store",
+      "to": "explorer.spa.chunk-types",
+      "type": "related-to",
+      "label": "stores chunks typed by"
+    },
+    {
+      "from": "explorer.spa.loader",
+      "to": "explorer.spa.chunk-types",
+      "type": "related-to",
+      "label": "types fetch results via"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.store",
+      "type": "related-to",
+      "label": "subscribes to"
+    },
+    {
+      "from": "explorer.spa.node-base",
+      "to": "explorer.spa.lane-engine",
+      "type": "related-to",
+      "label": "reads NODE_SIZES from"
+    },
+    {
+      "from": "explorer.spa.edge-renderer",
+      "to": "explorer.spa.lane-engine",
+      "type": "related-to",
+      "label": "reads LaneLayout from"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.lane-engine",
+      "type": "related-to",
+      "label": "calls computeLayout on each render"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.node-base",
+      "type": "related-to",
+      "label": "calls enter/update on node selections"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.edge-renderer",
+      "type": "related-to",
+      "label": "calls renderStructureEdges"
     },
     {
       "from": "docs/src/tskb/core/visualization.tskb.tsx",
@@ -5024,6 +6214,41 @@
     },
     {
       "from": "tskb.core",
+      "to": "tskb.explorer.core",
+      "type": "contains"
+    },
+    {
+      "from": "TSKB.Package.Root",
+      "to": "tskb.explorer.app",
+      "type": "contains"
+    },
+    {
+      "from": "tskb.explorer.app",
+      "to": "tskb.explorer.app.components",
+      "type": "contains"
+    },
+    {
+      "from": "tskb.explorer.app",
+      "to": "tskb.explorer.app.graph",
+      "type": "contains"
+    },
+    {
+      "from": "tskb.explorer.app",
+      "to": "tskb.explorer.app.layout",
+      "type": "contains"
+    },
+    {
+      "from": "tskb.explorer.app",
+      "to": "tskb.explorer.app.store",
+      "type": "contains"
+    },
+    {
+      "from": "tskb.explorer.app",
+      "to": "tskb.explorer.app.ui",
+      "type": "contains"
+    },
+    {
+      "from": "tskb.core",
       "to": "core.visualization",
       "type": "contains"
     },
@@ -5165,6 +6390,61 @@
     {
       "from": "runtime.registry",
       "to": "tskb.runtime",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.transform",
+      "to": "tskb.explorer.core",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.server",
+      "to": "tskb.explorer.core",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.export",
+      "to": "tskb.explorer.core",
+      "type": "belongs-to"
+    },
+    {
+      "from": "cli.commands.explore",
+      "to": "tskb.cli.commands",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "tskb.explorer.app",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.chunk-types",
+      "to": "tskb.explorer.app.graph",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.loader",
+      "to": "tskb.explorer.app.graph",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.store",
+      "to": "tskb.explorer.app.store",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.lane-engine",
+      "to": "tskb.explorer.app.layout",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.node-base",
+      "to": "tskb.explorer.app.components",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.edge-renderer",
+      "to": "tskb.explorer.app.components",
       "type": "belongs-to"
     },
     {
@@ -5403,6 +6683,26 @@
       "type": "belongs-to"
     },
     {
+      "from": "explorer.transformGraph",
+      "to": "explorer.transform",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.serveExplorer",
+      "to": "explorer.server",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.exportExplorer",
+      "to": "explorer.export",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.explore",
+      "to": "cli.commands.explore",
+      "type": "belongs-to"
+    },
+    {
       "from": "extractRegistry",
       "to": "extraction.registry",
       "type": "belongs-to"
@@ -5623,6 +6923,106 @@
       "type": "imports"
     },
     {
+      "from": "explorer.transform",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.server",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.server",
+      "to": "explorer.transform",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.server",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.export",
+      "to": "explorer.transform",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.export",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.explore",
+      "to": "cli.utils.graph-finder",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.explore",
+      "to": "cli.utils.logger",
+      "type": "imports"
+    },
+    {
+      "from": "cli.commands.explore",
+      "to": "graph.types",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.loader",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.store",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.lane-engine",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.edge-renderer",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.node-base",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.loader",
+      "to": "explorer.spa.chunk-types",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.store",
+      "to": "explorer.spa.chunk-types",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.lane-engine",
+      "to": "explorer.spa.store",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.node-base",
+      "to": "explorer.spa.lane-engine",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.edge-renderer",
+      "to": "explorer.spa.lane-engine",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.edge-renderer",
+      "to": "explorer.spa.node-base",
+      "type": "imports"
+    },
+    {
       "from": "visualization.dot-generator",
       "to": "graph.types",
       "type": "imports"
@@ -5789,19 +7189,19 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-04-06T12:43:36.537Z",
+    "generatedAt": "2026-04-09T08:13:37.867Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
-      "folderCount": 36,
-      "moduleCount": 29,
-      "termCount": 31,
-      "exportCount": 60,
+      "folderCount": 43,
+      "moduleCount": 40,
+      "termCount": 36,
+      "exportCount": 64,
       "fileCount": 9,
       "externalCount": 1,
-      "flowCount": 7,
-      "docCount": 19,
-      "edgeCount": 362
+      "flowCount": 9,
+      "docCount": 20,
+      "edgeCount": 447
     }
   }
 }

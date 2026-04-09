@@ -30,6 +30,10 @@ async function main() {
       optimized: { type: "boolean", default: false },
       plain: { type: "boolean", default: false },
       yes: { type: "boolean", default: false, short: "y" },
+      // explore options
+      port: { type: "string", default: "4442" },
+      "no-open": { type: "boolean", default: false },
+      export: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -98,6 +102,15 @@ async function main() {
       }
       case "init": {
         await init({ yes: values.yes });
+        break;
+      }
+      case "explore": {
+        const { explore } = await import("./commands/explore.js");
+        await explore({
+          port: parseInt(values.port!, 10),
+          open: !values["no-open"],
+          exportPath: values.export,
+        });
         break;
       }
       default:

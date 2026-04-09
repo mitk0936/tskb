@@ -1,0 +1,20 @@
+{
+  "kind": "folder",
+  "folderId": "docs",
+  "subfolders": [],
+  "modules": [
+    {
+      "id": "sample.tsconfig.json",
+      "type": "module",
+      "label": "json",
+      "description": "An example of required tsconfig.json for building <TSKB> docs",
+      "path": "docs/tsconfig.json",
+      "parentId": "docs",
+      "edgeCount": 2,
+      "detail": { "_hasChildren": "false" }
+    }
+  ],
+  "exports": [],
+  "internalEdges": [],
+  "externalEdges": []
+}

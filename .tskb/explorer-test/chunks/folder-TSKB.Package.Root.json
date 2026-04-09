@@ -1,0 +1,85 @@
+{
+  "kind": "folder",
+  "folderId": "TSKB.Package.Root",
+  "subfolders": [
+    {
+      "id": "tskb.cli",
+      "type": "folder",
+      "label": "cli",
+      "description": "Source code for the cli",
+      "path": "packages/tskb/src/cli",
+      "parentId": "TSKB.Package.Root",
+      "edgeCount": 6,
+      "detail": { "_hasChildren": "true" }
+    },
+    {
+      "id": "tskb.core",
+      "type": "folder",
+      "label": "core",
+      "description": "Source code for the core - extraction logic for registry (TS interfaces used as a registry) and 'doc' processing <Doc>...</Doc>",
+      "path": "packages/tskb/src/core",
+      "parentId": "TSKB.Package.Root",
+      "edgeCount": 4,
+      "detail": { "_hasChildren": "true" }
+    },
+    {
+      "id": "tskb.runtime",
+      "type": "folder",
+      "label": "runtime",
+      "description": "Source code for the runtime, the lib does not have an actual runtime, but this folder contains the base registry interfaces and jsx primitives",
+      "path": "packages/tskb/src/runtime",
+      "parentId": "TSKB.Package.Root",
+      "edgeCount": 6,
+      "detail": { "_hasChildren": "true" }
+    },
+    {
+      "id": "tskb.typescript",
+      "type": "folder",
+      "label": "typescript",
+      "description": "Creates a TypeScript compiler Program from source files and tsconfig settings that enables static analysis of code structure, types, and symbols without emitting JavaScript output",
+      "path": "packages/tskb/src/typescript",
+      "parentId": "TSKB.Package.Root",
+      "edgeCount": 4,
+      "detail": { "_hasChildren": "true" }
+    }
+  ],
+  "modules": [
+    {
+      "id": "package.json",
+      "type": "module",
+      "label": "json",
+      "description": "Library's package.json file",
+      "path": "packages/tskb/package.json",
+      "parentId": "TSKB.Package.Root",
+      "edgeCount": 2,
+      "detail": { "_hasChildren": "false" }
+    },
+    {
+      "id": "Main.index.js",
+      "type": "module",
+      "label": "js",
+      "description": "The main package export",
+      "path": "packages/tskb/src/index.ts",
+      "parentId": "TSKB.Package.Root",
+      "edgeCount": 3,
+      "detail": { "_hasChildren": "true", "morphology": "12 functions, 9 types, 1 variable" }
+    }
+  ],
+  "exports": [
+    {
+      "id": "ref",
+      "type": "export",
+      "label": "ref",
+      "description": "A placeholder for referencing anything from the global tskb registry into jsx documentation tags",
+      "path": "packages/tskb/src/index.ts",
+      "parentId": "Main.index.js",
+      "edgeCount": 3,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/index.js\").ref",
+        "morphology": "1 variable"
+      }
+    }
+  ],
+  "internalEdges": [],
+  "externalEdges": []
+}

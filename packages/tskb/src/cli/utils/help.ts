@@ -11,6 +11,7 @@ export function getHelpText(): string {
   tskb context <identifier> [--depth <n>] [--optimized] [--plain] [--verbose]
   tskb docs [<query>] [--optimized] [--plain] [--verbose]
   tskb flows [<query>] [--optimized] [--plain] [--verbose]
+  tskb explore [--port <n>] [--no-open] [--export [path]]
 
 Examples:
   # Init — scaffold tskb in a new or existing repo (interactive)
@@ -36,7 +37,14 @@ Examples:
   tskb docs                                               # List all docs sorted by priority
   tskb docs "auth"                                        # Search docs by query
   tskb flows                                               # List all flows sorted by priority
-  tskb flows "login"                                      # Search flows by query`;
+  tskb flows "login"                                      # Search flows by query
+
+  # Explore — open an interactive visual graph explorer in the browser
+  tskb explore                                            # Serve at http://localhost:4442
+  tskb explore --port 8080                                # Use a custom port
+  tskb explore --no-open                                  # Don't auto-open browser
+  tskb explore --export                                   # Export to .tskb/explorer/
+  tskb explore --export ./docs/explorer                   # Export to custom path`;
 }
 
 /**

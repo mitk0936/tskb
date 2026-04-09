@@ -1,0 +1,180 @@
+{
+  "kind": "folder",
+  "folderId": "tskb.cli.commands",
+  "subfolders": [],
+  "modules": [
+    {
+      "id": "cli.commands.build",
+      "type": "module",
+      "label": "build",
+      "description": "Build command module - orchestrates the complete pipeline from source files to knowledge graph, DOT visualization, and agent guidance",
+      "path": "packages/tskb/src/cli/commands/build.ts",
+      "parentId": "tskb.cli.commands",
+      "edgeCount": 7,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "1 function, 1 interface",
+        "imports": "11 imports from 8 paths"
+      }
+    },
+    {
+      "id": "cli.commands.search",
+      "type": "module",
+      "label": "search",
+      "description": "Search command module - fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results",
+      "path": "packages/tskb/src/cli/commands/search.ts",
+      "parentId": "tskb.cli.commands",
+      "edgeCount": 7,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "1 function",
+        "imports": "9 imports from 5 paths"
+      }
+    },
+    {
+      "id": "cli.commands.pick",
+      "type": "module",
+      "label": "pick",
+      "description": "Pick command module - resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs",
+      "path": "packages/tskb/src/cli/commands/pick.ts",
+      "parentId": "tskb.cli.commands",
+      "edgeCount": 7,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "1 function",
+        "imports": "17 imports from 6 paths"
+      }
+    },
+    {
+      "id": "cli.commands.ls",
+      "type": "module",
+      "label": "ls",
+      "description": "List command module - recursively lists all folders from root with controllable depth, returning flat JSON hierarchy",
+      "path": "packages/tskb/src/cli/commands/ls.ts",
+      "parentId": "tskb.cli.commands",
+      "edgeCount": 7,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "1 function",
+        "imports": "9 imports from 5 paths"
+      }
+    },
+    {
+      "id": "cli.commands.init",
+      "type": "module",
+      "label": "init",
+      "description": "Init command module - interactive scaffolder that creates docs folder, tsconfig, starter doc, build script, and AI integration directories",
+      "path": "packages/tskb/src/cli/commands/init.ts",
+      "parentId": "tskb.cli.commands",
+      "edgeCount": 4,
+      "detail": {
+        "_hasChildren": "false",
+        "morphology": "1 function, 1 interface",
+        "imports": "5 imports from 4 paths"
+      }
+    },
+    {
+      "id": "cli.commands.flows",
+      "type": "module",
+      "label": "flows",
+      "description": "Flows command module - lists all flows sorted by priority, with optional fuzzy search",
+      "path": "packages/tskb/src/cli/commands/flows.ts",
+      "parentId": "tskb.cli.commands",
+      "edgeCount": 5,
+      "detail": {
+        "_hasChildren": "false",
+        "morphology": "1 function",
+        "imports": "9 imports from 5 paths"
+      }
+    }
+  ],
+  "exports": [
+    {
+      "id": "cli.build",
+      "type": "export",
+      "label": "build",
+      "description": "The control flow function for the cli, building the docs, graph, and visualization outputing to the .tskb/ directory",
+      "path": "packages/tskb/src/cli/commands/build.ts",
+      "parentId": "cli.commands.build",
+      "edgeCount": 4,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/cli/commands/build.js\").build",
+        "morphology": "1 function"
+      }
+    },
+    {
+      "id": "cli.build.ExtractConfig",
+      "type": "export",
+      "label": "ExtractConfig",
+      "description": "Configuration interface for the build command containing glob pattern and tsconfig path",
+      "path": "packages/tskb/src/cli/commands/build.ts",
+      "parentId": "cli.commands.build",
+      "edgeCount": 1,
+      "detail": {
+        "signature": "import(\"packages/tskb/src/cli/commands/build.js\").ExtractConfig",
+        "morphology": "1 interface"
+      }
+    },
+    {
+      "id": "cli.search",
+      "type": "export",
+      "label": "search",
+      "description": "Fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results with scores across IDs, descriptions, and paths",
+      "path": "packages/tskb/src/cli/commands/search.ts",
+      "parentId": "cli.commands.search",
+      "edgeCount": 2,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/cli/commands/search.js\").search",
+        "morphology": "1 function"
+      }
+    },
+    {
+      "id": "cli.pick",
+      "type": "export",
+      "label": "pick",
+      "description": "Resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs",
+      "path": "packages/tskb/src/cli/commands/pick.ts",
+      "parentId": "cli.commands.pick",
+      "edgeCount": 2,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/cli/commands/pick.js\").pick",
+        "morphology": "1 function"
+      }
+    },
+    {
+      "id": "cli.ls",
+      "type": "export",
+      "label": "ls",
+      "description": "Lists all folders in the knowledge graph from TSKB.Package.Root with controllable depth, returning flat JSON hierarchy",
+      "path": "packages/tskb/src/cli/commands/ls.ts",
+      "parentId": "cli.commands.ls",
+      "edgeCount": 2,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/cli/commands/ls.js\").ls",
+        "morphology": "1 function"
+      }
+    }
+  ],
+  "internalEdges": [],
+  "externalEdges": [
+    { "source": "cli.index", "target": "cli.commands.search", "type": "imports" },
+    { "source": "cli.index", "target": "cli.commands.pick", "type": "imports" },
+    { "source": "cli.index", "target": "cli.commands.ls", "type": "imports" },
+    { "source": "cli.index", "target": "cli.commands.init", "type": "imports" },
+    { "source": "cli.commands.build", "target": "typescript.index", "type": "imports" },
+    { "source": "cli.commands.build", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.search", "target": "graph.types", "type": "imports" },
+    { "source": "cli.commands.search", "target": "cli.utils.graph-finder", "type": "imports" },
+    { "source": "cli.commands.search", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.pick", "target": "graph.types", "type": "imports" },
+    { "source": "cli.commands.pick", "target": "cli.utils.graph-finder", "type": "imports" },
+    { "source": "cli.commands.pick", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.ls", "target": "graph.types", "type": "imports" },
+    { "source": "cli.commands.ls", "target": "cli.utils.graph-finder", "type": "imports" },
+    { "source": "cli.commands.ls", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.init", "target": "cli.utils.logger", "type": "imports" },
+    { "source": "cli.commands.flows", "target": "graph.types", "type": "imports" },
+    { "source": "cli.commands.flows", "target": "cli.utils.graph-finder", "type": "imports" },
+    { "source": "cli.commands.flows", "target": "cli.utils.logger", "type": "imports" }
+  ]
+}

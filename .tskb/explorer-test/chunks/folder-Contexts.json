@@ -1,0 +1,38 @@
+{
+  "kind": "folder",
+  "folderId": "Contexts",
+  "subfolders": [],
+  "modules": [
+    {
+      "id": "AuthContext",
+      "type": "module",
+      "label": "AuthContext",
+      "description": "React Context providing authentication state and login/logout methods",
+      "path": "examples/taskflow-app/src/client/contexts/AuthContext.tsx",
+      "parentId": "Contexts",
+      "edgeCount": 6,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "2 functions, 1 interface, 1 variable",
+        "imports": "3 imports from 2 paths"
+      }
+    }
+  ],
+  "exports": [
+    {
+      "id": "AuthContext",
+      "type": "export",
+      "label": "AuthContext",
+      "description": "React Context providing authentication state and login/logout methods",
+      "path": "examples/taskflow-app/src/client/contexts/AuthContext.tsx",
+      "parentId": "AuthContext",
+      "edgeCount": 6,
+      "detail": {
+        "signature": "typeof import(\"examples/taskflow-app/src/client/contexts/AuthContext.js\").AuthContext",
+        "morphology": "1 variable"
+      }
+    }
+  ],
+  "internalEdges": [],
+  "externalEdges": []
+}

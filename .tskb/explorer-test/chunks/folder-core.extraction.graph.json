@@ -1,0 +1,104 @@
+{
+  "kind": "folder",
+  "folderId": "core.extraction.graph",
+  "subfolders": [],
+  "modules": [
+    {
+      "id": "graph.builder",
+      "type": "module",
+      "label": "builder",
+      "description": "Module containing utility functions for constructing the graph",
+      "path": "packages/tskb/src/core/graph/builder.ts",
+      "parentId": "core.extraction.graph",
+      "edgeCount": 9,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "1 function",
+        "imports": "15 imports from 6 paths"
+      }
+    },
+    {
+      "id": "graph.types",
+      "type": "module",
+      "label": "types",
+      "description": "Type definitions for the knowledge graph data model - all node types, edge types, and the KnowledgeGraph structure",
+      "path": "packages/tskb/src/core/graph/types.ts",
+      "parentId": "core.extraction.graph",
+      "edgeCount": 16,
+      "detail": {
+        "_hasChildren": "true",
+        "morphology": "12 interfaces, 2 types",
+        "imports": "3 imports from 3 paths"
+      }
+    }
+  ],
+  "exports": [
+    {
+      "id": "buildGraph",
+      "type": "export",
+      "label": "buildGraph",
+      "description": "Main entry point for graph construction - takes extracted registry and docs, produces a complete KnowledgeGraph",
+      "path": "packages/tskb/src/core/graph/builder.ts",
+      "parentId": "graph.builder",
+      "edgeCount": 5,
+      "detail": {
+        "signature": "typeof import(\"packages/tskb/src/core/graph/builder.js\").buildGraph",
+        "morphology": "1 function"
+      }
+    },
+    {
+      "id": "KnowledgeGraph",
+      "type": "export",
+      "label": "KnowledgeGraph",
+      "description": "The top-level graph structure containing all nodes (folders, modules, terms, exports, flows, docs), edges, and metadata",
+      "path": "packages/tskb/src/core/graph/types.ts",
+      "parentId": "graph.types",
+      "edgeCount": 3,
+      "detail": {
+        "signature": "import(\"packages/tskb/src/core/graph/types.js\").KnowledgeGraph",
+        "morphology": "1 interface"
+      }
+    },
+    {
+      "id": "FlowNode",
+      "type": "export",
+      "label": "FlowNode",
+      "description": "Graph node for an ordered flow through the system — contains steps referencing other nodes, with priority for skill file inclusion",
+      "path": "packages/tskb/src/core/graph/types.ts",
+      "parentId": "graph.types",
+      "edgeCount": 2,
+      "detail": {
+        "signature": "import(\"packages/tskb/src/core/graph/types.js\").FlowNode",
+        "morphology": "1 interface"
+      }
+    },
+    {
+      "id": "FlowStep",
+      "type": "export",
+      "label": "FlowStep",
+      "description": "A single step within a flow — references a node ID with order and optional label",
+      "path": "packages/tskb/src/core/graph/types.ts",
+      "parentId": "graph.types",
+      "edgeCount": 1,
+      "detail": {
+        "signature": "import(\"packages/tskb/src/core/graph/types.js\").FlowStep",
+        "morphology": "1 interface"
+      }
+    }
+  ],
+  "internalEdges": [{ "source": "graph.builder", "target": "graph.types", "type": "imports" }],
+  "externalEdges": [
+    { "source": "visualization.dot-generator", "target": "graph.types", "type": "imports" },
+    { "source": "graph.builder", "target": "extraction.registry", "type": "imports" },
+    { "source": "graph.builder", "target": "extraction.documentation", "type": "imports" },
+    { "source": "graph.types", "target": "runtime.jsx", "type": "imports" },
+    { "source": "graph.types", "target": "extraction.module-morphology", "type": "imports" },
+    { "source": "cli.commands.search", "target": "graph.types", "type": "imports" },
+    { "source": "cli.commands.pick", "target": "graph.types", "type": "imports" },
+    { "source": "cli.commands.ls", "target": "graph.types", "type": "imports" },
+    { "source": "cli.commands.flows", "target": "graph.types", "type": "imports" },
+    { "source": "cli.utils.content-builder", "target": "graph.types", "type": "imports" },
+    { "source": "cli.utils.skill-generator", "target": "graph.types", "type": "imports" },
+    { "source": "cli.utils.copilot-instructions", "target": "graph.types", "type": "imports" }
+  ]
+}
