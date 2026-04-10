@@ -331,7 +331,7 @@ digraph KnowledgeGraph {
             "tskb.explorer.core" [label="Folder\<\"tskb.explorer.core\"\>\nCLI-side explorer layer: graph→chunk transform, HTTP server, and static export\n📁 packages/tskb/src/core/explorer", shape=box, fillcolor="#BBDEFB", style=filled];
 
             // Modules in tskb.explorer.core
-            "explorer.transform" [label="Module\<\"explorer.transform\"\>\nConverts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms) plus one FolderChunk per folder that has modules or sub-folders\n📁 packages/tskb/src/core/explorer/transform.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.transform" [label="Module\<\"explorer.transform\"\>\nConverts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms) plus one FolderChunk per folder that has modules or sub-folders. Also injects ghost ExplorerNodes for any .ts/.tsx files recorded in folder.children.files that are not declared as modules, making undeclared-but-existing files visible in the UI.\n📁 packages/tskb/src/core/explorer/transform.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "explorer.transformGraph" [label="Export\<\"explorer.transformGraph\"\>\nTransforms a KnowledgeGraph into ExplorerChunks. Recursively builds folder chunks for every folder with modules or sub-folders; computes _hasChildren flags.\n📁 packages/tskb/src/core/explorer/transform.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "explorer.server" [label="Module\<\"explorer.server\"\>\nNode built-in HTTP server that serves the pre-built SPA assets and generates chunk JSON responses on demand. Reads graph.json once and caches all chunks in memory.\n📁 packages/tskb/src/core/explorer/server.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "explorer.serveExplorer" [label="Export\<\"explorer.serveExplorer\"\>\nStarts a Node http server that serves the pre-built SPA + chunk API. Resolves SPA assets via import.meta.url so it works after npm pack.\n📁 packages/tskb/src/core/explorer/server.ts", shape=component, fillcolor="#C5E1A5", style=filled];
@@ -455,7 +455,7 @@ digraph KnowledgeGraph {
           "tskb.explorer.app" [label="Folder\<\"tskb.explorer.app\"\>\nVite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/\n📁 packages/tskb/explorer-app", shape=box, fillcolor="#BBDEFB", style=filled];
 
           // Modules in tskb.explorer.app
-          "explorer.spa.main" [label="Module\<\"explorer.spa.main\"\>\nSPA entry point: creates D3 SVG canvas with zoom/pan, fetches meta.json, wires expand/select handlers, subscribes to store, and drives the render loop\n📁 packages/tskb/explorer-app/src/main.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+          "explorer.spa.main" [label="Module\<\"explorer.spa.main\"\>\nSPA entry point: creates D3 SVG canvas with zoom/pan, fetches meta.json, wires expand/select/trace handlers, subscribes to store, and drives the render loop. On every zoom event, propagates the D3 transform to both tooltip modules so they reposition to track their anchor nodes.\n📁 packages/tskb/explorer-app/src/main.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
           subgraph "cluster_tskb_explorer_app_components" {
             label="tskb.explorer.app.components";
@@ -466,8 +466,8 @@ digraph KnowledgeGraph {
             "tskb.explorer.app.components" [label="Folder\<\"tskb.explorer.app.components\"\>\nNode and edge rendering components for the D3 canvas. Each node type implements NodeComponent; edges are drawn by EdgeRenderer\n📁 packages/tskb/explorer-app/src/components", shape=box, fillcolor="#BBDEFB", style=filled];
 
             // Modules in tskb.explorer.app.components
-            "explorer.spa.node-base" [label="Module\<\"explorer.spa.node-base\"\>\nNodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with expand button and edge-count badge\n📁 packages/tskb/explorer-app/src/components/nodes/base.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-            "explorer.spa.edge-renderer" [label="Module\<\"explorer.spa.edge-renderer\"\>\nbuildStructureLinks() derives parent→child links from parentId; renderStructureEdges() draws cubic-bezier SVG paths; renderLaneBands() renders lane background bands with labels\n📁 packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.spa.node-base" [label="Module\<\"explorer.spa.node-base\"\>\nNodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with a <> code preview bubble (top-center) and a + expand bubble (right edge). Ghost nodes (detail._ghost = 'true') render as dashed transparent cards showing only their filename label. Tooltip anchor is the node's right-center SVG position.\n📁 packages/tskb/explorer-app/src/components/nodes/base.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.spa.edge-renderer" [label="Module\<\"explorer.spa.edge-renderer\"\>\nbuildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels\n📁 packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
           }
 
@@ -494,7 +494,7 @@ digraph KnowledgeGraph {
             "tskb.explorer.app.layout" [label="Folder\<\"tskb.explorer.app.layout\"\>\nLane layout engine: computes SVG positions for structure (d3.tree), docs, and other lanes\n📁 packages/tskb/explorer-app/src/layout", shape=box, fillcolor="#BBDEFB", style=filled];
 
             // Modules in tskb.explorer.app.layout
-            "explorer.spa.lane-engine" [label="Module\<\"explorer.spa.lane-engine\"\>\ncomputeLayout(): builds a d3.hierarchy from visible structure nodes, runs d3.tree for left-to-right positioning, then lays docs and other nodes as horizontal lists below\n📁 packages/tskb/explorer-app/src/layout/lane-engine.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.spa.lane-engine" [label="Module\<\"explorer.spa.lane-engine\"\>\ncomputeLayout(): builds a d3.hierarchy from visible structure nodes, runs d3.tree for left-to-right positioning, then lays docs and other nodes as horizontal lists below. Collapsed folders with _childCount > 0 inject up to 4 ghost placeholder nodes so the tree reserves space for their children.\n📁 packages/tskb/explorer-app/src/layout/lane-engine.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
           }
 
@@ -517,7 +517,13 @@ digraph KnowledgeGraph {
             fillcolor="#E3F2FD";
             color="#1976D2";
 
-            "tskb.explorer.app.ui" [label="Folder\<\"tskb.explorer.app.ui\"\>\nUI shell components: global spinner, per-node spinner, and the sketched detail panel\n📁 packages/tskb/explorer-app/src/ui", shape=box, fillcolor="#BBDEFB", style=filled];
+            "tskb.explorer.app.ui" [label="Folder\<\"tskb.explorer.app.ui\"\>\nUI shell components: global spinner, per-node spinner, detail panel, node hover tooltip, and code preview popup\n📁 packages/tskb/explorer-app/src/ui", shape=box, fillcolor="#BBDEFB", style=filled];
+
+            // Modules in tskb.explorer.app.ui
+            "explorer.spa.spinner" [label="Module\<\"explorer.spa.spinner\"\>\nGlobal and per-node spinner helpers: showGlobalSpinner/hideGlobalSpinner overlay a full-screen loader; showNodeSpinner/removeNodeSpinner attach a small SVG spinner next to a node while its chunk is loading\n📁 packages/tskb/explorer-app/src/ui/Spinner.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.spa.detail-panel" [label="Module\<\"explorer.spa.detail-panel\"\>\nSlide-in detail panel mounted in the DOM outside the SVG. Shows node id, type, description, path, and all detail fields (morphology, imports, signature). Opened by onSelect, closed by ESC or the × button.\n📁 packages/tskb/explorer-app/src/ui/DetailPanel.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.spa.node-tooltip" [label="Module\<\"explorer.spa.node-tooltip\"\>\nHover tooltip anchored to the node's right-center SVG position. Shows a coloured dot, node name, monospace path, and description. Receives updateNodeTooltipTransform() calls from main.ts on every zoom event so it repositions to track the node. Uses mouseover/mouseout bubbling with relatedTarget boundary guards to avoid flicker on child SVG elements.\n📁 packages/tskb/explorer-app/src/ui/NodeTooltip.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.spa.code-tooltip" [label="Module\<\"explorer.spa.code-tooltip\"\>\nToggle-based code preview popup for module nodes. Click the <> bubble to show/hide; clicking the same node again dismisses it; clicking outside also dismisses. Renders morphology lines with an inline TypeScript tokenizer (no runtime deps) for syntax highlighting, prepended by import lines with a blank-line separator.\n📁 packages/tskb/explorer-app/src/ui/CodeTooltip.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
           }
 
@@ -607,6 +613,7 @@ digraph KnowledgeGraph {
     "nodeComponent" [label="Term\<\"nodeComponent\"\>\nInterface for rendering a node type in the D3 canvas: enter() appends SVG elements, update() repositions them, anchor() returns edge connection points, getSize() returns bounding box. Implemented by BaseNodeRenderer; override per type.", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "lruChunkCache" [label="Term\<\"lruChunkCache\"\>\nBounded LRU cache inside ChunkLoader (max 50 entries). Map insertion order is used for O(1) LRU: on get, entry is deleted and re-inserted; on set overflow, oldest key is evicted. Chunks are immutable so no invalidation is needed.", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "explorerStaticExport" [label="Term\<\"explorerStaticExport\"\>\nSelf-contained static export produced by `tskb explore --export`. Contains the pre-built SPA (index.html + hashed JS chunks) and all graph chunk JSON files. Works offline via file:// because the SPA uses relative fetch paths.", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "ghostNode" [label="Term\<\"ghostNode\"\>\nA placeholder ExplorerNode with detail._ghost = 'true'. Ghost nodes represent filesystem files or unexpanded folder slots that are not declared in the knowledge graph. They render as dashed transparent cards with only a filename label, and their parent→child edges are dashed. Injected by transform.ts (from folder.children.files) and by lane-engine.ts (for collapsed folders with _childCount > 0).", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "ast" [label="Term\<\"ast\"\>\nAbstract Syntax Tree - TypeScript's tree representation of source code, used by the compiler API to analyze code structure", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "declarationMerging" [label="Term\<\"declarationMerging\"\>\nTypeScript feature that allows multiple declarations with the same name to be merged into a single definition, enabling distributed vocabulary across files", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "typeChecker" [label="Term\<\"typeChecker\"\>\nTypeScript compiler component that resolves types, validates code, and provides type information for symbols in the AST", shape=diamond, fillcolor="#F0F4C3", style=filled];
@@ -785,12 +792,17 @@ digraph KnowledgeGraph {
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorer.spa.lane-engine" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorer.spa.node-base" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorer.spa.edge-renderer" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorer.spa.spinner" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorer.spa.detail-panel" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorer.spa.node-tooltip" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorer.spa.code-tooltip" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorerStaticExport" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "graph" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "knowledgeChunk" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "lruChunkCache" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorerLane" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "nodeComponent" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/explorer.tskb.tsx" -> "ghostNode" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "tskb.explorer.core" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "tskb.explorer.app" [color=grey, style=dashed];
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorer.serveExplorer" [color=grey, style=dashed];
@@ -923,6 +935,10 @@ digraph KnowledgeGraph {
   "explorer.spa.main" -> "explorer.spa.lane-engine" ;
   "explorer.spa.main" -> "explorer.spa.node-base" ;
   "explorer.spa.main" -> "explorer.spa.edge-renderer" ;
+  "explorer.spa.main" -> "explorer.spa.node-tooltip" ;
+  "explorer.spa.main" -> "explorer.spa.code-tooltip" ;
+  "explorer.spa.node-base" -> "explorer.spa.node-tooltip" ;
+  "explorer.spa.node-base" -> "explorer.spa.code-tooltip" ;
   "visualization.dot-generator" -> "generateDot" ;
   "visualization.dot-generator" -> "graph.builder" ;
   "buildGraph" -> "KnowledgeGraph" ;
@@ -944,13 +960,19 @@ digraph KnowledgeGraph {
   "explorer.spa.main" -> "explorer.spa.store" ;
   "explorer.spa.main" -> "explorer.spa.lane-engine" ;
   "explorer.spa.main" -> "explorer.spa.edge-renderer" ;
+  "explorer.spa.main" -> "explorer.spa.spinner" ;
+  "explorer.spa.main" -> "explorer.spa.detail-panel" ;
+  "explorer.spa.main" -> "explorer.spa.code-tooltip" ;
+  "explorer.spa.main" -> "explorer.spa.node-tooltip" ;
   "explorer.spa.main" -> "explorer.spa.node-base" ;
   "explorer.spa.loader" -> "explorer.spa.chunk-types" ;
   "explorer.spa.store" -> "explorer.spa.chunk-types" ;
   "explorer.spa.lane-engine" -> "explorer.spa.store" ;
   "explorer.spa.node-base" -> "explorer.spa.lane-engine" ;
+  "explorer.spa.node-base" -> "explorer.spa.node-tooltip" ;
   "explorer.spa.edge-renderer" -> "explorer.spa.lane-engine" ;
   "explorer.spa.edge-renderer" -> "explorer.spa.node-base" ;
+  "explorer.spa.detail-panel" -> "explorer.spa.node-base" ;
   "visualization.dot-generator" -> "graph.types" ;
   "extraction.registry" -> "extraction.module-morphology" ;
   "graph.builder" -> "graph.types" ;

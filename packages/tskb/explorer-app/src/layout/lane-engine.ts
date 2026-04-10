@@ -35,13 +35,29 @@ function buildStructureTree(store: GraphStore, expanded: ReadonlySet<string>): T
   };
 }
 
+function makeGhostNodes(parentId: string, count: number): TreeData[] {
+  return Array.from({ length: Math.min(count, 4) }, (_, i) => ({
+    id: `${parentId}:ghost:${i}`,
+    type: "module" as NodeType,
+    label: "",
+    description: "",
+    edgeCount: 0,
+    parentId,
+    detail: { _ghost: "true" },
+  }));
+}
+
 function buildFolderChildren(
   folders: ExplorerNode[],
   store: GraphStore,
   expanded: ReadonlySet<string>
 ): TreeData[] {
   return folders.map((folder) => {
-    if (!expanded.has(folder.id)) return { ...folder };
+    if (!expanded.has(folder.id)) {
+      const childCount = parseInt((folder.detail._childCount as string) ?? "0", 10);
+      if (childCount > 0) return { ...folder, treeChildren: makeGhostNodes(folder.id, childCount) };
+      return { ...folder };
+    }
     const chunk = store.folderChunks.get(folder.id);
     if (!chunk) return { ...folder };
 

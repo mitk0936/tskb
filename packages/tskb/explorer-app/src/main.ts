@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { ChunkLoader } from "./graph/loader";
 import { GraphStore } from "./store/graph-store";
-import { computeLayout } from "./layout/lane-engine";
+import { computeLayout, NODE_SIZES } from "./layout/lane-engine";
 import { createNodeRenderer } from "./components/nodes/index";
 import {
   buildStructureLinks,
@@ -15,6 +15,8 @@ import {
   removeNodeSpinner,
 } from "./ui/Spinner";
 import { mountDetailPanel } from "./ui/DetailPanel";
+import { mountCodeTooltip, toggleCodeTooltip, updateCodeTooltipTransform } from "./ui/CodeTooltip";
+import { mountNodeTooltip, updateNodeTooltipTransform } from "./ui/NodeTooltip";
 import type { PositionedNode } from "./types";
 import type { NodeComponent } from "./components/nodes/base";
 
@@ -34,7 +36,7 @@ const ui = {
 
 async function init(): Promise<void> {
   // ── Canvas setup ─────────────────────────────────────────────────────────
-  const svgEl = document.getElementById("canvas") as SVGSVGElement;
+  const svgEl = document.getElementById("canvas") as unknown as SVGSVGElement;
   const svg = d3.select<SVGSVGElement, unknown>(svgEl);
 
   const zoomLayer = svg.append("g").attr("class", "zoom-layer");
@@ -48,6 +50,10 @@ async function init(): Promise<void> {
     .scaleExtent([0.05, 5])
     .on("zoom", (event) => {
       zoomLayer.attr("transform", event.transform);
+      const { k, x, y } = event.transform;
+      const rect = svgEl.getBoundingClientRect();
+      updateCodeTooltipTransform({ k, x, y }, rect);
+      updateNodeTooltipTransform({ k, x, y }, rect);
     });
 
   svg.call(zoom).on("dblclick.zoom", null);
@@ -59,6 +65,10 @@ async function init(): Promise<void> {
   const detailPanel = mountDetailPanel(() => {
     ui.selected = null;
   });
+
+  // ── Tooltips ──────────────────────────────────────────────────────────────
+  mountNodeTooltip(svgEl);
+  mountCodeTooltip(svgEl);
 
   // ── Node handlers ─────────────────────────────────────────────────────────
   const hasChildrenFn = (node: PositionedNode): boolean => node.detail["_hasChildren"] === "true";
@@ -119,7 +129,16 @@ async function init(): Promise<void> {
     onExpand,
     onSelect,
     onTraceLinks,
-    hasChildrenFn
+    hasChildrenFn,
+    (node) => {
+      const code = node.detail.code as string[];
+      const importLines = Array.isArray(node.detail.importLines)
+        ? (node.detail.importLines as string[])
+        : undefined;
+      // Use node's SVG position as anchor — popup repositions on zoom/pan
+      const { w } = NODE_SIZES[node.type] ?? NODE_SIZES.module;
+      toggleCodeTooltip(node.id, code, node.path ?? node.id, node.x + w / 2, node.y, importLines);
+    }
   );
 
   // ── Search ────────────────────────────────────────────────────────────────
@@ -176,21 +195,47 @@ async function init(): Promise<void> {
       .selectAll<SVGGElement, PositionedNode>("g.node")
       .data(allNodes, (d) => d.id);
 
-    const entered = groups.enter().append("g").attr("class", "node");
+    // ── Exit: fade out then remove ────────────────────────────────────────
+    groups
+      .exit()
+      .transition()
+      .duration(140)
+      .ease(d3.easeQuadIn)
+      .style("opacity", "0")
+      .attr("transform", (d) => {
+        const pd = d as PositionedNode;
+        return `translate(${pd.x},${pd.y + 8})`;
+      })
+      .remove();
+
+    // ── Enter: init at offset position, invisible ─────────────────────────
+    const entered = groups
+      .enter()
+      .append("g")
+      .attr("class", "node")
+      .attr("transform", (d) => `translate(${d.x},${d.y - 10})`)
+      .style("opacity", "0");
     renderer.enter(entered);
 
     const merged = entered.merge(groups);
 
-    // Dim nodes that don't match search
-    if (ui.searchQuery) {
-      const matchIds = new Set(visibleNodes.map((n) => n.id));
-      merged.style("opacity", (d) => (matchIds.has(d.id) ? "1" : "0.15"));
-    } else {
-      merged.style("opacity", "1");
-    }
-
+    // ── Update content (labels, sizes, colors) ────────────────────────────
     renderer.update(merged);
-    groups.exit().remove();
+
+    // ── Search dim ────────────────────────────────────────────────────────
+    const targetOpacity = (d: PositionedNode): string => {
+      if (!ui.searchQuery) return "1";
+      const matchIds = new Set(visibleNodes.map((n) => n.id));
+      return matchIds.has(d.id) ? "1" : "0.15";
+    };
+
+    // ── Animate positions + opacity for all nodes ─────────────────────────
+    merged
+      .transition()
+      .duration(220)
+      .ease(d3.easeCubicOut)
+      .attr("transform", (d) => `translate(${d.x},${d.y})`)
+      .style("opacity", targetOpacity);
   }
 
   // ── Load initial data ─────────────────────────────────────────────────────

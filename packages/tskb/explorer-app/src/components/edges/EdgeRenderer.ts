@@ -9,6 +9,7 @@ export interface StructureLink {
   targetX: number;
   targetY: number;
   targetType: PositionedNode["type"];
+  ghost?: boolean;
 }
 
 /**
@@ -25,6 +26,7 @@ export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {
 
     const parentSize = NODE_SIZES[parent.type];
     const childSize = NODE_SIZES[node.type];
+    const isGhost = node.detail._ghost === "true";
 
     links.push({
       sourceX: parent.x + parentSize.w,
@@ -32,6 +34,7 @@ export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {
       targetX: node.x,
       targetY: node.y + childSize.h / 2,
       targetType: node.type,
+      ghost: isGhost,
     });
   }
 
@@ -54,9 +57,10 @@ export function renderStructureEdges(
     .append("path")
     .attr("class", "struct-link")
     .attr("fill", "none")
-    .attr("stroke", (d) => NODE_COLORS[d.targetType] + "66") // 40% opacity
     .attr("stroke-width", 1.5)
     .merge(paths)
+    .attr("stroke", (d) => NODE_COLORS[d.targetType] + (d.ghost ? "59" : "66")) // ghost: 35%, normal: 40%
+    .attr("stroke-dasharray", (d) => (d.ghost ? "4,3" : "none"))
     .attr("d", (d) => cubicH(d.sourceX, d.sourceY, d.targetX, d.targetY));
 
   paths.exit().remove();
@@ -80,14 +84,14 @@ export function renderLaneBands(
     color: string;
   }
 
-  const lanes: LaneBand[] = [{ label: "Structure", y: 0, h: layout.docsLaneY, color: "#0f172a" }];
+  const lanes: LaneBand[] = [{ label: "Structure", y: 0, h: layout.docsLaneY, color: "#f1f5f9" }];
 
   if (layout.docsNodes.length) {
     lanes.push({
       label: "Docs",
       y: layout.docsLaneY,
       h: layout.otherLaneY - layout.docsLaneY,
-      color: "#0c1220",
+      color: "#f8fafc",
     });
   }
 
@@ -96,7 +100,7 @@ export function renderLaneBands(
       label: "Terms / Flows",
       y: layout.otherLaneY,
       h: layout.totalHeight - layout.otherLaneY,
-      color: "#0f172a",
+      color: "#f1f5f9",
     });
   }
 
@@ -113,7 +117,7 @@ export function renderLaneBands(
     .attr("width", W)
     .attr("height", (d) => d.h)
     .attr("fill", (d) => d.color)
-    .attr("stroke", "#1e293b")
+    .attr("stroke", "#e2e8f0")
     .attr("stroke-width", 1);
 
   rects.exit().remove();
@@ -127,7 +131,7 @@ export function renderLaneBands(
     .attr("class", "lane-label")
     .attr("font-size", 10)
     .attr("font-weight", "600")
-    .attr("fill", "#334155")
+    .attr("fill", "#94a3b8")
     .attr("letter-spacing", "0.06em")
     .merge(labels)
     .attr("x", 14)

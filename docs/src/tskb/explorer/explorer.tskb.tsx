@@ -54,7 +54,7 @@ declare global {
       }>;
 
       "tskb.explorer.app.ui": Folder<{
-        desc: "UI shell components: global spinner, per-node spinner, and the sketched detail panel";
+        desc: "UI shell components: global spinner, per-node spinner, detail panel, node hover tooltip, and code preview popup";
         path: "packages/tskb/explorer-app/src/ui";
       }>;
     }
@@ -63,7 +63,7 @@ declare global {
 
     interface Modules {
       "explorer.transform": Module<{
-        desc: "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms) plus one FolderChunk per folder that has modules or sub-folders";
+        desc: "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms) plus one FolderChunk per folder that has modules or sub-folders. Also injects ghost ExplorerNodes for any .ts/.tsx files recorded in folder.children.files that are not declared as modules, making undeclared-but-existing files visible in the UI.";
         type: typeof import("packages/tskb/src/core/explorer/transform.js");
       }>;
 
@@ -85,7 +85,7 @@ declare global {
       // ── SPA modules (declared without type — browser DOM types not in docs build)
 
       "explorer.spa.main": Module<{
-        desc: "SPA entry point: creates D3 SVG canvas with zoom/pan, fetches meta.json, wires expand/select handlers, subscribes to store, and drives the render loop";
+        desc: "SPA entry point: creates D3 SVG canvas with zoom/pan, fetches meta.json, wires expand/select/trace handlers, subscribes to store, and drives the render loop. On every zoom event, propagates the D3 transform to both tooltip modules so they reposition to track their anchor nodes.";
         type: typeof import("packages/tskb/explorer-app/src/main.js");
       }>;
 
@@ -105,18 +105,38 @@ declare global {
       }>;
 
       "explorer.spa.lane-engine": Module<{
-        desc: "computeLayout(): builds a d3.hierarchy from visible structure nodes, runs d3.tree for left-to-right positioning, then lays docs and other nodes as horizontal lists below";
+        desc: "computeLayout(): builds a d3.hierarchy from visible structure nodes, runs d3.tree for left-to-right positioning, then lays docs and other nodes as horizontal lists below. Collapsed folders with _childCount > 0 inject up to 4 ghost placeholder nodes so the tree reserves space for their children.";
         type: typeof import("packages/tskb/explorer-app/src/layout/lane-engine.js");
       }>;
 
       "explorer.spa.node-base": Module<{
-        desc: "NodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with expand button and edge-count badge";
+        desc: "NodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with a <> code preview bubble (top-center) and a + expand bubble (right edge). Ghost nodes (detail._ghost = 'true') render as dashed transparent cards showing only their filename label. Tooltip anchor is the node's right-center SVG position.";
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/base.js");
       }>;
 
       "explorer.spa.edge-renderer": Module<{
-        desc: "buildStructureLinks() derives parent→child links from parentId; renderStructureEdges() draws cubic-bezier SVG paths; renderLaneBands() renders lane background bands with labels";
+        desc: "buildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels";
         type: typeof import("packages/tskb/explorer-app/src/components/edges/EdgeRenderer.js");
+      }>;
+
+      "explorer.spa.spinner": Module<{
+        desc: "Global and per-node spinner helpers: showGlobalSpinner/hideGlobalSpinner overlay a full-screen loader; showNodeSpinner/removeNodeSpinner attach a small SVG spinner next to a node while its chunk is loading";
+        type: typeof import("packages/tskb/explorer-app/src/ui/Spinner.js");
+      }>;
+
+      "explorer.spa.detail-panel": Module<{
+        desc: "Slide-in detail panel mounted in the DOM outside the SVG. Shows node id, type, description, path, and all detail fields (morphology, imports, signature). Opened by onSelect, closed by ESC or the × button.";
+        type: typeof import("packages/tskb/explorer-app/src/ui/DetailPanel.js");
+      }>;
+
+      "explorer.spa.node-tooltip": Module<{
+        desc: "Hover tooltip anchored to the node's right-center SVG position. Shows a coloured dot, node name, monospace path, and description. Receives updateNodeTooltipTransform() calls from main.ts on every zoom event so it repositions to track the node. Uses mouseover/mouseout bubbling with relatedTarget boundary guards to avoid flicker on child SVG elements.";
+        type: typeof import("packages/tskb/explorer-app/src/ui/NodeTooltip.js");
+      }>;
+
+      "explorer.spa.code-tooltip": Module<{
+        desc: "Toggle-based code preview popup for module nodes. Click the <> bubble to show/hide; clicking the same node again dismisses it; clicking outside also dismisses. Renders morphology lines with an inline TypeScript tokenizer (no runtime deps) for syntax highlighting, prepended by import lines with a blank-line separator.";
+        type: typeof import("packages/tskb/explorer-app/src/ui/CodeTooltip.js");
       }>;
     }
 
@@ -152,6 +172,7 @@ declare global {
       nodeComponent: Term<"Interface for rendering a node type in the D3 canvas: enter() appends SVG elements, update() repositions them, anchor() returns edge connection points, getSize() returns bounding box. Implemented by BaseNodeRenderer; override per type.">;
       lruChunkCache: Term<"Bounded LRU cache inside ChunkLoader (max 50 entries). Map insertion order is used for O(1) LRU: on get, entry is deleted and re-inserted; on set overflow, oldest key is evicted. Chunks are immutable so no invalidation is needed.">;
       explorerStaticExport: Term<"Self-contained static export produced by `tskb explore --export`. Contains the pre-built SPA (index.html + hashed JS chunks) and all graph chunk JSON files. Works offline via file:// because the SPA uses relative fetch paths.">;
+      ghostNode: Term<"A placeholder ExplorerNode with detail._ghost = 'true'. Ghost nodes represent filesystem files or unexpanded folder slots that are not declared in the knowledge graph. They render as dashed transparent cards with only a filename label, and their parent→child edges are dashed. Injected by transform.ts (from folder.children.files) and by lane-engine.ts (for collapsed folders with _childCount > 0).">;
     }
   }
 }
@@ -177,6 +198,10 @@ const StoreModule = ref as tskb.Modules["explorer.spa.store"];
 const LaneEngineModule = ref as tskb.Modules["explorer.spa.lane-engine"];
 const NodeBaseModule = ref as tskb.Modules["explorer.spa.node-base"];
 const EdgeRendererModule = ref as tskb.Modules["explorer.spa.edge-renderer"];
+const SpinnerModule = ref as tskb.Modules["explorer.spa.spinner"];
+const DetailPanelModule = ref as tskb.Modules["explorer.spa.detail-panel"];
+const NodeTooltipModule = ref as tskb.Modules["explorer.spa.node-tooltip"];
+const CodeTooltipModule = ref as tskb.Modules["explorer.spa.code-tooltip"];
 
 const TransformGraphExport = ref as tskb.Exports["explorer.transformGraph"];
 const ServeExplorerExport = ref as tskb.Exports["explorer.serveExplorer"];
@@ -188,6 +213,7 @@ const LaneTerm = ref as tskb.Terms["explorerLane"];
 const NodeComponentTerm = ref as tskb.Terms["nodeComponent"];
 const LruCacheTerm = ref as tskb.Terms["lruChunkCache"];
 const StaticExportTerm = ref as tskb.Terms["explorerStaticExport"];
+const GhostNodeTerm = ref as tskb.Terms["ghostNode"];
 
 const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
 const CliBuildExport = ref as tskb.Exports["cli.build"];
@@ -293,13 +319,31 @@ export default (
     <P>
       {NodeBaseModule} defines the {NodeComponentTerm} interface and <code>BaseNodeRenderer</code> —
       the default renderer for all node types. Each node is an SVG <code>&lt;g&gt;</code> containing
-      a rounded-rect card, type icon, label, description, edge-count badge, and an optional expand
-      button. Subclass <code>BaseNodeRenderer</code> and register in{" "}
-      <code>components/nodes/index.ts</code> to customise rendering per type.
+      a rounded-rect card, type icon, label, description, edge-count badge, a <code>&lt;&gt;</code>{" "}
+      code preview bubble (top-center), and a <code>+</code> expand bubble (right edge).{" "}
+      {GhostNodeTerm}s render as dashed transparent placeholders showing only their filename — used
+      to hint at filesystem files not yet declared in the graph.
     </P>
     <P>
       {EdgeRendererModule} derives parent→child links from <code>parentId</code> fields and draws
-      them as horizontal cubic-bezier SVG paths. It also renders the lane background bands.
+      them as horizontal cubic-bezier SVG paths. Ghost links render with a dashed stroke and reduced
+      opacity. It also renders the lane background bands.
+    </P>
+
+    <H3>UI shell</H3>
+    <P>
+      {SpinnerModule} provides a full-screen global spinner (shown while meta.json loads) and a
+      per-node inline spinner (shown while a folder chunk is fetching).
+    </P>
+    <P>
+      {DetailPanelModule} is a slide-in panel mounted outside the SVG. It shows all fields of the
+      selected node and is opened by <code>onSelect</code>, closed by ESC or the × button.
+    </P>
+    <P>
+      {NodeTooltipModule} appears on hover, anchored to the node's right-center SVG position.{" "}
+      {CodeTooltipModule} is a click-toggled code preview popup anchored to the node's top-center
+      SVG position. Both receive <code>updateXxxTransform()</code> calls from {MainModule} on every
+      D3 zoom event so they reposition to track their anchor nodes as the canvas pans and zooms.
     </P>
 
     <Relation from={NodeBaseModule} to={LaneEngineModule} label="reads NODE_SIZES from" />
@@ -307,6 +351,10 @@ export default (
     <Relation from={MainModule} to={LaneEngineModule} label="calls computeLayout on each render" />
     <Relation from={MainModule} to={NodeBaseModule} label="calls enter/update on node selections" />
     <Relation from={MainModule} to={EdgeRendererModule} label="calls renderStructureEdges" />
+    <Relation from={MainModule} to={NodeTooltipModule} label="propagates zoom transform to" />
+    <Relation from={MainModule} to={CodeTooltipModule} label="propagates zoom transform to" />
+    <Relation from={NodeBaseModule} to={NodeTooltipModule} label="triggers show/hide on hover" />
+    <Relation from={NodeBaseModule} to={CodeTooltipModule} label="triggers toggle on <> click" />
 
     <H2>Build integration</H2>
     <P>
