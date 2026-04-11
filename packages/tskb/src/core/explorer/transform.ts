@@ -64,365 +64,432 @@ export interface ExplorerChunks {
 }
 
 export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {
-  // Build edge lookup helpers
-  const edgesByFrom = groupEdges(graph.edges, "from");
-  const edgesByTo = groupEdges(graph.edges, "to");
+  return new GraphToExplorerTransformer(graph).transform();
+}
 
-  // Helper: get parent folder for a module/export via belongs-to
-  const parentOf = (id: string): string | undefined =>
-    edgesByFrom.get(id)?.find((e) => e.type === "belongs-to")?.to;
+// ─── Transformer class ────────────────────────────────────────────────────────
 
-  // ── Root node ──────────────────────────────────────────────────────────
-  const rootRaw = graph.nodes.folders[ROOT_FOLDER_NAME];
-  const root = rootRaw
-    ? toExplorerNode(rootRaw.id, "folder", rootRaw.desc, {
-        path: rootRaw.path,
-        edgeCount: rootRaw.edgeCount ?? 0,
-      })
-    : makeFallbackRoot();
+class GraphToExplorerTransformer {
+  private readonly graph: KnowledgeGraph;
+  /** All edges indexed by their source node id */
+  private readonly edgesBySource: Map<string, GraphEdge[]>;
+  /** All edges indexed by their target node id */
+  private readonly edgesByTarget: Map<string, GraphEdge[]>;
+  private readonly folderChunks = new Map<string, FolderChunk>();
 
-  // ── Top folders (direct children of root via `contains`) ──────────────
-  const topFolderIds = new Set(
-    (edgesByFrom.get(ROOT_FOLDER_NAME) ?? []).filter((e) => e.type === "contains").map((e) => e.to)
-  );
+  constructor(graph: KnowledgeGraph) {
+    this.graph = graph;
+    this.edgesBySource = groupEdgesByKey(graph.edges, "from");
+    this.edgesByTarget = groupEdgesByKey(graph.edges, "to");
+  }
 
-  const topFolders: ExplorerNode[] = [];
-  for (const id of topFolderIds) {
-    const f = graph.nodes.folders[id];
-    if (!f) continue;
-    // Count how many modules belong to this folder (transitively) — proxy for childCount
-    const moduleCount = countModulesInFolder(id, graph, edgesByTo);
-    const directModules = (edgesByTo.get(id) ?? []).filter(
-      (e) => e.type === "belongs-to" && graph.nodes.modules[e.from]
-    ).length;
-    const directSubfolders = (edgesByFrom.get(id) ?? []).filter(
-      (e) => e.type === "contains" && graph.nodes.folders[e.to]
-    ).length;
-    topFolders.push(
-      toExplorerNode(f.id, "folder", f.desc, {
-        path: f.path,
-        parentId: ROOT_FOLDER_NAME,
-        edgeCount: f.edgeCount ?? 0,
-        detail: {
-          _hasChildren: moduleCount > 0 ? "true" : "false",
-          _childCount: String(directModules + directSubfolders),
-        },
+  transform(): ExplorerChunks {
+    const root = this.buildRootNode();
+    const topFolders = this.buildTopFolderNodes();
+    const docs = this.buildDocNodes();
+    const flows = this.buildFlowNodes();
+    const terms = this.buildTermNodes();
+    const externals = this.buildExternalNodes();
+    const crossEdges = this.buildCrossEdges();
+
+    this.buildAllFolderChunksRecursively(ROOT_FOLDER_NAME);
+    this.injectGhostNodes();
+    this.patchFolderChildCounts(topFolders);
+
+    return {
+      meta: {
+        kind: "meta",
+        metadata: this.graph.metadata,
+        root,
+        topFolders,
+        docs,
+        flows,
+        terms,
+        externals,
+        crossEdges,
+      },
+      folders: this.folderChunks,
+    };
+  }
+
+  // ── Meta chunk builders ────────────────────────────────────────────────────
+
+  private buildRootNode(): ExplorerNode {
+    const rawRoot = this.graph.nodes.folders[ROOT_FOLDER_NAME];
+    if (!rawRoot) return makeFallbackRoot();
+    return toExplorerNode(rawRoot.id, "folder", rawRoot.desc, {
+      path: rawRoot.path,
+      edgeCount: rawRoot.edgeCount ?? 0,
+    });
+  }
+
+  private buildTopFolderNodes(): ExplorerNode[] {
+    const rootOutgoingEdges = this.edgesBySource.get(ROOT_FOLDER_NAME) ?? [];
+    const topFolderIds = rootOutgoingEdges.filter((e) => e.type === "contains").map((e) => e.to);
+
+    return topFolderIds.flatMap((folderId) => {
+      const folder = this.graph.nodes.folders[folderId];
+      if (!folder) return [];
+
+      const directModuleCount = this.countDirectModules(folderId);
+      const directSubfolderCount = this.countDirectSubfolders(folderId);
+      const hasModulesAnywhere = this.countDirectModules(folderId) > 0;
+
+      return [
+        toExplorerNode(folder.id, "folder", folder.desc, {
+          path: folder.path,
+          parentId: ROOT_FOLDER_NAME,
+          edgeCount: folder.edgeCount ?? 0,
+          detail: {
+            _hasChildren: hasModulesAnywhere ? "true" : "false",
+            _childCount: String(directModuleCount + directSubfolderCount),
+          },
+        }),
+      ];
+    });
+  }
+
+  private buildDocNodes(): ExplorerNode[] {
+    return Object.values(this.graph.nodes.docs).map((doc) =>
+      toExplorerNode(doc.id, "doc", doc.explains, {
+        path: doc.filePath,
+        priority: doc.priority as ExplorerNode["priority"],
+        edgeCount: doc.edgeCount ?? 0,
+        detail: { format: doc.format },
       })
     );
   }
 
-  // ── Docs ──────────────────────────────────────────────────────────────
-  const docs: ExplorerNode[] = Object.values(graph.nodes.docs).map((d) =>
-    toExplorerNode(d.id, "doc", d.explains, {
-      path: d.filePath,
-      priority: d.priority as ExplorerNode["priority"],
-      edgeCount: d.edgeCount ?? 0,
-      detail: { format: d.format },
-    })
-  );
-
-  // ── Flows ──────────────────────────────────────────────────────────────
-  const flows: ExplorerNode[] = Object.values(graph.nodes.flows).map((f) =>
-    toExplorerNode(f.id, "flow", f.desc, {
-      priority: f.priority as ExplorerNode["priority"],
-      edgeCount: f.edgeCount ?? 0,
-      detail: { steps: String(f.steps.length) },
-    })
-  );
-
-  // ── Terms ──────────────────────────────────────────────────────────────
-  const terms: ExplorerNode[] = Object.values(graph.nodes.terms).map((t) =>
-    toExplorerNode(t.id, "term", t.desc, { edgeCount: t.edgeCount ?? 0 })
-  );
-
-  // ── Externals ─────────────────────────────────────────────────────────
-  const externals: ExplorerNode[] = Object.values(graph.nodes.externals).map((e) =>
-    toExplorerNode(e.id, "external", e.desc, {
-      edgeCount: e.edgeCount ?? 0,
-      detail: e.metadata,
-    })
-  );
-
-  // ── Cross-lane edges (doc/flow → code references) ─────────────────────
-  const crossEdges: ExplorerLink[] = graph.edges
-    .filter((e) => e.type === "references")
-    .map((e) => ({ source: e.from, target: e.to, type: "references" as const }));
-
-  // ── Folder chunks — build for ALL folders recursively ─────────────────
-  // (not just topFolderIds; sub-folders like tskb.runtime also need chunks)
-  const folderChunks = new Map<string, FolderChunk>();
-  buildAllFolderChunks(ROOT_FOLDER_NAME, graph, edgesByFrom, edgesByTo, folderChunks);
-
-  // ── Ghost nodes from folder.children (files + folders) ───────────────
-  // For every folder whose scanner-recorded children include items not
-  // already in the graph, inject ghost ExplorerNodes so they appear in the UI.
-
-  // Build a path→folderId reverse map so we can detect graph-known folders by path.
-  const folderPathToId = new Map<string, string>();
-  for (const [id, f] of Object.entries(graph.nodes.folders)) {
-    if (f.path) folderPathToId.set(f.path.replace(/\\/g, "/"), id);
+  private buildFlowNodes(): ExplorerNode[] {
+    return Object.values(this.graph.nodes.flows).map((flow) =>
+      toExplorerNode(flow.id, "flow", flow.desc, {
+        priority: flow.priority as ExplorerNode["priority"],
+        edgeCount: flow.edgeCount ?? 0,
+        detail: { steps: String(flow.steps.length) },
+      })
+    );
   }
 
-  for (const [folderId, folder] of Object.entries(graph.nodes.folders)) {
-    if (!folder.path) continue;
-    const childFiles = folder.children?.files ?? [];
-    const childFolders = folder.children?.folders ?? [];
-    if (!childFiles.length && !childFolders.length) continue;
+  private buildTermNodes(): ExplorerNode[] {
+    return Object.values(this.graph.nodes.terms).map((term) =>
+      toExplorerNode(term.id, "term", term.desc, { edgeCount: term.edgeCount ?? 0 })
+    );
+  }
 
-    const folderBase = folder.path.replace(/\\/g, "/");
-    const chunk = folderChunks.get(folderId);
+  private buildExternalNodes(): ExplorerNode[] {
+    return Object.values(this.graph.nodes.externals).map((external) =>
+      toExplorerNode(external.id, "external", external.desc, {
+        edgeCount: external.edgeCount ?? 0,
+        detail: external.metadata,
+      })
+    );
+  }
 
-    // ── Ghost modules (undeclared .ts/.tsx files) ──────────────────────
-    const existingModulePaths = new Set(chunk?.modules.map((m) => m.path) ?? []);
-    const ghostModules: ExplorerNode[] = [];
+  private buildCrossEdges(): ExplorerLink[] {
+    return this.graph.edges
+      .filter((e) => e.type === "references")
+      .map((e) => ({ source: e.from, target: e.to, type: "references" as const }));
+  }
 
-    for (const { name } of childFiles) {
-      if (!name.endsWith(".ts") && !name.endsWith(".tsx")) continue;
-      if (name.endsWith(".d.ts")) continue;
-      const relPath = `${folderBase}/${name}`;
-      if (!existingModulePaths.has(relPath)) {
-        ghostModules.push({
-          id: relPath,
-          type: "module",
-          label: name.replace(/\.tsx?$/, ""),
-          description: "",
-          path: relPath,
-          parentId: folderId,
-          edgeCount: 0,
-          detail: { _ghost: "true", _hasChildren: "false" },
+  // ── Folder chunk builders ──────────────────────────────────────────────────
+
+  /**
+   * Recursively build a FolderChunk for every folder reachable from `parentId`.
+   * Each chunk contains direct modules (+ their exports) and direct sub-folders.
+   * Folders with neither are skipped (but still recursed into).
+   */
+  private buildAllFolderChunksRecursively(parentId: string): void {
+    const childFolderIds = (this.edgesBySource.get(parentId) ?? [])
+      .filter((e) => e.type === "contains" && this.graph.nodes.folders[e.to])
+      .map((e) => e.to);
+
+    for (const folderId of childFolderIds) {
+      const directModuleIds = this.getDirectModuleIds(folderId);
+      const directSubfolderIds = this.getDirectSubfolderIds(folderId);
+
+      if (directModuleIds.length === 0 && directSubfolderIds.length === 0) {
+        // Folder is empty — skip chunk creation but keep recursing
+        this.buildAllFolderChunksRecursively(folderId);
+        continue;
+      }
+
+      const moduleIdSet = new Set(directModuleIds);
+
+      const subfolders = directSubfolderIds.map((sfId) => this.buildSubfolderNode(sfId, folderId));
+      const modules = directModuleIds.map((moduleId) => this.buildModuleNode(moduleId, folderId));
+      const exports = directModuleIds.flatMap((moduleId) => this.buildExportNodes(moduleId));
+      const { internalEdges, externalEdges } = this.buildImportEdges(moduleIdSet);
+
+      this.folderChunks.set(folderId, {
+        kind: "folder",
+        folderId,
+        subfolders,
+        modules,
+        exports,
+        internalEdges,
+        externalEdges,
+      });
+
+      this.buildAllFolderChunksRecursively(folderId);
+    }
+  }
+
+  private buildSubfolderNode(subfolderId: string, parentFolderId: string): ExplorerNode {
+    const subfolder = this.graph.nodes.folders[subfolderId]!;
+    const directModuleCount = this.countDirectModules(subfolderId);
+    const directSubfolderCount = this.countDirectSubfolders(subfolderId);
+    const hasContent = directModuleCount > 0 || directSubfolderCount > 0;
+
+    return toExplorerNode(subfolder.id, "folder", subfolder.desc, {
+      path: subfolder.path,
+      parentId: parentFolderId,
+      edgeCount: subfolder.edgeCount ?? 0,
+      detail: {
+        _hasChildren: hasContent ? "true" : "false",
+        _childCount: String(directModuleCount + directSubfolderCount),
+      },
+    });
+  }
+
+  private buildModuleNode(moduleId: string, parentFolderId: string): ExplorerNode {
+    const module = this.graph.nodes.modules[moduleId]!;
+    const exportCount = (this.edgesByTarget.get(moduleId) ?? []).filter(
+      (e) => e.type === "belongs-to" && this.graph.nodes.exports[e.from]
+    ).length;
+
+    return toExplorerNode(module.id, "module", module.desc, {
+      path: module.resolvedPath,
+      parentId: parentFolderId,
+      edgeCount: module.edgeCount ?? 0,
+      detail: {
+        _hasChildren: exportCount > 0 ? "true" : "false",
+        ...(module.morphologySummary ? { morphology: module.morphologySummary } : {}),
+        ...(module.importsSummary ? { imports: module.importsSummary } : {}),
+        ...(module.morphology?.length ? { code: module.morphology } : {}),
+        ...(module.imports?.length ? { importLines: module.imports } : {}),
+      },
+    });
+  }
+
+  private buildExportNodes(moduleId: string): ExplorerNode[] {
+    return (this.edgesByTarget.get(moduleId) ?? [])
+      .filter((e) => e.type === "belongs-to" && this.graph.nodes.exports[e.from])
+      .map((e) => {
+        const exportNode = this.graph.nodes.exports[e.from]!;
+        return toExplorerNode(exportNode.id, "export", exportNode.desc, {
+          path: exportNode.resolvedPath,
+          parentId: moduleId,
+          edgeCount: exportNode.edgeCount ?? 0,
+          detail: {
+            ...(exportNode.typeSignature ? { signature: exportNode.typeSignature } : {}),
+            ...(exportNode.morphologySummary ? { morphology: exportNode.morphologySummary } : {}),
+          },
         });
+      });
+  }
+
+  private buildImportEdges(moduleIdSet: Set<string>): {
+    internalEdges: ExplorerLink[];
+    externalEdges: ExplorerLink[];
+  } {
+    const importEdges = this.graph.edges.filter((e) => e.type === "imports");
+
+    const internalEdges = importEdges
+      .filter((e) => moduleIdSet.has(e.from) && moduleIdSet.has(e.to))
+      .map((e) => ({ source: e.from, target: e.to, type: "imports" as const }));
+
+    const externalEdges = importEdges
+      .filter((e) => moduleIdSet.has(e.from) !== moduleIdSet.has(e.to))
+      .map((e) => ({ source: e.from, target: e.to, type: "imports" as const }));
+
+    return { internalEdges, externalEdges };
+  }
+
+  // ── Ghost node injection ───────────────────────────────────────────────────
+
+  /**
+   * For every folder whose scanner-recorded children include items not already
+   * in the graph, inject ghost ExplorerNodes so they appear in the UI.
+   */
+  private injectGhostNodes(): void {
+    const folderPathToId = this.buildFolderPathIndex();
+
+    for (const [folderId, folder] of Object.entries(this.graph.nodes.folders)) {
+      if (!folder.path) continue;
+
+      const childFiles = folder.children?.files ?? [];
+      const childFolders = folder.children?.folders ?? [];
+      if (!childFiles.length && !childFolders.length) continue;
+
+      const folderPath = folder.path.replace(/\\/g, "/");
+      const chunk = this.folderChunks.get(folderId);
+
+      const ghostModules = this.buildGhostModuleNodes(childFiles, folderPath, folderId, chunk);
+      const ghostSubfolders = this.buildGhostSubfolderNodes(
+        childFolders,
+        folderPath,
+        folderId,
+        chunk,
+        folderPathToId
+      );
+
+      if (ghostModules.length === 0 && ghostSubfolders.length === 0) continue;
+
+      if (!chunk) {
+        this.folderChunks.set(folderId, {
+          kind: "folder",
+          folderId,
+          subfolders: ghostSubfolders,
+          modules: ghostModules,
+          exports: [],
+          internalEdges: [],
+          externalEdges: [],
+        });
+      } else {
+        chunk.modules.push(...ghostModules);
+        chunk.subfolders.push(...ghostSubfolders);
       }
     }
+  }
 
-    // ── Ghost folders (undeclared child directories) ───────────────────
-    const existingSubfolderPaths = new Set(
+  private buildGhostModuleNodes(
+    childFiles: { name: string }[],
+    folderPath: string,
+    parentFolderId: string,
+    chunk: FolderChunk | undefined
+  ): ExplorerNode[] {
+    const knownModulePaths = new Set(chunk?.modules.map((m) => m.path) ?? []);
+
+    return childFiles
+      .filter(({ name }) => {
+        if (!name.endsWith(".ts") && !name.endsWith(".tsx")) return false;
+        if (name.endsWith(".d.ts")) return false;
+        return !knownModulePaths.has(`${folderPath}/${name}`);
+      })
+      .map(({ name }) => ({
+        id: `${folderPath}/${name}`,
+        type: "module" as const,
+        label: name.replace(/\.tsx?$/, ""),
+        description: "",
+        path: `${folderPath}/${name}`,
+        parentId: parentFolderId,
+        edgeCount: 0,
+        detail: { _ghost: "true", _hasChildren: "false" },
+      }));
+  }
+
+  private buildGhostSubfolderNodes(
+    childFolders: { name: string }[],
+    folderPath: string,
+    parentFolderId: string,
+    chunk: FolderChunk | undefined,
+    folderPathToId: Map<string, string>
+  ): ExplorerNode[] {
+    const knownSubfolderPaths = new Set(
       (chunk?.subfolders ?? [])
         .map((sf) => sf.path?.replace(/\\/g, "/"))
         .filter(Boolean) as string[]
     );
-    const ghostSubfolders: ExplorerNode[] = [];
 
-    for (const { name } of childFolders) {
-      const relPath = `${folderBase}/${name}`;
-
-      // Skip if already in the graph as a known folder
-      if (folderPathToId.has(relPath)) continue;
-      // Skip if already in the chunk's subfolders
-      if (existingSubfolderPaths.has(relPath)) continue;
-      // Skip transparent intermediaries: a folder whose declared sub-folders
-      // are all children of this path (e.g. "src" when components/graph/etc exist)
-      const declaredSubfolders = (chunk?.subfolders ?? []).filter((sf) =>
-        sf.path?.replace(/\\/g, "/").startsWith(relPath + "/")
-      );
-      if (declaredSubfolders.length > 0) continue;
-
-      ghostSubfolders.push({
-        id: relPath,
-        type: "folder",
+    return childFolders
+      .filter(({ name }) => {
+        const childPath = `${folderPath}/${name}`;
+        // Skip if it's already a known graph folder
+        if (folderPathToId.has(childPath)) return false;
+        // Skip if already in the chunk's subfolders
+        if (knownSubfolderPaths.has(childPath)) return false;
+        // Skip transparent intermediaries: a folder whose declared sub-folders
+        // are already children of this path (e.g. "src" when components/graph/etc exist)
+        const hasDeclaredDescendants = (chunk?.subfolders ?? []).some((sf) =>
+          sf.path?.replace(/\\/g, "/").startsWith(childPath + "/")
+        );
+        return !hasDeclaredDescendants;
+      })
+      .map(({ name }) => ({
+        id: `${folderPath}/${name}`,
+        type: "folder" as const,
         label: name,
         description: "",
-        path: relPath,
-        parentId: folderId,
+        path: `${folderPath}/${name}`,
+        parentId: parentFolderId,
         edgeCount: 0,
         detail: { _ghost: "true", _hasChildren: "false", _childCount: "0" },
-      });
+      }));
+  }
+
+  private buildFolderPathIndex(): Map<string, string> {
+    const folderPathToId = new Map<string, string>();
+    for (const [id, folder] of Object.entries(this.graph.nodes.folders)) {
+      if (folder.path) folderPathToId.set(folder.path.replace(/\\/g, "/"), id);
     }
+    return folderPathToId;
+  }
 
-    if (ghostModules.length === 0 && ghostSubfolders.length === 0) continue;
+  // ── Post-processing ────────────────────────────────────────────────────────
 
-    if (!chunk) {
-      folderChunks.set(folderId, {
-        kind: "folder",
-        folderId,
-        subfolders: ghostSubfolders,
-        modules: ghostModules,
-        exports: [],
-        internalEdges: [],
-        externalEdges: [],
-      });
-    } else {
-      chunk.modules.push(...ghostModules);
-      chunk.subfolders.push(...ghostSubfolders);
+  /**
+   * Update `_hasChildren` and `_childCount` on all folder nodes after ghost
+   * injection is complete, so counts are accurate.
+   */
+  private patchFolderChildCounts(topFolders: ExplorerNode[]): void {
+    for (const folder of topFolders) {
+      this.patchFolderNodeDetail(folder);
+    }
+    for (const chunk of this.folderChunks.values()) {
+      for (const subfolder of chunk.subfolders) {
+        this.patchFolderNodeDetail(subfolder);
+      }
+    }
+    // Top folders without a chunk have no children
+    for (const folder of topFolders) {
+      if (!this.folderChunks.has(folder.id)) {
+        folder.detail["_hasChildren"] = "false";
+      }
     }
   }
 
-  // ── Patch _hasChildren / _childCount on all folder ExplorerNode refs ──
-  // Run after all ghost injection so counts are final.
-  function patchFolderNode(node: ExplorerNode): void {
+  private patchFolderNodeDetail(node: ExplorerNode): void {
     if (node.type !== "folder") return;
-    const ch = folderChunks.get(node.id);
-    if (!ch) return;
+    const chunk = this.folderChunks.get(node.id);
+    if (!chunk) return;
     node.detail["_hasChildren"] = "true";
-    node.detail["_childCount"] = String(ch.modules.length + ch.subfolders.length);
-  }
-  for (const node of topFolders) patchFolderNode(node);
-  for (const [, ch] of folderChunks) {
-    for (const sf of ch.subfolders) patchFolderNode(sf);
+    node.detail["_childCount"] = String(chunk.modules.length + chunk.subfolders.length);
   }
 
-  // Fix topFolders _hasChildren for folders without a chunk
-  for (const folder of topFolders) {
-    if (!folderChunks.has(folder.id)) folder.detail["_hasChildren"] = "false";
-  }
+  // ── Edge/node query helpers ────────────────────────────────────────────────
 
-  return {
-    meta: {
-      kind: "meta",
-      metadata: graph.metadata,
-      root,
-      topFolders,
-      docs,
-      flows,
-      terms,
-      externals,
-      crossEdges,
-    },
-    folders: folderChunks,
-  };
-}
-
-// ─── Chunk builder ────────────────────────────────────────────────────────────
-
-/**
- * Recursively build a FolderChunk for every folder reachable from `parentId`.
- * Each chunk contains direct modules (+ their exports) and direct sub-folders.
- * Folders with neither are skipped.
- */
-function buildAllFolderChunks(
-  parentId: string,
-  graph: KnowledgeGraph,
-  edgesByFrom: Map<string, GraphEdge[]>,
-  edgesByTo: Map<string, GraphEdge[]>,
-  out: Map<string, FolderChunk>
-): void {
-  const childFolderIds = (edgesByFrom.get(parentId) ?? [])
-    .filter((e) => e.type === "contains" && graph.nodes.folders[e.to])
-    .map((e) => e.to);
-
-  for (const folderId of childFolderIds) {
-    // Direct modules
-    const moduleIds = (edgesByTo.get(folderId) ?? [])
-      .filter((e) => e.type === "belongs-to" && graph.nodes.modules[e.from])
+  private getDirectModuleIds(folderId: string): string[] {
+    return (this.edgesByTarget.get(folderId) ?? [])
+      .filter((e) => e.type === "belongs-to" && this.graph.nodes.modules[e.from])
       .map((e) => e.from);
+  }
 
-    const moduleIdSet = new Set(moduleIds);
-
-    // Direct sub-folders
-    const subfolderIds = (edgesByFrom.get(folderId) ?? [])
-      .filter((e) => e.type === "contains" && graph.nodes.folders[e.to])
+  private getDirectSubfolderIds(folderId: string): string[] {
+    return (this.edgesBySource.get(folderId) ?? [])
+      .filter((e) => e.type === "contains" && this.graph.nodes.folders[e.to])
       .map((e) => e.to);
+  }
 
-    if (moduleIds.length === 0 && subfolderIds.length === 0) {
-      // Still recurse into empty folders
-      buildAllFolderChunks(folderId, graph, edgesByFrom, edgesByTo, out);
-      continue;
-    }
+  private countDirectModules(folderId: string): number {
+    return this.getDirectModuleIds(folderId).length;
+  }
 
-    const subfolders: ExplorerNode[] = subfolderIds.map((sfId) => {
-      const sf = graph.nodes.folders[sfId]!;
-      const sfDirectModules = (edgesByTo.get(sfId) ?? []).filter(
-        (e) => e.type === "belongs-to" && graph.nodes.modules[e.from]
-      ).length;
-      const sfDirectSubfolders = (edgesByFrom.get(sfId) ?? []).filter(
-        (e) => e.type === "contains" && graph.nodes.folders[e.to]
-      ).length;
-      const sfHasContent = sfDirectModules > 0 || sfDirectSubfolders > 0;
-      return toExplorerNode(sf.id, "folder", sf.desc, {
-        path: sf.path,
-        parentId: folderId,
-        edgeCount: sf.edgeCount ?? 0,
-        detail: {
-          _hasChildren: sfHasContent ? "true" : "false",
-          _childCount: String(sfDirectModules + sfDirectSubfolders),
-        },
-      });
-    });
-
-    const modules: ExplorerNode[] = moduleIds.map((mid) => {
-      const m = graph.nodes.modules[mid]!;
-      const exportCount = (edgesByTo.get(mid) ?? []).filter(
-        (e) => e.type === "belongs-to" && graph.nodes.exports[e.from]
-      ).length;
-      return toExplorerNode(m.id, "module", m.desc, {
-        path: m.resolvedPath,
-        parentId: folderId,
-        edgeCount: m.edgeCount ?? 0,
-        detail: {
-          _hasChildren: exportCount > 0 ? "true" : "false",
-          ...(m.morphologySummary ? { morphology: m.morphologySummary } : {}),
-          ...(m.importsSummary ? { imports: m.importsSummary } : {}),
-          ...(m.morphology?.length ? { code: m.morphology } : {}),
-          ...(m.imports?.length ? { importLines: m.imports } : {}),
-        },
-      });
-    });
-
-    const exports: ExplorerNode[] = moduleIds.flatMap((mid) =>
-      (edgesByTo.get(mid) ?? [])
-        .filter((e) => e.type === "belongs-to" && graph.nodes.exports[e.from])
-        .map((e) => {
-          const ex = graph.nodes.exports[e.from]!;
-          return toExplorerNode(ex.id, "export", ex.desc, {
-            path: ex.resolvedPath,
-            parentId: mid,
-            edgeCount: ex.edgeCount ?? 0,
-            detail: {
-              ...(ex.typeSignature ? { signature: ex.typeSignature } : {}),
-              ...(ex.morphologySummary ? { morphology: ex.morphologySummary } : {}),
-            },
-          });
-        })
-    );
-
-    const internalEdges: ExplorerLink[] = graph.edges
-      .filter((e) => e.type === "imports" && moduleIdSet.has(e.from) && moduleIdSet.has(e.to))
-      .map((e) => ({ source: e.from, target: e.to, type: "imports" as const }));
-
-    const externalEdges: ExplorerLink[] = graph.edges
-      .filter(
-        (e) =>
-          e.type === "imports" &&
-          ((moduleIdSet.has(e.from) && !moduleIdSet.has(e.to)) ||
-            (!moduleIdSet.has(e.from) && moduleIdSet.has(e.to)))
-      )
-      .map((e) => ({ source: e.from, target: e.to, type: "imports" as const }));
-
-    out.set(folderId, {
-      kind: "folder",
-      folderId,
-      subfolders,
-      modules,
-      exports,
-      internalEdges,
-      externalEdges,
-    });
-
-    // Recurse into sub-folders
-    buildAllFolderChunks(folderId, graph, edgesByFrom, edgesByTo, out);
+  private countDirectSubfolders(folderId: string): number {
+    return this.getDirectSubfolderIds(folderId).length;
   }
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function groupEdges(edges: GraphEdge[], key: "from" | "to"): Map<string, GraphEdge[]> {
-  const map = new Map<string, GraphEdge[]>();
-  for (const e of edges) {
-    const k = e[key];
-    const arr = map.get(k);
-    if (arr) arr.push(e);
-    else map.set(k, [e]);
+function groupEdgesByKey(edges: GraphEdge[], key: "from" | "to"): Map<string, GraphEdge[]> {
+  const index = new Map<string, GraphEdge[]>();
+  for (const edge of edges) {
+    const nodeId = edge[key];
+    const bucket = index.get(nodeId);
+    if (bucket) bucket.push(edge);
+    else index.set(nodeId, [edge]);
   }
-  return map;
-}
-
-function countModulesInFolder(
-  folderId: string,
-  graph: KnowledgeGraph,
-  edgesByTo: Map<string, GraphEdge[]>
-): number {
-  return (edgesByTo.get(folderId) ?? []).filter(
-    (e) => e.type === "belongs-to" && graph.nodes.modules[e.from]
-  ).length;
+  return index;
 }
 
 interface NodeOpts {

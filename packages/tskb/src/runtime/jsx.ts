@@ -84,7 +84,9 @@ export type DocPriority = "essential" | "constraint" | "supplementary";
  * Documentation container - just renders children
  */
 export function Doc({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   explains,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   priority,
   children,
 }: {
@@ -209,6 +211,7 @@ export function Adr({
 export function Flow({
   name,
   desc,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   priority,
   children,
 }: {
@@ -229,6 +232,8 @@ export function Flow({
  * Usage:
  *   <Step node={AuthService} label="Validates credentials" />
  */
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function Step({ node, label }: { node: AnyNodeRef; label?: string }): any {
   return `<step${label ? ` label="${label}"` : ""} />`;
 }

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { findGraphFile } from "../utils/graph-finder.js";
-import { info, error } from "../utils/logger.js";
+import { info } from "../utils/logger.js";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
 
 export interface ExploreOptions {

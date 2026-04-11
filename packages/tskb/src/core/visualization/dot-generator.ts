@@ -1,4 +1,4 @@
-import type { KnowledgeGraph, FolderNode } from "../graph/types.js";
+import type { KnowledgeGraph } from "../graph/types.js";
 
 /**
  * Generate a Graphviz DOT file from a knowledge graph.

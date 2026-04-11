@@ -1,17 +1,4 @@
-import {
-  type Folder,
-  type Module,
-  type Export,
-  Doc,
-  H1,
-  ref,
-  P,
-  H2,
-  List,
-  Li,
-  Snippet,
-  Relation,
-} from "tskb";
+import { type Module, type Export, Doc, H1, ref, P, H2, List, Li, Relation } from "tskb";
 
 declare global {
   namespace tskb {
@@ -139,9 +126,7 @@ export default (
       is type-safe and supports any registered Folder, Module, Term, or Export. The optional{" "}
       <b>label</b> prop allows you to describe the relationship (e.g., "depends on").
     </P>
-    <Snippet
-      code={() => <Relation from={JsxModule} to={ExampleTerm} label="runtime describes graph" />}
-    />
+    <Relation from={JsxModule} to={ExampleTerm} label="runtime describes graph" />
     <P>
       This will emit a <b>related-to</b> edge from the <b>runtime.jsx</b> module to the <b>Graph</b>{" "}
       term in the TSKB graph, with the label "runtime describes graph".

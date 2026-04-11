@@ -7,7 +7,6 @@ import {
   getNodeEdges,
   findReferencingDocs,
   findAllNodesById,
-  type DocRef,
   type ResolvedVia,
 } from "../utils/resolve-node.js";
 

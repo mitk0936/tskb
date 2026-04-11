@@ -15,8 +15,6 @@
  * typed with tskb's ReactNode — the `any` here only affects JSX expression evaluation.
  */
 
-import type { ReactNode } from "./runtime/jsx.js";
-
 declare global {
   namespace JSX {
     interface IntrinsicElements {
@@ -31,11 +29,11 @@ declare global {
     }
 
     interface ElementAttributesProperty {
-      props: {};
+      props: object;
     }
 
     interface ElementChildrenAttribute {
-      children: {};
+      children: object;
     }
   }
 
@@ -43,7 +41,7 @@ declare global {
   namespace React {
     type ReactNode = any;
     type ReactElement = any;
-    type FC<P = {}> = (props: P) => any;
+    type FC<P = object> = (props: P) => any;
     type FunctionComponent<P = {}> = (props: P) => any;
   }
 }

@@ -1,4 +1,4 @@
-import { type Module, type Export, Doc, H1, ref, P, H2, List, Li, Flow, Step } from "tskb";
+import { type Module, type Export, Doc, H1, ref, P, List, Li, Flow, Step } from "tskb";
 
 declare global {
   namespace tskb {

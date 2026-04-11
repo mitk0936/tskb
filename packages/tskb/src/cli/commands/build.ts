@@ -95,7 +95,7 @@ export async function build(config: ExtractConfig): Promise<void> {
 
   verbose(`   Base directory: ${baseDir}`);
 
-  const registry = extractRegistry(program, baseDir, config.tsconfig);
+  const registry = extractRegistry(program, baseDir);
   registryDone();
 
   info(`   ├─ ${registry.folders.size} folders`);

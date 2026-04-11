@@ -1,10 +1,19 @@
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace -- tskb namespace is the public extension point; consumers augment it via declaration merging
   namespace tskb {
+    // These are intentionally empty — consumers augment them via declaration merging
+    // (e.g. `interface Modules { "my.module": Module<{...}> }`).
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface Folders {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface Modules {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface Terms {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface Exports {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface Files {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface Externals {}
   }
 }

@@ -73,7 +73,7 @@ export async function serveExplorer(
     }
 
     // ── Static SPA assets ──────────────────────────────────────────────
-    let filePath = pathname === "/" ? "/index.html" : pathname;
+    const filePath = pathname === "/" ? "/index.html" : pathname;
     const absPath = path.join(distDir, filePath);
 
     // Security: stay inside distDir

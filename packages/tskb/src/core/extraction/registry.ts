@@ -77,11 +77,7 @@ export interface ExtractedRegistry {
  * @param tsconfigPath - Path to tsconfig.json (for reading additional config if needed)
  * @returns Extracted registry data
  */
-export function extractRegistry(
-  program: ts.Program,
-  baseDir: string,
-  tsconfigPath: string
-): ExtractedRegistry {
+export function extractRegistry(program: ts.Program, baseDir: string): ExtractedRegistry {
   const checker = program.getTypeChecker();
   const registry: ExtractedRegistry = {
     folders: new Map(),
@@ -206,7 +202,7 @@ function extractFromTskbNamespace(
       extractModules(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
     } else if (interfaceName === "Terms") {
       extractTerms(statement, checker, registry, sourceFile);
-    } else if (interfaceName == "Exports") {
+    } else if (interfaceName === "Exports") {
       extractExports(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
     } else if (interfaceName === "Files") {
       extractFiles(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
@@ -339,7 +335,7 @@ function extractFolders(
  */
 function extractFolderType(
   typeNode: ts.TypeNode,
-  checker: ts.TypeChecker
+  _checker: ts.TypeChecker
 ): { desc: string; path?: string } | null {
   // Handle Folder<{ desc: "...", path: "..." }>
   if (!ts.isTypeReferenceNode(typeNode)) return null;
@@ -493,7 +489,7 @@ function extractModules(
  */
 function extractModuleType(
   typeNode: ts.TypeNode,
-  checker: ts.TypeChecker
+  _checker: ts.TypeChecker
 ): { desc: string; type?: string; importPath?: string } | null {
   if (!ts.isTypeReferenceNode(typeNode)) return null;
 
@@ -889,7 +885,7 @@ function extractExports(
  */
 function extractExportType(
   typeNode: ts.TypeNode,
-  checker: ts.TypeChecker
+  _checker: ts.TypeChecker
 ): { desc: string; type?: string; importPath?: string; memberName?: string } | null {
   if (!ts.isTypeReferenceNode(typeNode)) return null;
 

@@ -88,8 +88,6 @@ export class BaseNodeRenderer implements NodeComponent {
   }
 
   enter(g: d3.Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {
-    const self = this;
-
     // Node-level hover tooltip — use mouseover/mouseout (they bubble, unlike mouseenter/leave)
     // and guard with relatedTarget so we only fire at the group boundary.
     g.on("mouseover", function (event: MouseEvent, d: PositionedNode) {
@@ -117,7 +115,7 @@ export class BaseNodeRenderer implements NodeComponent {
       .attr("stroke-width", 1.5)
       .style("cursor", "pointer")
       .on("click", (_, d) => {
-        if (d.detail._ghost !== "true") self.onSelect(d);
+        if (d.detail._ghost !== "true") this.onSelect(d);
       });
 
     // Left accent bar
@@ -160,7 +158,7 @@ export class BaseNodeRenderer implements NodeComponent {
       .style("cursor", "pointer")
       .on("click", (event, d) => {
         event.stopPropagation();
-        self.onTraceLinks(d);
+        this.onTraceLinks(d);
       });
 
     // Code preview bubble — top-center, half outside top edge
@@ -170,7 +168,7 @@ export class BaseNodeRenderer implements NodeComponent {
       .style("cursor", "pointer")
       .on("click", (event, d) => {
         event.stopPropagation();
-        if (self.onCodePreview) self.onCodePreview(d, event.clientX, event.clientY);
+        if (this.onCodePreview) this.onCodePreview(d, event.clientX, event.clientY);
       })
       .on("mouseenter", function (_, d) {
         const c = NODE_COLORS[d.type];
@@ -199,7 +197,7 @@ export class BaseNodeRenderer implements NodeComponent {
       .style("cursor", "pointer")
       .on("click", (event, d) => {
         event.stopPropagation();
-        self.onExpand(d);
+        this.onExpand(d);
       })
       .on("mouseenter", function (_, d) {
         const c = NODE_COLORS[d.type];
@@ -223,13 +221,16 @@ export class BaseNodeRenderer implements NodeComponent {
   }
 
   update(g: d3.Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {
-    const self = this;
+    // d3's each() requires a regular function so `this` refers to the DOM element inside;
+    // capture the class instance here to access component methods from within that callback
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const component = this;
 
     g.each(function (d) {
       const el = d3.select<SVGGElement, PositionedNode>(this);
-      const { w, h } = self.getSize(d);
+      const { w, h } = component.getSize(d);
       const color = NODE_COLORS[d.type];
-      const canExpand = self.hasChildren(d);
+      const canExpand = component.hasChildren(d);
 
       const ACCENT = 4;
       const ICON_X = ACCENT + 7;

@@ -26,7 +26,7 @@ const TSCONFIG_TEMPLATE = `{
 }
 `;
 
-const STARTER_DOC_TEMPLATE = (docsDir: string) => `import { Doc, H1, P } from "tskb";
+const STARTER_DOC_TEMPLATE = (_docsDir: string) => `import { Doc, H1, P } from "tskb";
 
 // Declare your architectural vocabulary here.
 // See: https://www.npmjs.com/package/tskb

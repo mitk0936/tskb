@@ -31,6 +31,8 @@
     "clean": "rimraf dist",
     "pack:test": "npm run build && npm pack",
     "prepublishOnly": "npm run clean && npm run build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "author": "Dimitar Mihaylov",

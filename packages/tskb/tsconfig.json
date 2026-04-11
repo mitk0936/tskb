@@ -17,7 +17,8 @@
     "verbatimModuleSyntax": true,
 
     "jsx": "react-jsx",
-    "jsxImportSource": "tskb"
+    "jsxImportSource": "tskb",
+    "types": ["@types/node"]
   },
   "include": ["src"]
 }

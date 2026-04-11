@@ -550,7 +550,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
           graph.nodes.files[rel.to] ||
           graph.nodes.externals[rel.to];
         if (fromExists && toExists) {
-          const edge: any = {
+          const edge: GraphEdge = {
             from: rel.from,
             to: rel.to,
             type: "related-to",
