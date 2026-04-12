@@ -1,4 +1,4 @@
-import { type Module, type Export, Doc, H1, H2, P, List, Li, Flow, Step, ref } from "tskb";
+import { type Module, type Export, Doc, H1, H2, P, Flow, Step, ref } from "tskb";
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 

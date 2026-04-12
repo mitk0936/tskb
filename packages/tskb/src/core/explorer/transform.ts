@@ -1,5 +1,3 @@
-import * as fs from "fs";
-import * as path from "path";
 import type { KnowledgeGraph, GraphEdge } from "../graph/types.js";
 import { ROOT_FOLDER_NAME } from "../constants.js";
 
@@ -111,7 +109,6 @@ class GraphToExplorerTransformer {
 
     this.buildAllFolderChunksRecursively(ROOT_FOLDER_NAME);
     this.buildGhostIntermediaryChains();
-    this.injectGhostFilesIntoIntermediaryChunks();
     this.injectGhostNodes();
     this.patchFolderChildCounts(topFolders);
     this.sortAllChunks();
@@ -618,49 +615,6 @@ class GraphToExplorerTransformer {
       chunk.subfolders = [...directSubfolders, ...firstLevelGhosts];
       chunk.internalEdges = internalEdges;
       chunk.externalEdges = externalEdges;
-    }
-  }
-
-  /**
-   * For ghost intermediary chunks (created by buildGhostIntermediaryChains),
-   * read the corresponding filesystem directory and inject ghost module nodes
-   * for any .ts/.tsx files not already covered by declared modules.
-   * Declared folder chunks are left for injectGhostNodes to handle.
-   */
-  private injectGhostFilesIntoIntermediaryChunks(): void {
-    const folderPathToId = this.buildFolderPathIndex();
-    const rootPath = this.graph.metadata.rootPath;
-
-    for (const [ghostPath, chunk] of this.folderChunks) {
-      if (folderPathToId.has(ghostPath)) continue; // declared folder — handled by injectGhostNodes
-
-      const absPath = path.resolve(rootPath, ghostPath);
-      let entries: string[];
-      try {
-        entries = fs.readdirSync(absPath);
-      } catch {
-        continue; // directory not found or not readable
-      }
-
-      const knownModulePaths = new Set(chunk.modules.map((m) => m.path));
-
-      for (const name of entries) {
-        if (!name.endsWith(".ts") && !name.endsWith(".tsx")) continue;
-        if (name.endsWith(".d.ts")) continue;
-        const filePath = `${ghostPath}/${name}`;
-        if (knownModulePaths.has(filePath)) continue;
-
-        chunk.modules.push({
-          id: filePath,
-          type: "module",
-          label: name.replace(/\.tsx?$/, ""),
-          description: "",
-          path: filePath,
-          parentId: ghostPath,
-          edgeCount: 0,
-          detail: { _ghost: "true", _hasChildren: "false" },
-        });
-      }
     }
   }
 
