@@ -73,6 +73,9 @@ export class BaseNodeRenderer implements NodeComponent {
   ) {}
 
   getSize(node: PositionedNode): { w: number; h: number } {
+    if (node.detail._ghost === "true" && node.type === "folder") {
+      return { w: 130, h: 38 };
+    }
     return NODE_SIZES[node.type] ?? NODE_SIZES.module;
   }
 
@@ -253,7 +256,6 @@ export class BaseNodeRenderer implements NodeComponent {
       el.select(".node-divider").style("display", isGhost ? "none" : "");
       el.select(".node-badge").style("display", isGhost ? "none" : "");
       el.select(".node-preview-btn").style("display", "none");
-      el.select(".node-expand-btn").style("display", "none");
 
       if (isGhost) {
         const maxChars = Math.floor((w - 12) / 5.5);
@@ -265,6 +267,15 @@ export class BaseNodeRenderer implements NodeComponent {
           .attr("font-style", "italic")
           .text(trunc(d.path?.split("/").pop() || d.label, maxChars));
         el.select(".node-desc").text("").style("display", "none");
+
+        // Ghost folder nodes support expand just like real folders
+        const ghostExpandG = el.select<SVGGElement>(".node-expand-btn");
+        ghostExpandG.style("display", canExpand ? "block" : "none");
+        if (canExpand) {
+          ghostExpandG.attr("transform", `translate(${w},${h / 2})`);
+          ghostExpandG.select("circle").attr("stroke", color);
+          ghostExpandG.select("text").attr("fill", color).text("+");
+        }
         return;
       }
 

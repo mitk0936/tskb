@@ -1,3 +1,5 @@
+import * as fs from "fs";
+import * as path from "path";
 import type { KnowledgeGraph, GraphEdge } from "../graph/types.js";
 import { ROOT_FOLDER_NAME } from "../constants.js";
 
@@ -63,6 +65,21 @@ export interface ExplorerChunks {
   folders: Map<string, FolderChunk>;
 }
 
+// ─── Ghost chain builder ──────────────────────────────────────────────────────
+
+/** Accumulates content for one intermediate filesystem directory. */
+interface GhostLevelBuilder {
+  path: string;
+  /** Declared folder path or another ghost path — the immediate parent. */
+  parentPath: string;
+  modules: ExplorerNode[];
+  exports: ExplorerNode[];
+  /** Declared subfolders whose path parent is this level. */
+  subfolders: ExplorerNode[];
+  /** Ghost paths one level deeper that are children of this one. */
+  childGhostPaths: string[];
+}
+
 export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {
   return new GraphToExplorerTransformer(graph).transform();
 }
@@ -93,8 +110,12 @@ class GraphToExplorerTransformer {
     const crossEdges = this.buildCrossEdges();
 
     this.buildAllFolderChunksRecursively(ROOT_FOLDER_NAME);
+    this.buildGhostIntermediaryChains();
+    this.injectGhostFilesIntoIntermediaryChunks();
     this.injectGhostNodes();
     this.patchFolderChildCounts(topFolders);
+    this.sortAllChunks();
+    topFolders.sort((a, b) => a.label.localeCompare(b.label));
 
     return {
       meta: {
@@ -423,6 +444,234 @@ class GraphToExplorerTransformer {
       if (folder.path) folderPathToId.set(folder.path.replace(/\\/g, "/"), id);
     }
     return folderPathToId;
+  }
+
+  /**
+   * Returns the ghost path chain between a declared folder and a target directory.
+   * E.g. folderPath="pkg", itemDirPath="pkg/src/core" → ["pkg/src", "pkg/src/core"].
+   * Returns [] when the target is a direct child (no gap).
+   */
+  private computeGhostChain(folderPath: string, itemDirPath: string): string[] {
+    if (itemDirPath === folderPath) return [];
+    if (!itemDirPath.startsWith(folderPath + "/")) return [];
+    const rel = itemDirPath.slice(folderPath.length + 1); // e.g. "src/core"
+    const parts = rel.split("/");
+    return parts.map((_, i) => folderPath + "/" + parts.slice(0, i + 1).join("/"));
+  }
+
+  /**
+   * Ensures every path in `chain` has a GhostLevelBuilder in `ghostLevels`
+   * and links consecutive levels via `childGhostPaths`.
+   */
+  private ensureGhostChain(
+    chain: string[],
+    folderPath: string,
+    ghostLevels: Map<string, GhostLevelBuilder>
+  ): void {
+    for (let i = 0; i < chain.length; i++) {
+      const ghostPath = chain[i];
+      if (!ghostLevels.has(ghostPath)) {
+        ghostLevels.set(ghostPath, {
+          path: ghostPath,
+          parentPath: i === 0 ? folderPath : chain[i - 1],
+          modules: [],
+          exports: [],
+          subfolders: [],
+          childGhostPaths: [],
+        });
+      }
+      if (i < chain.length - 1) {
+        const level = ghostLevels.get(ghostPath)!;
+        const next = chain[i + 1];
+        if (!level.childGhostPaths.includes(next)) {
+          level.childGhostPaths.push(next);
+        }
+      }
+    }
+  }
+
+  /** Creates an ExplorerNode for a ghost intermediary folder. */
+  private buildGhostFolderNode(ghostPath: string, parentId: string): ExplorerNode {
+    const label = ghostPath.split("/").pop()!;
+    return {
+      id: ghostPath,
+      type: "folder",
+      label,
+      description: "",
+      path: ghostPath,
+      parentId,
+      edgeCount: 0,
+      detail: {
+        _ghost: "true",
+        _hasChildren: "true", // patchFolderChildCounts will finalize this
+        _childCount: "0",
+      },
+    };
+  }
+
+  /**
+   * Post-processing pass: for each declared folder, detects path gaps between
+   * the folder's path and its owned modules/subfolders, synthesizes FolderChunks
+   * for every intermediate directory, and updates the declared folder's chunk to
+   * only contain direct children plus first-level ghost folder references.
+   */
+  private buildGhostIntermediaryChains(): void {
+    const folderPathToId = this.buildFolderPathIndex();
+    // Snapshot declared keys so newly created ghost chunks are not processed.
+    const declaredFolderIds = [...this.folderChunks.keys()];
+
+    for (const folderId of declaredFolderIds) {
+      const folder = this.graph.nodes.folders[folderId];
+      if (!folder?.path) continue;
+
+      const folderPath = folder.path.replace(/\\/g, "/");
+      const chunk = this.folderChunks.get(folderId)!;
+
+      const ghostLevels = new Map<string, GhostLevelBuilder>();
+      const directModules: ExplorerNode[] = [];
+      const directExports: ExplorerNode[] = [];
+      const directSubfolders: ExplorerNode[] = [];
+
+      // ── Route modules ────────────────────────────────────────────────────
+      for (const moduleNode of chunk.modules) {
+        const modulePath = moduleNode.path?.replace(/\\/g, "/");
+        if (!modulePath) {
+          directModules.push(moduleNode);
+          continue;
+        }
+
+        const moduleDirPath = modulePath.substring(0, modulePath.lastIndexOf("/"));
+        const chain = this.computeGhostChain(folderPath, moduleDirPath);
+
+        if (chain.length === 0 || chain.some((p) => folderPathToId.has(p))) {
+          // Direct child, or chain passes through a declared folder — leave in place.
+          directModules.push(moduleNode);
+          directExports.push(...chunk.exports.filter((e) => e.parentId === moduleNode.id));
+          continue;
+        }
+
+        this.ensureGhostChain(chain, folderPath, ghostLevels);
+        const deepestPath = chain[chain.length - 1];
+        const deepestLevel = ghostLevels.get(deepestPath)!;
+        deepestLevel.modules.push({ ...moduleNode, parentId: deepestPath });
+        deepestLevel.exports.push(
+          ...chunk.exports.filter((e) => e.parentId === moduleNode.id).map((e) => ({ ...e }))
+        );
+      }
+
+      // ── Route subfolders ─────────────────────────────────────────────────
+      for (const subfolderNode of chunk.subfolders) {
+        const subfolderPath = subfolderNode.path?.replace(/\\/g, "/");
+        if (!subfolderPath) {
+          directSubfolders.push(subfolderNode);
+          continue;
+        }
+
+        const subfolderParentPath = subfolderPath.substring(0, subfolderPath.lastIndexOf("/"));
+        const chain = this.computeGhostChain(folderPath, subfolderParentPath);
+
+        if (chain.length === 0 || chain.some((p) => folderPathToId.has(p))) {
+          directSubfolders.push(subfolderNode);
+          continue;
+        }
+
+        this.ensureGhostChain(chain, folderPath, ghostLevels);
+        const deepestPath = chain[chain.length - 1];
+        const deepestLevel = ghostLevels.get(deepestPath)!;
+        deepestLevel.subfolders.push({ ...subfolderNode, parentId: deepestPath });
+      }
+
+      if (ghostLevels.size === 0) continue;
+
+      // ── Create ghost chunks ──────────────────────────────────────────────
+      for (const [ghostPath, level] of ghostLevels) {
+        if (folderPathToId.has(ghostPath)) continue; // declared folder owns this path
+
+        const childGhostNodes = level.childGhostPaths
+          .filter((p) => !folderPathToId.has(p))
+          .map((p) => this.buildGhostFolderNode(p, ghostPath));
+
+        const moduleIdSet = new Set(level.modules.map((m) => m.id));
+        const { internalEdges, externalEdges } = this.buildImportEdges(moduleIdSet);
+
+        this.folderChunks.set(ghostPath, {
+          kind: "folder",
+          folderId: ghostPath,
+          subfolders: [...level.subfolders, ...childGhostNodes],
+          modules: level.modules,
+          exports: level.exports,
+          internalEdges,
+          externalEdges,
+        });
+      }
+
+      // ── Update declared folder chunk to only contain direct content ──────
+      const firstLevelGhosts = [...ghostLevels.values()]
+        .filter((l) => l.parentPath === folderPath && !folderPathToId.has(l.path))
+        .map((l) => this.buildGhostFolderNode(l.path, folderId));
+
+      const directModuleIdSet = new Set(directModules.map((m) => m.id));
+      const { internalEdges, externalEdges } = this.buildImportEdges(directModuleIdSet);
+
+      chunk.modules = directModules;
+      chunk.exports = directExports;
+      chunk.subfolders = [...directSubfolders, ...firstLevelGhosts];
+      chunk.internalEdges = internalEdges;
+      chunk.externalEdges = externalEdges;
+    }
+  }
+
+  /**
+   * For ghost intermediary chunks (created by buildGhostIntermediaryChains),
+   * read the corresponding filesystem directory and inject ghost module nodes
+   * for any .ts/.tsx files not already covered by declared modules.
+   * Declared folder chunks are left for injectGhostNodes to handle.
+   */
+  private injectGhostFilesIntoIntermediaryChunks(): void {
+    const folderPathToId = this.buildFolderPathIndex();
+    const rootPath = this.graph.metadata.rootPath;
+
+    for (const [ghostPath, chunk] of this.folderChunks) {
+      if (folderPathToId.has(ghostPath)) continue; // declared folder — handled by injectGhostNodes
+
+      const absPath = path.resolve(rootPath, ghostPath);
+      let entries: string[];
+      try {
+        entries = fs.readdirSync(absPath);
+      } catch {
+        continue; // directory not found or not readable
+      }
+
+      const knownModulePaths = new Set(chunk.modules.map((m) => m.path));
+
+      for (const name of entries) {
+        if (!name.endsWith(".ts") && !name.endsWith(".tsx")) continue;
+        if (name.endsWith(".d.ts")) continue;
+        const filePath = `${ghostPath}/${name}`;
+        if (knownModulePaths.has(filePath)) continue;
+
+        chunk.modules.push({
+          id: filePath,
+          type: "module",
+          label: name.replace(/\.tsx?$/, ""),
+          description: "",
+          path: filePath,
+          parentId: ghostPath,
+          edgeCount: 0,
+          detail: { _ghost: "true", _hasChildren: "false" },
+        });
+      }
+    }
+  }
+
+  /** Sort subfolders and modules alphabetically (by path segment, matching what cards display). */
+  private sortAllChunks(): void {
+    // Cards display the last path segment, not the id-derived label, so sort by that.
+    const seg = (n: ExplorerNode) => (n.path?.split("/").pop() ?? n.label).toLowerCase();
+    for (const chunk of this.folderChunks.values()) {
+      chunk.subfolders.sort((a, b) => seg(a).localeCompare(seg(b)));
+      chunk.modules.sort((a, b) => seg(a).localeCompare(seg(b)));
+    }
   }
 
   // ── Post-processing ────────────────────────────────────────────────────────

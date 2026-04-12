@@ -1474,58 +1474,68 @@
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "2 functions, 5 interfaces, 1 type",
         "morphology": [
-          "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :66-68",
-          "export function sanitizeFolderId(id: string): string {} // :542-544",
-          "export type NodeType = | \"folder\"\n  | \"module\"\n  | \"export\"\n  | \"doc\"\n  | \"flow\"\n  | \"term\"\n  | \"external\"\n  | \"file\" // :7-15",
-          "export interface ExplorerNode { // :17-27",
-          "  id: string // :18",
-          "  type: NodeType // :19",
-          "  label: string // :20",
-          "  description: string // :21",
-          "  path: string | undefined // :22",
-          "  parentId: string | undefined // :23",
-          "  priority: \"supplementary\" | \"essential\" | \"constraint\" | undefined // :24",
-          "  edgeCount: number // :25",
-          "  detail: Record<string, string | string[]> // :26",
+          "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :83-85",
+          "export function sanitizeFolderId(id: string): string {} // :791-793",
+          "export type NodeType = | \"folder\"\n  | \"module\"\n  | \"export\"\n  | \"doc\"\n  | \"flow\"\n  | \"term\"\n  | \"external\"\n  | \"file\" // :9-17",
+          "export interface ExplorerNode { // :19-29",
+          "  id: string // :20",
+          "  type: NodeType // :21",
+          "  label: string // :22",
+          "  description: string // :23",
+          "  path: string | undefined // :24",
+          "  parentId: string | undefined // :25",
+          "  priority: \"supplementary\" | \"essential\" | \"constraint\" | undefined // :26",
+          "  edgeCount: number // :27",
+          "  detail: Record<string, string | string[]> // :28",
           "}",
-          "export interface ExplorerLink { // :29-34",
-          "  source: string // :30",
-          "  target: string // :31",
-          "  type: \"references\" | \"imports\" | \"related-to\" | \"flow-step\" // :32",
-          "  label: string | undefined // :33",
+          "export interface ExplorerLink { // :31-36",
+          "  source: string // :32",
+          "  target: string // :33",
+          "  type: \"references\" | \"imports\" | \"related-to\" | \"flow-step\" // :34",
+          "  label: string | undefined // :35",
           "}",
-          "export interface MetaChunk { // :36-46",
-          "  kind: \"meta\" // :37",
-          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; flowCount: number; docCount: number; edgeCount: number; }; } // :38",
-          "  root: ExplorerNode // :39",
-          "  topFolders: ExplorerNode[] // :40",
-          "  docs: ExplorerNode[] // :41",
-          "  flows: ExplorerNode[] // :42",
-          "  terms: ExplorerNode[] // :43",
-          "  externals: ExplorerNode[] // :44",
-          "  crossEdges: ExplorerLink[] // :45",
+          "export interface MetaChunk { // :38-48",
+          "  kind: \"meta\" // :39",
+          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; flowCount: number; docCount: number; edgeCount: number; }; } // :40",
+          "  root: ExplorerNode // :41",
+          "  topFolders: ExplorerNode[] // :42",
+          "  docs: ExplorerNode[] // :43",
+          "  flows: ExplorerNode[] // :44",
+          "  terms: ExplorerNode[] // :45",
+          "  externals: ExplorerNode[] // :46",
+          "  crossEdges: ExplorerLink[] // :47",
           "}",
-          "export interface FolderChunk { // :48-57",
-          "  kind: \"folder\" // :49",
-          "  folderId: string // :50",
-          "  subfolders: ExplorerNode[] // :52",
-          "  modules: ExplorerNode[] // :53",
-          "  exports: ExplorerNode[] // :54",
-          "  internalEdges: ExplorerLink[] // :55",
-          "  externalEdges: ExplorerLink[] // :56",
+          "export interface FolderChunk { // :50-59",
+          "  kind: \"folder\" // :51",
+          "  folderId: string // :52",
+          "  subfolders: ExplorerNode[] // :54",
+          "  modules: ExplorerNode[] // :55",
+          "  exports: ExplorerNode[] // :56",
+          "  internalEdges: ExplorerLink[] // :57",
+          "  externalEdges: ExplorerLink[] // :58",
           "}",
-          "export interface ExplorerChunks { // :61-64",
-          "  meta: MetaChunk // :62",
-          "  folders: Map<string, FolderChunk> // :63",
+          "export interface ExplorerChunks { // :63-66",
+          "  meta: MetaChunk // :64",
+          "  folders: Map<string, FolderChunk> // :65",
           "}"
         ],
-        "importsSummary": "3 imports from 2 paths",
+        "importsSummary": "5 imports from 4 paths",
         "imports": [
+          "* as fs from \"fs\"",
+          "* as path from \"path\"",
           "KnowledgeGraph from \"../graph/types.js\"",
           "GraphEdge from \"../graph/types.js\"",
           "ROOT_FOLDER_NAME from \"../constants.js\""
         ],
         "importEntries": [
+          {
+            "symbol": "* as fs",
+            "path": "fs"
+          },
+          {
+            "symbol": "* as path",
+            "path": "path"
+          },
           {
             "symbol": "KnowledgeGraph",
             "path": "../graph/types.js"
@@ -1864,12 +1874,12 @@
           "export type TraceLinkHandler = (node: PositionedNode) => void // :49",
           "export type HasChildrenFn = (node: PositionedNode) => boolean // :50",
           "export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void // :52",
-          "export class BaseNodeRenderer { // :66-345",
-          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :75-77",
-          "  rightAnchor(node: PositionedNode): { x: any; y: any; } {} // :79-83",
-          "  leftAnchor(node: PositionedNode): { x: any; y: any; } {} // :85-88",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :90-221",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :223-344",
+          "export class BaseNodeRenderer { // :66-356",
+          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :75-80",
+          "  rightAnchor(node: PositionedNode): { x: any; y: any; } {} // :82-86",
+          "  leftAnchor(node: PositionedNode): { x: any; y: any; } {} // :88-91",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :93-224",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :226-355",
           "}"
         ],
         "importsSummary": "7 imports from 4 paths",
@@ -1922,16 +1932,16 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts",
         "morphologySummary": "3 functions, 1 interface",
         "morphology": [
-          "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :18-42",
-          "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :47-67",
-          "export function renderLaneBands(container: Selection<SVGGElement, unknown, null, undefined>, layout: LaneLayout, canvasWidth: number): void {} // :72-142",
-          "export interface StructureLink { // :6-13",
-          "  sourceX: number // :7",
-          "  sourceY: number // :8",
-          "  targetX: number // :9",
-          "  targetY: number // :10",
-          "  targetType: PositionedNode // :11",
-          "  ghost: boolean | undefined // :12",
+          "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :23-47",
+          "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :52-72",
+          "export function renderLaneBands(container: Selection<SVGGElement, unknown, null, undefined>, layout: LaneLayout, canvasWidth: number): void {} // :77-147",
+          "export interface StructureLink { // :11-18",
+          "  sourceX: number // :12",
+          "  sourceY: number // :13",
+          "  targetX: number // :14",
+          "  targetY: number // :15",
+          "  targetType: PositionedNode // :16",
+          "  ghost: boolean | undefined // :17",
           "}"
         ],
         "importsSummary": "5 imports from 4 paths",
@@ -3878,7 +3888,7 @@
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :66-68"
+          "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :83-85"
         ],
         "edgeCount": 7
       },
@@ -3890,7 +3900,7 @@
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function sanitizeFolderId(id: string): string {} // :542-544"
+          "export function sanitizeFolderId(id: string): string {} // :791-793"
         ],
         "edgeCount": 1
       },
@@ -3949,7 +3959,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :18-42"
+          "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :23-47"
         ],
         "edgeCount": 3
       },
@@ -3961,7 +3971,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :47-67"
+          "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :52-72"
         ],
         "edgeCount": 3
       },
@@ -3973,12 +3983,12 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class BaseNodeRenderer { // :66-345",
-          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :75-77",
-          "  rightAnchor(node: PositionedNode): { x: any; y: any; } {} // :79-83",
-          "  leftAnchor(node: PositionedNode): { x: any; y: any; } {} // :85-88",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :90-221",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :223-344",
+          "export class BaseNodeRenderer { // :66-356",
+          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :75-80",
+          "  rightAnchor(node: PositionedNode): { x: any; y: any; } {} // :82-86",
+          "  leftAnchor(node: PositionedNode): { x: any; y: any; } {} // :88-91",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :93-224",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :226-355",
           "}"
         ],
         "edgeCount": 2
@@ -7828,7 +7838,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-04-11T17:08:37.609Z",
+    "generatedAt": "2026-04-12T08:44:19.387Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {

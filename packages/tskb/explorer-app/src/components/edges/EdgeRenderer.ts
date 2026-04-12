@@ -3,6 +3,11 @@ import type { PositionedNode } from "../../types";
 import { NODE_SIZES, type LaneLayout } from "../../layout/lane-engine";
 import { NODE_COLORS } from "../nodes/base";
 
+function nodeSize(node: PositionedNode): { w: number; h: number } {
+  if (node.detail._ghost === "true" && node.type === "folder") return { w: 130, h: 38 };
+  return NODE_SIZES[node.type];
+}
+
 export interface StructureLink {
   sourceX: number;
   sourceY: number;
@@ -24,8 +29,8 @@ export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {
     const parent = byId.get(node.parentId);
     if (!parent) continue;
 
-    const parentSize = NODE_SIZES[parent.type];
-    const childSize = NODE_SIZES[node.type];
+    const parentSize = nodeSize(parent);
+    const childSize = nodeSize(node);
     const isGhost = node.detail._ghost === "true";
 
     links.push({
