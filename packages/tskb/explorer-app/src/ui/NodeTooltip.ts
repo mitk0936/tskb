@@ -43,11 +43,11 @@ export function showNodeTooltip(
   const nameLine =
     `<div style="display:flex;align-items:center;gap:5px;margin-bottom:${description || path ? "4px" : "0"}">` +
     `<span style="width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block;"></span>` +
-    `<span style="font-size:12px;font-weight:700;color:#0f172a;white-space:nowrap;">${escHtml(label)}</span>` +
+    `<span style="font-size:14px;font-weight:700;color:#0f172a;white-space:nowrap;">${escHtml(label)}</span>` +
     `</div>`;
 
   const pathLine = path
-    ? `<div style="font-size:9px;color:#94a3b8;font-family:monospace;margin-bottom:${description ? "4px" : "0"};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${escHtml(path)}</div>`
+    ? `<div style="font-size:11px;color:#94a3b8;font-family:monospace;margin-bottom:${description ? "4px" : "0"};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${escHtml(path)}</div>`
     : "";
 
   const descLine = description

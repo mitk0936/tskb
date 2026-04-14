@@ -450,7 +450,7 @@
             {
               "name": "transform.ts",
               "nodeId": "explorer.transform",
-              "desc": "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms, externals) plus one FolderChunk per folder that has modules or sub-folders. Also injects ghost ExplorerNodes for any .ts/.tsx files recorded in folder.children.files that are not declared as modules, making undeclared-but-existing files visible in the UI."
+              "desc": "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms, externals) plus one FolderChunk per folder that has modules or sub-folders. Two ghost injection passes: buildGhostIntermediaryChains() synthesizes FolderChunks for every filesystem directory that lies between a declared folder's path and its owned modules/subfolders; injectGhostNodes() adds ghost ExplorerNodes for any .ts/.tsx files recorded in folder.children.files that are not declared as modules."
             }
           ]
         },
@@ -1469,7 +1469,7 @@
       "explorer.transform": {
         "id": "explorer.transform",
         "type": "module",
-        "desc": "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms, externals) plus one FolderChunk per folder that has modules or sub-folders. Also injects ghost ExplorerNodes for any .ts/.tsx files recorded in folder.children.files that are not declared as modules, making undeclared-but-existing files visible in the UI.",
+        "desc": "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms, externals) plus one FolderChunk per folder that has modules or sub-folders. Two ghost injection passes: buildGhostIntermediaryChains() synthesizes FolderChunks for every filesystem directory that lies between a declared folder's path and its owned modules/subfolders; injectGhostNodes() adds ghost ExplorerNodes for any .ts/.tsx files recorded in folder.children.files that are not declared as modules.",
         "typeSignature": "typeof import(\"packages/tskb/src/core/explorer/transform.js\")",
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "2 functions, 5 interfaces, 1 type",
@@ -1539,14 +1539,20 @@
             "path": "../constants.js"
           }
         ],
-        "edgeCount": 11
+        "edgeCount": 12
       },
       "explorer.spa.main": {
         "id": "explorer.spa.main",
         "type": "module",
-        "desc": "SPA entry point: creates D3 SVG canvas with zoom/pan, fetches meta.json, wires expand/select/trace handlers, subscribes to store, and drives the render loop. On every zoom event, propagates the D3 transform to both tooltip modules so they reposition to track their anchor nodes.",
+        "desc": "ExplorerApp class — top-level SPA controller. mount() orchestrates four setup methods (setupCanvas, setupTooltips, setupRenderer, setupSearch) then loads meta.json via loadInitialData(). The render() method drives the full D3 enter/update/exit cycle on every store change or UI interaction. Interaction handlers (onExpand, onSelect, onTraceLinks) are private methods passed as callbacks to the renderer. UI state (expanded set, selected node, search query) lives on the class instance; graph data lives in GraphStore.",
         "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/main.js\")",
         "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class ExplorerApp { // :29-253",
+          "  mount(): Promise<void> {} // :46-53",
+          "}"
+        ],
         "importsSummary": "21 imports from 12 paths",
         "imports": [
           "* as d3 from \"d3\"",
@@ -1657,7 +1663,7 @@
             "path": "./components/nodes/base"
           }
         ],
-        "edgeCount": 18
+        "edgeCount": 20
       },
       "explorer.spa.chunk-types": {
         "id": "explorer.spa.chunk-types",
@@ -1744,7 +1750,7 @@
             "path": "./chunk-types"
           }
         ],
-        "edgeCount": 7
+        "edgeCount": 8
       },
       "explorer.spa.store": {
         "id": "explorer.spa.store",
@@ -1754,22 +1760,18 @@
         "resolvedPath": "packages/tskb/explorer-app/src/store/graph-store.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class GraphStore { // :10-78",
-          "  meta: any // :11",
-          "  folderChunks: Map<string, FolderChunk> // :12",
-          "  setMeta(meta: MetaChunk): void {} // :16-19",
-          "  addFolderChunk(chunk: FolderChunk): void {} // :21-24",
-          "  getVisibleStructureNodes(expanded: ReadonlySet<string>): ExplorerNode[] {} // :27-33",
-          "  getVisibleLinks(expanded: ReadonlySet<string>): ExplorerLink[] {} // :62-68",
-          "  subscribe(listener: Listener) => (): void {} // :70-73",
+          "export class GraphStore { // :9-33",
+          "  meta: any // :10",
+          "  folderChunks: Map<string, FolderChunk> // :11",
+          "  loadMeta(meta: MetaChunk): void {} // :15-18",
+          "  loadFolderChunk(chunk: FolderChunk): void {} // :20-23",
+          "  subscribe(listener: Listener) => (): void {} // :25-28",
           "}"
         ],
-        "importsSummary": "4 imports from 2 paths",
+        "importsSummary": "2 imports from 1 path",
         "imports": [
           "MetaChunk from \"../graph/chunk-types\"",
-          "FolderChunk from \"../graph/chunk-types\"",
-          "ExplorerNode from \"../types\"",
-          "ExplorerLink from \"../types\""
+          "FolderChunk from \"../graph/chunk-types\""
         ],
         "importEntries": [
           {
@@ -1779,17 +1781,9 @@
           {
             "symbol": "FolderChunk",
             "path": "../graph/chunk-types"
-          },
-          {
-            "symbol": "ExplorerNode",
-            "path": "../types"
-          },
-          {
-            "symbol": "ExplorerLink",
-            "path": "../types"
           }
         ],
-        "edgeCount": 9
+        "edgeCount": 11
       },
       "explorer.spa.lane-engine": {
         "id": "explorer.spa.lane-engine",
@@ -1840,7 +1834,7 @@
             "path": "../store/graph-store"
           }
         ],
-        "edgeCount": 11
+        "edgeCount": 12
       },
       "explorer.spa.node-base": {
         "id": "explorer.spa.node-base",
@@ -1912,7 +1906,7 @@
             "path": "../../ui/NodeTooltip"
           }
         ],
-        "edgeCount": 15
+        "edgeCount": 19
       },
       "explorer.spa.edge-renderer": {
         "id": "explorer.spa.edge-renderer",
@@ -1964,7 +1958,7 @@
             "path": "../nodes/base"
           }
         ],
-        "edgeCount": 9
+        "edgeCount": 11
       },
       "explorer.spa.spinner": {
         "id": "explorer.spa.spinner",
@@ -1979,7 +1973,7 @@
           "export function showNodeSpinner(container: SVGGElement, x: number, y: number, size?: number): SVGGElement {} // :16-59",
           "export function removeNodeSpinner(spinner: SVGGElement): void {} // :61-63"
         ],
-        "edgeCount": 3
+        "edgeCount": 5
       },
       "explorer.spa.detail-panel": {
         "id": "explorer.spa.detail-panel",
@@ -2011,7 +2005,7 @@
             "path": "../components/nodes/base"
           }
         ],
-        "edgeCount": 4
+        "edgeCount": 5
       },
       "explorer.spa.node-tooltip": {
         "id": "explorer.spa.node-tooltip",
@@ -3069,7 +3063,7 @@
         "morphologySummary": "2 functions",
         "morphology": [
           "export function buildQueryBody(graph: KnowledgeGraph): string {} // :8-73",
-          "export function buildUpdateBody(graph: KnowledgeGraph): string {} // :80-296"
+          "export function buildUpdateBody(graph: KnowledgeGraph): string {} // :80-325"
         ],
         "importsSummary": "1 import from 1 path",
         "imports": [
@@ -3430,7 +3424,7 @@
       "ghostNode": {
         "id": "ghostNode",
         "type": "term",
-        "desc": "A placeholder ExplorerNode with detail._ghost = 'true'. Ghost nodes represent filesystem files or unexpanded folder slots that are not declared in the knowledge graph. They render as dashed transparent cards with only a filename label, and their parent→child edges are dashed. Injected by transform.ts (from folder.children.files) and by lane-engine.ts (for collapsed folders with _childCount > 0).",
+        "desc": "A placeholder ExplorerNode with detail._ghost = 'true'. Ghost nodes represent filesystem directories or files visible in the tree that are not declared in the knowledge graph. Two sources: (1) buildGhostIntermediaryChains() in transform.ts synthesizes ghost FolderChunks for every intermediate filesystem directory between a declared folder's path and its owned modules; (2) injectGhostNodes() in transform.ts adds ghost module/folder nodes from folder.children scanner data. Lane-engine also injects transient ghost placeholders for collapsed folders with _childCount > 0 to pre-reserve tree space. All ghost nodes render as dashed transparent cards with only a filename label.",
         "edgeCount": 2
       },
       "ast": {
@@ -3873,7 +3867,7 @@
       "explorer.transformGraph": {
         "id": "explorer.transformGraph",
         "type": "export",
-        "desc": "Entry point: builds edge lookup indexes, assembles MetaChunk, recurses into all folders to build FolderChunks, injects ghost nodes, then patches _hasChildren / _childCount on every folder node.",
+        "desc": "Entry point: builds edge lookup indexes, assembles MetaChunk, recurses into all folders to build FolderChunks, synthesizes ghost intermediary chunks for path-gap directories, injects ghost nodes from scanner data, then patches _hasChildren / _childCount on every folder node.",
         "typeSignature": "typeof import(\"packages/tskb/src/core/explorer/transform.js\").transformGraph",
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "1 function",
@@ -3917,14 +3911,12 @@
         "resolvedPath": "packages/tskb/explorer-app/src/store/graph-store.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class GraphStore { // :10-78",
-          "  meta: any // :11",
-          "  folderChunks: Map<string, FolderChunk> // :12",
-          "  setMeta(meta: MetaChunk): void {} // :16-19",
-          "  addFolderChunk(chunk: FolderChunk): void {} // :21-24",
-          "  getVisibleStructureNodes(expanded: ReadonlySet<string>): ExplorerNode[] {} // :27-33",
-          "  getVisibleLinks(expanded: ReadonlySet<string>): ExplorerLink[] {} // :62-68",
-          "  subscribe(listener: Listener) => (): void {} // :70-73",
+          "export class GraphStore { // :9-33",
+          "  meta: any // :10",
+          "  folderChunks: Map<string, FolderChunk> // :11",
+          "  loadMeta(meta: MetaChunk): void {} // :15-18",
+          "  loadFolderChunk(chunk: FolderChunk): void {} // :20-23",
+          "  subscribe(listener: Listener) => (): void {} // :25-28",
           "}"
         ],
         "edgeCount": 2
@@ -3939,7 +3931,7 @@
         "morphology": [
           "export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>): LaneLayout {} // :103-194"
         ],
-        "edgeCount": 3
+        "edgeCount": 5
       },
       "explorer.spa.buildStructureLinks": {
         "id": "explorer.spa.buildStructureLinks",
@@ -3951,7 +3943,7 @@
         "morphology": [
           "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :23-47"
         ],
-        "edgeCount": 3
+        "edgeCount": 4
       },
       "explorer.spa.renderStructureEdges": {
         "id": "explorer.spa.renderStructureEdges",
@@ -3963,7 +3955,7 @@
         "morphology": [
           "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :52-72"
         ],
-        "edgeCount": 3
+        "edgeCount": 4
       },
       "explorer.spa.BaseNodeRenderer": {
         "id": "explorer.spa.BaseNodeRenderer",
@@ -3982,6 +3974,30 @@
           "}"
         ],
         "edgeCount": 2
+      },
+      "explorer.spa.showNodeSpinner": {
+        "id": "explorer.spa.showNodeSpinner",
+        "type": "export",
+        "desc": "Appends a small animated SVG ring at a given (x, y) position inside the node canvas layer. Returns the SVG group element so the caller can remove it via removeNodeSpinner.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/ui/Spinner.js\").showNodeSpinner",
+        "resolvedPath": "packages/tskb/explorer-app/src/ui/Spinner.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function showNodeSpinner(container: SVGGElement, x: number, y: number, size?: number): SVGGElement {} // :16-59"
+        ],
+        "edgeCount": 4
+      },
+      "explorer.spa.removeNodeSpinner": {
+        "id": "explorer.spa.removeNodeSpinner",
+        "type": "export",
+        "desc": "Removes the SVG group returned by showNodeSpinner from the DOM. Called in the finally block of ExplorerApp.onExpand() after the chunk fetch resolves or rejects.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/ui/Spinner.js\").removeNodeSpinner",
+        "resolvedPath": "packages/tskb/explorer-app/src/ui/Spinner.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function removeNodeSpinner(spinner: SVGGElement): void {} // :61-63"
+        ],
+        "edgeCount": 4
       },
       "explorer.serveExplorer": {
         "id": "explorer.serveExplorer",
@@ -4018,6 +4034,89 @@
           "export function exportExplorer(graph: KnowledgeGraph, outputDir: string): Promise<void> {} // :16-44"
         ],
         "edgeCount": 4
+      },
+      "explorer.spa.ExplorerApp": {
+        "id": "explorer.spa.ExplorerApp",
+        "type": "export",
+        "desc": "Top-level SPA controller class. The only public entry point is mount() — everything else is private. Owns the D3 canvas layers, UI state, and the render loop.",
+        "typeSignature": "ExplorerApp",
+        "edgeCount": 2
+      },
+      "explorer.spa.ExplorerApp.mount": {
+        "id": "explorer.spa.ExplorerApp.mount",
+        "type": "export",
+        "desc": "Public entry point. Calls the four setup methods in order (setupCanvas, setupTooltips, setupRenderer, setupSearch), subscribes to store changes, then awaits loadInitialData.",
+        "typeSignature": "InstanceType<ExplorerApp>[\"mount\"]",
+        "edgeCount": 1
+      },
+      "explorer.spa.ExplorerApp.setupCanvas": {
+        "id": "explorer.spa.ExplorerApp.setupCanvas",
+        "type": "export",
+        "desc": "Creates the D3 SVG layer stack (zoom-layer → lane-bg-layer / edge-layer / node-layer), configures zoom/pan with tooltip transform propagation, and mounts the detail panel.",
+        "typeSignature": "InstanceType<ExplorerApp>[\"setupCanvas\"]",
+        "edgeCount": 2
+      },
+      "explorer.spa.ExplorerApp.setupTooltips": {
+        "id": "explorer.spa.ExplorerApp.setupTooltips",
+        "type": "export",
+        "desc": "Mounts the node hover tooltip and the code preview popup into the DOM, both anchored to the SVG element.",
+        "typeSignature": "InstanceType<ExplorerApp>[\"setupTooltips\"]",
+        "edgeCount": 2
+      },
+      "explorer.spa.ExplorerApp.setupRenderer": {
+        "id": "explorer.spa.ExplorerApp.setupRenderer",
+        "type": "export",
+        "desc": "Constructs the BaseNodeRenderer via createNodeRenderer, passing bound callbacks (onExpand, onSelect, onTraceLinks, hasChildren, code preview handler).",
+        "typeSignature": "InstanceType<ExplorerApp>[\"setupRenderer\"]",
+        "edgeCount": 2
+      },
+      "explorer.spa.ExplorerApp.setupSearch": {
+        "id": "explorer.spa.ExplorerApp.setupSearch",
+        "type": "export",
+        "desc": "Wires the search input 'input' event to update searchQuery and call render().",
+        "typeSignature": "InstanceType<ExplorerApp>[\"setupSearch\"]",
+        "edgeCount": 2
+      },
+      "explorer.spa.ExplorerApp.loadInitialData": {
+        "id": "explorer.spa.ExplorerApp.loadInitialData",
+        "type": "export",
+        "desc": "Shows global spinner, fetches meta.json via loader.load('meta'), calls store.loadMeta() on success. On failure, replaces the spinner with an error message.",
+        "typeSignature": "InstanceType<ExplorerApp>[\"loadInitialData\"]",
+        "edgeCount": 2
+      },
+      "explorer.spa.ExplorerApp.render": {
+        "id": "explorer.spa.ExplorerApp.render",
+        "type": "export",
+        "desc": "Called by the store subscriber or directly after UI state changes. Calls computeLayout, redraws lane bands and structure edges, then runs the D3 enter/update/exit cycle. Search dim is applied by computing a match id set and setting opacity per node.",
+        "typeSignature": "InstanceType<ExplorerApp>[\"render\"]",
+        "edgeCount": 3
+      },
+      "explorer.spa.ExplorerApp.onExpand": {
+        "id": "explorer.spa.ExplorerApp.onExpand",
+        "type": "export",
+        "desc": "Handles folder expand/collapse and module expand/collapse. For folder expand: shows node spinner, fetches chunk if not cached, removes spinner in finally, adds id to expanded set, calls render(). For folder collapse: removes id and all descendants from expanded set via collapseDescendants.",
+        "typeSignature": "InstanceType<ExplorerApp>[\"onExpand\"]",
+        "edgeCount": 2
+      },
+      "explorer.spa.ExplorerApp.onSelect": {
+        "id": "explorer.spa.ExplorerApp.onSelect",
+        "type": "export",
+        "desc": "Sets the selected node on the instance and opens the detail panel.",
+        "typeSignature": "InstanceType<ExplorerApp>[\"onSelect\"]",
+        "edgeCount": 1
+      },
+      "explorer.spa.ExplorerApp.onTraceLinks": {
+        "id": "explorer.spa.ExplorerApp.onTraceLinks",
+        "type": "export",
+        "desc": "MVP stub: logs the node id and edge count. Intended for an animated edge tracer in a future iteration.",
+        "typeSignature": "InstanceType<ExplorerApp>[\"onTraceLinks\"]"
+      },
+      "explorer.spa.ExplorerApp.collapseDescendants": {
+        "id": "explorer.spa.ExplorerApp.collapseDescendants",
+        "type": "export",
+        "desc": "Recursively removes all sub-folders and modules of a given folder from the expanded set. Called by onExpand on collapse before render().",
+        "typeSignature": "InstanceType<ExplorerApp>[\"collapseDescendants\"]",
+        "edgeCount": 1
       },
       "extractRegistry": {
         "id": "extractRegistry",
@@ -4796,7 +4895,7 @@
         "id": "graph-to-chunks-transform",
         "type": "flow",
         "desc": "How KnowledgeGraph becomes ExplorerChunks: edge indexing, meta assembly, recursive folder chunking, ghost node injection, child count patching",
-        "priority": "essential",
+        "priority": "supplementary",
         "steps": [
           {
             "nodeId": "cli.commands.explore",
@@ -4821,15 +4920,20 @@
           {
             "nodeId": "explorer.transform",
             "order": 4,
-            "label": "injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories"
+            "label": "buildGhostIntermediaryChains() synthesizes FolderChunks for every intermediate filesystem directory between a declared folder path and its owned modules/subfolders"
           },
           {
             "nodeId": "explorer.transform",
             "order": 5,
+            "label": "injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories recorded in folder.children scanner data"
+          },
+          {
+            "nodeId": "explorer.transform",
+            "order": 6,
             "label": "patchFolderChildCounts() finalizes _hasChildren + _childCount on all folder nodes after ghost injection"
           }
         ],
-        "edgeCount": 6
+        "edgeCount": 7
       },
       "explorer-expand-flow": {
         "id": "explorer-expand-flow",
@@ -4840,40 +4944,45 @@
           {
             "nodeId": "explorer.spa.node-base",
             "order": 0,
-            "label": "User clicks ▶ expand button; onExpand handler fires"
+            "label": "User clicks + expand button; BaseNodeRenderer fires the onExpand callback"
+          },
+          {
+            "nodeId": "explorer.spa.main",
+            "order": 1,
+            "label": "ExplorerApp.onExpand(): calls showNodeSpinner, delegates to loader, calls removeNodeSpinner in finally; adds node id to expanded set"
           },
           {
             "nodeId": "explorer.spa.loader",
-            "order": 1,
-            "label": "ChunkLoader.load('folder', id) — cache hit or fetches /chunks/folder-{id}.json"
+            "order": 2,
+            "label": "ChunkLoader.load('folder', id) — returns cached chunk or fetches /chunks/folder-{sanitizedId}.json"
           },
           {
             "nodeId": "explorer.spa.store",
-            "order": 2,
-            "label": "store.addFolderChunk() stores chunk; expanded set updated in main.ts"
+            "order": 3,
+            "label": "store.loadFolderChunk() stores chunk; store notifies subscribers, triggering ExplorerApp.render()"
           },
           {
             "nodeId": "explorer.spa.computeLayout",
-            "order": 3,
-            "label": "Rebuilds d3.hierarchy with expanded folder's modules and recomputes all SVG positions"
+            "order": 4,
+            "label": "render() calls computeLayout(store, expanded) — rebuilds d3.hierarchy and recomputes all SVG positions"
           },
           {
             "nodeId": "explorer.spa.buildStructureLinks",
-            "order": 4,
-            "label": "Derives new parent→child link list from updated parentId fields"
+            "order": 5,
+            "label": "render() calls buildStructureLinks() — derives parent→child link list from updated parentId fields"
           },
           {
             "nodeId": "explorer.spa.renderStructureEdges",
-            "order": 5,
-            "label": "Redraws parent→child cubic-bezier SVG paths; ghost links rendered dashed"
+            "order": 6,
+            "label": "render() calls renderStructureEdges() — redraws cubic-bezier SVG paths; ghost links rendered dashed"
           },
           {
             "nodeId": "explorer.spa.node-base",
-            "order": 6,
-            "label": "D3 enter/update/exit adds new node cards, removes collapsed ones"
+            "order": 7,
+            "label": "render() D3 enter/update/exit — new node cards enter with fade-in, collapsed nodes exit with fade-out"
           }
         ],
-        "edgeCount": 7
+        "edgeCount": 8
       },
       "explorer-serve-flow": {
         "id": "explorer-serve-flow",
@@ -4899,7 +5008,7 @@
           {
             "nodeId": "explorer.spa.main",
             "order": 3,
-            "label": "Browser fetches meta.json, mounts SVG canvas with zoom/pan"
+            "label": "ExplorerApp.mount(): setupCanvas (D3 SVG + zoom/pan), setupRenderer, setupSearch, then loadInitialData fetches meta.json"
           },
           {
             "nodeId": "explorer.spa.lane-engine",
@@ -4942,6 +5051,148 @@
           }
         ],
         "edgeCount": 4
+      },
+      "explorer-app-boot": {
+        "id": "explorer-app-boot",
+        "type": "flow",
+        "desc": "ExplorerApp.mount(): four setup phases then meta fetch that triggers the first render",
+        "priority": "supplementary",
+        "steps": [
+          {
+            "nodeId": "explorer.spa.ExplorerApp",
+            "order": 0,
+            "label": "new ExplorerApp().mount() called on page load"
+          },
+          {
+            "nodeId": "explorer.spa.ExplorerApp.setupCanvas",
+            "order": 1,
+            "label": "Appends zoom-layer → lane-bg-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation; mounts detail panel"
+          },
+          {
+            "nodeId": "explorer.spa.ExplorerApp.setupTooltips",
+            "order": 2,
+            "label": "mountNodeTooltip() and mountCodeTooltip() attach DOM tooltip elements anchored to the SVG"
+          },
+          {
+            "nodeId": "explorer.spa.ExplorerApp.setupRenderer",
+            "order": 3,
+            "label": "createNodeRenderer() wires onExpand / onSelect / onTraceLinks / hasChildren / code preview callbacks to ExplorerApp instance methods"
+          },
+          {
+            "nodeId": "explorer.spa.ExplorerApp.setupSearch",
+            "order": 4,
+            "label": "Search input 'input' event updates searchQuery and calls render()"
+          },
+          {
+            "nodeId": "explorer.spa.ExplorerApp.loadInitialData",
+            "order": 5,
+            "label": "loader.load('meta') fetches /chunks/meta.json; global spinner shown while pending"
+          },
+          {
+            "nodeId": "explorer.spa.store",
+            "order": 6,
+            "label": "store.loadMeta() stores the chunk and notifies the render subscriber"
+          },
+          {
+            "nodeId": "explorer.spa.lane-engine",
+            "order": 7,
+            "label": "First render(): computeLayout positions top-folder nodes across the Structure lane"
+          }
+        ],
+        "edgeCount": 8
+      },
+      "explorer-app-render": {
+        "id": "explorer-app-render",
+        "type": "flow",
+        "desc": "ExplorerApp.render(): layout → edges → D3 enter/update/exit → search dim",
+        "priority": "supplementary",
+        "steps": [
+          {
+            "nodeId": "explorer.spa.ExplorerApp.render",
+            "order": 0,
+            "label": "Triggered by store subscription or direct call from interaction handler"
+          },
+          {
+            "nodeId": "explorer.spa.computeLayout",
+            "order": 1,
+            "label": "computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions"
+          },
+          {
+            "nodeId": "explorer.spa.edge-renderer",
+            "order": 2,
+            "label": "renderLaneBands(): draws labeled background bands for Structure, Docs, Terms/Flows lanes"
+          },
+          {
+            "nodeId": "explorer.spa.buildStructureLinks",
+            "order": 3,
+            "label": "buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields"
+          },
+          {
+            "nodeId": "explorer.spa.renderStructureEdges",
+            "order": 4,
+            "label": "renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke"
+          },
+          {
+            "nodeId": "explorer.spa.node-base",
+            "order": 5,
+            "label": "D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble"
+          },
+          {
+            "nodeId": "explorer.spa.node-base",
+            "order": 6,
+            "label": "D3 update: renderer.update() repositions and reskins all merged nodes"
+          },
+          {
+            "nodeId": "explorer.spa.node-base",
+            "order": 7,
+            "label": "D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes"
+          }
+        ],
+        "edgeCount": 8
+      },
+      "explorer-app-expand": {
+        "id": "explorer-app-expand",
+        "type": "flow",
+        "desc": "ExplorerApp.onExpand(): fetch chunk if needed, update expanded set, re-render",
+        "priority": "supplementary",
+        "steps": [
+          {
+            "nodeId": "explorer.spa.node-base",
+            "order": 0,
+            "label": "User clicks + button; BaseNodeRenderer fires the onExpand callback"
+          },
+          {
+            "nodeId": "explorer.spa.ExplorerApp.onExpand",
+            "order": 1,
+            "label": "If already expanded: collapseDescendants() clears the subtree, calls render()"
+          },
+          {
+            "nodeId": "explorer.spa.showNodeSpinner",
+            "order": 2,
+            "label": "If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node"
+          },
+          {
+            "nodeId": "explorer.spa.loader",
+            "order": 3,
+            "label": "loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json"
+          },
+          {
+            "nodeId": "explorer.spa.removeNodeSpinner",
+            "order": 4,
+            "label": "removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed"
+          },
+          {
+            "nodeId": "explorer.spa.store",
+            "order": 5,
+            "label": "store.loadFolderChunk() stores chunk and notifies subscribers"
+          },
+          {
+            "nodeId": "explorer.spa.ExplorerApp.render",
+            "order": 6,
+            "label": "render() called after expanded set update — new nodes enter, layout recomputed"
+          }
+        ],
+        "edgeCount": 7
       },
       "module-morphology-extraction": {
         "id": "module-morphology-extraction",
@@ -5068,7 +5319,7 @@
         "explains": "Transform: how KnowledgeGraph becomes ExplorerChunks — edge indexing, meta assembly, recursive folder chunking, ghost injection",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/explorer/transform.tskb.tsx",
-        "content": "Graph Transform <nodeId: explorer.transform>is the single step between the raw knowledge graph and what the browser\n      receives. <nodeId: explorer.transformGraph>is implemented as a class ( GraphToExplorerTransformer ) whose transform() method orchestrates\n      all steps — edge indexing, meta assembly, folder chunk recursion, ghost injection, and child\n      count patching. Output shape The output is ExplorerChunks : a MetaChunk plus a   Map&lt;folderId, FolderChunk&gt; . The server and exporter serialize each entry to\n      a separate <nodeId: knowledgeChunk>JSON file: meta.json and   folder-&#123;sanitizedId&#125;.json . MetaChunk contains: root folder node, top-level folder summaries (with   _hasChildren / _childCount hints), all doc nodes, flow nodes, term\n      nodes, external nodes, and cross-lane references edges. FolderChunk contains: direct sub-folders, direct modules, all exports of\n      those modules, import edges between modules in this folder ( internalEdges ), and\n      import edges that cross the folder boundary ( externalEdges ). Edge lookup indexes Before anything else, the transformer builds two Map&lt;nodeId, GraphEdge[]&gt;   indexes — one keyed by the source node id ( edgesBySource ) and one by the target\n      node id ( edgesByTarget ). All subsequent queries run in O(1) per node instead of\n      scanning the full edge list. Recursive folder chunking buildAllFolderChunksRecursively() does a depth-first walk starting from the root\n      folder, following contains edges. For each folder it finds direct modules (via   belongs-to edges pointing at the folder) and direct sub-folders (via   contains edges from the folder). Folders with neither are skipped but still\n      recursed into, so deeply nested folders with content are always reached. Ghost node injection After all declared nodes are placed, the transformer scans every folder's   folder.children.files and folder.children.folders (recorded by the\n      file scanner during build). Any .ts / .tsx file not already in a\n      chunk becomes a <nodeId: ghostNode>module. Any child directory not already a known graph folder\n      and not a transparent intermediary (a directory whose only content is already represented by\n      deeper declared sub-folders) becomes a ghost folder. Child count patching After ghost injection is complete, patchFolderChildCounts() writes the final   _hasChildren and _childCount detail fields on every folder   ExplorerNode . These fields drive the expand button visibility and badge in the\n      SPA. The patch runs last so ghost nodes are included in the counts. <flow name=\"graph-to-chunks-transform\" desc=\"How KnowledgeGraph becomes ExplorerChunks: edge indexing, meta assembly, recursive folder chunking, ghost node injection, child count patching\"><step order=\"0\" nodeId=\"cli.commands.explore\" label=\"Reads graph.json from disk into KnowledgeGraph\" /><step order=\"1\" nodeId=\"explorer.transform\" label=\"groupEdgesByKey() builds edgesBySource + edgesByTarget indexes from all graph edges\" /><step order=\"2\" nodeId=\"explorer.transformGraph\" label=\"Assembles MetaChunk: root node, topFolders, docs, flows, terms, externals, cross-lane reference edges\" /><step order=\"3\" nodeId=\"explorer.transformGraph\" label=\"buildAllFolderChunksRecursively() depth-first: modules, exports, subfolders, internal + external import edges per folder\" /><step order=\"4\" nodeId=\"explorer.transform\" label=\"injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories\" /><step order=\"5\" nodeId=\"explorer.transform\" label=\"patchFolderChildCounts() finalizes _hasChildren + _childCount on all folder nodes after ghost injection\" /></flow>",
+        "content": "Graph Transform <nodeId: explorer.transform>is the single step between the raw knowledge graph and what the browser\n      receives. <nodeId: explorer.transformGraph>is implemented as a class ( GraphToExplorerTransformer ) whose transform() method orchestrates\n      all steps — edge indexing, meta assembly, folder chunk recursion, ghost injection, and child\n      count patching. Output shape The output is ExplorerChunks : a MetaChunk plus a   Map&lt;folderId, FolderChunk&gt; . The server and exporter serialize each entry to\n      a separate <nodeId: knowledgeChunk>JSON file: meta.json and   folder-&#123;sanitizedId&#125;.json . MetaChunk contains: root folder node, top-level folder summaries (with   _hasChildren / _childCount hints), all doc nodes, flow nodes, term\n      nodes, external nodes, and cross-lane references edges. FolderChunk contains: direct sub-folders, direct modules, all exports of\n      those modules, import edges between modules in this folder ( internalEdges ), and\n      import edges that cross the folder boundary ( externalEdges ). Edge lookup indexes Before anything else, the transformer builds two Map&lt;nodeId, GraphEdge[]&gt;   indexes — one keyed by the source node id ( edgesBySource ) and one by the target\n      node id ( edgesByTarget ). All subsequent queries run in O(1) per node instead of\n      scanning the full edge list. Recursive folder chunking buildAllFolderChunksRecursively() does a depth-first walk starting from the root\n      folder, following contains edges. For each folder it finds direct modules (via   belongs-to edges pointing at the folder) and direct sub-folders (via   contains edges from the folder). Folders with neither are skipped but still\n      recursed into, so deeply nested folders with content are always reached. Ghost node injection Ghost injection runs in two passes. First, buildGhostIntermediaryChains() detects\n      path gaps between a declared folder's path and its owned modules or sub-folders. When a module\n      lives at pkg/src/core/server.ts but its declared parent folder has path   pkg , the transformer synthesizes <nodeId: ghostNode>FolderChunk entries\n      for every intermediate directory ( pkg/src , pkg/src/core ) and\n      re-parents the module to the deepest one. The chain is not synthesized if any intermediate\n      path is already owned by a declared folder. Second, injectGhostNodes() scans every declared folder's   folder.children.files and folder.children.folders (scanner data\n      recorded during tskb build ). Any .ts / .tsx file not\n      already in a chunk becomes a ghost module node. Any direct child directory not already\n      represented (either as a declared folder or a ghost intermediary) and not a transparent\n      intermediary becomes a ghost folder node. Ghost intermediary chunks are not processed by this\n      pass — they only contain what the graph already knows. Child count patching After ghost injection is complete, patchFolderChildCounts() writes the final   _hasChildren and _childCount detail fields on every folder   ExplorerNode . These fields drive the expand button visibility and badge in the\n      SPA. The patch runs last so ghost nodes are included in the counts. <flow name=\"graph-to-chunks-transform\" desc=\"How KnowledgeGraph becomes ExplorerChunks: edge indexing, meta assembly, recursive folder chunking, ghost node injection, child count patching\"><step order=\"0\" nodeId=\"cli.commands.explore\" label=\"Reads graph.json from disk into KnowledgeGraph\" /><step order=\"1\" nodeId=\"explorer.transform\" label=\"groupEdgesByKey() builds edgesBySource + edgesByTarget indexes from all graph edges\" /><step order=\"2\" nodeId=\"explorer.transformGraph\" label=\"Assembles MetaChunk: root node, topFolders, docs, flows, terms, externals, cross-lane reference edges\" /><step order=\"3\" nodeId=\"explorer.transformGraph\" label=\"buildAllFolderChunksRecursively() depth-first: modules, exports, subfolders, internal + external import edges per folder\" /><step order=\"4\" nodeId=\"explorer.transform\" label=\"buildGhostIntermediaryChains() synthesizes FolderChunks for every intermediate filesystem directory between a declared folder path and its owned modules/subfolders\" /><step order=\"5\" nodeId=\"explorer.transform\" label=\"injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories recorded in folder.children scanner data\" /><step order=\"6\" nodeId=\"explorer.transform\" label=\"patchFolderChildCounts() finalizes _hasChildren + _childCount on all folder nodes after ghost injection\" /></flow>",
         "format": "tsx",
         "edgeCount": 4
       },
@@ -5078,9 +5329,9 @@
         "explains": "Explorer SPA architecture: D3 canvas, chunk loading, three-lane layout, node components, UI shell",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/explorer/spa.tskb.tsx",
-        "content": "Explorer SPA The SPA is built with Vite (D3 in a separate vendor chunk) and lives in the   explorer-app/ directory. It is pre-built into dist/explorer/ and\n      shipped inside the tskb npm package. <nodeId: explorer.spa.main>is the entry point that bootstraps the\n      canvas, wires all interaction handlers, and drives the render loop. Data layer <nodeId: explorer.spa.chunk-types>defines the chunk discriminated union ( MetaChunk | FolderChunk ) and the ChunkRegistry map that keys chunk kinds to their types. Adding a new\n      chunk kind means extending this file only. <nodeId: explorer.spa.loader>provides <nodeId: explorer.spa.ChunkLoader>: a generic load(kind, ...args) whose\n      return type is inferred from ChunkRegistry[K] . It deduplicates in-flight requests\n      and uses a <nodeId: lruChunkCache>(max 50 entries) so folders are not re-fetched on collapse/expand\n      cycles. <nodeId: explorer.spa.GraphStore>in <nodeId: explorer.spa.store>holds only graph data (meta chunk, folder chunks map). UI\n      state — the expanded node set, selected node, and search query — lives as plain variables in   <nodeId: explorer.spa.main>and is passed to layout and rendering functions explicitly. The store exposes   subscribe(listener) for reactive re-render. <relation from=\"explorer.spa.store\" to=\"explorer.spa.chunk-types\" label=\"stores chunks typed by\" /><relation from=\"explorer.spa.loader\" to=\"explorer.spa.chunk-types\" label=\"types fetch results via\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.store\" label=\"subscribes to\" />Three-lane layout <nodeId: explorer.spa.lane-engine>computes all SVG positions in a single pass. The canvas has three   <nodeId: explorerLane>s stacked vertically: Structure — builds a d3.hierarchy from the visible tree (root\n        → expanded folders → modules → exports, including sub-folder nesting). Runs   d3.tree().nodeSize() for left-to-right positioning. Collapsed folders with   _childCount &gt; 0 inject ghost placeholder nodes so the tree pre-reserves\n        space for their children. Docs — horizontal list ordered by priority (essential → constraint →\n        supplementary). Terms / Flows — horizontal list below docs. On every expand or collapse, <nodeId: explorer.spa.main>calls <nodeId: explorer.spa.computeLayout>and fully re-renders the\n      D3 selection with enter/update/exit. Node components <nodeId: explorer.spa.node-base>defines the <nodeId: nodeComponent>interface and <nodeId: explorer.spa.BaseNodeRenderer>— the\n      default renderer for all node types. Each node is an SVG &lt;g&gt; containing a\n      rounded-rect card, type icon, label, description, edge-count badge, a &lt;&gt;   code preview bubble (top-center), and a + expand bubble (right edge).   <nodeId: ghostNode>s render as dashed transparent placeholders showing only their filename. <nodeId: explorer.spa.edge-renderer>derives parent→child links via <nodeId: explorer.spa.buildStructureLinks>and draws them\n      as horizontal cubic-bezier SVG paths via <nodeId: explorer.spa.renderStructureEdges>. Ghost links (where\n      either endpoint has detail._ghost = 'true' ) render with a dashed stroke and\n      reduced opacity. It also renders the labeled background bands for each lane. <relation from=\"explorer.spa.node-base\" to=\"explorer.spa.lane-engine\" label=\"reads NODE_SIZES from\" /><relation from=\"explorer.spa.edge-renderer\" to=\"explorer.spa.lane-engine\" label=\"reads LaneLayout from\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.lane-engine\" label=\"calls computeLayout on each render\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.node-base\" label=\"calls enter/update on node selections\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.edge-renderer\" label=\"calls renderStructureEdges\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.node-tooltip\" label=\"propagates zoom transform to\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.code-tooltip\" label=\"propagates zoom transform to\" /><relation from=\"explorer.spa.node-base\" to=\"explorer.spa.node-tooltip\" label=\"triggers show/hide on hover\" /><relation from=\"explorer.spa.node-base\" to=\"explorer.spa.code-tooltip\" label=\"triggers toggle on <> click\" />UI shell <nodeId: explorer.spa.spinner>provides a full-screen global spinner (shown while meta.json   loads) and a per-node inline spinner (shown while a folder chunk is fetching). <nodeId: explorer.spa.detail-panel>is a slide-in panel mounted outside the SVG. It shows all fields of the\n      selected node (id, type, description, path, morphology, imports, signature) and is opened by   onSelect , closed by ESC or the × button. <nodeId: explorer.spa.node-tooltip>appears on hover, anchored to the node's right-center SVG position.   <nodeId: explorer.spa.code-tooltip>is a click-toggled code preview popup anchored to the node's top-center\n      SVG position. Both receive updateXxxTransform() calls from <nodeId: explorer.spa.main>on every\n      D3 zoom event so they reposition to track their anchor nodes as the canvas pans and zooms. <flow name=\"explorer-expand-flow\" desc=\"User expands a folder node: chunk is fetched, store updated, layout recomputed, SVG re-rendered\"><step order=\"0\" nodeId=\"explorer.spa.node-base\" label=\"User clicks ▶ expand button; onExpand handler fires\" /><step order=\"1\" nodeId=\"explorer.spa.loader\" label=\"ChunkLoader.load('folder', id) — cache hit or fetches /chunks/folder-{id}.json\" /><step order=\"2\" nodeId=\"explorer.spa.store\" label=\"store.addFolderChunk() stores chunk; expanded set updated in main.ts\" /><step order=\"3\" nodeId=\"explorer.spa.computeLayout\" label=\"Rebuilds d3.hierarchy with expanded folder's modules and recomputes all SVG positions\" /><step order=\"4\" nodeId=\"explorer.spa.buildStructureLinks\" label=\"Derives new parent→child link list from updated parentId fields\" /><step order=\"5\" nodeId=\"explorer.spa.renderStructureEdges\" label=\"Redraws parent→child cubic-bezier SVG paths; ghost links rendered dashed\" /><step order=\"6\" nodeId=\"explorer.spa.node-base\" label=\"D3 enter/update/exit adds new node cards, removes collapsed ones\" /></flow>",
+        "content": "Explorer SPA The SPA is built with Vite (D3 in a separate vendor chunk) and lives in the   explorer-app/ directory. It is pre-built into dist/explorer/ and\n      shipped inside the tskb npm package. <nodeId: explorer.spa.main>is the entry point that bootstraps the\n      canvas, wires all interaction handlers, and drives the render loop. Data layer <nodeId: explorer.spa.chunk-types>defines the chunk discriminated union ( MetaChunk | FolderChunk ) and the ChunkRegistry map that keys chunk kinds to their types. Adding a new\n      chunk kind means extending this file only. <nodeId: explorer.spa.loader>provides <nodeId: explorer.spa.ChunkLoader>: a generic load(kind, ...args) whose\n      return type is inferred from ChunkRegistry[K] . It deduplicates in-flight requests\n      and uses a <nodeId: lruChunkCache>(max 50 entries) so folders are not re-fetched on collapse/expand\n      cycles. <nodeId: explorer.spa.GraphStore>in <nodeId: explorer.spa.store>holds only graph data (meta chunk, folder chunks map).\n      Data arrives via loadMeta() and loadFolderChunk() . UI state — the\n      expanded node set, selected node, and search query — lives as plain variables in <nodeId: explorer.spa.main>  and is passed explicitly to <nodeId: explorer.spa.computeLayout>, <nodeId: explorer.spa.renderStructureEdges>, and   <nodeId: explorer.spa.BaseNodeRenderer>. The store exposes subscribe(listener) for reactive\n      re-render. <relation from=\"explorer.spa.store\" to=\"explorer.spa.chunk-types\" label=\"stores chunks typed by\" /><relation from=\"explorer.spa.loader\" to=\"explorer.spa.chunk-types\" label=\"types fetch results via\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.store\" label=\"subscribes to\" />Three-lane layout <nodeId: explorer.spa.lane-engine>computes all SVG positions in a single pass. The canvas has three   <nodeId: explorerLane>s stacked vertically: Structure — builds a d3.hierarchy from the visible tree (root\n        → expanded folders → modules → exports, including sub-folder nesting). Runs   d3.tree().nodeSize() for left-to-right positioning. Collapsed folders with   _childCount &gt; 0 inject ghost placeholder nodes so the tree pre-reserves\n        space for their children. Docs — horizontal list ordered by priority (essential → constraint →\n        supplementary). Terms / Flows — horizontal list below docs. On every expand or collapse, <nodeId: explorer.spa.main>calls <nodeId: explorer.spa.computeLayout>and fully re-renders the\n      D3 selection with enter/update/exit. Node components <nodeId: explorer.spa.node-base>defines the <nodeId: nodeComponent>interface and <nodeId: explorer.spa.BaseNodeRenderer>— the\n      default renderer for all node types. Each node is an SVG &lt;g&gt; containing a\n      rounded-rect card, type icon, label, description, edge-count badge, a &lt;&gt;   code preview bubble (top-center), and a + expand bubble (right edge).   <nodeId: ghostNode>s render as dashed transparent placeholders showing only their filename. <nodeId: explorer.spa.edge-renderer>derives parent→child links via <nodeId: explorer.spa.buildStructureLinks>and draws them\n      as horizontal cubic-bezier SVG paths via <nodeId: explorer.spa.renderStructureEdges>. Ghost links (where\n      either endpoint has detail._ghost = 'true' ) render with a dashed stroke and\n      reduced opacity. It also renders the labeled background bands for each lane. <relation from=\"explorer.spa.node-base\" to=\"explorer.spa.lane-engine\" label=\"reads NODE_SIZES from\" /><relation from=\"explorer.spa.edge-renderer\" to=\"explorer.spa.lane-engine\" label=\"reads LaneLayout from\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.lane-engine\" label=\"calls computeLayout on each render\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.node-base\" label=\"calls enter/update on node selections\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.edge-renderer\" label=\"calls renderStructureEdges\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.node-tooltip\" label=\"propagates zoom transform to\" /><relation from=\"explorer.spa.main\" to=\"explorer.spa.code-tooltip\" label=\"propagates zoom transform to\" /><relation from=\"explorer.spa.node-base\" to=\"explorer.spa.node-tooltip\" label=\"triggers show/hide on hover\" /><relation from=\"explorer.spa.node-base\" to=\"explorer.spa.code-tooltip\" label=\"triggers toggle on <> click\" />UI shell <nodeId: explorer.spa.spinner>provides a full-screen global spinner (shown while meta.json   loads) and a per-node inline spinner: <nodeId: explorer.spa.showNodeSpinner>appends an animated SVG ring at\n      the node's canvas position; <nodeId: explorer.spa.removeNodeSpinner>removes it in the finally   block after the chunk fetch settles. <nodeId: explorer.spa.detail-panel>is a slide-in panel mounted outside the SVG. It shows all fields of the\n      selected node (id, type, description, path, morphology, imports, signature) and is opened by   onSelect , closed by ESC or the × button. <nodeId: explorer.spa.node-tooltip>appears on hover, anchored to the node's right-center SVG position.   <nodeId: explorer.spa.code-tooltip>is a click-toggled code preview popup anchored to the node's top-center\n      SVG position. Both receive updateXxxTransform() calls from <nodeId: explorer.spa.main>on every\n      D3 zoom event so they reposition to track their anchor nodes as the canvas pans and zooms. <flow name=\"explorer-expand-flow\" desc=\"User expands a folder node: chunk is fetched, store updated, layout recomputed, SVG re-rendered\"><step order=\"0\" nodeId=\"explorer.spa.node-base\" label=\"User clicks + expand button; BaseNodeRenderer fires the onExpand callback\" /><step order=\"1\" nodeId=\"explorer.spa.main\" label=\"ExplorerApp.onExpand(): calls showNodeSpinner, delegates to loader, calls removeNodeSpinner in finally; adds node id to expanded set\" /><step order=\"2\" nodeId=\"explorer.spa.loader\" label=\"ChunkLoader.load('folder', id) — returns cached chunk or fetches /chunks/folder-{sanitizedId}.json\" /><step order=\"3\" nodeId=\"explorer.spa.store\" label=\"store.loadFolderChunk() stores chunk; store notifies subscribers, triggering ExplorerApp.render()\" /><step order=\"4\" nodeId=\"explorer.spa.computeLayout\" label=\"render() calls computeLayout(store, expanded) — rebuilds d3.hierarchy and recomputes all SVG positions\" /><step order=\"5\" nodeId=\"explorer.spa.buildStructureLinks\" label=\"render() calls buildStructureLinks() — derives parent→child link list from updated parentId fields\" /><step order=\"6\" nodeId=\"explorer.spa.renderStructureEdges\" label=\"render() calls renderStructureEdges() — redraws cubic-bezier SVG paths; ghost links rendered dashed\" /><step order=\"7\" nodeId=\"explorer.spa.node-base\" label=\"render() D3 enter/update/exit — new node cards enter with fade-in, collapsed nodes exit with fade-out\" /></flow>",
         "format": "tsx",
-        "edgeCount": 21
+        "edgeCount": 23
       },
       "docs/src/tskb/explorer/serve.tskb.tsx": {
         "id": "docs/src/tskb/explorer/serve.tskb.tsx",
@@ -5088,7 +5339,7 @@
         "explains": "Explorer HTTP server: chunk API, in-memory cache, SPA asset serving, auto-open browser",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/explorer/serve.tskb.tsx",
-        "content": "Explorer Server <nodeId: explorer.serveExplorer>in <nodeId: explorer.server>starts a Node built-in http server — no\n      external dependency. It runs the graph transform once at startup, serializes every <nodeId: knowledgeChunk>  to JSON, and keeps all of them in a Map&lt;string, string&gt; for the lifetime of\n      the process. Subsequent chunk requests are pure string writes with no re-serialization. Request routing Two routes are handled: /chunks/*.json — chunk API. The key is extracted from the pathname (e.g.   meta or folder-tskb.core ) and looked up in the in-memory cache. A\n      404 is returned if the key is unknown. /* (static assets) — SPA files are served from dist/explorer/ ,\n      resolved via import.meta.url so the path stays correct after   npm pack . Any unknown path falls back to index.html so the SPA\n      router handles client-side navigation. A path traversal guard rejects any request that\n      resolves outside dist/explorer/ . Command entry point <nodeId: explorer.explore>in <nodeId: cli.commands.explore>locates graph.json via   <nodeId: cli.utils.graph-finder>, parses it, then branches: if --export is provided it calls   exportExplorer ; otherwise it calls <nodeId: explorer.serveExplorer>. The module is\n      dynamically imported so the SPA assets directory is only resolved when actually needed. <flow name=\"explorer-serve-flow\" desc=\"tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand\"><step order=\"0\" nodeId=\"explorer.explore\" label=\"Reads graph.json, branches on --export flag\" /><step order=\"1\" nodeId=\"explorer.transformGraph\" label=\"Converts KnowledgeGraph into MetaChunk + FolderChunks, serializes all to JSON strings\" /><step order=\"2\" nodeId=\"explorer.serveExplorer\" label=\"Starts http server: /chunks/*.json reads from in-memory cache; /* serves SPA assets\" /><step order=\"3\" nodeId=\"explorer.spa.main\" label=\"Browser fetches meta.json, mounts SVG canvas with zoom/pan\" /><step order=\"4\" nodeId=\"explorer.spa.lane-engine\" label=\"computeLayout() positions all visible nodes across three lanes\" /><step order=\"5\" nodeId=\"explorer.spa.node-base\" label=\"D3 enter/update renders node cards into SVG groups\" /></flow>",
+        "content": "Explorer Server <nodeId: explorer.serveExplorer>in <nodeId: explorer.server>starts a Node built-in http server — no\n      external dependency. It runs the graph transform once at startup, serializes every <nodeId: knowledgeChunk>  to JSON, and keeps all of them in a Map&lt;string, string&gt; for the lifetime of\n      the process. Subsequent chunk requests are pure string writes with no re-serialization. Request routing Two routes are handled: /chunks/*.json — chunk API. The key is extracted from the pathname (e.g.   meta or folder-tskb.core ) and looked up in the in-memory cache. A\n      404 is returned if the key is unknown. /* (static assets) — SPA files are served from dist/explorer/ ,\n      resolved via import.meta.url so the path stays correct after   npm pack . Any unknown path falls back to index.html so the SPA\n      router handles client-side navigation. A path traversal guard rejects any request that\n      resolves outside dist/explorer/ . Command entry point <nodeId: explorer.explore>in <nodeId: cli.commands.explore>locates graph.json via   <nodeId: cli.utils.graph-finder>, parses it, then branches: if --export is provided it calls   exportExplorer ; otherwise it calls <nodeId: explorer.serveExplorer>. The module is\n      dynamically imported so the SPA assets directory is only resolved when actually needed. <flow name=\"explorer-serve-flow\" desc=\"tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand\"><step order=\"0\" nodeId=\"explorer.explore\" label=\"Reads graph.json, branches on --export flag\" /><step order=\"1\" nodeId=\"explorer.transformGraph\" label=\"Converts KnowledgeGraph into MetaChunk + FolderChunks, serializes all to JSON strings\" /><step order=\"2\" nodeId=\"explorer.serveExplorer\" label=\"Starts http server: /chunks/*.json reads from in-memory cache; /* serves SPA assets\" /><step order=\"3\" nodeId=\"explorer.spa.main\" label=\"ExplorerApp.mount(): setupCanvas (D3 SVG + zoom/pan), setupRenderer, setupSearch, then loadInitialData fetches meta.json\" /><step order=\"4\" nodeId=\"explorer.spa.lane-engine\" label=\"computeLayout() positions all visible nodes across three lanes\" /><step order=\"5\" nodeId=\"explorer.spa.node-base\" label=\"D3 enter/update renders node cards into SVG groups\" /></flow>",
         "format": "tsx",
         "edgeCount": 6
       },
@@ -5111,6 +5362,16 @@
         "content": "Explorer The explorer is a D3-powered SPA that renders the knowledge graph as a visual, interactive\n      diagram. It opens via tskb explore (local HTTP server) or exports to a\n      self-contained static folder via tskb explore --export . The implementation splits into two layers: the CLI-side layer in <nodeId: tskb.explorer.core>(graph\n      transform, HTTP server, static export) and the Vite SPA in <nodeId: tskb.explorer.app>(D3 canvas,\n      chunk loading, layout, node components). CLI layer The CLI layer has three focused modules — see their dedicated docs for details: <nodeId: explorer.transform>( <nodeId: explorer.transformGraph>) — converts a flat KnowledgeGraph into   ExplorerChunks : a MetaChunk plus one FolderChunk per\n      folder that has modules or sub-folders. Ghost nodes are injected for filesystem files not\n      declared in the graph. <nodeId: explorer.server>( <nodeId: explorer.serveExplorer>) — Node built-in http server that caches\n      all chunk JSON strings in memory after the first transform and serves them at   /chunks/*.json . No external server dependency. <nodeId: explorer.export>( <nodeId: explorer.exportExplorer>) — copies the pre-built SPA assets to an output\n      directory and writes all chunk JSON files alongside them, producing a fully self-contained\n      static explorer. Build integration npm run build:explorer runs Vite, outputting to dist/explorer/ .   npm run build:lib runs tsc , outputting to dist/ . The\n      full npm run build runs explorer first, then lib — so the SPA assets are inside   dist/ when the package is published. During development, npm run dev:explorer starts Vite's HMR dev server against a\n      fixed chunks/ directory. The CLI build:lib must be run at least once\n      so the dist/ server code exists.",
         "format": "tsx",
         "edgeCount": 8
+      },
+      "docs/src/tskb/explorer/app.tskb.tsx": {
+        "id": "docs/src/tskb/explorer/app.tskb.tsx",
+        "type": "doc",
+        "explains": "ExplorerApp class: boot sequence, render loop, and interaction handlers",
+        "priority": "supplementary",
+        "filePath": "docs/src/tskb/explorer/app.tskb.tsx",
+        "content": "ExplorerApp <nodeId: explorer.spa.ExplorerApp>in <nodeId: explorer.spa.main>is the single top-level controller for the explorer SPA.\n      All canvas layers, UI state, and callbacks are owned by the class instance. The only public\n      surface is <nodeId: explorer.spa.ExplorerApp.mount>— everything else is private, wired internally via callbacks. Boot sequence <nodeId: explorer.spa.ExplorerApp.mount>runs four synchronous setup methods then awaits data. <nodeId: explorer.spa.ExplorerApp.setupCanvas>  creates the SVG layer stack and wires zoom/pan. <nodeId: explorer.spa.ExplorerApp.setupTooltips>mounts hover and code\n      tooltips. <nodeId: explorer.spa.ExplorerApp.setupRenderer>constructs the node renderer with bound interaction callbacks.   <nodeId: explorer.spa.ExplorerApp.setupSearch>wires the search input. <nodeId: explorer.spa.ExplorerApp.loadInitialData>fetches   meta.json and calls store.loadMeta() , which notifies the render\n      subscriber and triggers the first <nodeId: explorer.spa.ExplorerApp.render>. Render loop <nodeId: explorer.spa.ExplorerApp.render>is triggered by the store subscription (after loadMeta or   loadFolderChunk ) and by direct calls from interaction handlers after UI state\n      changes. It calls <nodeId: explorer.spa.computeLayout>, redraws lane bands and structure edges via   <nodeId: explorer.spa.edge-renderer>, then runs the D3 enter/update/exit cycle through the node renderer. Interaction handlers <nodeId: explorer.spa.ExplorerApp.onExpand>handles folder and module expand/collapse. For folder expand it calls   <nodeId: explorer.spa.showNodeSpinner>, fetches via the loader, calls <nodeId: explorer.spa.removeNodeSpinner>in   finally , then updates the expanded set and calls <nodeId: explorer.spa.ExplorerApp.render>. Collapse\n      delegates to <nodeId: explorer.spa.ExplorerApp.collapseDescendants>to recursively clear all descendants from the\n      expanded set. <nodeId: explorer.spa.ExplorerApp.onSelect>opens the <nodeId: explorer.spa.detail-panel>. <flow name=\"explorer-app-boot\" desc=\"ExplorerApp.mount(): four setup phases then meta fetch that triggers the first render\"><step order=\"0\" nodeId=\"explorer.spa.ExplorerApp\" label=\"new ExplorerApp().mount() called on page load\" /><step order=\"1\" nodeId=\"explorer.spa.ExplorerApp.setupCanvas\" label=\"Appends zoom-layer → lane-bg-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation; mounts detail panel\" /><step order=\"2\" nodeId=\"explorer.spa.ExplorerApp.setupTooltips\" label=\"mountNodeTooltip() and mountCodeTooltip() attach DOM tooltip elements anchored to the SVG\" /><step order=\"3\" nodeId=\"explorer.spa.ExplorerApp.setupRenderer\" label=\"createNodeRenderer() wires onExpand / onSelect / onTraceLinks / hasChildren / code preview callbacks to ExplorerApp instance methods\" /><step order=\"4\" nodeId=\"explorer.spa.ExplorerApp.setupSearch\" label=\"Search input 'input' event updates searchQuery and calls render()\" /><step order=\"5\" nodeId=\"explorer.spa.ExplorerApp.loadInitialData\" label=\"loader.load('meta') fetches /chunks/meta.json; global spinner shown while pending\" /><step order=\"6\" nodeId=\"explorer.spa.store\" label=\"store.loadMeta() stores the chunk and notifies the render subscriber\" /><step order=\"7\" nodeId=\"explorer.spa.lane-engine\" label=\"First render(): computeLayout positions top-folder nodes across the Structure lane\" /></flow><flow name=\"explorer-app-render\" desc=\"ExplorerApp.render(): layout → edges → D3 enter/update/exit → search dim\"><step order=\"0\" nodeId=\"explorer.spa.ExplorerApp.render\" label=\"Triggered by store subscription or direct call from interaction handler\" /><step order=\"1\" nodeId=\"explorer.spa.computeLayout\" label=\"computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions\" /><step order=\"2\" nodeId=\"explorer.spa.edge-renderer\" label=\"renderLaneBands(): draws labeled background bands for Structure, Docs, Terms/Flows lanes\" /><step order=\"3\" nodeId=\"explorer.spa.buildStructureLinks\" label=\"buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields\" /><step order=\"4\" nodeId=\"explorer.spa.renderStructureEdges\" label=\"renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke\" /><step order=\"5\" nodeId=\"explorer.spa.node-base\" label=\"D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble\" /><step order=\"6\" nodeId=\"explorer.spa.node-base\" label=\"D3 update: renderer.update() repositions and reskins all merged nodes\" /><step order=\"7\" nodeId=\"explorer.spa.node-base\" label=\"D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes\" /></flow><flow name=\"explorer-app-expand\" desc=\"ExplorerApp.onExpand(): fetch chunk if needed, update expanded set, re-render\"><step order=\"0\" nodeId=\"explorer.spa.node-base\" label=\"User clicks + button; BaseNodeRenderer fires the onExpand callback\" /><step order=\"1\" nodeId=\"explorer.spa.ExplorerApp.onExpand\" label=\"If already expanded: collapseDescendants() clears the subtree, calls render()\" /><step order=\"2\" nodeId=\"explorer.spa.showNodeSpinner\" label=\"If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node\" /><step order=\"3\" nodeId=\"explorer.spa.loader\" label=\"loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json\" /><step order=\"4\" nodeId=\"explorer.spa.removeNodeSpinner\" label=\"removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed\" /><step order=\"5\" nodeId=\"explorer.spa.store\" label=\"store.loadFolderChunk() stores chunk and notifies subscribers\" /><step order=\"6\" nodeId=\"explorer.spa.ExplorerApp.render\" label=\"render() called after expanded set update — new nodes enter, layout recomputed\" /></flow>",
+        "format": "tsx",
+        "edgeCount": 17
       },
       "docs/src/tskb/core/visualization.tskb.tsx": {
         "id": "docs/src/tskb/core/visualization.tskb.tsx",
@@ -5388,7 +5649,13 @@
       "from": "graph-to-chunks-transform",
       "to": "explorer.transform",
       "type": "flow-step",
-      "label": "injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories"
+      "label": "buildGhostIntermediaryChains() synthesizes FolderChunks for every intermediate filesystem directory between a declared folder path and its owned modules/subfolders"
+    },
+    {
+      "from": "graph-to-chunks-transform",
+      "to": "explorer.transform",
+      "type": "flow-step",
+      "label": "injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories recorded in folder.children scanner data"
     },
     {
       "from": "graph-to-chunks-transform",
@@ -5400,43 +5667,49 @@
       "from": "explorer-expand-flow",
       "to": "explorer.spa.node-base",
       "type": "flow-step",
-      "label": "User clicks ▶ expand button; onExpand handler fires"
+      "label": "User clicks + expand button; BaseNodeRenderer fires the onExpand callback"
+    },
+    {
+      "from": "explorer-expand-flow",
+      "to": "explorer.spa.main",
+      "type": "flow-step",
+      "label": "ExplorerApp.onExpand(): calls showNodeSpinner, delegates to loader, calls removeNodeSpinner in finally; adds node id to expanded set"
     },
     {
       "from": "explorer-expand-flow",
       "to": "explorer.spa.loader",
       "type": "flow-step",
-      "label": "ChunkLoader.load('folder', id) — cache hit or fetches /chunks/folder-{id}.json"
+      "label": "ChunkLoader.load('folder', id) — returns cached chunk or fetches /chunks/folder-{sanitizedId}.json"
     },
     {
       "from": "explorer-expand-flow",
       "to": "explorer.spa.store",
       "type": "flow-step",
-      "label": "store.addFolderChunk() stores chunk; expanded set updated in main.ts"
+      "label": "store.loadFolderChunk() stores chunk; store notifies subscribers, triggering ExplorerApp.render()"
     },
     {
       "from": "explorer-expand-flow",
       "to": "explorer.spa.computeLayout",
       "type": "flow-step",
-      "label": "Rebuilds d3.hierarchy with expanded folder's modules and recomputes all SVG positions"
+      "label": "render() calls computeLayout(store, expanded) — rebuilds d3.hierarchy and recomputes all SVG positions"
     },
     {
       "from": "explorer-expand-flow",
       "to": "explorer.spa.buildStructureLinks",
       "type": "flow-step",
-      "label": "Derives new parent→child link list from updated parentId fields"
+      "label": "render() calls buildStructureLinks() — derives parent→child link list from updated parentId fields"
     },
     {
       "from": "explorer-expand-flow",
       "to": "explorer.spa.renderStructureEdges",
       "type": "flow-step",
-      "label": "Redraws parent→child cubic-bezier SVG paths; ghost links rendered dashed"
+      "label": "render() calls renderStructureEdges() — redraws cubic-bezier SVG paths; ghost links rendered dashed"
     },
     {
       "from": "explorer-expand-flow",
       "to": "explorer.spa.node-base",
       "type": "flow-step",
-      "label": "D3 enter/update/exit adds new node cards, removes collapsed ones"
+      "label": "render() D3 enter/update/exit — new node cards enter with fade-in, collapsed nodes exit with fade-out"
     },
     {
       "from": "explorer-serve-flow",
@@ -5460,7 +5733,7 @@
       "from": "explorer-serve-flow",
       "to": "explorer.spa.main",
       "type": "flow-step",
-      "label": "Browser fetches meta.json, mounts SVG canvas with zoom/pan"
+      "label": "ExplorerApp.mount(): setupCanvas (D3 SVG + zoom/pan), setupRenderer, setupSearch, then loadInitialData fetches meta.json"
     },
     {
       "from": "explorer-serve-flow",
@@ -5497,6 +5770,144 @@
       "to": "explorer.exportExplorer",
       "type": "flow-step",
       "label": "Writes chunks/meta.json and chunks/folder-{id}.json for every folder chunk"
+    },
+    {
+      "from": "explorer-app-boot",
+      "to": "explorer.spa.ExplorerApp",
+      "type": "flow-step",
+      "label": "new ExplorerApp().mount() called on page load"
+    },
+    {
+      "from": "explorer-app-boot",
+      "to": "explorer.spa.ExplorerApp.setupCanvas",
+      "type": "flow-step",
+      "label": "Appends zoom-layer → lane-bg-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation; mounts detail panel"
+    },
+    {
+      "from": "explorer-app-boot",
+      "to": "explorer.spa.ExplorerApp.setupTooltips",
+      "type": "flow-step",
+      "label": "mountNodeTooltip() and mountCodeTooltip() attach DOM tooltip elements anchored to the SVG"
+    },
+    {
+      "from": "explorer-app-boot",
+      "to": "explorer.spa.ExplorerApp.setupRenderer",
+      "type": "flow-step",
+      "label": "createNodeRenderer() wires onExpand / onSelect / onTraceLinks / hasChildren / code preview callbacks to ExplorerApp instance methods"
+    },
+    {
+      "from": "explorer-app-boot",
+      "to": "explorer.spa.ExplorerApp.setupSearch",
+      "type": "flow-step",
+      "label": "Search input 'input' event updates searchQuery and calls render()"
+    },
+    {
+      "from": "explorer-app-boot",
+      "to": "explorer.spa.ExplorerApp.loadInitialData",
+      "type": "flow-step",
+      "label": "loader.load('meta') fetches /chunks/meta.json; global spinner shown while pending"
+    },
+    {
+      "from": "explorer-app-boot",
+      "to": "explorer.spa.store",
+      "type": "flow-step",
+      "label": "store.loadMeta() stores the chunk and notifies the render subscriber"
+    },
+    {
+      "from": "explorer-app-boot",
+      "to": "explorer.spa.lane-engine",
+      "type": "flow-step",
+      "label": "First render(): computeLayout positions top-folder nodes across the Structure lane"
+    },
+    {
+      "from": "explorer-app-render",
+      "to": "explorer.spa.ExplorerApp.render",
+      "type": "flow-step",
+      "label": "Triggered by store subscription or direct call from interaction handler"
+    },
+    {
+      "from": "explorer-app-render",
+      "to": "explorer.spa.computeLayout",
+      "type": "flow-step",
+      "label": "computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions"
+    },
+    {
+      "from": "explorer-app-render",
+      "to": "explorer.spa.edge-renderer",
+      "type": "flow-step",
+      "label": "renderLaneBands(): draws labeled background bands for Structure, Docs, Terms/Flows lanes"
+    },
+    {
+      "from": "explorer-app-render",
+      "to": "explorer.spa.buildStructureLinks",
+      "type": "flow-step",
+      "label": "buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields"
+    },
+    {
+      "from": "explorer-app-render",
+      "to": "explorer.spa.renderStructureEdges",
+      "type": "flow-step",
+      "label": "renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke"
+    },
+    {
+      "from": "explorer-app-render",
+      "to": "explorer.spa.node-base",
+      "type": "flow-step",
+      "label": "D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble"
+    },
+    {
+      "from": "explorer-app-render",
+      "to": "explorer.spa.node-base",
+      "type": "flow-step",
+      "label": "D3 update: renderer.update() repositions and reskins all merged nodes"
+    },
+    {
+      "from": "explorer-app-render",
+      "to": "explorer.spa.node-base",
+      "type": "flow-step",
+      "label": "D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes"
+    },
+    {
+      "from": "explorer-app-expand",
+      "to": "explorer.spa.node-base",
+      "type": "flow-step",
+      "label": "User clicks + button; BaseNodeRenderer fires the onExpand callback"
+    },
+    {
+      "from": "explorer-app-expand",
+      "to": "explorer.spa.ExplorerApp.onExpand",
+      "type": "flow-step",
+      "label": "If already expanded: collapseDescendants() clears the subtree, calls render()"
+    },
+    {
+      "from": "explorer-app-expand",
+      "to": "explorer.spa.showNodeSpinner",
+      "type": "flow-step",
+      "label": "If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node"
+    },
+    {
+      "from": "explorer-app-expand",
+      "to": "explorer.spa.loader",
+      "type": "flow-step",
+      "label": "loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json"
+    },
+    {
+      "from": "explorer-app-expand",
+      "to": "explorer.spa.removeNodeSpinner",
+      "type": "flow-step",
+      "label": "removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed"
+    },
+    {
+      "from": "explorer-app-expand",
+      "to": "explorer.spa.store",
+      "type": "flow-step",
+      "label": "store.loadFolderChunk() stores chunk and notifies subscribers"
+    },
+    {
+      "from": "explorer-app-expand",
+      "to": "explorer.spa.ExplorerApp.render",
+      "type": "flow-step",
+      "label": "render() called after expanded set update — new nodes enter, layout recomputed"
     },
     {
       "from": "module-morphology-extraction",
@@ -5926,6 +6337,11 @@
     },
     {
       "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.renderStructureEdges",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
       "to": "explorer.spa.BaseNodeRenderer",
       "type": "references"
     },
@@ -5936,7 +6352,12 @@
     },
     {
       "from": "docs/src/tskb/explorer/spa.tskb.tsx",
-      "to": "explorer.spa.renderStructureEdges",
+      "to": "explorer.spa.showNodeSpinner",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.removeNodeSpinner",
       "type": "references"
     },
     {
@@ -6099,6 +6520,91 @@
     {
       "from": "docs/src/tskb/explorer/explorer.tskb.tsx",
       "to": "explorer.exportExplorer",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.main",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.edge-renderer",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.detail-panel",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.mount",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.setupCanvas",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.setupTooltips",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.setupRenderer",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.setupSearch",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.loadInitialData",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.render",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.computeLayout",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.onExpand",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.showNodeSpinner",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.removeNodeSpinner",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.collapseDescendants",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/app.tskb.tsx",
+      "to": "explorer.spa.ExplorerApp.onSelect",
       "type": "references"
     },
     {
@@ -7297,6 +7803,16 @@
       "type": "belongs-to"
     },
     {
+      "from": "explorer.spa.showNodeSpinner",
+      "to": "explorer.spa.spinner",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.removeNodeSpinner",
+      "to": "explorer.spa.spinner",
+      "type": "belongs-to"
+    },
+    {
       "from": "explorer.serveExplorer",
       "to": "explorer.server",
       "type": "belongs-to"
@@ -7828,19 +8344,19 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-04-12T09:07:16.641Z",
+    "generatedAt": "2026-04-14T15:52:14.673Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
       "folderCount": 43,
       "moduleCount": 44,
       "termCount": 37,
-      "exportCount": 71,
+      "exportCount": 85,
       "fileCount": 9,
       "externalCount": 1,
-      "flowCount": 11,
-      "docCount": 24,
-      "edgeCount": 500
+      "flowCount": 14,
+      "docCount": 25,
+      "edgeCount": 546
     }
   }
 }

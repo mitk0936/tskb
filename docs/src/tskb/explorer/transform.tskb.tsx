@@ -6,14 +6,14 @@ declare global {
   namespace tskb {
     interface Modules {
       "explorer.transform": Module<{
-        desc: "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms, externals) plus one FolderChunk per folder that has modules or sub-folders. Also injects ghost ExplorerNodes for any .ts/.tsx files recorded in folder.children.files that are not declared as modules, making undeclared-but-existing files visible in the UI.";
+        desc: "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms, externals) plus one FolderChunk per folder that has modules or sub-folders. Two ghost injection passes: buildGhostIntermediaryChains() synthesizes FolderChunks for every filesystem directory that lies between a declared folder's path and its owned modules/subfolders; injectGhostNodes() adds ghost ExplorerNodes for any .ts/.tsx files recorded in folder.children.files that are not declared as modules.";
         type: typeof import("packages/tskb/src/core/explorer/transform.js");
       }>;
     }
 
     interface Exports {
       "explorer.transformGraph": Export<{
-        desc: "Entry point: builds edge lookup indexes, assembles MetaChunk, recurses into all folders to build FolderChunks, injects ghost nodes, then patches _hasChildren / _childCount on every folder node.";
+        desc: "Entry point: builds edge lookup indexes, assembles MetaChunk, recurses into all folders to build FolderChunks, synthesizes ghost intermediary chunks for path-gap directories, injects ghost nodes from scanner data, then patches _hasChildren / _childCount on every folder node.";
         type: typeof import("packages/tskb/src/core/explorer/transform.js").transformGraph;
       }>;
 
@@ -83,12 +83,22 @@ export default (
 
     <H2>Ghost node injection</H2>
     <P>
-      After all declared nodes are placed, the transformer scans every folder's{" "}
-      <code>folder.children.files</code> and <code>folder.children.folders</code> (recorded by the
-      file scanner during build). Any <code>.ts</code> / <code>.tsx</code> file not already in a
-      chunk becomes a {GhostNodeTerm} module. Any child directory not already a known graph folder
-      and not a transparent intermediary (a directory whose only content is already represented by
-      deeper declared sub-folders) becomes a ghost folder.
+      Ghost injection runs in two passes. First, <code>buildGhostIntermediaryChains()</code> detects
+      path gaps between a declared folder's path and its owned modules or sub-folders. When a module
+      lives at <code>pkg/src/core/server.ts</code> but its declared parent folder has path{" "}
+      <code>pkg</code>, the transformer synthesizes {GhostNodeTerm} <code>FolderChunk</code> entries
+      for every intermediate directory (<code>pkg/src</code>, <code>pkg/src/core</code>) and
+      re-parents the module to the deepest one. The chain is not synthesized if any intermediate
+      path is already owned by a declared folder.
+    </P>
+    <P>
+      Second, <code>injectGhostNodes()</code> scans every declared folder's{" "}
+      <code>folder.children.files</code> and <code>folder.children.folders</code> (scanner data
+      recorded during <code>tskb build</code>). Any <code>.ts</code> / <code>.tsx</code> file not
+      already in a chunk becomes a ghost module node. Any direct child directory not already
+      represented (either as a declared folder or a ghost intermediary) and not a transparent
+      intermediary becomes a ghost folder node. Ghost intermediary chunks are not processed by this
+      pass — they only contain what the graph already knows.
     </P>
 
     <H2>Child count patching</H2>
@@ -102,7 +112,6 @@ export default (
     <Flow
       name="graph-to-chunks-transform"
       desc="How KnowledgeGraph becomes ExplorerChunks: edge indexing, meta assembly, recursive folder chunking, ghost node injection, child count patching"
-      priority="essential"
     >
       <Step node={ExploreCommandModule} label="Reads graph.json from disk into KnowledgeGraph" />
       <Step
@@ -119,7 +128,11 @@ export default (
       />
       <Step
         node={TransformModule}
-        label="injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories"
+        label="buildGhostIntermediaryChains() synthesizes FolderChunks for every intermediate filesystem directory between a declared folder path and its owned modules/subfolders"
+      />
+      <Step
+        node={TransformModule}
+        label="injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories recorded in folder.children scanner data"
       />
       <Step
         node={TransformModule}

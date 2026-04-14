@@ -20,7 +20,7 @@ declare global {
   namespace tskb {
     interface Modules {
       "explorer.spa.main": Module<{
-        desc: "SPA entry point: creates D3 SVG canvas with zoom/pan, fetches meta.json, wires expand/select/trace handlers, subscribes to store, and drives the render loop. On every zoom event, propagates the D3 transform to both tooltip modules so they reposition to track their anchor nodes.";
+        desc: "ExplorerApp class — top-level SPA controller. mount() orchestrates four setup methods (setupCanvas, setupTooltips, setupRenderer, setupSearch) then loads meta.json via loadInitialData(). The render() method drives the full D3 enter/update/exit cycle on every store change or UI interaction. Interaction handlers (onExpand, onSelect, onTraceLinks) are private methods passed as callbacks to the renderer. UI state (expanded set, selected node, search query) lives on the class instance; graph data lives in GraphStore.";
         type: typeof import("packages/tskb/explorer-app/src/main.js");
       }>;
 
@@ -105,6 +105,16 @@ declare global {
         desc: "Default NodeComponent implementation: renders any node type as a rounded-rect card with type icon, label, description, edge-count badge, code preview bubble, and expand bubble.";
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/base.js").BaseNodeRenderer;
       }>;
+
+      "explorer.spa.showNodeSpinner": Export<{
+        desc: "Appends a small animated SVG ring at a given (x, y) position inside the node canvas layer. Returns the SVG group element so the caller can remove it via removeNodeSpinner.";
+        type: typeof import("packages/tskb/explorer-app/src/ui/Spinner.js").showNodeSpinner;
+      }>;
+
+      "explorer.spa.removeNodeSpinner": Export<{
+        desc: "Removes the SVG group returned by showNodeSpinner from the DOM. Called in the finally block of ExplorerApp.onExpand() after the chunk fetch resolves or rejects.";
+        type: typeof import("packages/tskb/explorer-app/src/ui/Spinner.js").removeNodeSpinner;
+      }>;
     }
   }
 }
@@ -129,6 +139,8 @@ const ComputeLayoutExport = ref as tskb.Exports["explorer.spa.computeLayout"];
 const BuildStructureLinksExport = ref as tskb.Exports["explorer.spa.buildStructureLinks"];
 const RenderStructureEdgesExport = ref as tskb.Exports["explorer.spa.renderStructureEdges"];
 const BaseNodeRendererExport = ref as tskb.Exports["explorer.spa.BaseNodeRenderer"];
+const ShowNodeSpinnerExport = ref as tskb.Exports["explorer.spa.showNodeSpinner"];
+const RemoveNodeSpinnerExport = ref as tskb.Exports["explorer.spa.removeNodeSpinner"];
 
 const LaneTerm = ref as tskb.Terms["explorerLane"];
 const NodeComponentTerm = ref as tskb.Terms["nodeComponent"];
@@ -160,10 +172,12 @@ export default (
       cycles.
     </P>
     <P>
-      {GraphStoreExport} in {StoreModule} holds only graph data (meta chunk, folder chunks map). UI
-      state — the expanded node set, selected node, and search query — lives as plain variables in{" "}
-      {MainModule} and is passed to layout and rendering functions explicitly. The store exposes{" "}
-      <code>subscribe(listener)</code> for reactive re-render.
+      {GraphStoreExport} in {StoreModule} holds only graph data (meta chunk, folder chunks map).
+      Data arrives via <code>loadMeta()</code> and <code>loadFolderChunk()</code>. UI state — the
+      expanded node set, selected node, and search query — lives as plain variables in {MainModule}{" "}
+      and is passed explicitly to {ComputeLayoutExport}, {RenderStructureEdgesExport}, and{" "}
+      {BaseNodeRendererExport}. The store exposes <code>subscribe(listener)</code> for reactive
+      re-render.
     </P>
 
     <Relation from={StoreModule} to={ChunkTypesModule} label="stores chunks typed by" />
@@ -224,7 +238,9 @@ export default (
     <H2>UI shell</H2>
     <P>
       {SpinnerModule} provides a full-screen global spinner (shown while <code>meta.json</code>{" "}
-      loads) and a per-node inline spinner (shown while a folder chunk is fetching).
+      loads) and a per-node inline spinner: {ShowNodeSpinnerExport} appends an animated SVG ring at
+      the node's canvas position; {RemoveNodeSpinnerExport} removes it in the <code>finally</code>{" "}
+      block after the chunk fetch settles.
     </P>
     <P>
       {DetailPanelModule} is a slide-in panel mounted outside the SVG. It shows all fields of the
@@ -243,30 +259,37 @@ export default (
       desc="User expands a folder node: chunk is fetched, store updated, layout recomputed, SVG re-rendered"
       priority="supplementary"
     >
-      <Step node={NodeBaseModule} label="User clicks ▶ expand button; onExpand handler fires" />
+      <Step
+        node={NodeBaseModule}
+        label="User clicks + expand button; BaseNodeRenderer fires the onExpand callback"
+      />
+      <Step
+        node={MainModule}
+        label="ExplorerApp.onExpand(): calls showNodeSpinner, delegates to loader, calls removeNodeSpinner in finally; adds node id to expanded set"
+      />
       <Step
         node={LoaderModule}
-        label="ChunkLoader.load('folder', id) — cache hit or fetches /chunks/folder-{id}.json"
+        label="ChunkLoader.load('folder', id) — returns cached chunk or fetches /chunks/folder-{sanitizedId}.json"
       />
       <Step
         node={StoreModule}
-        label="store.addFolderChunk() stores chunk; expanded set updated in main.ts"
+        label="store.loadFolderChunk() stores chunk; store notifies subscribers, triggering ExplorerApp.render()"
       />
       <Step
         node={ComputeLayoutExport}
-        label="Rebuilds d3.hierarchy with expanded folder's modules and recomputes all SVG positions"
+        label="render() calls computeLayout(store, expanded) — rebuilds d3.hierarchy and recomputes all SVG positions"
       />
       <Step
         node={BuildStructureLinksExport}
-        label="Derives new parent→child link list from updated parentId fields"
+        label="render() calls buildStructureLinks() — derives parent→child link list from updated parentId fields"
       />
       <Step
         node={RenderStructureEdgesExport}
-        label="Redraws parent→child cubic-bezier SVG paths; ghost links rendered dashed"
+        label="render() calls renderStructureEdges() — redraws cubic-bezier SVG paths; ghost links rendered dashed"
       />
       <Step
         node={NodeBaseModule}
-        label="D3 enter/update/exit adds new node cards, removes collapsed ones"
+        label="render() D3 enter/update/exit — new node cards enter with fade-in, collapsed nodes exit with fade-out"
       />
     </Flow>
   </Doc>

@@ -92,7 +92,10 @@ export default (
         node={ServeExplorerExport}
         label="Starts http server: /chunks/*.json reads from in-memory cache; /* serves SPA assets"
       />
-      <Step node={MainModule} label="Browser fetches meta.json, mounts SVG canvas with zoom/pan" />
+      <Step
+        node={MainModule}
+        label="ExplorerApp.mount(): setupCanvas (D3 SVG + zoom/pan), setupRenderer, setupSearch, then loadInitialData fetches meta.json"
+      />
       <Step
         node={LaneEngineModule}
         label="computeLayout() positions all visible nodes across three lanes"

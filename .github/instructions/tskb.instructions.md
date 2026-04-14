@@ -77,8 +77,6 @@ _Snapshot from last `npm run docs` build._
   cli.build → extractRegistry → extractDocs → buildGraph → generateDot
 - **static-analysis** [essential] — TypeScript Program creation through extraction to graph
   ts.createProgram → extraction.registry → extraction.documentation → graph.builder
-- **graph-to-chunks-transform** [essential] — How KnowledgeGraph becomes ExplorerChunks: edge indexing, meta assembly, recursive folder chunking, ghost node injection, child count patching
-  cli.commands.explore → explorer.transform → explorer.transformGraph → explorer.transformGraph → explorer.transform → explorer.transform
 - **explorer-serve-flow** [essential] — tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand
   explorer.explore → explorer.transformGraph → explorer.serveExplorer → explorer.spa.main → explorer.spa.lane-engine → explorer.spa.node-base
 - **explorer-export-flow** [essential] — tskb explore --export: CLI finds graph, transforms all chunks, copies SPA assets, writes chunk JSON files to disk
@@ -86,7 +84,7 @@ _Snapshot from last `npm run docs` build._
 - **module-morphology-extraction** [essential] — How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs
   extractRegistry → extractModuleMorphology → extractModuleImports → graph.builder
 
-_Plus 4 supplementary flows available via `npx --no -- tskb flows --plain`._
+_Plus 8 supplementary flows available via `npx --no -- tskb flows --plain`._
 
 ## Documentation
 
@@ -96,6 +94,6 @@ _Plus 4 supplementary flows available via `npx --no -- tskb flows --plain`._
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — Runtime module structure: JSX primitives and registry type definitions
 - `docs/src/tskb/typescript/typescript.tskb.tsx` — TypeScript Program creation for static analysis without compilation
 
-_Plus 19 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 20 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 Constraint docs define architectural rules that **MUST** be followed when working on related code.
