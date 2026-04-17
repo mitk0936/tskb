@@ -183,6 +183,20 @@ describe("context command", () => {
   });
 });
 
+describe("class morphology", () => {
+  it("should include private methods in class stubs", () => {
+    const output = tskb("pick", "services.auth", "--plain");
+    expect(output).toContain("hashPassword");
+    expect(output).toContain("generateTokens");
+  });
+
+  it("should show private modifier on private methods", () => {
+    const output = tskb("pick", "services.auth", "--plain");
+    expect(output).toMatch(/private.*hashPassword/);
+    expect(output).toMatch(/private.*generateTokens/);
+  });
+});
+
 describe("JSON output mode", () => {
   it("should output valid JSON from search", () => {
     const raw = tskb("search", "auth");

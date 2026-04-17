@@ -27,4 +27,12 @@ export class AuthService {
   async logout(userId: string): Promise<void> {
     throw new Error("Not implemented");
   }
+
+  private async hashPassword(password: string): Promise<string> {
+    throw new Error("Not implemented");
+  }
+
+  private generateTokens(user: User): AuthTokens {
+    throw new Error("Not implemented");
+  }
 }

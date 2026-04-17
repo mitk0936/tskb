@@ -2,6 +2,14 @@ import * as d3 from "d3";
 import type { PositionedNode, NodeType } from "../../types";
 import { NODE_SIZES } from "../../layout/lane-engine";
 import { showNodeTooltip, moveNodeTooltip, hideNodeTooltip } from "../../ui/NodeTooltip";
+import {
+  EyeIcon,
+  MinusIcon,
+  ArrowDownLeftIcon,
+  ArrowUpRightIcon,
+  appendIcon,
+  replaceIcon,
+} from "../../ui/icons";
 
 // ─── Shared style maps ────────────────────────────────────────────────────────
 
@@ -48,8 +56,18 @@ export type ExpandHandler = (node: PositionedNode) => void;
 export type SelectHandler = (node: PositionedNode) => void;
 export type TraceLinkHandler = (node: PositionedNode) => void;
 export type HasChildrenFn = (node: PositionedNode) => boolean;
+export type IsExpandedFn = (node: PositionedNode) => boolean;
 
 export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void;
+
+export interface RelationHandlers {
+  hasIncoming: (node: PositionedNode) => boolean;
+  hasOutgoing: (node: PositionedNode) => boolean;
+  isIncomingOpen: (node: PositionedNode) => boolean;
+  isOutgoingOpen: (node: PositionedNode) => boolean;
+  onToggleIncoming: (node: PositionedNode) => void;
+  onToggleOutgoing: (node: PositionedNode) => void;
+}
 
 // ─── BaseNodeRenderer ────────────────────────────────────────────────────────
 
@@ -69,7 +87,9 @@ export class BaseNodeRenderer implements NodeComponent {
     protected onSelect: SelectHandler,
     protected onTraceLinks: TraceLinkHandler,
     protected hasChildren: HasChildrenFn,
-    protected onCodePreview?: CodePreviewHandler
+    protected isExpanded: IsExpandedFn,
+    protected onCodePreview?: CodePreviewHandler,
+    protected relations?: RelationHandlers
   ) {}
 
   getSize(node: PositionedNode): { w: number; h: number } {
@@ -97,7 +117,7 @@ export class BaseNodeRenderer implements NodeComponent {
       if (d.detail._ghost === "true") return;
       if (!(event.currentTarget as Element).contains(event.relatedTarget as Node)) {
         const { w, h } = NODE_SIZES[d.type] ?? NODE_SIZES.module;
-        showNodeTooltip(d.label, d.path, d.description, NODE_COLORS[d.type], d.x + w, d.y + h / 2);
+        showNodeTooltip(d.label, d.path, d.description, NODE_COLORS[d.type], d.x, d.y + h / 2);
       }
     })
       .on("mouseout", function (event: MouseEvent) {
@@ -205,20 +225,61 @@ export class BaseNodeRenderer implements NodeComponent {
       .on("mouseenter", function (_, d) {
         const c = NODE_COLORS[d.type];
         d3.select(this).select("circle").attr("fill", c);
-        d3.select(this).select("text").attr("fill", "#ffffff");
+        d3.select(this).select(".lucide-icon").attr("stroke", "#ffffff");
       })
       .on("mouseleave", function (_, d) {
         const c = NODE_COLORS[d.type];
         d3.select(this).select("circle").attr("fill", "#ffffff");
-        d3.select(this).select("text").attr("fill", c);
+        d3.select(this).select(".lucide-icon").attr("stroke", c);
       });
 
     expandG.append("circle").attr("r", 9).attr("stroke-width", 1.5).attr("fill", "#ffffff");
-    expandG
-      .append("text")
-      .attr("font-size", 10)
-      .attr("text-anchor", "middle")
-      .attr("dominant-baseline", "central");
+    // Icon placeholder — replaced on each update() with Eye or Minus
+    expandG.append("g").attr("class", "lucide-icon");
+
+    // Incoming relations bubble — top-left corner, half outside
+    const incomingG = g
+      .append("g")
+      .attr("class", "node-incoming-btn")
+      .style("cursor", "pointer")
+      .on("click", (event, d) => {
+        event.stopPropagation();
+        this.relations?.onToggleIncoming(d);
+      })
+      .on("mouseenter", function (_, d) {
+        const c = NODE_COLORS[d.type];
+        d3.select(this).select("circle").attr("fill", c);
+        d3.select(this).select(".lucide-icon").attr("stroke", "#ffffff");
+      })
+      .on("mouseleave", function (_, d) {
+        const c = NODE_COLORS[d.type];
+        d3.select(this).select("circle").attr("fill", "#ffffff");
+        d3.select(this).select(".lucide-icon").attr("stroke", c);
+      });
+    incomingG.append("circle").attr("r", 9).attr("stroke-width", 1.5).attr("fill", "#ffffff");
+    incomingG.append("g").attr("class", "lucide-icon");
+
+    // Outgoing relations bubble — bottom-right corner, half outside
+    const outgoingG = g
+      .append("g")
+      .attr("class", "node-outgoing-btn")
+      .style("cursor", "pointer")
+      .on("click", (event, d) => {
+        event.stopPropagation();
+        this.relations?.onToggleOutgoing(d);
+      })
+      .on("mouseenter", function (_, d) {
+        const c = NODE_COLORS[d.type];
+        d3.select(this).select("circle").attr("fill", c);
+        d3.select(this).select(".lucide-icon").attr("stroke", "#ffffff");
+      })
+      .on("mouseleave", function (_, d) {
+        const c = NODE_COLORS[d.type];
+        d3.select(this).select("circle").attr("fill", "#ffffff");
+        d3.select(this).select(".lucide-icon").attr("stroke", c);
+      });
+    outgoingG.append("circle").attr("r", 9).attr("stroke-width", 1.5).attr("fill", "#ffffff");
+    outgoingG.append("g").attr("class", "lucide-icon");
 
     this.update(g);
   }
@@ -258,6 +319,8 @@ export class BaseNodeRenderer implements NodeComponent {
       el.select(".node-preview-btn").style("display", "none");
 
       if (isGhost) {
+        el.select(".node-incoming-btn").style("display", "none");
+        el.select(".node-outgoing-btn").style("display", "none");
         const maxChars = Math.floor((w - 12) / 5.5);
         el.select(".node-label")
           .style("display", null)
@@ -274,7 +337,13 @@ export class BaseNodeRenderer implements NodeComponent {
         if (canExpand) {
           ghostExpandG.attr("transform", `translate(${w},${h / 2})`);
           ghostExpandG.select("circle").attr("stroke", color);
-          ghostExpandG.select("text").attr("fill", color).text("+");
+          const ghostIcon = component.isExpanded(d) ? MinusIcon : EyeIcon;
+          replaceIcon(
+            ghostExpandG as unknown as d3.Selection<SVGGElement, unknown, null, undefined>,
+            ghostIcon,
+            10,
+            color
+          );
         }
         return;
       }
@@ -347,7 +416,46 @@ export class BaseNodeRenderer implements NodeComponent {
       if (canExpand) {
         expandG.attr("transform", `translate(${w},${h / 2})`);
         expandG.select("circle").attr("stroke", color);
-        expandG.select("text").attr("fill", color).text("+");
+        const expandIcon = component.isExpanded(d) ? MinusIcon : EyeIcon;
+        replaceIcon(
+          expandG as unknown as d3.Selection<SVGGElement, unknown, null, undefined>,
+          expandIcon,
+          10,
+          color
+        );
+      }
+
+      // Incoming relations bubble — top-left, half outside top edge
+      const rel = component.relations;
+      const incomingG = el.select<SVGGElement>(".node-incoming-btn");
+      const showIncoming = !isGhost && !!rel && rel.hasIncoming(d);
+      incomingG.style("display", showIncoming ? "block" : "none");
+      if (showIncoming && rel) {
+        incomingG.attr("transform", `translate(0,0)`);
+        incomingG.select("circle").attr("stroke", color);
+        const inIcon = rel.isIncomingOpen(d) ? MinusIcon : ArrowDownLeftIcon;
+        replaceIcon(
+          incomingG as unknown as d3.Selection<SVGGElement, unknown, null, undefined>,
+          inIcon,
+          10,
+          color
+        );
+      }
+
+      // Outgoing relations bubble — bottom-right corner, half outside bottom edge
+      const outgoingG = el.select<SVGGElement>(".node-outgoing-btn");
+      const showOutgoing = !isGhost && !!rel && rel.hasOutgoing(d);
+      outgoingG.style("display", showOutgoing ? "block" : "none");
+      if (showOutgoing && rel) {
+        outgoingG.attr("transform", `translate(${w},${h})`);
+        outgoingG.select("circle").attr("stroke", color);
+        const outIcon = rel.isOutgoingOpen(d) ? MinusIcon : ArrowUpRightIcon;
+        replaceIcon(
+          outgoingG as unknown as d3.Selection<SVGGElement, unknown, null, undefined>,
+          outIcon,
+          10,
+          color
+        );
       }
     });
 

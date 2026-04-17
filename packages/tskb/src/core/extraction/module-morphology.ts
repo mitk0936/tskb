@@ -282,44 +282,188 @@ function renderClass(
   const lines: string[] = [];
   lines.push(`${prefix}class ${name} {`);
 
-  const type = checker.getDeclaredTypeOfSymbol(sym);
+  // Walk the class declaration AST directly so private members are included
+  const decls = sym.getDeclarations();
+  const classDecl = decls?.find(
+    (d): d is ts.ClassDeclaration | ts.ClassExpression =>
+      ts.isClassDeclaration(d) || ts.isClassExpression(d)
+  );
 
-  // Constructor
-  const constructSignatures = type.getConstructSignatures();
-  if (constructSignatures.length > 0) {
-    const sig = constructSignatures[0];
-    const params = sig
-      .getParameters()
-      .map((p) => {
-        const paramType = checker.getTypeOfSymbolAtLocation(p, sourceFile);
-        return `${p.name}: ${checker.typeToString(paramType)}`;
-      })
-      .join(", ");
-    const ctorDecl = sig.getDeclaration();
-    const ctorRange = ctorDecl ? getNodeLineRange(ctorDecl, sourceFile) : undefined;
-    const ctorComment = ctorRange ? ` // :${ctorRange}` : "";
-    lines.push(`  constructor(${params}) {}${ctorComment}`);
-  }
+  if (classDecl) {
+    for (const member of classDecl.members) {
+      renderClassMember(member, checker, sourceFile, lines);
+    }
+  } else {
+    // Fallback: use type checker (won't include private members)
+    const type = checker.getDeclaredTypeOfSymbol(sym);
 
-  // Instance properties and methods
-  const properties = type.getProperties();
-  for (const prop of properties) {
-    if (isPrivateSymbol(prop)) continue;
-    renderMember(prop, "", checker, sourceFile, lines);
-  }
+    const constructSignatures = type.getConstructSignatures();
+    if (constructSignatures.length > 0) {
+      const sig = constructSignatures[0];
+      const params = sig
+        .getParameters()
+        .map((p) => {
+          const paramType = checker.getTypeOfSymbolAtLocation(p, sourceFile);
+          return `${p.name}: ${checker.typeToString(paramType)}`;
+        })
+        .join(", ");
+      const ctorDecl = sig.getDeclaration();
+      const ctorRange = ctorDecl ? getNodeLineRange(ctorDecl, sourceFile) : undefined;
+      const ctorComment = ctorRange ? ` // :${ctorRange}` : "";
+      lines.push(`  constructor(${params}) {}${ctorComment}`);
+    }
 
-  // Static properties and methods
-  const staticType = checker.getTypeOfSymbolAtLocation(sym, sourceFile);
-  const staticProps = staticType.getProperties();
-  for (const prop of staticProps) {
-    if (isPrivateSymbol(prop)) continue;
-    // Skip inherited static members (prototype, length, name, etc.)
-    if (["prototype", "length", "name", "arguments", "caller"].includes(prop.name)) continue;
-    renderMember(prop, "static ", checker, sourceFile, lines);
+    const properties = type.getProperties();
+    for (const prop of properties) {
+      renderMember(prop, "", checker, sourceFile, lines);
+    }
+
+    const staticType = checker.getTypeOfSymbolAtLocation(sym, sourceFile);
+    const staticProps = staticType.getProperties();
+    for (const prop of staticProps) {
+      if (["prototype", "length", "name", "arguments", "caller"].includes(prop.name)) continue;
+      renderMember(prop, "static ", checker, sourceFile, lines);
+    }
   }
 
   lines.push("}");
   return lines;
+}
+
+/**
+ * Render a class member (constructor, method, property, accessor) from AST.
+ * Includes private and protected members with appropriate modifiers.
+ */
+function renderClassMember(
+  member: ts.ClassElement,
+  checker: ts.TypeChecker,
+  sourceFile: ts.SourceFile,
+  lines: string[]
+): void {
+  // Skip index signatures and semicolons
+  if (ts.isIndexSignatureDeclaration(member) || ts.isSemicolonClassElement(member)) return;
+
+  const modifiers = ts.canHaveModifiers(member) ? ts.getModifiers(member) : undefined;
+  const modParts: string[] = [];
+
+  if (modifiers) {
+    for (const mod of modifiers) {
+      switch (mod.kind) {
+        case ts.SyntaxKind.PrivateKeyword:
+          modParts.push("private");
+          break;
+        case ts.SyntaxKind.ProtectedKeyword:
+          modParts.push("protected");
+          break;
+        case ts.SyntaxKind.PublicKeyword:
+          modParts.push("public");
+          break;
+        case ts.SyntaxKind.StaticKeyword:
+          modParts.push("static");
+          break;
+        case ts.SyntaxKind.ReadonlyKeyword:
+          modParts.push("readonly");
+          break;
+        case ts.SyntaxKind.AbstractKeyword:
+          modParts.push("abstract");
+          break;
+        case ts.SyntaxKind.OverrideKeyword:
+          modParts.push("override");
+          break;
+      }
+    }
+  }
+
+  const modStr = modParts.length > 0 ? modParts.join(" ") + " " : "";
+  const range = getNodeLineRange(member, sourceFile);
+  const rangeComment = range ? ` // :${range}` : "";
+
+  if (ts.isConstructorDeclaration(member)) {
+    const params = member.parameters
+      .map((p) => {
+        const sym = checker.getSymbolAtLocation(p.name);
+        if (sym) {
+          const paramType = checker.getTypeOfSymbolAtLocation(sym, sourceFile);
+          return `${p.name.getText(sourceFile)}: ${checker.typeToString(paramType)}`;
+        }
+        return p.getText(sourceFile).replace(/\s*=\s*[^,)]+/, ""); // strip default value
+      })
+      .join(", ");
+    lines.push(`  constructor(${params}) {}${rangeComment}`);
+    return;
+  }
+
+  if (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) {
+    const memberName = getMemberName(member, sourceFile);
+    if (!memberName) return;
+
+    const sym = checker.getSymbolAtLocation(member.name);
+    if (sym) {
+      const propType = checker.getTypeOfSymbolAtLocation(sym, sourceFile);
+      const callSigs = propType.getCallSignatures();
+      if (callSigs.length > 0) {
+        const sig = checker.signatureToString(
+          callSigs[0],
+          undefined,
+          ts.TypeFormatFlags.WriteArrowStyleSignature
+        );
+        const arrowIdx = sig.lastIndexOf(" => ");
+        if (arrowIdx >= 0) {
+          const params = sig.slice(0, arrowIdx);
+          const ret = sig.slice(arrowIdx + 4);
+          lines.push(`  ${modStr}${memberName}${params}: ${ret} {}${rangeComment}`);
+          return;
+        }
+        lines.push(`  ${modStr}${memberName}${sig} {}${rangeComment}`);
+        return;
+      }
+    }
+    lines.push(`  ${modStr}${memberName}() {}${rangeComment}`);
+    return;
+  }
+
+  if (ts.isPropertyDeclaration(member) || ts.isPropertySignature(member)) {
+    const memberName = getMemberName(member, sourceFile);
+    if (!memberName) return;
+
+    const sym = checker.getSymbolAtLocation(member.name);
+    if (sym) {
+      const propType = checker.getTypeOfSymbolAtLocation(sym, sourceFile);
+      const typeStr = checker.typeToString(propType);
+      lines.push(`  ${modStr}${memberName}: ${typeStr}${rangeComment}`);
+    } else {
+      lines.push(`  ${modStr}${memberName}${rangeComment}`);
+    }
+    return;
+  }
+
+  if (ts.isGetAccessorDeclaration(member)) {
+    const memberName = getMemberName(member, sourceFile);
+    if (!memberName) return;
+    const sym = checker.getSymbolAtLocation(member.name);
+    const typeStr = sym
+      ? checker.typeToString(checker.getTypeOfSymbolAtLocation(sym, sourceFile))
+      : "unknown";
+    lines.push(`  ${modStr}get ${memberName}(): ${typeStr} {}${rangeComment}`);
+    return;
+  }
+
+  if (ts.isSetAccessorDeclaration(member)) {
+    const memberName = getMemberName(member, sourceFile);
+    if (!memberName) return;
+    const param = member.parameters[0];
+    const paramText = param ? param.getText(sourceFile).replace(/\s*=\s*[^,)]+/, "") : "value";
+    lines.push(`  ${modStr}set ${memberName}(${paramText}) {}${rangeComment}`);
+    return;
+  }
+}
+
+function getMemberName(
+  member: ts.ClassElement | ts.TypeElement,
+  sourceFile: ts.SourceFile
+): string | undefined {
+  if (!member.name) return undefined;
+  return member.name.getText(sourceFile);
 }
 
 function renderInterface(

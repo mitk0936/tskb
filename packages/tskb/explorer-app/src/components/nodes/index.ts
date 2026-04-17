@@ -4,6 +4,8 @@ import {
   type SelectHandler,
   type TraceLinkHandler,
   type CodePreviewHandler,
+  type IsExpandedFn,
+  type RelationHandlers,
   type NodeComponent,
 } from "./base";
 import type { PositionedNode } from "../../types";
@@ -19,7 +21,17 @@ export function createNodeRenderer(
   onSelect: SelectHandler,
   onTraceLinks: TraceLinkHandler,
   hasChildren: (node: PositionedNode) => boolean,
-  onCodePreview?: CodePreviewHandler
+  isExpanded: (node: PositionedNode) => boolean,
+  onCodePreview?: CodePreviewHandler,
+  relations?: RelationHandlers
 ): NodeComponent {
-  return new BaseNodeRenderer(onExpand, onSelect, onTraceLinks, hasChildren, onCodePreview);
+  return new BaseNodeRenderer(
+    onExpand,
+    onSelect,
+    onTraceLinks,
+    hasChildren,
+    isExpanded,
+    onCodePreview,
+    relations
+  );
 }

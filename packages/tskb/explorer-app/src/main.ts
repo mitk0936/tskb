@@ -7,6 +7,8 @@ import {
   buildStructureLinks,
   renderStructureEdges,
   renderLaneBands,
+  buildRelationLinks,
+  renderRelationEdges,
 } from "./components/edges/EdgeRenderer";
 import {
   showGlobalSpinner,
@@ -18,7 +20,7 @@ import { mountDetailPanel } from "./ui/DetailPanel";
 import { mountCodeTooltip, toggleCodeTooltip, updateCodeTooltipTransform } from "./ui/CodeTooltip";
 import { mountNodeTooltip, updateNodeTooltipTransform } from "./ui/NodeTooltip";
 import type { PositionedNode } from "./types";
-import type { NodeComponent } from "./components/nodes/base";
+import type { NodeComponent, RelationHandlers } from "./components/nodes/base";
 
 type Layer = d3.Selection<SVGGElement, unknown, null, undefined>;
 
@@ -34,11 +36,14 @@ export class ExplorerApp {
   private expanded = new Set<string>();
   private selected: PositionedNode | null = null;
   private searchQuery = "";
+  private relationsIncoming = new Set<string>();
+  private relationsOutgoing = new Set<string>();
 
   // Canvas layers — assigned during mount()
   private svgEl!: SVGSVGElement;
   private laneBgLayer!: Layer;
   private edgeLayer!: Layer;
+  private relationEdgeLayer!: Layer;
   private nodeLayer!: Layer;
   private renderer!: NodeComponent;
   private detailPanel!: ReturnType<typeof mountDetailPanel>;
@@ -61,6 +66,9 @@ export class ExplorerApp {
     const zoomLayer = svg.append("g").attr("class", "zoom-layer");
     this.laneBgLayer = zoomLayer.append("g").attr("class", "lane-bg-layer") as unknown as Layer;
     this.edgeLayer = zoomLayer.append("g").attr("class", "edge-layer") as unknown as Layer;
+    this.relationEdgeLayer = zoomLayer
+      .append("g")
+      .attr("class", "relation-edge-layer") as unknown as Layer;
     this.nodeLayer = zoomLayer.append("g").attr("class", "node-layer") as unknown as Layer;
 
     const zoom = d3
@@ -89,12 +97,38 @@ export class ExplorerApp {
 
   private setupRenderer(): void {
     const hasChildren = (node: PositionedNode) => node.detail["_hasChildren"] === "true";
+    const isExpanded = (node: PositionedNode) => this.expanded.has(node.id);
+
+    const crossEdges = () => this.store.meta?.crossEdges ?? [];
+    const relations: RelationHandlers = {
+      hasIncoming: (node) =>
+        crossEdges().some(
+          (e) => (e.type === "related-to" || e.type === "references") && e.target === node.id
+        ),
+      hasOutgoing: (node) =>
+        crossEdges().some(
+          (e) => (e.type === "related-to" || e.type === "references") && e.source === node.id
+        ),
+      isIncomingOpen: (node) => this.relationsIncoming.has(node.id),
+      isOutgoingOpen: (node) => this.relationsOutgoing.has(node.id),
+      onToggleIncoming: (node) => {
+        if (this.relationsIncoming.has(node.id)) this.relationsIncoming.delete(node.id);
+        else this.relationsIncoming.add(node.id);
+        this.render();
+      },
+      onToggleOutgoing: (node) => {
+        if (this.relationsOutgoing.has(node.id)) this.relationsOutgoing.delete(node.id);
+        else this.relationsOutgoing.add(node.id);
+        this.render();
+      },
+    };
 
     this.renderer = createNodeRenderer(
       (node) => this.onExpand(node),
       (node) => this.onSelect(node),
       (node) => this.onTraceLinks(node),
       hasChildren,
+      isExpanded,
       (node) => {
         const code = node.detail.code as string[];
         const importLines = Array.isArray(node.detail.importLines)
@@ -102,7 +136,8 @@ export class ExplorerApp {
           : undefined;
         const { w } = NODE_SIZES[node.type] ?? NODE_SIZES.module;
         toggleCodeTooltip(node.id, code, node.path ?? node.id, node.x + w / 2, node.y, importLines);
-      }
+      },
+      relations
     );
   }
 
@@ -153,6 +188,13 @@ export class ExplorerApp {
     const CANVAS_W = Math.max(4000, Math.max(...allNodes.map((n) => n.x + 250), 0));
     renderLaneBands(this.laneBgLayer, layout, CANVAS_W);
     renderStructureEdges(this.edgeLayer, buildStructureLinks(layout.structureNodes));
+
+    // Relation edges (related-to / references) — rendered above structure edges
+    const crossEdges = this.store.meta?.crossEdges ?? [];
+    renderRelationEdges(
+      this.relationEdgeLayer,
+      buildRelationLinks(allNodes, crossEdges, this.relationsOutgoing, this.relationsIncoming)
+    );
 
     // Search dim: compute match set once, apply as opacity
     const matchIds = this.searchQuery

@@ -168,14 +168,21 @@ class GraphToExplorerTransformer {
   }
 
   private buildDocNodes(): ExplorerNode[] {
-    return Object.values(this.graph.nodes.docs).map((doc) =>
-      toExplorerNode(doc.id, "doc", doc.explains, {
+    return Object.values(this.graph.nodes.docs).map((doc) => {
+      // Derive a human-readable label from the file path, stripping the .tskb.tsx suffix
+      const filename =
+        doc.filePath
+          ?.split("/")
+          .pop()
+          ?.replace(/\.tskb\.tsx?$/, "") ?? doc.id;
+      return toExplorerNode(doc.id, "doc", doc.explains, {
         path: doc.filePath,
         priority: doc.priority as ExplorerNode["priority"],
         edgeCount: doc.edgeCount ?? 0,
         detail: { format: doc.format },
-      })
-    );
+        label: filename,
+      });
+    });
   }
 
   private buildFlowNodes(): ExplorerNode[] {
@@ -205,8 +212,19 @@ class GraphToExplorerTransformer {
 
   private buildCrossEdges(): ExplorerLink[] {
     return this.graph.edges
-      .filter((e) => e.type === "references")
-      .map((e) => ({ source: e.from, target: e.to, type: "references" as const }));
+      .filter((e) => e.type === "references" || e.type === "related-to")
+      .map((e) => {
+        // For doc→node reference edges, use the doc's explains text as the label
+        const docExplains =
+          e.type === "references" ? (this.graph.nodes.docs[e.from]?.explains ?? null) : null;
+        const label = docExplains ?? e.label ?? undefined;
+        return {
+          source: e.from,
+          target: e.to,
+          type: e.type as "references" | "related-to",
+          ...(label ? { label } : {}),
+        };
+      });
   }
 
   // ── Folder chunk builders ──────────────────────────────────────────────────
@@ -701,6 +719,7 @@ interface NodeOpts {
   priority?: ExplorerNode["priority"];
   edgeCount?: number;
   detail?: Record<string, string | string[]>;
+  label?: string;
 }
 
 function toExplorerNode(
@@ -711,11 +730,12 @@ function toExplorerNode(
 ): ExplorerNode {
   // Root node has a special id that shouldn't be split
   const label =
-    id === ROOT_FOLDER_NAME
+    opts.label ??
+    (id === ROOT_FOLDER_NAME
       ? "root"
       : id.includes(".")
         ? id.split(".").pop()!
-        : (id.split("/").pop()! ?? id);
+        : (id.split("/").pop()! ?? id));
   return {
     id,
     type,

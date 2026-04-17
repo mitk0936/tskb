@@ -43,15 +43,15 @@ export function showNodeTooltip(
   const nameLine =
     `<div style="display:flex;align-items:center;gap:5px;margin-bottom:${description || path ? "4px" : "0"}">` +
     `<span style="width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0;display:inline-block;"></span>` +
-    `<span style="font-size:14px;font-weight:700;color:#0f172a;white-space:nowrap;">${escHtml(label)}</span>` +
+    `<span style="font-size:16px;font-weight:700;color:#0f172a;white-space:nowrap;">${escHtml(label)}</span>` +
     `</div>`;
 
   const pathLine = path
-    ? `<div style="font-size:11px;color:#94a3b8;font-family:monospace;margin-bottom:${description ? "4px" : "0"};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${escHtml(path)}</div>`
+    ? `<div style="font-size:13px;color:#94a3b8;font-family:monospace;margin-bottom:${description ? "4px" : "0"};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;">${escHtml(path)}</div>`
     : "";
 
   const descLine = description
-    ? `<div style="font-size:10px;color:#64748b;line-height:1.5;max-width:220px;">${escHtml(description)}</div>`
+    ? `<div style="font-size:12px;color:#64748b;line-height:1.5;max-width:220px;">${escHtml(description)}</div>`
     : "";
 
   el.innerHTML =
@@ -110,7 +110,7 @@ function positionFromSvg(): void {
   const H = el.offsetHeight || 80;
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const left = screenX + GAP + W > vw - 8 ? screenX - W - GAP : screenX + GAP;
+  const left = screenX - W - GAP;
   const top = screenY - H / 2;
   el.style.left = `${Math.max(8, Math.min(left, vw - W - 8))}px`;
   el.style.top = `${Math.max(8, Math.min(top, vh - H - 8))}px`;

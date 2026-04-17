@@ -568,7 +568,7 @@
         "type": "folder",
         "desc": "UI shell components: global spinner, per-node spinner, detail panel, node hover tooltip, and code preview popup",
         "path": "packages/tskb/explorer-app/src/ui",
-        "structureSummary": "4 files",
+        "structureSummary": "5 files",
         "children": {
           "folders": [],
           "files": [
@@ -581,6 +581,9 @@
               "name": "DetailPanel.ts",
               "nodeId": "explorer.spa.detail-panel",
               "desc": "Slide-in detail panel mounted in the DOM outside the SVG. Shows node id, type, description, path, and all detail fields (morphology, imports, signature). Opened by onSelect, closed by ESC or the × button."
+            },
+            {
+              "name": "icons.ts"
             },
             {
               "name": "NodeTooltip.ts",
@@ -1475,7 +1478,7 @@
         "morphologySummary": "2 functions, 5 interfaces, 1 type",
         "morphology": [
           "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :81-83",
-          "export function sanitizeFolderId(id: string): string {} // :745-747",
+          "export function sanitizeFolderId(id: string): string {} // :765-767",
           "export type NodeType = | \"folder\"\n  | \"module\"\n  | \"export\"\n  | \"doc\"\n  | \"flow\"\n  | \"term\"\n  | \"external\"\n  | \"file\" // :7-15",
           "export interface ExplorerNode { // :17-27",
           "  id: string // :18",
@@ -1549,11 +1552,35 @@
         "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class ExplorerApp { // :29-253",
-          "  mount(): Promise<void> {} // :46-53",
+          "export class ExplorerApp { // :31-295",
+          "  private readonly loader: any // :32",
+          "  private readonly store: any // :33",
+          "  private expanded: Set<string> // :36",
+          "  private selected: any // :37",
+          "  private searchQuery: string // :38",
+          "  private relationsIncoming: Set<string> // :39",
+          "  private relationsOutgoing: Set<string> // :40",
+          "  private svgEl: SVGSVGElement // :43",
+          "  private laneBgLayer: Layer // :44",
+          "  private edgeLayer: Layer // :45",
+          "  private relationEdgeLayer: Layer // :46",
+          "  private nodeLayer: Layer // :47",
+          "  private renderer: NodeComponent // :48",
+          "  private detailPanel: any // :49",
+          "  mount(): Promise<void> {} // :51-58",
+          "  private setupCanvas(): void {} // :62-91",
+          "  private setupTooltips(): void {} // :93-96",
+          "  private setupRenderer(): void {} // :98-142",
+          "  private setupSearch(): void {} // :144-150",
+          "  private loadInitialData(): Promise<void> {} // :152-170",
+          "  private render(): void {} // :174-244",
+          "  private onExpand(node: PositionedNode): Promise<void> {} // :248-274",
+          "  private collapseDescendants(folderId: string): void {} // :277-285",
+          "  private onSelect(node: PositionedNode): void {} // :287-289",
+          "  private onTraceLinks(node: PositionedNode): void {} // :291-294",
           "}"
         ],
-        "importsSummary": "21 imports from 12 paths",
+        "importsSummary": "24 imports from 12 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "ChunkLoader from \"./graph/loader\"",
@@ -1564,6 +1591,8 @@
           "buildStructureLinks from \"./components/edges/EdgeRenderer\"",
           "renderStructureEdges from \"./components/edges/EdgeRenderer\"",
           "renderLaneBands from \"./components/edges/EdgeRenderer\"",
+          "buildRelationLinks from \"./components/edges/EdgeRenderer\"",
+          "renderRelationEdges from \"./components/edges/EdgeRenderer\"",
           "showGlobalSpinner from \"./ui/Spinner\"",
           "hideGlobalSpinner from \"./ui/Spinner\"",
           "showNodeSpinner from \"./ui/Spinner\"",
@@ -1575,7 +1604,8 @@
           "mountNodeTooltip from \"./ui/NodeTooltip\"",
           "updateNodeTooltipTransform from \"./ui/NodeTooltip\"",
           "PositionedNode from \"./types\"",
-          "NodeComponent from \"./components/nodes/base\""
+          "NodeComponent from \"./components/nodes/base\"",
+          "RelationHandlers from \"./components/nodes/base\""
         ],
         "importEntries": [
           {
@@ -1612,6 +1642,14 @@
           },
           {
             "symbol": "renderLaneBands",
+            "path": "./components/edges/EdgeRenderer"
+          },
+          {
+            "symbol": "buildRelationLinks",
+            "path": "./components/edges/EdgeRenderer"
+          },
+          {
+            "symbol": "renderRelationEdges",
             "path": "./components/edges/EdgeRenderer"
           },
           {
@@ -1660,6 +1698,10 @@
           },
           {
             "symbol": "NodeComponent",
+            "path": "./components/nodes/base"
+          },
+          {
+            "symbol": "RelationHandlers",
             "path": "./components/nodes/base"
           }
         ],
@@ -1726,6 +1768,8 @@
         "morphologySummary": "1 class",
         "morphology": [
           "export class ChunkLoader { // :52-90",
+          "  private cache: LRUCache<string, ChunkRegistry> // :53",
+          "  private inflight: Map<string, Promise<ChunkRegistry>> // :54",
           "  load<K extends ChunkKind>(kind: K, ...args: ChunkArgs<K>): Promise<ChunkRegistry> {} // :56-83",
           "  cancel(kind: ChunkKind, ...args: string[]): void {} // :86-89",
           "}"
@@ -1763,9 +1807,11 @@
           "export class GraphStore { // :9-33",
           "  meta: any // :10",
           "  folderChunks: Map<string, FolderChunk> // :11",
+          "  private listeners: Set<Listener> // :13",
           "  loadMeta(meta: MetaChunk): void {} // :15-18",
           "  loadFolderChunk(chunk: FolderChunk): void {} // :20-23",
           "  subscribe(listener: Listener) => (): void {} // :25-28",
+          "  private notifyListeners(): void {} // :30-32",
           "}"
         ],
         "importsSummary": "2 imports from 1 path",
@@ -1842,31 +1888,41 @@
         "desc": "NodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with a <> code preview bubble (top-center) and a + expand bubble (right edge). Ghost nodes (detail._ghost = 'true') render as dashed transparent cards showing only their filename label. Tooltip anchor is the node's right-center SVG position.",
         "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/components/nodes/base.js\")",
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
-        "morphologySummary": "1 class, 1 interface, 5 types, 2 variables",
+        "morphologySummary": "1 class, 2 interfaces, 6 types, 2 variables",
         "morphology": [
-          "export const NODE_COLORS: Record<NodeType, string> // :8-17",
-          "export const NODE_ICON: Record<NodeType, string> // :19-28",
-          "export interface NodeComponent { // :32-43",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :34",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :36",
-          "  getSize(node: PositionedNode): { w: number; h: number; } // :38",
-          "  rightAnchor(node: PositionedNode): { x: number; y: number; } // :40",
-          "  leftAnchor(node: PositionedNode): { x: number; y: number; } // :42",
+          "export const NODE_COLORS: Record<NodeType, string> // :16-25",
+          "export const NODE_ICON: Record<NodeType, string> // :27-36",
+          "export interface NodeComponent { // :40-51",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :42",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :44",
+          "  getSize(node: PositionedNode): { w: number; h: number; } // :46",
+          "  rightAnchor(node: PositionedNode): { x: number; y: number; } // :48",
+          "  leftAnchor(node: PositionedNode): { x: number; y: number; } // :50",
           "}",
-          "export type ExpandHandler = (node: PositionedNode) => void // :47",
-          "export type SelectHandler = (node: PositionedNode) => void // :48",
-          "export type TraceLinkHandler = (node: PositionedNode) => void // :49",
-          "export type HasChildrenFn = (node: PositionedNode) => boolean // :50",
-          "export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void // :52",
-          "export class BaseNodeRenderer { // :66-356",
-          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :75-80",
-          "  rightAnchor(node: PositionedNode): { x: any; y: any; } {} // :82-86",
-          "  leftAnchor(node: PositionedNode): { x: any; y: any; } {} // :88-91",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :93-224",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :226-355",
+          "export type ExpandHandler = (node: PositionedNode) => void // :55",
+          "export type SelectHandler = (node: PositionedNode) => void // :56",
+          "export type TraceLinkHandler = (node: PositionedNode) => void // :57",
+          "export type HasChildrenFn = (node: PositionedNode) => boolean // :58",
+          "export type IsExpandedFn = (node: PositionedNode) => boolean // :59",
+          "export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void // :61",
+          "export interface RelationHandlers { // :63-70",
+          "  hasIncoming(node: PositionedNode): boolean // :64",
+          "  hasOutgoing(node: PositionedNode): boolean // :65",
+          "  isIncomingOpen(node: PositionedNode): boolean // :66",
+          "  isOutgoingOpen(node: PositionedNode): boolean // :67",
+          "  onToggleIncoming(node: PositionedNode): void // :68",
+          "  onToggleOutgoing(node: PositionedNode): void // :69",
+          "}",
+          "export class BaseNodeRenderer { // :84-464",
+          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, relations: RelationHandlers | undefined) {} // :85-93",
+          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :95-100",
+          "  rightAnchor(node: PositionedNode): { x: any; y: any; } {} // :102-106",
+          "  leftAnchor(node: PositionedNode): { x: any; y: any; } {} // :108-111",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :113-285",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :287-463",
           "}"
         ],
-        "importsSummary": "7 imports from 4 paths",
+        "importsSummary": "13 imports from 5 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "PositionedNode from \"../../types\"",
@@ -1874,7 +1930,13 @@
           "NODE_SIZES from \"../../layout/lane-engine\"",
           "showNodeTooltip from \"../../ui/NodeTooltip\"",
           "moveNodeTooltip from \"../../ui/NodeTooltip\"",
-          "hideNodeTooltip from \"../../ui/NodeTooltip\""
+          "hideNodeTooltip from \"../../ui/NodeTooltip\"",
+          "EyeIcon from \"../../ui/icons\"",
+          "MinusIcon from \"../../ui/icons\"",
+          "ArrowDownLeftIcon from \"../../ui/icons\"",
+          "ArrowUpRightIcon from \"../../ui/icons\"",
+          "appendIcon from \"../../ui/icons\"",
+          "replaceIcon from \"../../ui/icons\""
         ],
         "importEntries": [
           {
@@ -1904,6 +1966,30 @@
           {
             "symbol": "hideNodeTooltip",
             "path": "../../ui/NodeTooltip"
+          },
+          {
+            "symbol": "EyeIcon",
+            "path": "../../ui/icons"
+          },
+          {
+            "symbol": "MinusIcon",
+            "path": "../../ui/icons"
+          },
+          {
+            "symbol": "ArrowDownLeftIcon",
+            "path": "../../ui/icons"
+          },
+          {
+            "symbol": "ArrowUpRightIcon",
+            "path": "../../ui/icons"
+          },
+          {
+            "symbol": "appendIcon",
+            "path": "../../ui/icons"
+          },
+          {
+            "symbol": "replaceIcon",
+            "path": "../../ui/icons"
           }
         ],
         "edgeCount": 19
@@ -1914,11 +2000,13 @@
         "desc": "buildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels",
         "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/components/edges/EdgeRenderer.js\")",
         "resolvedPath": "packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts",
-        "morphologySummary": "3 functions, 1 interface",
+        "morphologySummary": "5 functions, 2 interfaces",
         "morphology": [
           "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :23-47",
           "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :52-72",
           "export function renderLaneBands(container: Selection<SVGGElement, unknown, null, undefined>, layout: LaneLayout, canvasWidth: number): void {} // :77-147",
+          "export function buildRelationLinks(nodes: PositionedNode[], crossEdges: ExplorerLink[], relationsOutgoing: ReadonlySet<string>, relationsIncoming: ReadonlySet<string>): RelationLink[] {} // :163-178",
+          "export function renderRelationEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: RelationLink[]): void {} // :252-296",
           "export interface StructureLink { // :11-18",
           "  sourceX: number // :12",
           "  sourceY: number // :13",
@@ -1926,12 +2014,19 @@
           "  targetY: number // :15",
           "  targetType: PositionedNode // :16",
           "  ghost: boolean | undefined // :17",
+          "}",
+          "export interface RelationLink { // :151-156",
+          "  source: PositionedNode // :152",
+          "  target: PositionedNode // :153",
+          "  label: string | undefined // :154",
+          "  type: \"references\" | \"related-to\" // :155",
           "}"
         ],
-        "importsSummary": "5 imports from 4 paths",
+        "importsSummary": "6 imports from 4 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "PositionedNode from \"../../types\"",
+          "ExplorerLink from \"../../types\"",
           "NODE_SIZES from \"../../layout/lane-engine\"",
           "LaneLayout from \"../../layout/lane-engine\"",
           "NODE_COLORS from \"../nodes/base\""
@@ -1943,6 +2038,10 @@
           },
           {
             "symbol": "PositionedNode",
+            "path": "../../types"
+          },
+          {
+            "symbol": "ExplorerLink",
             "path": "../../types"
           },
           {
@@ -2295,8 +2394,8 @@
         "morphologySummary": "3 functions, 3 interfaces",
         "morphology": [
           "export function extractModuleMorphology(program: Program, resolvedPath: string): ModuleMorphology | null {} // :32-111",
-          "export function extractExportMorphology(program: Program, resolvedPath: string, exportName: string): ModuleMorphology | null {} // :449-494",
-          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :506-564",
+          "export function extractExportMorphology(program: Program, resolvedPath: string, exportName: string): ModuleMorphology | null {} // :593-638",
+          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :650-708",
           "export interface ModuleMorphology { // :3-6",
           "  summary: string // :4",
           "  morphology: string[] // :5",
@@ -3265,6 +3364,7 @@
         "morphologySummary": "1 class",
         "morphology": [
           "export class TaskRepository { // :4-37",
+          "  constructor(db: Database) {} // :5",
           "  findById(id: string): Promise<Task | null> {} // :7-9",
           "  findByProject(projectId: string, pagination?: PaginationParams | undefined, filters?: FilterParams | undefined): Promise<{ tasks: Task[]; total: number; }> {} // :11-17",
           "  findByAssignee(assigneeId: string, pagination?: PaginationParams | undefined): Promise<{ tasks: Task[]; total: number; }> {} // :19-24",
@@ -3884,7 +3984,7 @@
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function sanitizeFolderId(id: string): string {} // :745-747"
+          "export function sanitizeFolderId(id: string): string {} // :765-767"
         ],
         "edgeCount": 1
       },
@@ -3897,6 +3997,8 @@
         "morphologySummary": "1 class",
         "morphology": [
           "export class ChunkLoader { // :52-90",
+          "  private cache: LRUCache<string, ChunkRegistry> // :53",
+          "  private inflight: Map<string, Promise<ChunkRegistry>> // :54",
           "  load<K extends ChunkKind>(kind: K, ...args: ChunkArgs<K>): Promise<ChunkRegistry> {} // :56-83",
           "  cancel(kind: ChunkKind, ...args: string[]): void {} // :86-89",
           "}"
@@ -3914,9 +4016,11 @@
           "export class GraphStore { // :9-33",
           "  meta: any // :10",
           "  folderChunks: Map<string, FolderChunk> // :11",
+          "  private listeners: Set<Listener> // :13",
           "  loadMeta(meta: MetaChunk): void {} // :15-18",
           "  loadFolderChunk(chunk: FolderChunk): void {} // :20-23",
           "  subscribe(listener: Listener) => (): void {} // :25-28",
+          "  private notifyListeners(): void {} // :30-32",
           "}"
         ],
         "edgeCount": 2
@@ -3965,12 +4069,13 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class BaseNodeRenderer { // :66-356",
-          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :75-80",
-          "  rightAnchor(node: PositionedNode): { x: any; y: any; } {} // :82-86",
-          "  leftAnchor(node: PositionedNode): { x: any; y: any; } {} // :88-91",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :93-224",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :226-355",
+          "export class BaseNodeRenderer { // :84-464",
+          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, relations: RelationHandlers | undefined) {} // :85-93",
+          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :95-100",
+          "  rightAnchor(node: PositionedNode): { x: any; y: any; } {} // :102-106",
+          "  leftAnchor(node: PositionedNode): { x: any; y: any; } {} // :108-111",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :113-285",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :287-463",
           "}"
         ],
         "edgeCount": 2
@@ -4169,7 +4274,7 @@
         "resolvedPath": "packages/tskb/src/core/extraction/module-morphology.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :506-564"
+          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :650-708"
         ],
         "edgeCount": 2
       },
@@ -4395,6 +4500,7 @@
         "morphologySummary": "1 class",
         "morphology": [
           "export class TaskRepository { // :4-37",
+          "  constructor(db: Database) {} // :5",
           "  findById(id: string): Promise<Task | null> {} // :7-9",
           "  findByProject(projectId: string, pagination?: PaginationParams | undefined, filters?: FilterParams | undefined): Promise<{ tasks: Task[]; total: number; }> {} // :11-17",
           "  findByAssignee(assigneeId: string, pagination?: PaginationParams | undefined): Promise<{ tasks: Task[]; total: number; }> {} // :19-24",
@@ -4414,6 +4520,7 @@
         "morphologySummary": "1 class",
         "morphology": [
           "export class UserRepository { // :4-26",
+          "  constructor(db: Database) {} // :5",
           "  findById(id: string): Promise<User | null> {} // :7-9",
           "  findByEmail(email: string): Promise<User | null> {} // :11-13",
           "  create(user: Omit<User, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<User> {} // :15-17",
@@ -4432,6 +4539,7 @@
         "morphologySummary": "1 class",
         "morphology": [
           "export class ProjectRepository { // :4-26",
+          "  constructor(db: Database) {} // :5",
           "  findById(id: string): Promise<Project | null> {} // :7-9",
           "  findByTeam(teamId: string): Promise<Project[]> {} // :11-13",
           "  create(project: Omit<Project, \"id\" | \"createdAt\" | \"updatedAt\">): Promise<Project> {} // :15-17",
@@ -4486,6 +4594,7 @@
         "morphologySummary": "1 class",
         "morphology": [
           "export class WebSocketService { // :8-18",
+          "  private ws: WebSocket | null // :9",
           "  connect(): void {} // :11",
           "  disconnect(): void {} // :13",
           "  on(event: string, callback: (data: any) => void): void {} // :15",
@@ -4515,6 +4624,7 @@
         "morphologySummary": "1 class",
         "morphology": [
           "export class Database { // :9-25",
+          "  constructor(config: DatabaseConfig) {} // :10",
           "  connect(): Promise<void> {} // :12",
           "  disconnect(): Promise<void> {} // :14",
           "  query<T>(sql: string, params?: any[] | undefined): Promise<T[]> {} // :16-18",
@@ -4685,6 +4795,9 @@
         "morphologySummary": "1 class",
         "morphology": [
           "export class ApiClient { // :3-38",
+          "  private baseUrl: string // :4",
+          "  private token: string | null // :5",
+          "  constructor(baseUrl: string) {} // :7-9",
           "  setToken(token: string): void {} // :11-13",
           "  clearToken(): void {} // :15-17",
           "  get<T>(path: string): Promise<ApiResponse<T>> {} // :19-21",
@@ -8344,7 +8457,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-04-14T15:52:14.673Z",
+    "generatedAt": "2026-04-17T11:26:17.623Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
