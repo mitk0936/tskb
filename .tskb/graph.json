@@ -1652,43 +1652,44 @@
         "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
         "morphologySummary": "1 class, 1 function, 1 type",
         "morphology": [
-          "export class ExplorerApp { // :31-409",
-          "  private readonly loader: any // :32",
-          "  private readonly store: any // :33",
-          "  private expanded: Set<string> // :36",
-          "  private selected: any // :37",
-          "  private searchQuery: string // :38",
-          "  private relationsIncoming: Set<string> // :39",
-          "  private relationsOutgoing: Set<string> // :40",
-          "  private svgEl: SVGSVGElement // :43",
-          "  private svg: Selection<SVGSVGElement, unknown, null, undefined> // :44",
-          "  private zoom: ZoomBehavior<SVGSVGElement, unknown> // :45",
-          "  private laneBgLayer: Layer // :46",
-          "  private edgeLayer: Layer // :47",
-          "  private relationEdgeLayer: Layer // :48",
-          "  private nodeLayer: Layer // :49",
-          "  private renderer: NodeComponent // :50",
-          "  private detailPanel: any // :51",
-          "  mount(): Promise<void> {} // :53-60",
-          "  private setupCanvas(): void {} // :64-96",
-          "  private setupTooltips(): void {} // :98-101",
-          "  private setupRenderer(): void {} // :103-172",
-          "  private setupSearch(): void {} // :174-180",
-          "  private loadInitialData(): Promise<void> {} // :182-200",
-          "  private render(): void {} // :204-280",
-          "  private onExpand(node: PositionedNode): Promise<void> {} // :284-322",
-          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :328-359",
-          "  private scrollToNode(nodeId: string): void {} // :362-376",
-          "  private collapseDescendants(folderId: string): void {} // :379-394",
-          "  private clearRelations(nodeId: string): void {} // :396-399",
-          "  private onSelect(node: PositionedNode): void {} // :401-403",
-          "  private onTraceLinks(node: PositionedNode): void {} // :405-408",
+          "export class ExplorerApp { // :32-413",
+          "  private readonly loader: any // :33",
+          "  private readonly store: any // :34",
+          "  private expanded: Set<string> // :37",
+          "  private selected: any // :38",
+          "  private searchQuery: string // :39",
+          "  private relationsIncoming: Set<string> // :40",
+          "  private relationsOutgoing: Set<string> // :41",
+          "  private svgEl: SVGSVGElement // :44",
+          "  private svg: Selection<SVGSVGElement, unknown, null, undefined> // :45",
+          "  private zoom: ZoomBehavior<SVGSVGElement, unknown> // :46",
+          "  private laneBgLayer: Layer // :47",
+          "  private boundaryLayer: Layer // :48",
+          "  private edgeLayer: Layer // :49",
+          "  private relationEdgeLayer: Layer // :50",
+          "  private nodeLayer: Layer // :51",
+          "  private renderer: NodeComponent // :52",
+          "  private detailPanel: any // :53",
+          "  mount(): Promise<void> {} // :55-62",
+          "  private setupCanvas(): void {} // :66-99",
+          "  private setupTooltips(): void {} // :101-104",
+          "  private setupRenderer(): void {} // :106-175",
+          "  private setupSearch(): void {} // :177-183",
+          "  private loadInitialData(): Promise<void> {} // :185-203",
+          "  private render(): void {} // :207-284",
+          "  private onExpand(node: PositionedNode): Promise<void> {} // :288-326",
+          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :332-363",
+          "  private scrollToNode(nodeId: string): void {} // :366-380",
+          "  private collapseDescendants(folderId: string): void {} // :383-398",
+          "  private clearRelations(nodeId: string): void {} // :400-403",
+          "  private onSelect(node: PositionedNode): void {} // :405-407",
+          "  private onTraceLinks(node: PositionedNode): void {} // :409-412",
           "}",
           "// — internal —",
-          "type Layer = d3.Selection<SVGGElement, unknown, null, undefined> // :25",
-          "function buildParentLookup(store: GraphStore): Map<string, string> {} // :412-414"
+          "type Layer = d3.Selection<SVGGElement, unknown, null, undefined> // :26",
+          "function buildParentLookup(store: GraphStore): Map<string, string> {} // :416-418"
         ],
-        "importsSummary": "24 imports from 12 paths",
+        "importsSummary": "25 imports from 13 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "ChunkLoader from \"./graph/loader\"",
@@ -1713,7 +1714,8 @@
           "updateNodeTooltipTransform from \"./ui/NodeTooltip\"",
           "PositionedNode from \"./types\"",
           "NodeComponent from \"./components/nodes/base\"",
-          "RelationHandlers from \"./components/nodes/base\""
+          "RelationHandlers from \"./components/nodes/base\"",
+          "renderBoundaryGroups from \"./components/BoundaryRenderer\""
         ],
         "importEntries": [
           {
@@ -1811,6 +1813,10 @@
           {
             "symbol": "RelationHandlers",
             "path": "./components/nodes/base"
+          },
+          {
+            "symbol": "renderBoundaryGroups",
+            "path": "./components/BoundaryRenderer"
           }
         ],
         "edgeCount": 20
@@ -8867,7 +8873,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-04-20T06:59:39.276Z",
+    "generatedAt": "2026-04-20T07:06:28.204Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {

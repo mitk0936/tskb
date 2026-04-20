@@ -21,6 +21,7 @@ import { mountCodeTooltip, toggleCodeTooltip, updateCodeTooltipTransform } from 
 import { mountNodeTooltip, updateNodeTooltipTransform } from "./ui/NodeTooltip";
 import type { PositionedNode } from "./types";
 import type { NodeComponent, RelationHandlers } from "./components/nodes/base";
+import { renderBoundaryGroups } from "./components/BoundaryRenderer";
 
 type Layer = d3.Selection<SVGGElement, unknown, null, undefined>;
 
@@ -44,6 +45,7 @@ export class ExplorerApp {
   private svg!: d3.Selection<SVGSVGElement, unknown, null, undefined>;
   private zoom!: d3.ZoomBehavior<SVGSVGElement, unknown>;
   private laneBgLayer!: Layer;
+  private boundaryLayer!: Layer;
   private edgeLayer!: Layer;
   private relationEdgeLayer!: Layer;
   private nodeLayer!: Layer;
@@ -67,6 +69,7 @@ export class ExplorerApp {
 
     const zoomLayer = svg.append("g").attr("class", "zoom-layer");
     this.laneBgLayer = zoomLayer.append("g").attr("class", "lane-bg-layer") as unknown as Layer;
+    this.boundaryLayer = zoomLayer.append("g").attr("class", "boundary-layer") as unknown as Layer;
     this.edgeLayer = zoomLayer.append("g").attr("class", "edge-layer") as unknown as Layer;
     this.relationEdgeLayer = zoomLayer
       .append("g")
@@ -217,6 +220,7 @@ export class ExplorerApp {
     // Lane backgrounds and structure edges
     const CANVAS_W = Math.max(4000, Math.max(...allNodes.map((n) => n.x + 250), 0));
     renderLaneBands(this.laneBgLayer, layout, CANVAS_W);
+    renderBoundaryGroups(this.boundaryLayer, allNodes, this.store.meta.parentOf ?? {});
     renderStructureEdges(this.edgeLayer, buildStructureLinks(layout.structureNodes));
 
     // Relation edges (related-to / references) — rendered above structure edges
