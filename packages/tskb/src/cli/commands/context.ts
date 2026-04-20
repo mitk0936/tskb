@@ -17,6 +17,7 @@ interface ContextNode {
   type: AnyNode["type"];
   desc: string;
   path?: string;
+  boundary?: string;
   structureSummary?: string;
   morphologySummary?: string;
   depth: number;
@@ -35,6 +36,7 @@ interface ContextResult {
     type: AnyNode["type"];
     desc: string;
     path?: string;
+    boundary?: string;
     structureSummary?: string;
     morphologySummary?: string;
     resolvedVia: ResolvedVia;
@@ -135,6 +137,7 @@ function buildContext(
           type: node.type,
           desc: getNodeDesc(node),
           path: getNodePath(node),
+          ...(node.type === "folder" && node.boundary ? { boundary: node.boundary } : {}),
           ...(node.type === "folder" && node.structureSummary
             ? { structureSummary: node.structureSummary }
             : {}),
@@ -227,6 +230,7 @@ export async function context(
       type: rootNode.type,
       desc: getNodeDesc(rootNode),
       path: getNodePath(rootNode),
+      ...(rootNode.type === "folder" && rootNode.boundary ? { boundary: rootNode.boundary } : {}),
       ...(rootNode.type === "folder" && rootNode.structureSummary
         ? { structureSummary: rootNode.structureSummary }
         : {}),
@@ -285,6 +289,7 @@ function formatContextPlain(
   lines.push(`  ${root.desc}`);
   const rootMeta: string[] = [];
   if (root.path) rootMeta.push(`path: ${root.path}`);
+  if (root.boundary) rootMeta.push(`boundary: ${root.boundary}`);
   if (root.structureSummary) rootMeta.push(root.structureSummary);
   if (root.morphologySummary) rootMeta.push(root.morphologySummary);
   if (rootMeta.length > 0) lines.push(`  ${rootMeta.join(" | ")}`);
@@ -297,6 +302,7 @@ function formatContextPlain(
       lines.push(`  [depth ${n.depth}] id: ${n.nodeId} (${n.type}) — ${n.desc}`);
       const meta: string[] = [];
       if (n.path) meta.push(`path: ${n.path}`);
+      if (n.boundary) meta.push(`boundary: ${n.boundary}`);
       if (n.structureSummary) meta.push(n.structureSummary);
       if (n.morphologySummary) meta.push(n.morphologySummary);
       if (meta.length > 0) lines.push(`    ${meta.join(" | ")}`);

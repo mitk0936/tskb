@@ -83,6 +83,16 @@ export function extractModuleMorphology(
     }
   }
 
+  if (morphology.length === 0 && exports.length === 0) return null;
+
+  // Second pass: top-level non-exported declarations
+  const exportedNames = new Set(exports.map((s) => s.escapedName as string));
+  const internalLines = extractInternalDeclarations(sourceFile, checker, exportedNames, counts);
+  if (internalLines.length > 0) {
+    morphology.push("// — internal —");
+    morphology.push(...internalLines);
+  }
+
   if (morphology.length === 0) return null;
 
   // Build summary
@@ -210,29 +220,6 @@ function renderFunction(
     return `${prefix}function ${name}${sig} {}`;
   }
   return `${prefix}function ${name}() {}`;
-}
-
-/**
- * Check if a symbol is private — either by TS keyword (private/protected) or naming convention (_ or #).
- */
-function isPrivateSymbol(sym: ts.Symbol): boolean {
-  if (sym.name.startsWith("_") || sym.name.startsWith("#")) return true;
-  const decls = sym.getDeclarations();
-  if (!decls) return false;
-  for (const decl of decls) {
-    const modifiers = ts.canHaveModifiers(decl) ? ts.getModifiers(decl) : undefined;
-    if (modifiers) {
-      for (const mod of modifiers) {
-        if (
-          mod.kind === ts.SyntaxKind.PrivateKeyword ||
-          mod.kind === ts.SyntaxKind.ProtectedKeyword
-        ) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
 }
 
 /**
@@ -705,6 +692,98 @@ export function extractModuleImports(
   const importsSummary = `${imports.length} import${imports.length !== 1 ? "s" : ""} from ${paths.size} path${paths.size !== 1 ? "s" : ""}`;
 
   return { imports, importEntries, importsSummary };
+}
+
+/**
+ * Walk top-level source file statements and render any non-exported declarations —
+ * functions, classes, interfaces, type aliases, enums, and variable declarations
+ * that were not already captured by getExportsOfModule().
+ *
+ * Rendered lines are appended using the same render helpers as the export pass,
+ * but without the `export` prefix. Counts map is updated in place.
+ */
+function extractInternalDeclarations(
+  sourceFile: ts.SourceFile,
+  checker: ts.TypeChecker,
+  exportedNames: Set<string>,
+  counts: Map<MemberKind, number>
+): string[] {
+  const lines: string[] = [];
+
+  for (const stmt of sourceFile.statements) {
+    // Skip anything with an export modifier — already handled by getExportsOfModule
+    const modFlags = ts.canHaveModifiers(stmt)
+      ? ts.getCombinedModifierFlags(stmt as ts.Declaration)
+      : 0;
+    if (modFlags & ts.ModifierFlags.Export) continue;
+
+    if (ts.isFunctionDeclaration(stmt) && stmt.name) {
+      const name = stmt.name.text;
+      if (exportedNames.has(name)) continue;
+      const sym = checker.getSymbolAtLocation(stmt.name);
+      if (!sym) continue;
+      counts.set("function", (counts.get("function") || 0) + 1);
+      const line = renderFunction(name, sym, checker, sourceFile, "");
+      const range = getNodeLineRange(stmt, sourceFile);
+      lines.push(range ? `${line} // :${range}` : line);
+    } else if (ts.isClassDeclaration(stmt) && stmt.name) {
+      const name = stmt.name.text;
+      if (exportedNames.has(name)) continue;
+      const sym = checker.getSymbolAtLocation(stmt.name);
+      if (!sym) continue;
+      counts.set("class", (counts.get("class") || 0) + 1);
+      const rendered = renderClass(name, sym, checker, sourceFile, "");
+      const range = getNodeLineRange(stmt, sourceFile);
+      if (rendered.length > 0) {
+        rendered[0] = range ? `${rendered[0]} // :${range}` : rendered[0];
+        lines.push(...rendered);
+      }
+    } else if (ts.isInterfaceDeclaration(stmt)) {
+      const name = stmt.name.text;
+      if (exportedNames.has(name)) continue;
+      const sym = checker.getSymbolAtLocation(stmt.name);
+      if (!sym) continue;
+      counts.set("interface", (counts.get("interface") || 0) + 1);
+      const rendered = renderInterface(name, sym, checker, sourceFile, "");
+      const range = getNodeLineRange(stmt, sourceFile);
+      if (rendered.length > 0) {
+        rendered[0] = range ? `${rendered[0]} // :${range}` : rendered[0];
+        lines.push(...rendered);
+      }
+    } else if (ts.isTypeAliasDeclaration(stmt)) {
+      const name = stmt.name.text;
+      if (exportedNames.has(name)) continue;
+      const sym = checker.getSymbolAtLocation(stmt.name);
+      if (!sym) continue;
+      counts.set("type", (counts.get("type") || 0) + 1);
+      const line = renderTypeAlias(name, sym, checker, sourceFile, "");
+      const range = getNodeLineRange(stmt, sourceFile);
+      lines.push(range ? `${line} // :${range}` : line);
+    } else if (ts.isEnumDeclaration(stmt)) {
+      const name = stmt.name.text;
+      if (exportedNames.has(name)) continue;
+      const sym = checker.getSymbolAtLocation(stmt.name);
+      if (!sym) continue;
+      counts.set("enum", (counts.get("enum") || 0) + 1);
+      const line = renderEnum(name, sym, checker, "");
+      const range = getNodeLineRange(stmt, sourceFile);
+      lines.push(range ? `${line} // :${range}` : line);
+    } else if (ts.isVariableStatement(stmt)) {
+      for (const decl of stmt.declarationList.declarations) {
+        if (!ts.isIdentifier(decl.name)) continue;
+        const name = decl.name.text;
+        if (exportedNames.has(name)) continue;
+        const sym = checker.getSymbolAtLocation(decl.name);
+        if (!sym) continue;
+        counts.set("variable", (counts.get("variable") || 0) + 1);
+        const line = renderVariable(name, sym, checker, sourceFile, "");
+        const range = getNodeLineRange(decl, sourceFile);
+        lines.push(range ? `${line} // :${range}` : line);
+      }
+    }
+  }
+
+  return lines;
 }
 
 /**

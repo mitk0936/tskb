@@ -15,6 +15,7 @@ declare global {
       "tskb.explorer.app": Folder<{
         desc: "Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/";
         path: "packages/tskb/explorer-app";
+        boundary: "spa";
       }>;
 
       "tskb.explorer.app.components": Folder<{

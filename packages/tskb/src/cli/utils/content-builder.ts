@@ -8,6 +8,7 @@ import type { KnowledgeGraph } from "../../core/graph/types.js";
 export function buildQueryBody(graph: KnowledgeGraph): string {
   const folderTree = buildFolderTree(graph, 2);
   const docSummaries = buildDocSummaries(graph, true);
+  const boundariesSummary = buildBoundariesSummary(graph);
   const externalsSummary = buildExternalsSummary(graph);
   const flowsSummary = buildFlowsSummary(graph);
 
@@ -60,6 +61,8 @@ All paths are relative to project root and can be used directly to read files.
 ${folderTree}
 
 _Snapshot from last \`npm run docs\` build._
+
+${boundariesSummary}
 
 ${externalsSummary}
 
@@ -167,7 +170,7 @@ export default (
 
 | Primitive | When to use |
 |-----------|-------------|
-| \`Folder<{ desc; path }>\` | A logical area of the codebase |
+| \`Folder<{ desc; path; boundary? }>\` | A logical area of the codebase. Add \`boundary\` only on the top-level folder of a distinct runtime — see below. |
 | \`Module<{ desc; type: typeof import("...") }>\` | A source file — import path validates it exists |
 | \`Export<{ desc; type: typeof import("...").Name }>\` | A named export — compiler validates it exists |
 | \`File<{ desc; path }>\` | Non-TS files: configs, READMEs, specs |
@@ -175,6 +178,23 @@ export default (
 | \`Term<"...">\` | Domain concepts not tied to a specific file |
 
 **Import paths must resolve.** Use \`.js\` extensions with NodeNext module resolution.
+
+### The boundary prop
+
+\`boundary\` marks a folder as the root of a distinct runtime or deployment unit — a process, app, or package that runs or deploys independently. Add it only to the **top-level folder** that IS that boundary; never repeat it on sub-folders inside.
+
+Use these boundary names and no others unless the project introduces a genuinely new runtime:
+
+| Value | When to use |
+|-------|-------------|
+| \`"package"\` | An npm package root with its own \`package.json\`, published or consumed as a library |
+| \`"spa"\` | A browser single-page application (Vite, CRA, Next.js client bundle). Runs in the browser. |
+| \`"client"\` | Frontend app in a project that also has a server. Pair with \`"server"\`. |
+| \`"server"\` | Node.js (or similar) backend process. Pair with \`"client"\` when both exist. |
+| \`"tests"\` | Test suite root — the test runner is a distinct process from production code |
+| \`"test-fixture"\` | A self-contained project bundled inside tests to simulate a real consumer (e.g. a fixture app) |
+
+**Do NOT add boundary to** architectural layers (core, cli, utils, shared types), sub-folders already inside a bounded area, or organizational groupings that have no independent runtime. If in doubt, leave it off — boundary should be rare and meaningful.
 
 ### Documenting class methods
 
@@ -415,6 +435,20 @@ function buildFlowsSummary(graph: KnowledgeGraph): string {
 /**
  * Build a markdown list of externals from the knowledge graph.
  */
+function buildBoundariesSummary(graph: KnowledgeGraph): string {
+  const bounded = Object.values(graph.nodes.folders)
+    .filter((f) => f.boundary)
+    .sort(
+      (a, b) => a.boundary!.localeCompare(b.boundary!) || (a.path ?? "").localeCompare(b.path ?? "")
+    );
+
+  if (bounded.length === 0) return "";
+
+  const lines = bounded.map((f) => `- **${f.boundary}** — \`${f.path}\` — ${f.desc}`).join("\n");
+
+  return `## Boundaries\n\n${lines}`;
+}
+
 function buildExternalsSummary(graph: KnowledgeGraph): string {
   const externals = Object.values(graph.nodes.externals).sort((a, b) => a.id.localeCompare(b.id));
 

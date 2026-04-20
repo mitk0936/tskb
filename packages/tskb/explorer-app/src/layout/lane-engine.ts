@@ -35,10 +35,10 @@ function buildStructureTree(store: GraphStore, expanded: ReadonlySet<string>): T
   };
 }
 
-function makeGhostNodes(parentId: string, count: number): TreeData[] {
+function makeGhostNodes(parentId: string, count: number, type: NodeType = "module"): TreeData[] {
   return Array.from({ length: Math.min(count, 4) }, (_, i) => ({
     id: `${parentId}:ghost:${i}`,
-    type: "module" as NodeType,
+    type,
     label: "",
     description: "",
     edgeCount: 0,
@@ -71,7 +71,12 @@ function buildFolderChildren(
     // Modules
     for (const mod of chunk.modules) {
       if (!expanded.has(mod.id)) {
-        children.push({ ...mod });
+        if (mod.detail._hasChildren === "true") {
+          const exportCount = chunk.exports.filter((e) => e.parentId === mod.id).length;
+          children.push({ ...mod, treeChildren: makeGhostNodes(mod.id, exportCount, "export") });
+        } else {
+          children.push({ ...mod });
+        }
       } else {
         children.push({
           ...mod,

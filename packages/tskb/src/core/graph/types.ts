@@ -31,6 +31,10 @@ export interface FolderNode extends GraphNode {
    */
   packageName?: string;
   /**
+   * Explicit architectural boundary declared by doc maintainers (e.g. "public-api", "domain", "infra")
+   */
+  boundary?: string;
+  /**
    * Auto-generated filesystem summary, e.g. "3 folders, 7 files"
    */
   structureSummary?: string;

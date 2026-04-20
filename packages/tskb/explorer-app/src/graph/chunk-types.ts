@@ -20,6 +20,10 @@ export interface MetaChunk {
   externals: ExplorerNode[];
   /** Edges from doc/flow nodes referencing code nodes (cross-lane) */
   crossEdges: ExplorerLink[];
+  /** node-id → parent-id for every declared node; used to resolve nearest visible ancestor */
+  parentOf: Record<string, string>;
+  /** IDs of all folder nodes (declared + ghost intermediaries); used to decide which ancestors need chunk loading */
+  folderIds: string[];
 }
 
 export interface FolderChunk {

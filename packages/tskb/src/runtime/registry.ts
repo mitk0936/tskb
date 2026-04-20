@@ -25,6 +25,7 @@ declare global {
 interface InternalFolderDefinition {
   desc: string;
   path: string;
+  boundary?: string;
 }
 
 interface InternalModuleDefinition {

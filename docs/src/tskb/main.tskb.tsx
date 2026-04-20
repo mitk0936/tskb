@@ -22,6 +22,7 @@ declare global {
       "TSKB.Package.Root": Folder<{
         desc: "The root folder of the package, with its package.json and main npm README.md";
         path: "packages/tskb";
+        boundary: "package";
       }>;
 
       "tskb.cli": Folder<{ desc: "Source code for the cli"; path: "packages/tskb/src/cli" }>;

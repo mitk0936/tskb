@@ -18,6 +18,7 @@ export interface ExtractedRegistry {
     {
       desc: string;
       path?: string;
+      boundary?: string;
       resolvedPath?: string;
       pathExists: boolean;
       folderSummary?: FolderSummary;
@@ -336,8 +337,8 @@ function extractFolders(
 function extractFolderType(
   typeNode: ts.TypeNode,
   _checker: ts.TypeChecker
-): { desc: string; path?: string } | null {
-  // Handle Folder<{ desc: "...", path: "..." }>
+): { desc: string; path?: string; boundary?: string } | null {
+  // Handle Folder<{ desc: "...", path: "...", boundary?: "..." }>
   if (!ts.isTypeReferenceNode(typeNode)) return null;
 
   const typeArgs = typeNode.typeArguments;
@@ -348,6 +349,7 @@ function extractFolderType(
 
   let desc = "";
   let path: string | undefined;
+  let boundary: string | undefined;
 
   for (const member of objectType.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -361,10 +363,12 @@ function extractFolderType(
       desc = (propType.literal as ts.StringLiteral).text;
     } else if (propName === "path" && propType && ts.isLiteralTypeNode(propType)) {
       path = (propType.literal as ts.StringLiteral).text;
+    } else if (propName === "boundary" && propType && ts.isLiteralTypeNode(propType)) {
+      boundary = (propType.literal as ts.StringLiteral).text;
     }
   }
 
-  return desc ? { desc, path } : null;
+  return desc ? { desc, path, boundary } : null;
 }
 
 /**

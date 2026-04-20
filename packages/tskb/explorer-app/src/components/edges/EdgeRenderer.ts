@@ -152,32 +152,48 @@ export interface RelationLink {
   source: PositionedNode;
   target: PositionedNode;
   label?: string;
-  type: "references" | "related-to";
+  type: "related-to" | "imports";
 }
 
 /**
  * Pairs cross-edges with their positioned source and target nodes.
  * Only produces links where both ends are visible AND at least one endpoint
  * has its relations toggled open (outgoing for source, incoming for target).
+ * When a node is not yet visible, the edge attaches to the nearest visible
+ * ancestor found by walking up the parentOf map.
  */
 export function buildRelationLinks(
   nodes: PositionedNode[],
   crossEdges: ExplorerLink[],
   relationsOutgoing: ReadonlySet<string>,
-  relationsIncoming: ReadonlySet<string>
+  relationsIncoming: ReadonlySet<string>,
+  parentOf: ReadonlyMap<string, string>
 ): RelationLink[] {
   const byId = new Map(nodes.map((n) => [n.id, n]));
+
+  function nearestVisible(id: string): PositionedNode | undefined {
+    let current: string | undefined = id;
+    while (current) {
+      const node = byId.get(current);
+      if (node) return node;
+      current = parentOf.get(current);
+    }
+    return undefined;
+  }
+
+  const seen = new Set<string>();
   return crossEdges.flatMap((e) => {
-    if (e.type !== "related-to" && e.type !== "references") return [];
-    if (!relationsOutgoing.has(e.source) && !relationsIncoming.has(e.target)) return [];
-    const src = byId.get(e.source);
-    const tgt = byId.get(e.target);
-    if (!src || !tgt) return [];
+    if (e.type !== "related-to" && e.type !== "imports") return [];
+    if (!relationsIncoming.has(e.source) && !relationsOutgoing.has(e.target)) return [];
+    const src = nearestVisible(e.source);
+    const tgt = nearestVisible(e.target);
+    if (!src || !tgt || src.id === tgt.id) return [];
+    const key = `${src.id}→${tgt.id}`;
+    if (seen.has(key)) return [];
+    seen.add(key);
     return [{ source: src, target: tgt, label: e.label, type: e.type }];
   });
 }
-
-const RELATION_COLOR = "#6366f1"; // indigo
 
 // ─── Relation tooltip (HTML overlay) ─────────────────────────────────────────
 
@@ -229,24 +245,16 @@ function hideRelTooltip(): void {
   }
 }
 
-/**
- * Formats the hover tooltip text for a relation edge.
- * Doc references: "How app boots? · doc → packages.Root"
- * Related-to with label: "AuthService → uses → jwt"
- * Related-to no label: "AuthService → jwt"
- */
 function relationTooltipText(d: RelationLink): string {
-  if (d.type === "references" && d.label) {
-    return `${d.label} · ${d.source.label} → ${d.target.label}`;
-  }
-  return d.label
-    ? `${d.source.label} → ${d.label} → ${d.target.label}`
+  const prefix = d.type === "imports" ? "imports" : d.label;
+  return prefix
+    ? `${d.source.label} → ${prefix} → ${d.target.label}`
     : `${d.source.label} → ${d.target.label}`;
 }
 
 /**
- * Renders semantic relation edges (related-to / references) as vertical cubic
- * bezier curves — bottom-center of source to top-center of target.
+ * Renders semantic relation edges as tapered filled shapes —
+ * wide at source (outgoing bubble), tapering to a point at target (ingoing bubble).
  * On hover: highlight + floating label tooltip.
  */
 export function renderRelationEdges(
@@ -268,44 +276,38 @@ export function renderRelationEdges(
     const { sx, sy, tx, ty } = relAnchorPoints(d.source, d.target);
     d3.select(this)
       .select(".relation-path")
-      .attr("fill", "none")
-      .attr("stroke", RELATION_COLOR)
-      .attr("stroke-width", 2.5)
-      .attr("stroke-opacity", 0.4)
-      .attr("d", cubicBubble(sx, sy, tx, ty));
+      .attr("stroke", "none")
+      .attr("fill", NODE_COLORS[d.target.type])
+      .attr("fill-opacity", 0.35)
+      .attr("d", bandBubble(sx, sy, tx, ty));
   });
 
   merged
     .on("mouseenter", function (event: MouseEvent, d) {
-      d3.select(this)
-        .select(".relation-path")
-        .attr("stroke-opacity", 0.9)
-        .attr("stroke-width", 3.5);
+      d3.select(this).select(".relation-path").attr("fill-opacity", 0.75);
       showRelTooltip(relationTooltipText(d), event.clientX, event.clientY);
     })
     .on("mousemove", function (event: MouseEvent, d) {
       showRelTooltip(relationTooltipText(d), event.clientX, event.clientY);
     })
     .on("mouseleave", function () {
-      d3.select(this)
-        .select(".relation-path")
-        .attr("stroke-opacity", 0.4)
-        .attr("stroke-width", 2.5);
+      d3.select(this).select(".relation-path").attr("fill-opacity", 0.35);
       hideRelTooltip();
     });
 }
 
-/** Outgoing bubble (bottom-right) of source → incoming bubble (top-left) of target. */
+/** Outgoing bubble (top-right) of source → ingoing bubble (bottom-center) of target. */
 function relAnchorPoints(
   src: PositionedNode,
   tgt: PositionedNode
 ): { sx: number; sy: number; tx: number; ty: number } {
   const ss = nodeSize(src);
+  const ts = nodeSize(tgt);
   return {
-    sx: src.x + ss.w, // right edge — where outgoing bubble sits
-    sy: src.y + ss.h, // bottom edge
-    tx: tgt.x, // left edge — where incoming bubble sits
-    ty: tgt.y, // top edge
+    sx: src.x + ss.w, // right edge — importer (source): bottom-right
+    sy: src.y + ss.h,
+    tx: tgt.x + ts.w, // right edge — imported (target): top-right
+    ty: tgt.y,
   };
 }
 
@@ -324,11 +326,22 @@ function cubicV(sx: number, sy: number, tx: number, ty: number): string {
 }
 
 /**
- * Diagonal cubic bezier for bubble-to-bubble relation edges.
- * Exits the source going rightward, arrives at target coming from the left.
- * This matches the outgoing bubble (bottom-right) → incoming bubble (top-left) positions.
+ * Rightward arc band for relation edges: wide at both ends, curves to the right.
+ * Uses a quadratic bezier with the control point pushed rightward from the midpoint.
  */
-function cubicBubble(sx: number, sy: number, tx: number, ty: number): string {
-  const tension = 150;
-  return `M${sx},${sy} C${sx + tension},${sy} ${tx - tension},${ty} ${tx},${ty}`;
+function bandBubble(sx: number, sy: number, tx: number, ty: number): string {
+  const hw = 8;
+  const bulge = Math.max(60, Math.abs(ty - sy) * 0.4);
+  const cpx = Math.max(sx, tx) + bulge; // always to the right of both endpoints
+  const cpy = (sy + ty) / 2;
+
+  // Source (top-right corner): spread horizontally — band exits left/right of the corner
+  // Target (bottom-right corner): spread vertically — band arrives above/below the corner
+  return [
+    `M${sx - hw},${sy}`,
+    `Q${cpx},${cpy} ${tx},${ty - hw}`,
+    `L${tx},${ty + hw}`,
+    `Q${cpx},${cpy} ${sx + hw},${sy}`,
+    "Z",
+  ].join(" ");
 }

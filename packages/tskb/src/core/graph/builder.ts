@@ -151,6 +151,7 @@ function buildFolderNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
       type: "folder",
       desc: data.desc,
       path: data.resolvedPath ?? data.path,
+      ...(data.boundary ? { boundary: data.boundary } : {}),
       ...(data.folderSummary
         ? {
             structureSummary: data.folderSummary.summary,

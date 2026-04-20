@@ -18,6 +18,7 @@ interface LsResult {
     nodeId: string;
     desc?: string;
     path?: string;
+    boundary?: string;
     structureSummary?: string;
   }>;
 }
@@ -93,6 +94,7 @@ function formatLsPlain(result: LsResult, maxDepth: number): string {
   for (const f of result.folders) {
     const meta: string[] = [];
     if (f.path) meta.push(f.path);
+    if (f.boundary) meta.push(`boundary: ${f.boundary}`);
     if (f.structureSummary) meta.push(f.structureSummary);
     const metaStr = meta.length > 0 ? ` (${meta.join(" | ")})` : "";
     lines.push(`  id: ${f.nodeId}${metaStr} — ${f.desc}`);
@@ -136,6 +138,7 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
     nodeId: string;
     desc?: string;
     path?: string;
+    boundary?: string;
     structureSummary?: string;
   }> = [];
   const visited = new Set<string>();
@@ -155,6 +158,7 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
       nodeId: folderId,
       desc: folder.desc,
       path: folderPath,
+      ...(folder.boundary ? { boundary: folder.boundary } : {}),
       ...(folder.structureSummary ? { structureSummary: folder.structureSummary } : {}),
     });
 

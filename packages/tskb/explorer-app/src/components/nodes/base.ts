@@ -5,7 +5,7 @@ import { showNodeTooltip, moveNodeTooltip, hideNodeTooltip } from "../../ui/Node
 import {
   EyeIcon,
   MinusIcon,
-  ArrowDownLeftIcon,
+  ArrowUpLeftIcon,
   ArrowUpRightIcon,
   appendIcon,
   replaceIcon,
@@ -44,10 +44,10 @@ export interface NodeComponent {
   update(g: d3.Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void;
   /** Bounding box for a node (used by layout + edge routing) */
   getSize(node: PositionedNode): { w: number; h: number };
-  /** Connection point on the right side (edge source) */
-  rightAnchor(node: PositionedNode): { x: number; y: number };
-  /** Connection point on the left side (edge target) */
-  leftAnchor(node: PositionedNode): { x: number; y: number };
+  /** Connection point for outgoing edges (top-right bubble) */
+  outgoing(node: PositionedNode): { x: number; y: number };
+  /** Connection point for incoming edges (bottom-right bubble) */
+  ingoing(node: PositionedNode): { x: number; y: number };
 }
 
 // ─── Handlers ────────────────────────────────────────────────────────────────
@@ -99,15 +99,14 @@ export class BaseNodeRenderer implements NodeComponent {
     return NODE_SIZES[node.type] ?? NODE_SIZES.module;
   }
 
-  rightAnchor(node: PositionedNode) {
-    const { w, h } = this.getSize(node);
-    const offset = this.hasChildren(node) ? 9 : 0;
-    return { x: node.x + w + offset, y: node.y + h / 2 };
+  outgoing(node: PositionedNode) {
+    const { w } = this.getSize(node);
+    return { x: node.x + w, y: node.y };
   }
 
-  leftAnchor(node: PositionedNode) {
-    const { h } = this.getSize(node);
-    return { x: node.x, y: node.y + h / 2 };
+  ingoing(node: PositionedNode) {
+    const { w, h } = this.getSize(node);
+    return { x: node.x + w, y: node.y + h };
   }
 
   enter(g: d3.Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {
@@ -172,17 +171,33 @@ export class BaseNodeRenderer implements NodeComponent {
       .attr("stroke", "#e2e8f0")
       .attr("stroke-width", 1);
 
-    // Edge count badge
-    g.append("text")
-      .attr("class", "node-badge")
-      .attr("font-size", 9)
-      .attr("fill", "#94a3b8")
+    // Footer chip buttons — Docs | Flows
+    for (const cls of ["node-btn-docs", "node-btn-flows"]) {
+      const chip = g
+        .append("g")
+        .attr("class", cls)
+        .style("cursor", "pointer")
+        .on("click", (event) => {
+          event.stopPropagation();
+        });
+      chip.append("rect").attr("rx", 3).attr("ry", 3).attr("height", 13);
+      chip
+        .append("text")
+        .attr("font-size", 8)
+        .attr("font-weight", "600")
+        .attr("dominant-baseline", "middle")
+        .attr("text-anchor", "middle");
+    }
+
+    // Boundary badge — right-aligned in footer, only for folders with a boundary
+    const boundaryG = g.append("g").attr("class", "node-boundary-badge");
+    boundaryG.append("rect").attr("rx", 3).attr("ry", 3).attr("height", 13);
+    boundaryG
+      .append("text")
+      .attr("font-size", 8)
+      .attr("font-weight", "600")
       .attr("dominant-baseline", "middle")
-      .style("cursor", "pointer")
-      .on("click", (event, d) => {
-        event.stopPropagation();
-        this.onTraceLinks(d);
-      });
+      .attr("text-anchor", "middle");
 
     // Code preview bubble — top-center, half outside top edge
     const previewG = g
@@ -237,7 +252,7 @@ export class BaseNodeRenderer implements NodeComponent {
     // Icon placeholder — replaced on each update() with Eye or Minus
     expandG.append("g").attr("class", "lucide-icon");
 
-    // Incoming relations bubble — top-left corner, half outside
+    // Incoming relations bubble — bottom-right corner, half outside bottom edge
     const incomingG = g
       .append("g")
       .attr("class", "node-incoming-btn")
@@ -247,11 +262,13 @@ export class BaseNodeRenderer implements NodeComponent {
         this.relations?.onToggleIncoming(d);
       })
       .on("mouseenter", function (_, d) {
+        if (d3.select(this).attr("data-active") === "true") return;
         const c = NODE_COLORS[d.type];
         d3.select(this).select("circle").attr("fill", c);
         d3.select(this).select(".lucide-icon").attr("stroke", "#ffffff");
       })
       .on("mouseleave", function (_, d) {
+        if (d3.select(this).attr("data-active") === "true") return;
         const c = NODE_COLORS[d.type];
         d3.select(this).select("circle").attr("fill", "#ffffff");
         d3.select(this).select(".lucide-icon").attr("stroke", c);
@@ -259,7 +276,7 @@ export class BaseNodeRenderer implements NodeComponent {
     incomingG.append("circle").attr("r", 9).attr("stroke-width", 1.5).attr("fill", "#ffffff");
     incomingG.append("g").attr("class", "lucide-icon");
 
-    // Outgoing relations bubble — bottom-right corner, half outside
+    // Outgoing relations bubble — top-right corner, half outside top edge
     const outgoingG = g
       .append("g")
       .attr("class", "node-outgoing-btn")
@@ -269,11 +286,13 @@ export class BaseNodeRenderer implements NodeComponent {
         this.relations?.onToggleOutgoing(d);
       })
       .on("mouseenter", function (_, d) {
+        if (d3.select(this).attr("data-active") === "true") return;
         const c = NODE_COLORS[d.type];
         d3.select(this).select("circle").attr("fill", c);
         d3.select(this).select(".lucide-icon").attr("stroke", "#ffffff");
       })
       .on("mouseleave", function (_, d) {
+        if (d3.select(this).attr("data-active") === "true") return;
         const c = NODE_COLORS[d.type];
         d3.select(this).select("circle").attr("fill", "#ffffff");
         d3.select(this).select(".lucide-icon").attr("stroke", c);
@@ -315,12 +334,14 @@ export class BaseNodeRenderer implements NodeComponent {
       el.select(".node-accent").style("display", isGhost ? "none" : "");
       el.select(".node-icon").style("display", isGhost ? "none" : "");
       el.select(".node-divider").style("display", isGhost ? "none" : "");
-      el.select(".node-badge").style("display", isGhost ? "none" : "");
+      el.select(".node-btn-docs").style("display", isGhost ? "none" : "");
+      el.select(".node-btn-flows").style("display", isGhost ? "none" : "");
       el.select(".node-preview-btn").style("display", "none");
 
       if (isGhost) {
         el.select(".node-incoming-btn").style("display", "none");
         el.select(".node-outgoing-btn").style("display", "none");
+        el.select(".node-boundary-badge").style("display", "none");
         const maxChars = Math.floor((w - 12) / 5.5);
         el.select(".node-label")
           .style("display", null)
@@ -356,7 +377,7 @@ export class BaseNodeRenderer implements NodeComponent {
 
       el.select(".node-icon")
         .attr("x", ICON_X)
-        .attr("y", h * 0.3)
+        .attr("y", h * 0.32)
         .text(NODE_ICON[d.type]);
 
       const hasCode =
@@ -381,13 +402,13 @@ export class BaseNodeRenderer implements NodeComponent {
 
       el.select(".node-label")
         .attr("x", TEXT_X)
-        .attr("y", h * 0.28)
+        .attr("y", h * 0.3)
         .text(trunc(titleText, maxChars));
 
       const descText = isPathType ? (d.description ? `Desc: ${d.description}` : "") : d.description;
       el.select(".node-desc")
         .attr("x", TEXT_X)
-        .attr("y", h * 0.55)
+        .attr("y", h * 0.57)
         .text(trunc(descText, maxChars));
 
       el.select(".node-divider")
@@ -396,10 +417,49 @@ export class BaseNodeRenderer implements NodeComponent {
         .attr("y1", FOOTER_Y - 5)
         .attr("y2", FOOTER_Y - 5);
 
-      el.select(".node-badge")
-        .attr("x", ACCENT + 7)
-        .attr("y", FOOTER_Y + 4)
-        .text(`○ ${d.edgeCount}`);
+      // Footer chip buttons
+      const CHIP_Y = FOOTER_Y - 1;
+      const CHIP_PAD_X = 6;
+      const chipColor = "#e2e8f0";
+      const chipTextColor = "#64748b";
+
+      const docsChip = el.select<SVGGElement>(".node-btn-docs");
+      docsChip.attr("transform", `translate(${ACCENT + 6},${CHIP_Y})`);
+      docsChip.select("rect").attr("width", 28).attr("fill", chipColor).attr("stroke", "none");
+      docsChip.select("text").attr("x", 14).attr("y", 6.5).attr("fill", chipTextColor).text("Docs");
+
+      const flowsChip = el.select<SVGGElement>(".node-btn-flows");
+      flowsChip.attr("transform", `translate(${ACCENT + 6 + 28 + 4},${CHIP_Y})`);
+      flowsChip.select("rect").attr("width", 30).attr("fill", chipColor).attr("stroke", "none");
+      flowsChip
+        .select("text")
+        .attr("x", 15)
+        .attr("y", 6.5)
+        .attr("fill", chipTextColor)
+        .text("Flows");
+
+      // Boundary badge — right-aligned in footer, only for folders with a declared boundary
+      const boundary = d.type === "folder" ? (d.detail.boundary as string | undefined) : undefined;
+      const boundaryG = el.select<SVGGElement>(".node-boundary-badge");
+      boundaryG.style("display", boundary ? "block" : "none");
+      if (boundary) {
+        const PAD = 5;
+        const charW = 4.8;
+        const badgeW = Math.ceil(boundary.length * charW) + PAD * 2;
+        boundaryG.attr("transform", `translate(${w - 6 - badgeW},${CHIP_Y})`);
+        boundaryG
+          .select("rect")
+          .attr("width", badgeW)
+          .attr("fill", "#ede9fe")
+          .attr("stroke", "#7c3aed")
+          .attr("stroke-width", 0.8);
+        boundaryG
+          .select("text")
+          .attr("x", badgeW / 2)
+          .attr("y", 6.5)
+          .attr("fill", "#7c3aed")
+          .text(boundary);
+      }
 
       // Code preview bubble — top-center, half above the card
       const previewG = el.select<SVGGElement>(".node-preview-btn");
@@ -425,36 +485,46 @@ export class BaseNodeRenderer implements NodeComponent {
         );
       }
 
-      // Incoming relations bubble — top-left, half outside top edge
+      // Incoming relations bubble — bottom-right corner, half outside bottom edge
       const rel = component.relations;
       const incomingG = el.select<SVGGElement>(".node-incoming-btn");
       const showIncoming = !isGhost && !!rel && rel.hasIncoming(d);
       incomingG.style("display", showIncoming ? "block" : "none");
       if (showIncoming && rel) {
-        incomingG.attr("transform", `translate(0,0)`);
-        incomingG.select("circle").attr("stroke", color);
-        const inIcon = rel.isIncomingOpen(d) ? MinusIcon : ArrowDownLeftIcon;
+        const inOpen = rel.isIncomingOpen(d);
+        incomingG
+          .attr("transform", `translate(${w},${h})`)
+          .attr("data-active", inOpen ? "true" : "false");
+        incomingG
+          .select("circle")
+          .attr("stroke", color)
+          .attr("fill", inOpen ? color : "#ffffff");
         replaceIcon(
           incomingG as unknown as d3.Selection<SVGGElement, unknown, null, undefined>,
-          inIcon,
+          ArrowUpLeftIcon,
           10,
-          color
+          inOpen ? "#ffffff" : color
         );
       }
 
-      // Outgoing relations bubble — bottom-right corner, half outside bottom edge
+      // Outgoing relations bubble — top-right corner, half outside top edge
       const outgoingG = el.select<SVGGElement>(".node-outgoing-btn");
       const showOutgoing = !isGhost && !!rel && rel.hasOutgoing(d);
       outgoingG.style("display", showOutgoing ? "block" : "none");
       if (showOutgoing && rel) {
-        outgoingG.attr("transform", `translate(${w},${h})`);
-        outgoingG.select("circle").attr("stroke", color);
-        const outIcon = rel.isOutgoingOpen(d) ? MinusIcon : ArrowUpRightIcon;
+        const outOpen = rel.isOutgoingOpen(d);
+        outgoingG
+          .attr("transform", `translate(${w},0)`)
+          .attr("data-active", outOpen ? "true" : "false");
+        outgoingG
+          .select("circle")
+          .attr("stroke", color)
+          .attr("fill", outOpen ? color : "#ffffff");
         replaceIcon(
           outgoingG as unknown as d3.Selection<SVGGElement, unknown, null, undefined>,
-          outIcon,
+          ArrowUpRightIcon,
           10,
-          color
+          outOpen ? "#ffffff" : color
         );
       }
     });

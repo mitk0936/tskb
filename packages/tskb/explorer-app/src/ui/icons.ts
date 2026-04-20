@@ -3,7 +3,7 @@
 // Each Lucide icon is `[tagName, attrs][]` for a 24×24 viewBox.
 
 import * as d3 from "d3";
-import { Eye, Minus, ArrowDownLeft, ArrowUpRight } from "lucide";
+import { Eye, Minus, ArrowDownLeft, ArrowUpRight, ArrowUpLeft } from "lucide";
 
 type IconNode = [string, Record<string, string>][];
 
@@ -11,6 +11,7 @@ export const EyeIcon: IconNode = Eye as unknown as IconNode;
 export const MinusIcon: IconNode = Minus as unknown as IconNode;
 export const ArrowDownLeftIcon: IconNode = ArrowDownLeft as unknown as IconNode;
 export const ArrowUpRightIcon: IconNode = ArrowUpRight as unknown as IconNode;
+export const ArrowUpLeftIcon: IconNode = ArrowUpLeft as unknown as IconNode;
 
 /**
  * Append a Lucide icon into a d3 SVG <g> selection.

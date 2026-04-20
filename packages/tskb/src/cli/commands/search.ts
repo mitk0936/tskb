@@ -12,6 +12,7 @@ interface SearchableNode {
   content: string; // children names (folders) or member names (modules) for deep matching
   edgeCount?: number;
   priority?: string;
+  boundary?: string;
   structureSummary?: string;
   morphologySummary?: string;
   importsSummary?: string;
@@ -26,6 +27,7 @@ interface SearchResult {
     path: string;
     score: number;
     priority?: string;
+    boundary?: string;
     structureSummary?: string;
     morphologySummary?: string;
     importsSummary?: string;
@@ -180,6 +182,7 @@ export async function search(
         path: r.item.path,
         score: Math.round((r.score / topScore) * 100) / 100,
         ...(r.item.priority ? { priority: r.item.priority } : {}),
+        ...(r.item.boundary ? { boundary: r.item.boundary } : {}),
         ...(r.item.structureSummary ? { structureSummary: r.item.structureSummary } : {}),
         ...(r.item.morphologySummary ? { morphologySummary: r.item.morphologySummary } : {}),
         ...(r.item.importsSummary ? { importsSummary: r.item.importsSummary } : {}),
@@ -213,6 +216,7 @@ function buildSearchableNodes(graph: KnowledgeGraph): SearchableNode[] {
         ...(node.edgeCount ? { edgeCount: node.edgeCount } : {}),
         ...(node.type === "doc" ? { priority: node.priority } : {}),
         ...(node.type === "flow" ? { priority: node.priority } : {}),
+        ...(node.type === "folder" && node.boundary ? { boundary: node.boundary } : {}),
         ...(node.type === "folder" && node.structureSummary
           ? { structureSummary: node.structureSummary }
           : {}),
@@ -245,7 +249,8 @@ function getContent(node: AnyNode): string {
       ...node.children.folders.map((f) => f.name),
       ...node.children.files.map((f) => f.name),
     ];
-    return names.join(" ");
+    const parts = names.join(" ");
+    return node.boundary ? `${node.boundary} ${parts}` : parts;
   }
   if (node.type === "module") {
     const parts: string[] = [];
@@ -283,6 +288,7 @@ function formatSearchPlain(result: SearchResult): string {
 
     const meta: string[] = [];
     if (r.path) meta.push(`path: ${r.path}`);
+    if (r.boundary) meta.push(`boundary: ${r.boundary}`);
     if (r.structureSummary) meta.push(r.structureSummary);
     if (r.morphologySummary) meta.push(r.morphologySummary);
     if (r.importsSummary) meta.push(r.importsSummary);

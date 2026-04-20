@@ -43,6 +43,10 @@ export interface MetaChunk {
   terms: ExplorerNode[];
   externals: ExplorerNode[];
   crossEdges: ExplorerLink[];
+  /** node-id → parent-id for every declared node; used to resolve nearest visible ancestor */
+  parentOf: Record<string, string>;
+  /** IDs of all folder nodes (declared + ghost intermediaries); used to decide which ancestors need chunk loading */
+  folderIds: string[];
 }
 
 export interface FolderChunk {
@@ -114,6 +118,9 @@ class GraphToExplorerTransformer {
     this.sortAllChunks();
     topFolders.sort((a, b) => a.label.localeCompare(b.label));
 
+    const parentOf = this.buildParentOf();
+    const folderIds = [...this.folderChunks.keys()];
+
     return {
       meta: {
         kind: "meta",
@@ -125,6 +132,8 @@ class GraphToExplorerTransformer {
         terms,
         externals,
         crossEdges,
+        parentOf,
+        folderIds,
       },
       folders: this.folderChunks,
     };
@@ -161,6 +170,7 @@ class GraphToExplorerTransformer {
           detail: {
             _hasChildren: hasModulesAnywhere ? "true" : "false",
             _childCount: String(directModuleCount + directSubfolderCount),
+            ...(folder.boundary ? { boundary: folder.boundary } : {}),
           },
         }),
       ];
@@ -212,19 +222,13 @@ class GraphToExplorerTransformer {
 
   private buildCrossEdges(): ExplorerLink[] {
     return this.graph.edges
-      .filter((e) => e.type === "references" || e.type === "related-to")
-      .map((e) => {
-        // For doc→node reference edges, use the doc's explains text as the label
-        const docExplains =
-          e.type === "references" ? (this.graph.nodes.docs[e.from]?.explains ?? null) : null;
-        const label = docExplains ?? e.label ?? undefined;
-        return {
-          source: e.from,
-          target: e.to,
-          type: e.type as "references" | "related-to",
-          ...(label ? { label } : {}),
-        };
-      });
+      .filter((e) => e.type === "related-to" || e.type === "imports")
+      .map((e) => ({
+        source: e.from, // importer A
+        target: e.to, // imported B
+        type: e.type as "related-to" | "imports",
+        ...(e.label ? { label: e.label } : {}),
+      }));
   }
 
   // ── Folder chunk builders ──────────────────────────────────────────────────
@@ -283,6 +287,7 @@ class GraphToExplorerTransformer {
       detail: {
         _hasChildren: hasContent ? "true" : "false",
         _childCount: String(directModuleCount + directSubfolderCount),
+        ...(subfolder.boundary ? { boundary: subfolder.boundary } : {}),
       },
     });
   }
@@ -675,6 +680,17 @@ class GraphToExplorerTransformer {
     if (!chunk) return;
     node.detail["_hasChildren"] = "true";
     node.detail["_childCount"] = String(chunk.modules.length + chunk.subfolders.length);
+  }
+
+  /** Builds a flat node-id → parent-id map across all folder chunks. */
+  private buildParentOf(): Record<string, string> {
+    const map: Record<string, string> = {};
+    for (const chunk of this.folderChunks.values()) {
+      for (const sf of chunk.subfolders) if (sf.parentId) map[sf.id] = sf.parentId;
+      for (const mod of chunk.modules) if (mod.parentId) map[mod.id] = mod.parentId;
+      for (const exp of chunk.exports) if (exp.parentId) map[exp.id] = exp.parentId;
+    }
+    return map;
   }
 
   // ── Edge/node query helpers ────────────────────────────────────────────────

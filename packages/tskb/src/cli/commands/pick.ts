@@ -23,6 +23,7 @@ interface FolderPickResult {
     nodeId: string;
     desc: string;
     path?: string;
+    boundary?: string;
     packageName?: string;
     structureSummary?: string;
     children?: import("../../core/graph/types.js").FolderNode["children"];
@@ -233,6 +234,7 @@ function resolveFolder(
       nodeId: id,
       desc: folder.desc,
       path: folder.path,
+      ...(folder.boundary ? { boundary: folder.boundary } : {}),
       ...(folder.packageName ? { packageName: folder.packageName } : {}),
       ...(folder.structureSummary ? { structureSummary: folder.structureSummary } : {}),
       ...(folder.children ? { children: folder.children } : {}),
@@ -741,6 +743,7 @@ function formatFolderPlain(result: FolderPickResult): string[] {
   const { node } = result;
   const meta: string[] = [];
   if (node.path) meta.push(`path: ${node.path}`);
+  if (node.boundary) meta.push(`boundary: ${node.boundary}`);
   if (node.structureSummary) meta.push(node.structureSummary);
   if (node.packageName) meta.push(`package: ${node.packageName}`);
 

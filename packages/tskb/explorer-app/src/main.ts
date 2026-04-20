@@ -41,6 +41,8 @@ export class ExplorerApp {
 
   // Canvas layers — assigned during mount()
   private svgEl!: SVGSVGElement;
+  private svg!: d3.Selection<SVGSVGElement, unknown, null, undefined>;
+  private zoom!: d3.ZoomBehavior<SVGSVGElement, unknown>;
   private laneBgLayer!: Layer;
   private edgeLayer!: Layer;
   private relationEdgeLayer!: Layer;
@@ -85,6 +87,9 @@ export class ExplorerApp {
     svg.call(zoom).on("dblclick.zoom", null);
     svg.call(zoom.translateBy, 20, 20);
 
+    this.svg = svg;
+    this.zoom = zoom;
+
     this.detailPanel = mountDetailPanel(() => {
       this.selected = null;
     });
@@ -101,25 +106,50 @@ export class ExplorerApp {
 
     const crossEdges = () => this.store.meta?.crossEdges ?? [];
     const relations: RelationHandlers = {
+      // source = importer (A), target = imported (B)
+      // incoming button (bottom-right) = on A: "what I import"
+      // outgoing button (top-right)    = on B: "who imports me"
       hasIncoming: (node) =>
         crossEdges().some(
-          (e) => (e.type === "related-to" || e.type === "references") && e.target === node.id
+          (e) => (e.type === "related-to" || e.type === "imports") && e.source === node.id
         ),
       hasOutgoing: (node) =>
         crossEdges().some(
-          (e) => (e.type === "related-to" || e.type === "references") && e.source === node.id
+          (e) => (e.type === "related-to" || e.type === "imports") && e.target === node.id
         ),
       isIncomingOpen: (node) => this.relationsIncoming.has(node.id),
       isOutgoingOpen: (node) => this.relationsOutgoing.has(node.id),
       onToggleIncoming: (node) => {
-        if (this.relationsIncoming.has(node.id)) this.relationsIncoming.delete(node.id);
-        else this.relationsIncoming.add(node.id);
-        this.render();
+        if (this.relationsIncoming.has(node.id)) {
+          this.relationsIncoming.delete(node.id);
+          this.render();
+        } else {
+          this.relationsIncoming.add(node.id);
+          this.render();
+          // expand the modules that this node imports (e.source === node → reveal e.target)
+          const targets = (this.store.meta?.crossEdges ?? [])
+            .filter(
+              (e) => (e.type === "related-to" || e.type === "imports") && e.source === node.id
+            )
+            .map((e) => e.target);
+          void this.expandToReveal(targets, node.id);
+        }
       },
       onToggleOutgoing: (node) => {
-        if (this.relationsOutgoing.has(node.id)) this.relationsOutgoing.delete(node.id);
-        else this.relationsOutgoing.add(node.id);
-        this.render();
+        if (this.relationsOutgoing.has(node.id)) {
+          this.relationsOutgoing.delete(node.id);
+          this.render();
+        } else {
+          this.relationsOutgoing.add(node.id);
+          this.render();
+          // expand the modules that import this node (e.target === node → reveal e.source)
+          const sources = (this.store.meta?.crossEdges ?? [])
+            .filter(
+              (e) => (e.type === "related-to" || e.type === "imports") && e.target === node.id
+            )
+            .map((e) => e.source);
+          void this.expandToReveal(sources, node.id);
+        }
       },
     };
 
@@ -193,7 +223,13 @@ export class ExplorerApp {
     const crossEdges = this.store.meta?.crossEdges ?? [];
     renderRelationEdges(
       this.relationEdgeLayer,
-      buildRelationLinks(allNodes, crossEdges, this.relationsOutgoing, this.relationsIncoming)
+      buildRelationLinks(
+        allNodes,
+        crossEdges,
+        this.relationsOutgoing,
+        this.relationsIncoming,
+        buildParentLookup(this.store)
+      )
     );
 
     // Search dim: compute match set once, apply as opacity
@@ -251,6 +287,7 @@ export class ExplorerApp {
         this.expanded.delete(node.id);
         this.collapseDescendants(node.id);
         this.render();
+        this.scrollToNode(node.id);
       } else {
         if (!this.store.folderChunks.has(node.id)) {
           const spinnerEl = showNodeSpinner(this.nodeLayer.node()!, node.x + 190, node.y + 38);
@@ -265,23 +302,100 @@ export class ExplorerApp {
         }
         this.expanded.add(node.id);
         this.render();
+        this.scrollToNode(node.id);
       }
     } else if (node.type === "module") {
-      if (this.expanded.has(node.id)) this.expanded.delete(node.id);
-      else this.expanded.add(node.id);
+      if (this.expanded.has(node.id)) {
+        this.expanded.delete(node.id);
+        const chunk = this.store.folderChunks.get(node.parentId!);
+        if (chunk) {
+          for (const exp of chunk.exports) {
+            if (exp.parentId === node.id) this.clearRelations(exp.id);
+          }
+        }
+      } else {
+        this.expanded.add(node.id);
+      }
       this.render();
+      this.scrollToNode(node.id);
     }
   }
 
-  /** Recursively removes all descendants of folderId from the expanded set. */
+  /**
+   * Expands all ancestor folders/modules needed to make each node in nodeIds visible.
+   * Folder chunks are loaded on demand; a final render() is called when done.
+   */
+  private async expandToReveal(nodeIds: string[], anchorId?: string): Promise<void> {
+    if (!this.store.meta) return;
+    const { parentOf, folderIds } = this.store.meta;
+    const folderSet = new Set(folderIds);
+
+    const toExpand = new Set<string>();
+    for (const nodeId of nodeIds) {
+      let current = parentOf[nodeId];
+      while (current) {
+        toExpand.add(current);
+        current = parentOf[current];
+      }
+    }
+
+    for (const id of toExpand) {
+      if (folderSet.has(id) && !this.store.folderChunks.has(id)) {
+        try {
+          const chunk = await this.loader.load("folder", id);
+          this.store.loadFolderChunk(chunk);
+        } catch (e) {
+          console.error("Failed to load chunk for", id, e);
+        }
+      }
+      this.expanded.add(id);
+    }
+
+    this.render();
+
+    if (anchorId) {
+      this.scrollToNode(anchorId);
+    }
+  }
+
+  /** Pans the viewport so the node with the given id is centered on screen. */
+  private scrollToNode(nodeId: string): void {
+    const group = this.nodeLayer
+      .selectAll<SVGGElement, PositionedNode>("g.node")
+      .filter((d) => d.id === nodeId);
+    if (group.empty()) return;
+    const d = group.datum();
+    const { w, h } = NODE_SIZES[d.type] ?? NODE_SIZES.module;
+    const cx = d.x + w / 2;
+    const cy = d.y + h / 2;
+    const rect = this.svgEl.getBoundingClientRect();
+    this.svg
+      .transition()
+      .duration(300)
+      .call(this.zoom.translateTo, cx, cy, [rect.width / 2, rect.height / 2]);
+  }
+
+  /** Recursively removes all descendants of folderId from the expanded and relation sets. */
   private collapseDescendants(folderId: string): void {
     const chunk = this.store.folderChunks.get(folderId);
     if (!chunk) return;
     for (const sf of chunk.subfolders ?? []) {
       this.expanded.delete(sf.id);
+      this.clearRelations(sf.id);
       this.collapseDescendants(sf.id);
     }
-    for (const mod of chunk.modules) this.expanded.delete(mod.id);
+    for (const mod of chunk.modules) {
+      this.expanded.delete(mod.id);
+      this.clearRelations(mod.id);
+      for (const exp of chunk.exports) {
+        if (exp.parentId === mod.id) this.clearRelations(exp.id);
+      }
+    }
+  }
+
+  private clearRelations(nodeId: string): void {
+    this.relationsOutgoing.delete(nodeId);
+    this.relationsIncoming.delete(nodeId);
   }
 
   private onSelect(node: PositionedNode): void {
@@ -292,6 +406,11 @@ export class ExplorerApp {
     // MVP: log — future: animated edge tracer
     console.info("[tskb explorer] trace links for:", node.id, `(${node.edgeCount} edges)`);
   }
+}
+
+/** Returns the node-id → parent-id map baked into the meta chunk at build time. */
+function buildParentLookup(store: GraphStore): Map<string, string> {
+  return new Map(Object.entries(store.meta?.parentOf ?? {}));
 }
 
 new ExplorerApp().mount();
