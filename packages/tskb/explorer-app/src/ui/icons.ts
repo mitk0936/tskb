@@ -2,7 +2,7 @@
 // Thin d3 wrapper around Lucide icon node arrays.
 // Each Lucide icon is `[tagName, attrs][]` for a 24×24 viewBox.
 
-import * as d3 from "d3";
+import type * as d3 from "d3";
 import { Eye, Minus, ArrowDownLeft, ArrowUpRight, ArrowUpLeft } from "lucide";
 
 type IconNode = [string, Record<string, string>][];

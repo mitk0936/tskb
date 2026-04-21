@@ -1,12 +1,12 @@
-import { Doc, H1, H2, H3, P, List, Li, Snippet, ref, Export, Term } from "tskb";
+import { Doc, H1, H2, H3, P, List, Li, Snippet, ref, type Export, type Term } from "tskb";
 import { useState, createContext } from "react";
 
 import {
-  AuthResponse,
-  LoginCredentials,
+  type AuthResponse,
+  type LoginCredentials,
 } from "examples/taskflow-app/src/shared/types/auth.types.js";
-import { User } from "examples/taskflow-app/src/shared/types/user.types.js";
-import { UserRepository } from "examples/taskflow-app/src/server/database/repositories/user.repository.js";
+import { type User } from "examples/taskflow-app/src/shared/types/user.types.js";
+import { type UserRepository } from "examples/taskflow-app/src/server/database/repositories/user.repository.js";
 
 declare global {
   namespace tskb {

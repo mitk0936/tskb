@@ -1,6 +1,6 @@
 import { Doc, H1, H2, H3, P, List, Li, Snippet, ref } from "tskb";
-import { Task } from "examples/taskflow-app/src/shared/types/task.types.js";
-import { Database } from "examples/taskflow-app/src/server/database/connection.js";
+import { type Task } from "examples/taskflow-app/src/shared/types/task.types.js";
+import { type Database } from "examples/taskflow-app/src/server/database/connection.js";
 
 const ServicesFolder = ref as tskb.Folders["Services"];
 const RepositoriesFolder = ref as tskb.Folders["Repositories"];

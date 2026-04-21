@@ -1044,10 +1044,33 @@ digraph KnowledgeGraph {
   "buildGraph" -> "KnowledgeGraph" ;
   "buildGraph" -> "visualization.dot-generator" ;
 
-  // imports edges
+  // imports-type edges
   "Jsx.runtime.js" -> "runtime.registry" ;
   "runtime.jsx" -> "runtime.registry" ;
   "explorer.transform" -> "graph.types" ;
+  "explorer.spa.main" -> "explorer.spa.node-base" ;
+  "explorer.spa.store" -> "explorer.spa.chunk-types" ;
+  "explorer.spa.lane-engine" -> "explorer.spa.store" ;
+  "explorer.server" -> "graph.types" ;
+  "cli.commands.explore" -> "graph.types" ;
+  "explorer.export" -> "graph.types" ;
+  "visualization.dot-generator" -> "graph.types" ;
+  "graph.builder" -> "graph.types" ;
+  "graph.builder" -> "extraction.registry" ;
+  "graph.builder" -> "extraction.documentation" ;
+  "graph.types" -> "runtime.jsx" ;
+  "graph.types" -> "extraction.module-morphology" ;
+  "extraction.documentation" -> "runtime.jsx" ;
+  "cli.commands.search" -> "graph.types" ;
+  "cli.commands.pick" -> "graph.types" ;
+  "cli.commands.ls" -> "graph.types" ;
+  "cli.commands.flows" -> "graph.types" ;
+  "cli.utils.content-builder" -> "graph.types" ;
+  "cli.utils.skill-generator" -> "graph.types" ;
+  "cli.utils.copilot-instructions" -> "graph.types" ;
+  "cli.utils.resolve-node" -> "graph.types" ;
+
+  // imports edges
   "explorer.spa.main" -> "explorer.spa.loader" ;
   "explorer.spa.main" -> "explorer.spa.store" ;
   "explorer.spa.main" -> "explorer.spa.lane-engine" ;
@@ -1055,11 +1078,8 @@ digraph KnowledgeGraph {
   "explorer.spa.main" -> "explorer.spa.spinner" ;
   "explorer.spa.main" -> "explorer.spa.code-tooltip" ;
   "explorer.spa.main" -> "explorer.spa.node-tooltip" ;
-  "explorer.spa.main" -> "explorer.spa.node-base" ;
   "explorer.spa.main" -> "explorer.spa.boundary-renderer" ;
   "explorer.spa.loader" -> "explorer.spa.chunk-types" ;
-  "explorer.spa.store" -> "explorer.spa.chunk-types" ;
-  "explorer.spa.lane-engine" -> "explorer.spa.store" ;
   "explorer.spa.node-base" -> "explorer.spa.lane-engine" ;
   "explorer.spa.node-base" -> "explorer.spa.node-tooltip" ;
   "explorer.spa.edge-renderer" -> "explorer.spa.lane-engine" ;
@@ -1067,20 +1087,10 @@ digraph KnowledgeGraph {
   "explorer.spa.boundary-renderer" -> "explorer.spa.lane-engine" ;
   "explorer.server" -> "cli.utils.logger" ;
   "explorer.server" -> "explorer.transform" ;
-  "explorer.server" -> "graph.types" ;
   "cli.commands.explore" -> "cli.utils.graph-finder" ;
   "cli.commands.explore" -> "cli.utils.logger" ;
-  "cli.commands.explore" -> "graph.types" ;
   "explorer.export" -> "explorer.transform" ;
-  "explorer.export" -> "graph.types" ;
-  "visualization.dot-generator" -> "graph.types" ;
   "extraction.registry" -> "extraction.module-morphology" ;
-  "graph.builder" -> "graph.types" ;
-  "graph.builder" -> "extraction.registry" ;
-  "graph.builder" -> "extraction.documentation" ;
-  "graph.types" -> "runtime.jsx" ;
-  "graph.types" -> "extraction.module-morphology" ;
-  "extraction.documentation" -> "runtime.jsx" ;
   "cli.index" -> "cli.commands.search" ;
   "cli.index" -> "cli.commands.pick" ;
   "cli.index" -> "cli.commands.ls" ;
@@ -1088,25 +1098,17 @@ digraph KnowledgeGraph {
   "cli.index" -> "cli.utils.logger" ;
   "cli.commands.build" -> "typescript.index" ;
   "cli.commands.build" -> "cli.utils.logger" ;
-  "cli.commands.search" -> "graph.types" ;
   "cli.commands.search" -> "cli.utils.graph-finder" ;
   "cli.commands.search" -> "cli.utils.logger" ;
-  "cli.commands.pick" -> "graph.types" ;
   "cli.commands.pick" -> "cli.utils.graph-finder" ;
   "cli.commands.pick" -> "cli.utils.logger" ;
   "cli.commands.pick" -> "cli.utils.resolve-node" ;
-  "cli.commands.ls" -> "graph.types" ;
   "cli.commands.ls" -> "cli.utils.graph-finder" ;
   "cli.commands.ls" -> "cli.utils.logger" ;
   "cli.commands.init" -> "cli.utils.logger" ;
-  "cli.commands.flows" -> "graph.types" ;
   "cli.commands.flows" -> "cli.utils.graph-finder" ;
   "cli.commands.flows" -> "cli.utils.logger" ;
-  "cli.utils.content-builder" -> "graph.types" ;
-  "cli.utils.skill-generator" -> "graph.types" ;
   "cli.utils.skill-generator" -> "cli.utils.content-builder" ;
-  "cli.utils.copilot-instructions" -> "graph.types" ;
   "cli.utils.copilot-instructions" -> "cli.utils.content-builder" ;
-  "cli.utils.resolve-node" -> "graph.types" ;
 
 }

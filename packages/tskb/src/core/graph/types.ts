@@ -178,7 +178,8 @@ export type EdgeType =
   | "references" // Doc references a Folder/Module/Term/Export
   | "belongs-to" // Module/Export belongs to a Folder or Module
   | "contains" // Folder contains another Folder (path hierarchy)
-  | "imports" // Module imports from another Module
+  | "imports" // Module imports values from another Module
+  | "imports-type" // Module imports only types from another Module
   | "related-to" // General relationship
   | "flow-step"; // Flow references a step participant (ordered)
 

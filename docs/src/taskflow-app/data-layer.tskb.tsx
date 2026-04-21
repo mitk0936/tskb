@@ -1,11 +1,11 @@
-import { Database } from "examples/taskflow-app/src/server/database/connection.js";
-import { TaskRepository } from "examples/taskflow-app/src/server/database/repositories/task.repository.js";
-import { NotificationService } from "examples/taskflow-app/src/server/services/notification.service.js";
+import { type Database } from "examples/taskflow-app/src/server/database/connection.js";
+import { type TaskRepository } from "examples/taskflow-app/src/server/database/repositories/task.repository.js";
+import { type NotificationService } from "examples/taskflow-app/src/server/services/notification.service.js";
 import {
-  FilterParams,
-  PaginationParams,
+  type FilterParams,
+  type PaginationParams,
 } from "examples/taskflow-app/src/shared/types/api.types.js";
-import { Task } from "examples/taskflow-app/src/shared/types/task.types.js";
+import { type Task } from "examples/taskflow-app/src/shared/types/task.types.js";
 import { PAGINATION_DEFAULT_LIMIT } from "examples/taskflow-app/src/shared/config/constants.js";
 import { Doc, H1, H2, H3, P, List, Li, Snippet, ref } from "tskb";
 import type { Export, External, Folder, Term } from "tskb";

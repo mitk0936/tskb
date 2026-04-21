@@ -1317,27 +1317,33 @@
         "importEntries": [
           {
             "symbol": "FolderName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "ModuleName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "TermName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "ExportName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "FileName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "ExternalName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 17
@@ -1368,11 +1374,13 @@
         "importEntries": [
           {
             "symbol": "ts",
-            "path": "typescript"
+            "path": "typescript",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           }
         ],
         "edgeCount": 4
@@ -1428,27 +1436,33 @@
         "importEntries": [
           {
             "symbol": "FolderName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "ModuleName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "TermName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "ExportName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "FileName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "ExternalName",
-            "path": "./registry.js"
+            "path": "./registry.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 7
@@ -1519,7 +1533,7 @@
         "morphologySummary": "1 class, 5 functions, 7 interfaces, 1 type",
         "morphology": [
           "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :85-87",
-          "export function sanitizeFolderId(id: string): string {} // :781-783",
+          "export function sanitizeFolderId(id: string): string {} // :783-785",
           "export type NodeType = | \"folder\"\n  | \"module\"\n  | \"export\"\n  | \"doc\"\n  | \"flow\"\n  | \"term\"\n  | \"external\"\n  | \"file\" // :7-15",
           "export interface ExplorerNode { // :17-27",
           "  id: string // :18",
@@ -1535,7 +1549,7 @@
           "export interface ExplorerLink { // :29-34",
           "  source: string // :30",
           "  target: string // :31",
-          "  type: \"references\" | \"imports\" | \"related-to\" | \"flow-step\" // :32",
+          "  type: \"references\" | \"imports\" | \"imports-type\" | \"related-to\" | \"flow-step\" // :32",
           "  label: string | undefined // :33",
           "}",
           "export interface MetaChunk { // :36-50",
@@ -1573,7 +1587,7 @@
           "  subfolders: ExplorerNode[] // :80",
           "  childGhostPaths: string[] // :82",
           "}",
-          "class GraphToExplorerTransformer { // :91-717",
+          "class GraphToExplorerTransformer { // :91-719",
           "  private readonly graph: KnowledgeGraph // :92",
           "  private readonly edgesBySource: Map<string, GraphEdge[]> // :94",
           "  private readonly edgesByTarget: Map<string, GraphEdge[]> // :96",
@@ -1591,35 +1605,35 @@
           "  private buildSubfolderNode(subfolderId: string, parentFolderId: string): ExplorerNode {} // :277-293",
           "  private buildModuleNode(moduleId: string, parentFolderId: string): ExplorerNode {} // :295-313",
           "  private buildExportNodes(moduleId: string): ExplorerNode[] {} // :315-330",
-          "  private buildImportEdges(moduleIdSet: Set<string>): { internalEdges: ExplorerLink[]; externalEdges: ExplorerLink[]; } {} // :332-347",
-          "  private injectGhostNodes(): void {} // :355-394",
-          "  private buildGhostModuleNodes(childFiles: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined): ExplorerNode[] {} // :396-420",
-          "  private buildGhostSubfolderNodes(childFolders: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined, folderPathToId: Map<string, string>): ExplorerNode[] {} // :422-459",
-          "  private buildFolderPathIndex(): Map<string, string> {} // :461-467",
-          "  private computeGhostChain(folderPath: string, itemDirPath: string): string[] {} // :474-480",
-          "  private ensureGhostChain(chain: string[], folderPath: string, ghostLevels: Map<string, GhostLevelBuilder>): void {} // :486-511",
-          "  private buildGhostFolderNode(ghostPath: string, parentId: string): ExplorerNode {} // :514-530",
-          "  private buildGhostIntermediaryChains(): void {} // :538-642",
-          "  private sortAllChunks(): void {} // :645-652",
-          "  private patchFolderChildCounts(topFolders: ExplorerNode[]): void {} // :660-675",
-          "  private patchFolderNodeDetail(node: ExplorerNode): void {} // :677-683",
-          "  private buildParentOf(): Record<string, string> {} // :686-694",
-          "  private getDirectModuleIds(folderId: string): string[] {} // :698-702",
-          "  private getDirectSubfolderIds(folderId: string): string[] {} // :704-708",
-          "  private countDirectModules(folderId: string): number {} // :710-712",
-          "  private countDirectSubfolders(folderId: string): number {} // :714-716",
+          "  private buildImportEdges(moduleIdSet: Set<string>): { internalEdges: ExplorerLink[]; externalEdges: ExplorerLink[]; } {} // :332-349",
+          "  private injectGhostNodes(): void {} // :357-396",
+          "  private buildGhostModuleNodes(childFiles: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined): ExplorerNode[] {} // :398-422",
+          "  private buildGhostSubfolderNodes(childFolders: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined, folderPathToId: Map<string, string>): ExplorerNode[] {} // :424-461",
+          "  private buildFolderPathIndex(): Map<string, string> {} // :463-469",
+          "  private computeGhostChain(folderPath: string, itemDirPath: string): string[] {} // :476-482",
+          "  private ensureGhostChain(chain: string[], folderPath: string, ghostLevels: Map<string, GhostLevelBuilder>): void {} // :488-513",
+          "  private buildGhostFolderNode(ghostPath: string, parentId: string): ExplorerNode {} // :516-532",
+          "  private buildGhostIntermediaryChains(): void {} // :540-644",
+          "  private sortAllChunks(): void {} // :647-654",
+          "  private patchFolderChildCounts(topFolders: ExplorerNode[]): void {} // :662-677",
+          "  private patchFolderNodeDetail(node: ExplorerNode): void {} // :679-685",
+          "  private buildParentOf(): Record<string, string> {} // :688-696",
+          "  private getDirectModuleIds(folderId: string): string[] {} // :700-704",
+          "  private getDirectSubfolderIds(folderId: string): string[] {} // :706-710",
+          "  private countDirectModules(folderId: string): number {} // :712-714",
+          "  private countDirectSubfolders(folderId: string): number {} // :716-718",
           "}",
-          "function groupEdgesByKey(edges: GraphEdge[], key: \"from\" | \"to\"): Map<string, GraphEdge[]> {} // :721-730",
-          "interface NodeOpts { // :732-739",
-          "  path: string | undefined // :733",
-          "  parentId: string | undefined // :734",
-          "  priority: \"supplementary\" | \"essential\" | \"constraint\" | undefined // :735",
-          "  edgeCount: number | undefined // :736",
-          "  detail: Record<string, string | string[]> | undefined // :737",
-          "  label: string | undefined // :738",
+          "function groupEdgesByKey(edges: GraphEdge[], key: \"from\" | \"to\"): Map<string, GraphEdge[]> {} // :723-732",
+          "interface NodeOpts { // :734-741",
+          "  path: string | undefined // :735",
+          "  parentId: string | undefined // :736",
+          "  priority: \"supplementary\" | \"essential\" | \"constraint\" | undefined // :737",
+          "  edgeCount: number | undefined // :738",
+          "  detail: Record<string, string | string[]> | undefined // :739",
+          "  label: string | undefined // :740",
           "}",
-          "function toExplorerNode(id: string, type: NodeType, description: string, opts?: NodeOpts): ExplorerNode {} // :741-766",
-          "function makeFallbackRoot(): ExplorerNode {} // :768-777"
+          "function toExplorerNode(id: string, type: NodeType, description: string, opts?: NodeOpts): ExplorerNode {} // :743-768",
+          "function makeFallbackRoot(): ExplorerNode {} // :770-779"
         ],
         "importsSummary": "3 imports from 2 paths",
         "imports": [
@@ -1630,15 +1644,18 @@
         "importEntries": [
           {
             "symbol": "KnowledgeGraph",
-            "path": "../graph/types.js"
+            "path": "../graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "GraphEdge",
-            "path": "../graph/types.js"
+            "path": "../graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "ROOT_FOLDER_NAME",
-            "path": "../constants.js"
+            "path": "../constants.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 12
@@ -1719,111 +1736,138 @@
         "importEntries": [
           {
             "symbol": "* as d3",
-            "path": "d3"
+            "path": "d3",
+            "typeOnly": false
           },
           {
             "symbol": "ChunkLoader",
-            "path": "./graph/loader"
+            "path": "./graph/loader",
+            "typeOnly": false
           },
           {
             "symbol": "GraphStore",
-            "path": "./store/graph-store"
+            "path": "./store/graph-store",
+            "typeOnly": false
           },
           {
             "symbol": "computeLayout",
-            "path": "./layout/lane-engine"
+            "path": "./layout/lane-engine",
+            "typeOnly": false
           },
           {
             "symbol": "NODE_SIZES",
-            "path": "./layout/lane-engine"
+            "path": "./layout/lane-engine",
+            "typeOnly": false
           },
           {
             "symbol": "createNodeRenderer",
-            "path": "./components/nodes/index"
+            "path": "./components/nodes/index",
+            "typeOnly": false
           },
           {
             "symbol": "buildStructureLinks",
-            "path": "./components/edges/EdgeRenderer"
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": false
           },
           {
             "symbol": "renderStructureEdges",
-            "path": "./components/edges/EdgeRenderer"
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": false
           },
           {
             "symbol": "renderLaneBands",
-            "path": "./components/edges/EdgeRenderer"
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": false
           },
           {
             "symbol": "buildRelationLinks",
-            "path": "./components/edges/EdgeRenderer"
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": false
           },
           {
             "symbol": "renderRelationEdges",
-            "path": "./components/edges/EdgeRenderer"
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": false
           },
           {
             "symbol": "renderRelationEndpoints",
-            "path": "./components/edges/EdgeRenderer"
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": false
           },
           {
             "symbol": "StructureLink",
-            "path": "./components/edges/EdgeRenderer"
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": true
           },
           {
             "symbol": "RelationLink",
-            "path": "./components/edges/EdgeRenderer"
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": true
           },
           {
             "symbol": "showGlobalSpinner",
-            "path": "./ui/Spinner"
+            "path": "./ui/Spinner",
+            "typeOnly": false
           },
           {
             "symbol": "hideGlobalSpinner",
-            "path": "./ui/Spinner"
+            "path": "./ui/Spinner",
+            "typeOnly": false
           },
           {
             "symbol": "showNodeSpinner",
-            "path": "./ui/Spinner"
+            "path": "./ui/Spinner",
+            "typeOnly": false
           },
           {
             "symbol": "removeNodeSpinner",
-            "path": "./ui/Spinner"
+            "path": "./ui/Spinner",
+            "typeOnly": false
           },
           {
             "symbol": "mountCodeTooltip",
-            "path": "./ui/CodeTooltip"
+            "path": "./ui/CodeTooltip",
+            "typeOnly": false
           },
           {
             "symbol": "toggleCodeTooltip",
-            "path": "./ui/CodeTooltip"
+            "path": "./ui/CodeTooltip",
+            "typeOnly": false
           },
           {
             "symbol": "updateCodeTooltipTransform",
-            "path": "./ui/CodeTooltip"
+            "path": "./ui/CodeTooltip",
+            "typeOnly": false
           },
           {
             "symbol": "mountNodeTooltip",
-            "path": "./ui/NodeTooltip"
+            "path": "./ui/NodeTooltip",
+            "typeOnly": false
           },
           {
             "symbol": "updateNodeTooltipTransform",
-            "path": "./ui/NodeTooltip"
+            "path": "./ui/NodeTooltip",
+            "typeOnly": false
           },
           {
             "symbol": "PositionedNode",
-            "path": "./types"
+            "path": "./types",
+            "typeOnly": true
           },
           {
             "symbol": "NodeComponent",
-            "path": "./components/nodes/base"
+            "path": "./components/nodes/base",
+            "typeOnly": true
           },
           {
             "symbol": "renderBoundaryGroups",
-            "path": "./components/BoundaryRenderer"
+            "path": "./components/BoundaryRenderer",
+            "typeOnly": false
           },
           {
             "symbol": "applyBoundaryLabelTransforms",
-            "path": "./components/BoundaryRenderer"
+            "path": "./components/BoundaryRenderer",
+            "typeOnly": false
           }
         ],
         "edgeCount": 21
@@ -1875,11 +1919,13 @@
         "importEntries": [
           {
             "symbol": "ExplorerNode",
-            "path": "../types"
+            "path": "../types",
+            "typeOnly": true
           },
           {
             "symbol": "ExplorerLink",
-            "path": "../types"
+            "path": "../types",
+            "typeOnly": true
           }
         ],
         "edgeCount": 6
@@ -1918,15 +1964,18 @@
         "importEntries": [
           {
             "symbol": "chunkUrl",
-            "path": "./chunk-types"
+            "path": "./chunk-types",
+            "typeOnly": false
           },
           {
             "symbol": "ChunkKind",
-            "path": "./chunk-types"
+            "path": "./chunk-types",
+            "typeOnly": true
           },
           {
             "symbol": "ChunkRegistry",
-            "path": "./chunk-types"
+            "path": "./chunk-types",
+            "typeOnly": true
           }
         ],
         "edgeCount": 8
@@ -1959,11 +2008,13 @@
         "importEntries": [
           {
             "symbol": "MetaChunk",
-            "path": "../graph/chunk-types"
+            "path": "../graph/chunk-types",
+            "typeOnly": true
           },
           {
             "symbol": "FolderChunk",
-            "path": "../graph/chunk-types"
+            "path": "../graph/chunk-types",
+            "typeOnly": true
           }
         ],
         "edgeCount": 11
@@ -2010,23 +2061,28 @@
         "importEntries": [
           {
             "symbol": "* as d3",
-            "path": "d3"
+            "path": "d3",
+            "typeOnly": false
           },
           {
             "symbol": "ExplorerNode",
-            "path": "../types"
+            "path": "../types",
+            "typeOnly": true
           },
           {
             "symbol": "PositionedNode",
-            "path": "../types"
+            "path": "../types",
+            "typeOnly": true
           },
           {
             "symbol": "NodeType",
-            "path": "../types"
+            "path": "../types",
+            "typeOnly": true
           },
           {
             "symbol": "GraphStore",
-            "path": "../store/graph-store"
+            "path": "../store/graph-store",
+            "typeOnly": true
           }
         ],
         "edgeCount": 13
@@ -2081,43 +2137,53 @@
         "importEntries": [
           {
             "symbol": "* as d3",
-            "path": "d3"
+            "path": "d3",
+            "typeOnly": false
           },
           {
             "symbol": "PositionedNode",
-            "path": "../../types"
+            "path": "../../types",
+            "typeOnly": true
           },
           {
             "symbol": "NodeType",
-            "path": "../../types"
+            "path": "../../types",
+            "typeOnly": true
           },
           {
             "symbol": "NODE_SIZES",
-            "path": "../../layout/lane-engine"
+            "path": "../../layout/lane-engine",
+            "typeOnly": false
           },
           {
             "symbol": "showNodeTooltip",
-            "path": "../../ui/NodeTooltip"
+            "path": "../../ui/NodeTooltip",
+            "typeOnly": false
           },
           {
             "symbol": "moveNodeTooltip",
-            "path": "../../ui/NodeTooltip"
+            "path": "../../ui/NodeTooltip",
+            "typeOnly": false
           },
           {
             "symbol": "hideNodeTooltip",
-            "path": "../../ui/NodeTooltip"
+            "path": "../../ui/NodeTooltip",
+            "typeOnly": false
           },
           {
             "symbol": "EyeIcon",
-            "path": "../../ui/icons"
+            "path": "../../ui/icons",
+            "typeOnly": false
           },
           {
             "symbol": "MinusIcon",
-            "path": "../../ui/icons"
+            "path": "../../ui/icons",
+            "typeOnly": false
           },
           {
             "symbol": "replaceIcon",
-            "path": "../../ui/icons"
+            "path": "../../ui/icons",
+            "typeOnly": false
           }
         ],
         "edgeCount": 18
@@ -2134,8 +2200,8 @@
           "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :59-79",
           "export function renderLaneBands(container: Selection<SVGGElement, unknown, null, undefined>, layout: LaneLayout, canvasWidth: number): void {} // :84-154",
           "export function buildRelationLinks(nodes: PositionedNode[], crossEdges: ExplorerLink[]): RelationLink[] {} // :170-187",
-          "export function renderRelationEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: RelationLink[]): void {} // :253-290",
-          "export function renderRelationEndpoints(container: Selection<SVGGElement, unknown, null, undefined>, links: RelationLink[]): void {} // :296-348",
+          "export function renderRelationEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: RelationLink[]): void {} // :256-301",
+          "export function renderRelationEndpoints(container: Selection<SVGGElement, unknown, null, undefined>, links: RelationLink[]): void {} // :307-359",
           "export interface StructureLink { // :14-23",
           "  sourceId: string // :15",
           "  targetId: string // :16",
@@ -2150,7 +2216,7 @@
           "  source: PositionedNode // :159",
           "  target: PositionedNode // :160",
           "  label: string | undefined // :161",
-          "  type: \"imports\" | \"related-to\" // :162",
+          "  type: \"imports\" | \"imports-type\" | \"related-to\" // :162",
           "}",
           "// — internal —",
           "function nodeSize(node: PositionedNode): { w: number; h: number; } {} // :6-12",
@@ -2158,11 +2224,11 @@
           "function ensureRelTooltip(): HTMLDivElement {} // :193-217",
           "function showRelTooltip(text: string, clientX: number, clientY: number): void {} // :219-230",
           "function hideRelTooltip(): void {} // :232-237",
-          "function relationTooltipText(d: RelationLink): string {} // :239-246",
-          "function relAnchorPoints(src: PositionedNode, tgt: PositionedNode, type: \"imports\" | \"related-to\"): { sx: number; sy: number; tx: number; ty: number; fromColor: string; toColor: string; } {} // :356-381",
-          "function cubicH(sx: number, sy: number, tx: number, ty: number): string {} // :386-389",
-          "function cubicV(sx: number, sy: number, tx: number, ty: number): string {} // :392-395",
-          "function bandBubble(sx: number, sy: number, tx: number, ty: number): string {} // :401-416"
+          "function relationTooltipText(d: RelationLink): string {} // :239-249",
+          "function relAnchorPoints(src: PositionedNode, tgt: PositionedNode, type: \"imports\" | \"imports-type\" | \"related-to\"): { sx: number; sy: number; tx: number; ty: number; fromColor: string; toColor: string; } {} // :367-392",
+          "function cubicH(sx: number, sy: number, tx: number, ty: number): string {} // :397-400",
+          "function _cubicV(sx: number, sy: number, tx: number, ty: number): string {} // :403-406",
+          "function bandBubble(sx: number, sy: number, tx: number, ty: number): string {} // :412-427"
         ],
         "importsSummary": "6 imports from 4 paths",
         "imports": [
@@ -2176,27 +2242,33 @@
         "importEntries": [
           {
             "symbol": "* as d3",
-            "path": "d3"
+            "path": "d3",
+            "typeOnly": false
           },
           {
             "symbol": "PositionedNode",
-            "path": "../../types"
+            "path": "../../types",
+            "typeOnly": true
           },
           {
             "symbol": "ExplorerLink",
-            "path": "../../types"
+            "path": "../../types",
+            "typeOnly": true
           },
           {
             "symbol": "NODE_SIZES",
-            "path": "../../layout/lane-engine"
+            "path": "../../layout/lane-engine",
+            "typeOnly": false
           },
           {
             "symbol": "LaneLayout",
-            "path": "../../layout/lane-engine"
+            "path": "../../layout/lane-engine",
+            "typeOnly": true
           },
           {
             "symbol": "NODE_COLORS",
-            "path": "../nodes/base"
+            "path": "../nodes/base",
+            "typeOnly": false
           }
         ],
         "edgeCount": 11
@@ -2221,7 +2293,7 @@
           "const WOBBLE: 6 // :87",
           "function buildHullPath(nodes: PositionedNode[], seed: number): string | null {} // :90-119",
           "const STROKE: \"#7c3aed\" // :123",
-          "const STROKE_OPACITY: 0.3 // :124",
+          "const _STROKE_OPACITY: 0.3 // :124",
           "const FILL: \"rgba(124,58,237,0.02)\" // :125",
           "interface BoundaryGroup { // :127-133",
           "  name: string // :128",
@@ -2242,15 +2314,18 @@
         "importEntries": [
           {
             "symbol": "* as d3",
-            "path": "d3"
+            "path": "d3",
+            "typeOnly": false
           },
           {
             "symbol": "PositionedNode",
-            "path": "../types"
+            "path": "../types",
+            "typeOnly": true
           },
           {
             "symbol": "NODE_SIZES",
-            "path": "../layout/lane-engine"
+            "path": "../layout/lane-engine",
+            "typeOnly": false
           }
         ],
         "edgeCount": 6
@@ -2353,39 +2428,48 @@
         "importEntries": [
           {
             "symbol": "http",
-            "path": "node:http"
+            "path": "node:http",
+            "typeOnly": false
           },
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "exec",
-            "path": "node:child_process"
+            "path": "node:child_process",
+            "typeOnly": false
           },
           {
             "symbol": "fileURLToPath",
-            "path": "node:url"
+            "path": "node:url",
+            "typeOnly": false
           },
           {
             "symbol": "info",
-            "path": "../../cli/utils/logger.js"
+            "path": "../../cli/utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "transformGraph",
-            "path": "./transform.js"
+            "path": "./transform.js",
+            "typeOnly": false
           },
           {
             "symbol": "sanitizeFolderId",
-            "path": "./transform.js"
+            "path": "./transform.js",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../graph/types.js"
+            "path": "../graph/types.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 7
@@ -2416,23 +2500,28 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "findGraphFile",
-            "path": "../utils/graph-finder.js"
+            "path": "../utils/graph-finder.js",
+            "typeOnly": false
           },
           {
             "symbol": "info",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 7
@@ -2462,27 +2551,33 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "fileURLToPath",
-            "path": "node:url"
+            "path": "node:url",
+            "typeOnly": false
           },
           {
             "symbol": "transformGraph",
-            "path": "./transform.js"
+            "path": "./transform.js",
+            "typeOnly": false
           },
           {
             "symbol": "sanitizeFolderId",
-            "path": "./transform.js"
+            "path": "./transform.js",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../graph/types.js"
+            "path": "../graph/types.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 7
@@ -2507,7 +2602,8 @@
         "importEntries": [
           {
             "symbol": "KnowledgeGraph",
-            "path": "../graph/types.js"
+            "path": "../graph/types.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 6
@@ -2563,39 +2659,48 @@
         "importEntries": [
           {
             "symbol": "ts",
-            "path": "typescript"
+            "path": "typescript",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "extractFolderSummary",
-            "path": "./folder-summary.js"
+            "path": "./folder-summary.js",
+            "typeOnly": false
           },
           {
             "symbol": "FolderSummary",
-            "path": "./folder-summary.js"
+            "path": "./folder-summary.js",
+            "typeOnly": true
           },
           {
             "symbol": "extractModuleMorphology",
-            "path": "./module-morphology.js"
+            "path": "./module-morphology.js",
+            "typeOnly": false
           },
           {
             "symbol": "extractExportMorphology",
-            "path": "./module-morphology.js"
+            "path": "./module-morphology.js",
+            "typeOnly": false
           },
           {
             "symbol": "extractModuleImports",
-            "path": "./module-morphology.js"
+            "path": "./module-morphology.js",
+            "typeOnly": false
           },
           {
             "symbol": "ModuleMorphology",
-            "path": "./module-morphology.js"
+            "path": "./module-morphology.js",
+            "typeOnly": true
           },
           {
             "symbol": "ModuleImports",
-            "path": "./module-morphology.js"
+            "path": "./module-morphology.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 6
@@ -2608,38 +2713,39 @@
         "resolvedPath": "packages/tskb/src/core/extraction/module-morphology.ts",
         "morphologySummary": "17 functions, 3 interfaces, 1 type",
         "morphology": [
-          "export function extractModuleMorphology(program: Program, resolvedPath: string): ModuleMorphology | null {} // :32-121",
-          "export function extractExportMorphology(program: Program, resolvedPath: string, exportName: string): ModuleMorphology | null {} // :580-625",
-          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :637-695",
+          "export function extractModuleMorphology(program: Program, resolvedPath: string): ModuleMorphology | null {} // :33-122",
+          "export function extractExportMorphology(program: Program, resolvedPath: string, exportName: string): ModuleMorphology | null {} // :581-626",
+          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :638-704",
           "export interface ModuleMorphology { // :3-6",
           "  summary: string // :4",
           "  morphology: string[] // :5",
           "}",
-          "export interface ImportEntry { // :8-11",
+          "export interface ImportEntry { // :8-12",
           "  symbol: string // :9",
           "  path: string // :10",
+          "  typeOnly: boolean // :11",
           "}",
-          "export interface ModuleImports { // :13-17",
-          "  imports: string[] // :14",
-          "  importEntries: ImportEntry[] // :15",
-          "  importsSummary: string // :16",
+          "export interface ModuleImports { // :14-18",
+          "  imports: string[] // :15",
+          "  importEntries: ImportEntry[] // :16",
+          "  importsSummary: string // :17",
           "}",
           "// — internal —",
-          "type MemberKind = \"class\" | \"function\" | \"type\" | \"interface\" | \"variable\" | \"enum\" // :19",
-          "function renderExport(name: string, kind: MemberKind, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, isDefault: boolean): string[] | null {} // :128-170",
-          "function getDeclarationLineRange(sym: Symbol, sourceFile: SourceFile): string | undefined {} // :176-186",
-          "function getNodeLineRange(node: Node, sourceFile: SourceFile): string | undefined {} // :191-196",
-          "function renderFunction(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string {} // :198-223",
-          "function renderMember(prop: Symbol, prefix: string, checker: TypeChecker, sourceFile: SourceFile, lines: string[]): void {} // :228-260",
-          "function renderClass(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string[] {} // :262-318",
-          "function renderClassMember(member: ClassElement, checker: TypeChecker, sourceFile: SourceFile, lines: string[]): void {} // :324-446",
-          "function getMemberName(member: ClassElement | TypeElement, sourceFile: SourceFile): string | undefined {} // :448-454",
-          "function renderInterface(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string[] {} // :456-501",
-          "function renderTypeAlias(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string {} // :503-528",
-          "function renderEnum(name: string, sym: Symbol, checker: TypeChecker, prefix: string): string {} // :530-549",
-          "function renderVariable(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string {} // :551-567",
-          "function extractInternalDeclarations(sourceFile: SourceFile, checker: TypeChecker, exportedNames: Set<string>, counts: Map<MemberKind, number>): string[] {} // :705-787",
-          "function classifySymbol(sym: Symbol): MemberKind | null {} // :792-804"
+          "type MemberKind = \"class\" | \"function\" | \"type\" | \"interface\" | \"variable\" | \"enum\" // :20",
+          "function renderExport(name: string, kind: MemberKind, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, isDefault: boolean): string[] | null {} // :129-171",
+          "function getDeclarationLineRange(sym: Symbol, sourceFile: SourceFile): string | undefined {} // :177-187",
+          "function getNodeLineRange(node: Node, sourceFile: SourceFile): string | undefined {} // :192-197",
+          "function renderFunction(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string {} // :199-224",
+          "function renderMember(prop: Symbol, prefix: string, checker: TypeChecker, sourceFile: SourceFile, lines: string[]): void {} // :229-261",
+          "function renderClass(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string[] {} // :263-319",
+          "function renderClassMember(member: ClassElement, checker: TypeChecker, sourceFile: SourceFile, lines: string[]): void {} // :325-447",
+          "function getMemberName(member: ClassElement | TypeElement, sourceFile: SourceFile): string | undefined {} // :449-455",
+          "function renderInterface(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string[] {} // :457-502",
+          "function renderTypeAlias(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string {} // :504-529",
+          "function renderEnum(name: string, sym: Symbol, checker: TypeChecker, prefix: string): string {} // :531-550",
+          "function renderVariable(name: string, sym: Symbol, checker: TypeChecker, sourceFile: SourceFile, prefix: string): string {} // :552-568",
+          "function extractInternalDeclarations(sourceFile: SourceFile, checker: TypeChecker, exportedNames: Set<string>, counts: Map<MemberKind, number>): string[] {} // :714-796",
+          "function classifySymbol(sym: Symbol): MemberKind | null {} // :801-813"
         ],
         "importsSummary": "1 import from 1 path",
         "imports": [
@@ -2648,7 +2754,8 @@
         "importEntries": [
           {
             "symbol": "ts",
-            "path": "typescript"
+            "path": "typescript",
+            "typeOnly": false
           }
         ],
         "edgeCount": 6
@@ -2679,10 +2786,10 @@
           "function buildModuleFolderMembership(graph: KnowledgeGraph): void {} // :647-688",
           "function buildExportMembership(graph: KnowledgeGraph): void {} // :708-774",
           "function buildFileFolderMembership(graph: KnowledgeGraph): void {} // :781-816",
-          "function buildModuleImportEdges(graph: KnowledgeGraph): void {} // :825-886",
-          "function stripExtension(filePath: string): string {} // :891-894",
-          "function computeEdgeCounts(graph: KnowledgeGraph): void {} // :899-913",
-          "function updateStats(graph: KnowledgeGraph): void {} // :918-928"
+          "function buildModuleImportEdges(graph: KnowledgeGraph): void {} // :825-887",
+          "function stripExtension(filePath: string): string {} // :892-895",
+          "function computeEdgeCounts(graph: KnowledgeGraph): void {} // :900-914",
+          "function updateStats(graph: KnowledgeGraph): void {} // :919-929"
         ],
         "importsSummary": "15 imports from 6 paths",
         "imports": [
@@ -2705,63 +2812,78 @@
         "importEntries": [
           {
             "symbol": "KnowledgeGraph",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "FolderNode",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "ModuleNode",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "TermNode",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "ExportNode",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "FileNode",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "ExternalNode",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "FlowNode",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "DocNode",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "GraphEdge",
-            "path": "./types.js"
+            "path": "./types.js",
+            "typeOnly": true
           },
           {
             "symbol": "ExtractedRegistry",
-            "path": "../extraction/registry.js"
+            "path": "../extraction/registry.js",
+            "typeOnly": true
           },
           {
             "symbol": "ExtractedDoc",
-            "path": "../extraction/documentation.js"
+            "path": "../extraction/documentation.js",
+            "typeOnly": true
           },
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "ROOT_FOLDER_NAME",
-            "path": "../constants.js"
+            "path": "../constants.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 9
@@ -2857,17 +2979,17 @@
           "  edgeCount: number | undefined // :19",
           "}",
           "export type AnyNode = | FolderNode\n  | ModuleNode\n  | TermNode\n  | ExportNode\n  | FileNode\n  | ExternalNode\n  | FlowNode\n  | DocNode // :164-172",
-          "export type EdgeType = | \"references\" // Doc references a Folder/Module/Term/Export\n  | \"belongs-to\" // Module/Export belongs to a Folder or... // :177-183",
-          "export interface GraphEdge { // :185-190",
-          "  from: string // :186",
-          "  to: string // :187",
-          "  type: EdgeType // :188",
-          "  label: string | undefined // :189",
+          "export type EdgeType = | \"references\" // Doc references a Folder/Module/Term/Export\n  | \"belongs-to\" // Module/Export belongs to a Folder or... // :177-184",
+          "export interface GraphEdge { // :186-191",
+          "  from: string // :187",
+          "  to: string // :188",
+          "  type: EdgeType // :189",
+          "  label: string | undefined // :190",
           "}",
-          "export interface KnowledgeGraph { // :195-235",
-          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; externals: Record<...>; flows: Record<...>; docs: Record<...>; } // :199-208",
-          "  edges: GraphEdge[] // :212",
-          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; flowCount: number; docCount: number; edgeCount: number; }; } // :216-234",
+          "export interface KnowledgeGraph { // :196-236",
+          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; externals: Record<...>; flows: Record<...>; docs: Record<...>; } // :200-209",
+          "  edges: GraphEdge[] // :213",
+          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; flowCount: number; docCount: number; edgeCount: number; }; } // :217-235",
           "}"
         ],
         "importsSummary": "3 imports from 3 paths",
@@ -2879,15 +3001,18 @@
         "importEntries": [
           {
             "symbol": "DocPriority",
-            "path": "../../runtime/jsx.js"
+            "path": "../../runtime/jsx.js",
+            "typeOnly": true
           },
           {
             "symbol": "FolderChildren",
-            "path": "../extraction/folder-summary.js"
+            "path": "../extraction/folder-summary.js",
+            "typeOnly": true
           },
           {
             "symbol": "ImportEntry",
-            "path": "../extraction/module-morphology.js"
+            "path": "../extraction/module-morphology.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 21
@@ -2934,15 +3059,18 @@
         "importEntries": [
           {
             "symbol": "ts",
-            "path": "typescript"
+            "path": "typescript",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "DocPriority",
-            "path": "../../runtime/jsx.js"
+            "path": "../../runtime/jsx.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 6
@@ -2969,43 +3097,53 @@
         "importEntries": [
           {
             "symbol": "parseArgs",
-            "path": "node:util"
+            "path": "node:util",
+            "typeOnly": false
           },
           {
             "symbol": "search",
-            "path": "./commands/search.js"
+            "path": "./commands/search.js",
+            "typeOnly": false
           },
           {
             "symbol": "pick",
-            "path": "./commands/pick.js"
+            "path": "./commands/pick.js",
+            "typeOnly": false
           },
           {
             "symbol": "ls",
-            "path": "./commands/ls.js"
+            "path": "./commands/ls.js",
+            "typeOnly": false
           },
           {
             "symbol": "context",
-            "path": "./commands/context.js"
+            "path": "./commands/context.js",
+            "typeOnly": false
           },
           {
             "symbol": "docs",
-            "path": "./commands/docs.js"
+            "path": "./commands/docs.js",
+            "typeOnly": false
           },
           {
             "symbol": "init",
-            "path": "./commands/init.js"
+            "path": "./commands/init.js",
+            "typeOnly": false
           },
           {
             "symbol": "printHelpAndExit",
-            "path": "./utils/help.js"
+            "path": "./utils/help.js",
+            "typeOnly": false
           },
           {
             "symbol": "configure",
-            "path": "./utils/logger.js"
+            "path": "./utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "error",
-            "path": "./utils/logger.js"
+            "path": "./utils/logger.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 8
@@ -3041,47 +3179,58 @@
         "importEntries": [
           {
             "symbol": "globSync",
-            "path": "glob"
+            "path": "glob",
+            "typeOnly": false
           },
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "createProgram",
-            "path": "../../typescript/index.js"
+            "path": "../../typescript/index.js",
+            "typeOnly": false
           },
           {
             "symbol": "extractRegistry",
-            "path": "../../core/extraction/index.js"
+            "path": "../../core/extraction/index.js",
+            "typeOnly": false
           },
           {
             "symbol": "extractDocs",
-            "path": "../../core/extraction/index.js"
+            "path": "../../core/extraction/index.js",
+            "typeOnly": false
           },
           {
             "symbol": "buildGraph",
-            "path": "../../core/graph/index.js"
+            "path": "../../core/graph/index.js",
+            "typeOnly": false
           },
           {
             "symbol": "generateDot",
-            "path": "../../core/visualization/index.js"
+            "path": "../../core/visualization/index.js",
+            "typeOnly": false
           },
           {
             "symbol": "info",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "verbose",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "infoTime",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 7
@@ -3135,39 +3284,48 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "Fuse",
-            "path": "fuse.js"
+            "path": "fuse.js",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "AnyNode",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "findGraphFile",
-            "path": "../utils/graph-finder.js"
+            "path": "../utils/graph-finder.js",
+            "typeOnly": false
           },
           {
             "symbol": "verbose",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "time",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "jsonOut",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "plainOut",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 7
@@ -3293,71 +3451,88 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "AnyNode",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "findGraphFile",
-            "path": "../utils/graph-finder.js"
+            "path": "../utils/graph-finder.js",
+            "typeOnly": false
           },
           {
             "symbol": "verbose",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "time",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "jsonOut",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "plainOut",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "resolveNode",
-            "path": "../utils/resolve-node.js"
+            "path": "../utils/resolve-node.js",
+            "typeOnly": false
           },
           {
             "symbol": "getNodeEdges",
-            "path": "../utils/resolve-node.js"
+            "path": "../utils/resolve-node.js",
+            "typeOnly": false
           },
           {
             "symbol": "findReferencingDocs",
-            "path": "../utils/resolve-node.js"
+            "path": "../utils/resolve-node.js",
+            "typeOnly": false
           },
           {
             "symbol": "findParent",
-            "path": "../utils/resolve-node.js"
+            "path": "../utils/resolve-node.js",
+            "typeOnly": false
           },
           {
             "symbol": "findAllNodesById",
-            "path": "../utils/resolve-node.js"
+            "path": "../utils/resolve-node.js",
+            "typeOnly": false
           },
           {
             "symbol": "NodeEdges",
-            "path": "../utils/resolve-node.js"
+            "path": "../utils/resolve-node.js",
+            "typeOnly": true
           },
           {
             "symbol": "DocRef",
-            "path": "../utils/resolve-node.js"
+            "path": "../utils/resolve-node.js",
+            "typeOnly": true
           },
           {
             "symbol": "ResolvedVia",
-            "path": "../utils/resolve-node.js"
+            "path": "../utils/resolve-node.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 8
@@ -3397,39 +3572,48 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "GraphEdge",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "ROOT_FOLDER_NAME",
-            "path": "../../core/constants.js"
+            "path": "../../core/constants.js",
+            "typeOnly": false
           },
           {
             "symbol": "findGraphFile",
-            "path": "../utils/graph-finder.js"
+            "path": "../utils/graph-finder.js",
+            "typeOnly": false
           },
           {
             "symbol": "verbose",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "time",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "jsonOut",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "plainOut",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 7
@@ -3463,23 +3647,28 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "readline",
-            "path": "node:readline"
+            "path": "node:readline",
+            "typeOnly": false
           },
           {
             "symbol": "info",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "error",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 4
@@ -3527,39 +3716,48 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "Fuse",
-            "path": "fuse.js"
+            "path": "fuse.js",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "FlowNode",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "findGraphFile",
-            "path": "../utils/graph-finder.js"
+            "path": "../utils/graph-finder.js",
+            "typeOnly": false
           },
           {
             "symbol": "verbose",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "time",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "jsonOut",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           },
           {
             "symbol": "plainOut",
-            "path": "../utils/logger.js"
+            "path": "../utils/logger.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 5
@@ -3588,7 +3786,8 @@
         "importEntries": [
           {
             "symbol": "KnowledgeGraph",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 5
@@ -3617,23 +3816,28 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "buildQueryBody",
-            "path": "./content-builder.js"
+            "path": "./content-builder.js",
+            "typeOnly": false
           },
           {
             "symbol": "buildUpdateBody",
-            "path": "./content-builder.js"
+            "path": "./content-builder.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 5
@@ -3662,23 +3866,28 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "buildQueryBody",
-            "path": "./content-builder.js"
+            "path": "./content-builder.js",
+            "typeOnly": false
           },
           {
             "symbol": "buildUpdateBody",
-            "path": "./content-builder.js"
+            "path": "./content-builder.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 5
@@ -3701,11 +3910,13 @@
         "importEntries": [
           {
             "symbol": "fs",
-            "path": "node:fs"
+            "path": "node:fs",
+            "typeOnly": false
           },
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           }
         ],
         "edgeCount": 8
@@ -3775,23 +3986,28 @@
         "importEntries": [
           {
             "symbol": "path",
-            "path": "node:path"
+            "path": "node:path",
+            "typeOnly": false
           },
           {
             "symbol": "KnowledgeGraph",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "AnyNode",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "GraphEdge",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           },
           {
             "symbol": "FolderNode",
-            "path": "../../core/graph/types.js"
+            "path": "../../core/graph/types.js",
+            "typeOnly": true
           }
         ],
         "edgeCount": 9
@@ -3824,23 +4040,28 @@
         "importEntries": [
           {
             "symbol": "User",
-            "path": "../../shared/types"
+            "path": "../../shared/types",
+            "typeOnly": false
           },
           {
             "symbol": "LoginCredentials",
-            "path": "../../shared/types"
+            "path": "../../shared/types",
+            "typeOnly": false
           },
           {
             "symbol": "RegisterData",
-            "path": "../../shared/types"
+            "path": "../../shared/types",
+            "typeOnly": false
           },
           {
             "symbol": "AuthTokens",
-            "path": "../../shared/types"
+            "path": "../../shared/types",
+            "typeOnly": false
           },
           {
             "symbol": "AuthResponse",
-            "path": "../../shared/types"
+            "path": "../../shared/types",
+            "typeOnly": false
           }
         ],
         "edgeCount": 5
@@ -3873,19 +4094,23 @@
         "importEntries": [
           {
             "symbol": "Task",
-            "path": "../../../shared/types"
+            "path": "../../../shared/types",
+            "typeOnly": false
           },
           {
             "symbol": "PaginationParams",
-            "path": "../../../shared/types"
+            "path": "../../../shared/types",
+            "typeOnly": false
           },
           {
             "symbol": "FilterParams",
-            "path": "../../../shared/types"
+            "path": "../../../shared/types",
+            "typeOnly": false
           },
           {
             "symbol": "Database",
-            "path": "../connection"
+            "path": "../connection",
+            "typeOnly": false
           }
         ],
         "edgeCount": 6
@@ -3919,15 +4144,18 @@
         "importEntries": [
           {
             "symbol": "createContext",
-            "path": "react"
+            "path": "react",
+            "typeOnly": false
           },
           {
             "symbol": "useContext",
-            "path": "react"
+            "path": "react",
+            "typeOnly": false
           },
           {
             "symbol": "User",
-            "path": "../../shared/types"
+            "path": "../../shared/types",
+            "typeOnly": false
           }
         ],
         "edgeCount": 6
@@ -4479,7 +4707,7 @@
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function sanitizeFolderId(id: string): string {} // :781-783"
+          "export function sanitizeFolderId(id: string): string {} // :783-785"
         ],
         "edgeCount": 1
       },
@@ -4762,7 +4990,7 @@
         "resolvedPath": "packages/tskb/src/core/extraction/module-morphology.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function extractModuleMorphology(program: Program, resolvedPath: string): ModuleMorphology | null {} // :32-121"
+          "export function extractModuleMorphology(program: Program, resolvedPath: string): ModuleMorphology | null {} // :33-122"
         ],
         "edgeCount": 2
       },
@@ -4774,7 +5002,7 @@
         "resolvedPath": "packages/tskb/src/core/extraction/module-morphology.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :637-695"
+          "export function extractModuleImports(program: Program, resolvedPath: string): ModuleImports | null {} // :638-704"
         ],
         "edgeCount": 2
       },
@@ -4798,10 +5026,10 @@
         "resolvedPath": "packages/tskb/src/core/graph/types.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface KnowledgeGraph { // :195-235",
-          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; externals: Record<...>; flows: Record<...>; docs: Record<...>; } // :199-208",
-          "  edges: GraphEdge[] // :212",
-          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; flowCount: number; docCount: number; edgeCount: number; }; } // :216-234",
+          "export interface KnowledgeGraph { // :196-236",
+          "  nodes: { folders: Record<string, FolderNode>; modules: Record<string, ModuleNode>; terms: Record<string, TermNode>; exports: Record<...>; files: Record<...>; externals: Record<...>; flows: Record<...>; docs: Record<...>; } // :200-209",
+          "  edges: GraphEdge[] // :213",
+          "  metadata: { generatedAt: string; version: string; rootPath: string; stats: { folderCount: number; moduleCount: number; termCount: number; exportCount: number; fileCount: number; externalCount: number; flowCount: number; docCount: number; edgeCount: number; }; } // :217-235",
           "}"
         ],
         "edgeCount": 3
@@ -8759,17 +8987,17 @@
     {
       "from": "Jsx.runtime.js",
       "to": "runtime.registry",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "runtime.jsx",
       "to": "runtime.registry",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "explorer.transform",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "explorer.spa.main",
@@ -8809,7 +9037,7 @@
     {
       "from": "explorer.spa.main",
       "to": "explorer.spa.node-base",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "explorer.spa.main",
@@ -8824,12 +9052,12 @@
     {
       "from": "explorer.spa.store",
       "to": "explorer.spa.chunk-types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "explorer.spa.lane-engine",
       "to": "explorer.spa.store",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "explorer.spa.node-base",
@@ -8869,7 +9097,7 @@
     {
       "from": "explorer.server",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "cli.commands.explore",
@@ -8884,7 +9112,7 @@
     {
       "from": "cli.commands.explore",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "explorer.export",
@@ -8894,12 +9122,12 @@
     {
       "from": "explorer.export",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "visualization.dot-generator",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "extraction.registry",
@@ -8909,32 +9137,32 @@
     {
       "from": "graph.builder",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "graph.builder",
       "to": "extraction.registry",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "graph.builder",
       "to": "extraction.documentation",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "graph.types",
       "to": "runtime.jsx",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "graph.types",
       "to": "extraction.module-morphology",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "extraction.documentation",
       "to": "runtime.jsx",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "cli.index",
@@ -8974,7 +9202,7 @@
     {
       "from": "cli.commands.search",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "cli.commands.search",
@@ -8989,7 +9217,7 @@
     {
       "from": "cli.commands.pick",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "cli.commands.pick",
@@ -9009,7 +9237,7 @@
     {
       "from": "cli.commands.ls",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "cli.commands.ls",
@@ -9029,7 +9257,7 @@
     {
       "from": "cli.commands.flows",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "cli.commands.flows",
@@ -9044,12 +9272,12 @@
     {
       "from": "cli.utils.content-builder",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "cli.utils.skill-generator",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "cli.utils.skill-generator",
@@ -9059,7 +9287,7 @@
     {
       "from": "cli.utils.copilot-instructions",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     },
     {
       "from": "cli.utils.copilot-instructions",
@@ -9069,11 +9297,11 @@
     {
       "from": "cli.utils.resolve-node",
       "to": "graph.types",
-      "type": "imports"
+      "type": "imports-type"
     }
   ],
   "metadata": {
-    "generatedAt": "2026-04-21T09:07:29.480Z",
+    "generatedAt": "2026-04-21T09:28:38.372Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {

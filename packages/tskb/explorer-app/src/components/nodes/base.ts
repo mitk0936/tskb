@@ -99,7 +99,7 @@ export class BaseNodeRenderer implements NodeComponent {
     g.on("mouseover", function (event: MouseEvent, d: PositionedNode) {
       if (d.detail._ghost === "true") return;
       if (!(event.currentTarget as Element).contains(event.relatedTarget as Node)) {
-        const { w, h } = NODE_SIZES[d.type] ?? NODE_SIZES.module;
+        const { h } = NODE_SIZES[d.type] ?? NODE_SIZES.module;
         showNodeTooltip(d.label, d.path, d.description, NODE_COLORS[d.type], d.x, d.y + h / 2);
       }
     })
@@ -353,7 +353,7 @@ export class BaseNodeRenderer implements NodeComponent {
 
       // Footer chip buttons
       const CHIP_Y = FOOTER_Y - 1;
-      const CHIP_PAD_X = 6;
+      const _CHIP_PAD_X = 6;
       const chipColor = "#e2e8f0";
       const chipTextColor = "#64748b";
 

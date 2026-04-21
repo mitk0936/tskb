@@ -121,7 +121,7 @@ function buildHullPath(nodes: PositionedNode[], seed: number): string | null {
 // ─── Group assembly ───────────────────────────────────────────────────────────
 
 const STROKE = "#7c3aed";
-const STROKE_OPACITY = 0.3;
+const _STROKE_OPACITY = 0.3;
 const FILL = "rgba(124,58,237,0.02)";
 
 interface BoundaryGroup {

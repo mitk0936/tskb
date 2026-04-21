@@ -28,6 +28,16 @@ export function baseConfig({ tsconfigRootDir, project = ["./tsconfig.json"] }) {
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
 
+      // -- Imports --
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports", fixStyle: "inline-type-imports", disallowTypeAnnotations: false },
+      ],
+
+      // -- Complexity --
+      complexity: ["warn", 12],
+      "max-depth": ["warn", 4],
+
       // -- Style --
       "no-console": "warn",
       eqeqeq: ["error", "always"],

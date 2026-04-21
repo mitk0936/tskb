@@ -848,39 +848,40 @@ function buildModuleImportEdges(graph: KnowledgeGraph): void {
     const moduleDir = path.posix.dirname(mod.resolvedPath.replace(/\\/g, "/"));
     const seen = new Set<string>(); // avoid duplicate edges to same target
 
-    for (const entry of mod.importEntries) {
-      if (entry.path.startsWith("./") || entry.path.startsWith("../")) {
-        // Resolve relative imports to modules
-        const resolved = path.posix.normalize(path.posix.join(moduleDir, entry.path));
-        const normalizedResolved = stripExtension(resolved);
+    // Collect all entries per resolved target to determine if any are value imports
+    const targetValueImport = new Map<string, boolean>(); // targetId -> hasValueImport
 
-        const targetId = pathToModuleId.get(normalizedResolved);
-        if (targetId && targetId !== mod.id && !seen.has(targetId)) {
-          seen.add(targetId);
-          graph.edges.push({
-            from: mod.id,
-            to: targetId,
-            type: "imports",
-          });
-        }
+    for (const entry of mod.importEntries) {
+      let targetId: string | undefined;
+
+      if (entry.path.startsWith("./") || entry.path.startsWith("../")) {
+        const resolved = path.posix.normalize(path.posix.join(moduleDir, entry.path));
+        targetId = pathToModuleId.get(stripExtension(resolved));
       } else {
-        // Bare specifier — check if it matches a registered package name
-        // e.g. "tskb" or "tskb/runtime/jsx" both match package "tskb"
         const specifier = entry.path;
         for (const [pkgName, folderId] of packageNameToFolderId) {
           if (specifier === pkgName || specifier.startsWith(pkgName + "/")) {
-            if (folderId !== mod.id && !seen.has(folderId)) {
-              seen.add(folderId);
-              graph.edges.push({
-                from: mod.id,
-                to: folderId,
-                type: "imports",
-              });
-            }
+            targetId = folderId;
             break;
           }
         }
       }
+
+      if (!targetId || targetId === mod.id) continue;
+
+      // Track whether any entry for this target imports a value (not just types)
+      const prev = targetValueImport.get(targetId);
+      targetValueImport.set(targetId, (prev ?? false) || !entry.typeOnly);
+    }
+
+    for (const [targetId, hasValueImport] of targetValueImport) {
+      if (seen.has(targetId)) continue;
+      seen.add(targetId);
+      graph.edges.push({
+        from: mod.id,
+        to: targetId,
+        type: hasValueImport ? "imports" : "imports-type",
+      });
     }
   }
 }

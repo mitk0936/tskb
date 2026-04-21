@@ -4,7 +4,6 @@ import {
   type SelectHandler,
   type TraceLinkHandler,
   type CodePreviewHandler,
-  type IsExpandedFn,
   type NodeComponent,
 } from "./base";
 import type { PositionedNode } from "../../types";

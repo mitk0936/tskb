@@ -159,7 +159,7 @@ export interface RelationLink {
   source: PositionedNode;
   target: PositionedNode;
   label?: string;
-  type: "related-to" | "imports";
+  type: "related-to" | "imports" | "imports-type";
 }
 
 /**
@@ -175,7 +175,7 @@ export function buildRelationLinks(
 
   const seen = new Set<string>();
   return crossEdges.flatMap((e) => {
-    if (e.type !== "related-to" && e.type !== "imports") return [];
+    if (e.type !== "related-to" && e.type !== "imports" && e.type !== "imports-type") return [];
     const src = byId.get(e.source);
     const tgt = byId.get(e.target);
     if (!src || !tgt || src.id === tgt.id) return [];
@@ -238,7 +238,10 @@ function hideRelTooltip(): void {
 
 function relationTooltipText(d: RelationLink): string {
   if (d.type === "imports") {
-    return `${d.source.label} ← imports ← ${d.target.path ?? d.target.label}`;
+    return `${d.source.label} ← imports from ← ${d.target.path ?? d.target.label}`;
+  }
+  if (d.type === "imports-type") {
+    return `${d.source.label} ← imports type(s) from ← ${d.target.path ?? d.target.label}`;
   }
   const prefix = d.label;
   const targetId = d.target.path ?? d.target.label;
@@ -267,24 +270,32 @@ export function renderRelationEdges(
 
   merged.each(function (d) {
     const { sx, sy, tx, ty, fromColor } = relAnchorPoints(d.source, d.target, d.type);
+    const isTypeOnly = d.type === "imports-type";
     d3.select(this)
       .select(".relation-path")
-      .attr("stroke", "none")
+      .attr("stroke", isTypeOnly ? fromColor : "none")
+      .attr("stroke-width", isTypeOnly ? 1 : 0)
+      .attr("stroke-dasharray", isTypeOnly ? "4,3" : "none")
       .attr("fill", fromColor)
-      .attr("fill-opacity", 0.2)
+      .attr("fill-opacity", isTypeOnly ? 0.08 : 0.2)
       .attr("d", bandBubble(sx, sy, tx, ty));
   });
 
   merged
     .on("mouseenter", function (event: MouseEvent, d) {
-      d3.select(this).select(".relation-path").attr("fill-opacity", 0.65);
+      const isTypeOnly = d.type === "imports-type";
+      d3.select(this)
+        .select(".relation-path")
+        .attr("fill-opacity", isTypeOnly ? 0.35 : 0.65);
       showRelTooltip(relationTooltipText(d), event.clientX, event.clientY);
     })
     .on("mousemove", function (event: MouseEvent, d) {
       showRelTooltip(relationTooltipText(d), event.clientX, event.clientY);
     })
-    .on("mouseleave", function () {
-      d3.select(this).select(".relation-path").attr("fill-opacity", 0.2);
+    .on("mouseleave", function (_event: MouseEvent, d) {
+      d3.select(this)
+        .select(".relation-path")
+        .attr("fill-opacity", d.type === "imports-type" ? 0.08 : 0.2);
       hideRelTooltip();
     });
 }
@@ -360,7 +371,7 @@ function relAnchorPoints(
 ): { sx: number; sy: number; tx: number; ty: number; fromColor: string; toColor: string } {
   const ss = nodeSize(src);
   const ts = nodeSize(tgt);
-  if (type === "imports") {
+  if (type === "imports" || type === "imports-type") {
     return {
       sx: tgt.x + ts.w,
       sy: tgt.y, // "from" — top-right of imported (target)
@@ -389,7 +400,7 @@ function cubicH(sx: number, sy: number, tx: number, ty: number): string {
 }
 
 /** Vertical cubic bezier: source on bottom, target on top */
-function cubicV(sx: number, sy: number, tx: number, ty: number): string {
+function _cubicV(sx: number, sy: number, tx: number, ty: number): string {
   const cy = (sy + ty) / 2;
   return `M${sx},${sy} C${sx},${cy} ${tx},${cy} ${tx},${ty}`;
 }

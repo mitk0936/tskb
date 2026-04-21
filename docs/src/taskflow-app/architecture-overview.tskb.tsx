@@ -1,14 +1,17 @@
 import { Doc, H1, H2, H3, P, List, Li, Snippet, ref } from "tskb";
 
 import { useAuth } from "examples/taskflow-app/src/client/contexts/AuthContext.js";
-import { Database, DatabaseConfig } from "examples/taskflow-app/src/server/database/connection.js";
+import {
+  Database,
+  type DatabaseConfig,
+} from "examples/taskflow-app/src/server/database/connection.js";
 import { TaskRepository } from "examples/taskflow-app/src/server/database/repositories/task.repository.js";
 import {
-  FilterParams,
-  PaginatedResponse,
-  PaginationParams,
+  type FilterParams,
+  type PaginatedResponse,
+  type PaginationParams,
 } from "examples/taskflow-app/src/shared/types/api.types.js";
-import { Task } from "examples/taskflow-app/src/shared/types/task.types.js";
+import { type Task } from "examples/taskflow-app/src/shared/types/task.types.js";
 
 const ClientFolder = ref as tskb.Folders["Client"];
 const ServerFolder = ref as tskb.Folders["Server"];

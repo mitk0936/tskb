@@ -8,7 +8,7 @@ export type NodeType =
   | "external"
   | "file";
 
-export type EdgeLinkType = "imports" | "references" | "related-to" | "flow-step";
+export type EdgeLinkType = "imports" | "imports-type" | "references" | "related-to" | "flow-step";
 
 export interface ExplorerNode {
   id: string;

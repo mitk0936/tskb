@@ -1,4 +1,4 @@
-import { Folder } from "tskb";
+import { type Folder } from "tskb";
 
 declare global {
   namespace tskb {

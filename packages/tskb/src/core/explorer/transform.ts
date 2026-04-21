@@ -29,7 +29,7 @@ export interface ExplorerNode {
 export interface ExplorerLink {
   source: string;
   target: string;
-  type: "imports" | "references" | "related-to" | "flow-step";
+  type: "imports" | "imports-type" | "references" | "related-to" | "flow-step";
   label?: string;
 }
 
@@ -222,11 +222,11 @@ class GraphToExplorerTransformer {
 
   private buildCrossEdges(): ExplorerLink[] {
     return this.graph.edges
-      .filter((e) => e.type === "related-to" || e.type === "imports")
+      .filter((e) => e.type === "related-to" || e.type === "imports" || e.type === "imports-type")
       .map((e) => ({
         source: e.from, // importer A
         target: e.to, // imported B
-        type: e.type as "related-to" | "imports",
+        type: e.type as "related-to" | "imports" | "imports-type",
         ...(e.label ? { label: e.label } : {}),
       }));
   }
@@ -333,15 +333,17 @@ class GraphToExplorerTransformer {
     internalEdges: ExplorerLink[];
     externalEdges: ExplorerLink[];
   } {
-    const importEdges = this.graph.edges.filter((e) => e.type === "imports");
+    const importEdges = this.graph.edges.filter(
+      (e) => e.type === "imports" || e.type === "imports-type"
+    );
 
     const internalEdges = importEdges
       .filter((e) => moduleIdSet.has(e.from) && moduleIdSet.has(e.to))
-      .map((e) => ({ source: e.from, target: e.to, type: "imports" as const }));
+      .map((e) => ({ source: e.from, target: e.to, type: e.type as "imports" | "imports-type" }));
 
     const externalEdges = importEdges
       .filter((e) => moduleIdSet.has(e.from) !== moduleIdSet.has(e.to))
-      .map((e) => ({ source: e.from, target: e.to, type: "imports" as const }));
+      .map((e) => ({ source: e.from, target: e.to, type: e.type as "imports" | "imports-type" }));
 
     return { internalEdges, externalEdges };
   }

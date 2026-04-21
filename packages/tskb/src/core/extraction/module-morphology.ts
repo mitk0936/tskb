@@ -8,6 +8,7 @@ export interface ModuleMorphology {
 export interface ImportEntry {
   symbol: string; // e.g. "Foo", "* as ns", "*"
   path: string; // raw import path, e.g. "./bar.js"
+  typeOnly: boolean; // true for `import type` declarations or inline `type` modifiers
 }
 
 export interface ModuleImports {
@@ -658,15 +659,18 @@ export function extractModuleImports(
     if (!importClause) {
       // Side-effect import: import "path"
       imports.push(`* from "${importPath}"`);
-      importEntries.push({ symbol: "*", path: importPath });
+      importEntries.push({ symbol: "*", path: importPath, typeOnly: false });
       return;
     }
+
+    // `import type ...` makes the entire declaration type-only
+    const declarationTypeOnly = importClause.isTypeOnly;
 
     // Default import: import Foo from "path"
     if (importClause.name) {
       const symbol = importClause.name.text;
       imports.push(`${symbol} from "${importPath}"`);
-      importEntries.push({ symbol, path: importPath });
+      importEntries.push({ symbol, path: importPath, typeOnly: declarationTypeOnly });
     }
 
     // Named imports: import { a, b } from "path"
@@ -676,13 +680,18 @@ export function extractModuleImports(
         for (const element of namedBindings.elements) {
           const symbol = element.name.text;
           imports.push(`${symbol} from "${importPath}"`);
-          importEntries.push({ symbol, path: importPath });
+          // inline `type` modifier: import { type Foo, Bar }
+          importEntries.push({
+            symbol,
+            path: importPath,
+            typeOnly: declarationTypeOnly || element.isTypeOnly,
+          });
         }
       } else if (ts.isNamespaceImport(namedBindings)) {
         // Namespace import: import * as ns from "path"
         const symbol = `* as ${namedBindings.name.text}`;
         imports.push(`${symbol} from "${importPath}"`);
-        importEntries.push({ symbol, path: importPath });
+        importEntries.push({ symbol, path: importPath, typeOnly: declarationTypeOnly });
       }
     }
   });

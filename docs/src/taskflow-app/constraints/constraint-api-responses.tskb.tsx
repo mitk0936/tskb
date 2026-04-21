@@ -1,4 +1,7 @@
-import { ApiError, ResponseMetadata } from "examples/taskflow-app/src/shared/types/api.types.js";
+import {
+  type ApiError,
+  type ResponseMetadata,
+} from "examples/taskflow-app/src/shared/types/api.types.js";
 import { Doc, H1, H2, P, List, Li, Snippet, ref } from "tskb";
 
 const TypesFolder = ref as tskb.Folders["Types"];

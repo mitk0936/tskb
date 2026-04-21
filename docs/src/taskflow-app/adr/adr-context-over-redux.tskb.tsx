@@ -1,7 +1,7 @@
 import { createContext, useState, useContext } from "react";
 import { Doc, H1, H2, H3, P, List, Li, Snippet, ref } from "tskb";
 import { CommentForm } from "examples/taskflow-app/src/client/components/comments/CommentForm.js";
-import { User } from "examples/taskflow-app/src/shared/types/user.types.js";
+import { type User } from "examples/taskflow-app/src/shared/types/user.types.js";
 
 const ClientFolder = ref as tskb.Folders["Client"];
 const ContextsFolder = ref as tskb.Folders["Contexts"];
