@@ -140,42 +140,16 @@ export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>):
     structureHeight = maxY + LANE_PADDING;
   }
 
-  // ── Docs lane: ordered by priority, horizontal list ──────────────────────
-  const docsLaneY = structureHeight + LANE_GAP;
+  // ── Externals lane: below structure ──────────────────────────────────────
+  const docsLaneY = structureHeight + LANE_GAP; // docs lane removed; reuse slot for externals
   const docsNodes: PositionedNode[] = [];
 
-  if (store.meta?.docs.length) {
-    const priorityOrder: Record<string, number> = {
-      essential: 0,
-      constraint: 1,
-      supplementary: 2,
-    };
-    const sorted = [...store.meta.docs].sort(
-      (a, b) =>
-        (priorityOrder[a.priority ?? "supplementary"] ?? 2) -
-        (priorityOrder[b.priority ?? "supplementary"] ?? 2)
-    );
-
-    sorted.forEach((doc, i) => {
-      const { w } = NODE_SIZES.doc;
-      docsNodes.push({
-        ...doc,
-        x: LANE_PADDING + i * (w + H_GAP),
-        y: docsLaneY + LANE_HEADER_H + LANE_PADDING,
-      });
-    });
-  }
-
-  const docsLaneHeight = docsNodes.length ? LANE_HEADER_H + LANE_PADDING * 2 + NODE_SIZES.doc.h : 0;
-
-  // ── Other lane: flows + terms + externals, horizontal list ───────────────
-  const otherLaneY = docsLaneY + docsLaneHeight + (docsLaneHeight > 0 ? LANE_GAP : 0);
+  const otherLaneY = docsLaneY;
   const otherNodes: PositionedNode[] = [];
 
-  if (store.meta) {
-    const all = [...store.meta.flows, ...store.meta.terms, ...store.meta.externals];
-    all.forEach((node, i) => {
-      const { w } = NODE_SIZES[node.type] ?? NODE_SIZES.term;
+  if (store.meta?.externals.length) {
+    store.meta.externals.forEach((node, i) => {
+      const { w } = NODE_SIZES.external;
       otherNodes.push({
         ...node,
         x: LANE_PADDING + i * (w + H_GAP),
@@ -185,7 +159,7 @@ export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>):
   }
 
   const otherLaneHeight = otherNodes.length
-    ? LANE_HEADER_H + LANE_PADDING * 2 + NODE_SIZES.term.h
+    ? LANE_HEADER_H + LANE_PADDING * 2 + NODE_SIZES.external.h
     : 0;
 
   return {

@@ -20,7 +20,7 @@ declare global {
       }>;
 
       "explorer.spa.ExplorerApp.setupCanvas": Export<{
-        desc: "Creates the D3 SVG layer stack (zoom-layer → lane-bg-layer / edge-layer / node-layer), configures zoom/pan with tooltip transform propagation, and mounts the detail panel.";
+        desc: "Creates the D3 SVG layer stack (zoom-layer → lane-bg-layer / edge-layer / node-layer), configures zoom/pan with tooltip transform propagation";
         type: InstanceType<ExplorerApp>["setupCanvas"];
       }>;
 
@@ -54,11 +54,6 @@ declare global {
         type: InstanceType<ExplorerApp>["onExpand"];
       }>;
 
-      "explorer.spa.ExplorerApp.onSelect": Export<{
-        desc: "Sets the selected node on the instance and opens the detail panel.";
-        type: InstanceType<ExplorerApp>["onSelect"];
-      }>;
-
       "explorer.spa.ExplorerApp.onTraceLinks": Export<{
         desc: "MVP stub: logs the node id and edge count. Intended for an animated edge tracer in a future iteration.";
         type: InstanceType<ExplorerApp>["onTraceLinks"];
@@ -83,7 +78,6 @@ const SetupSearchExport = ref as tskb.Exports["explorer.spa.ExplorerApp.setupSea
 const LoadInitialDataExport = ref as tskb.Exports["explorer.spa.ExplorerApp.loadInitialData"];
 const RenderExport = ref as tskb.Exports["explorer.spa.ExplorerApp.render"];
 const OnExpandExport = ref as tskb.Exports["explorer.spa.ExplorerApp.onExpand"];
-const OnSelectExport = ref as tskb.Exports["explorer.spa.ExplorerApp.onSelect"];
 const CollapseDescendantsExport =
   ref as tskb.Exports["explorer.spa.ExplorerApp.collapseDescendants"];
 
@@ -93,7 +87,6 @@ const LoaderModule = ref as tskb.Modules["explorer.spa.loader"];
 const LaneEngineModule = ref as tskb.Modules["explorer.spa.lane-engine"];
 const NodeBaseModule = ref as tskb.Modules["explorer.spa.node-base"];
 const EdgeRendererModule = ref as tskb.Modules["explorer.spa.edge-renderer"];
-const DetailPanelModule = ref as tskb.Modules["explorer.spa.detail-panel"];
 
 const ComputeLayoutExport = ref as tskb.Exports["explorer.spa.computeLayout"];
 const BuildStructureLinksExport = ref as tskb.Exports["explorer.spa.buildStructureLinks"];
@@ -136,7 +129,7 @@ export default (
       {ShowNodeSpinnerExport}, fetches via the loader, calls {RemoveNodeSpinnerExport} in{" "}
       <code>finally</code>, then updates the expanded set and calls {RenderExport}. Collapse
       delegates to {CollapseDescendantsExport} to recursively clear all descendants from the
-      expanded set. {OnSelectExport} opens the {DetailPanelModule}.
+      expanded set.
     </P>
 
     <Flow

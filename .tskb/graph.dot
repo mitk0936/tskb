@@ -309,6 +309,12 @@ digraph KnowledgeGraph {
             "cli.utils.copilot-instructions" [label="Module\<\"cli.utils.copilot-instructions\"\>\nGenerates two Copilot instructions files: tskb (query/explore) and tskb-update (write & update docs)\n📁 packages/tskb/src/cli/utils/copilot-instructions-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "cli.utils.graph-finder" [label="Module\<\"cli.utils.graph-finder\"\>\nLocates .tskb/graph.json from the current working directory, used by search/pick/ls commands\n📁 packages/tskb/src/cli/utils/graph-finder.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "cli.utils.logger" [label="Module\<\"cli.utils.logger\"\>\nCLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })\n📁 packages/tskb/src/cli/utils/logger.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "cli.utils.resolve-node" [label="Module\<\"cli.utils.resolve-node\"\>\nNode resolution utility — resolves any identifier (ID or path) to a graph node, and provides edge helpers for finding parents, referencing docs, and splitting incoming/outgoing edges\n📁 packages/tskb/src/cli/utils/resolve-node.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "cli.utils.resolve-node.resolveNode" [label="Export\<\"cli.utils.resolve-node.resolveNode\"\>\nThree-step resolution: exact ID match → path match → nearest parent folder. Returns ResolvedNode with the matched node and which strategy succeeded, or null\n📁 packages/tskb/src/cli/utils/resolve-node.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "cli.utils.resolve-node.getNodeEdges" [label="Export\<\"cli.utils.resolve-node.getNodeEdges\"\>\nSplits all graph edges into incoming and outgoing arrays for a given node ID\n📁 packages/tskb/src/cli/utils/resolve-node.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "cli.utils.resolve-node.findReferencingDocs" [label="Export\<\"cli.utils.resolve-node.findReferencingDocs\"\>\nReturns DocRef array of doc nodes that reference a given node via 'references' edges\n📁 packages/tskb/src/cli/utils/resolve-node.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "cli.utils.resolve-node.findParent" [label="Export\<\"cli.utils.resolve-node.findParent\"\>\nFinds the parent folder or module of a node by traversing 'belongs-to' (outgoing) or 'contains' (incoming) edges\n📁 packages/tskb/src/cli/utils/resolve-node.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "cli.utils.resolve-node.findAllNodesById" [label="Export\<\"cli.utils.resolve-node.findAllNodesById\"\>\nFinds all nodes matching an ID across every type dictionary — returns multiple matches when different types share the same ID\n📁 packages/tskb/src/cli/utils/resolve-node.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
           }
 
@@ -469,9 +475,11 @@ digraph KnowledgeGraph {
             // Modules in tskb.explorer.app.components
             "explorer.spa.node-base" [label="Module\<\"explorer.spa.node-base\"\>\nNodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with a <> code preview bubble (top-center) and a + expand bubble (right edge). Ghost nodes (detail._ghost = 'true') render as dashed transparent cards showing only their filename label. Tooltip anchor is the node's right-center SVG position.\n📁 packages/tskb/explorer-app/src/components/nodes/base.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "explorer.spa.BaseNodeRenderer" [label="Export\<\"explorer.spa.BaseNodeRenderer\"\>\nDefault NodeComponent implementation: renders any node type as a rounded-rect card with type icon, label, description, edge-count badge, code preview bubble, and expand bubble.\n📁 packages/tskb/explorer-app/src/components/nodes/base.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-            "explorer.spa.edge-renderer" [label="Module\<\"explorer.spa.edge-renderer\"\>\nbuildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels\n📁 packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.spa.edge-renderer" [label="Module\<\"explorer.spa.edge-renderer\"\>\nbuildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels; buildRelationLinks() shows cross-edges (imports / related-to) only when both endpoints are directly visible; renderRelationEdges() draws tapered filled band shapes between them\n📁 packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "explorer.spa.buildStructureLinks" [label="Export\<\"explorer.spa.buildStructureLinks\"\>\nDerives parent→child StructureLink pairs from the parentId field of every positioned node. Ghost links are flagged for dashed rendering.\n📁 packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts", shape=component, fillcolor="#C5E1A5", style=filled];
               "explorer.spa.renderStructureEdges" [label="Export\<\"explorer.spa.renderStructureEdges\"\>\nDraws parent→child cubic-bezier SVG paths from a StructureLink list. Ghost links render with dashed stroke and reduced opacity.\n📁 packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "explorer.spa.boundary-renderer" [label="Module\<\"explorer.spa.boundary-renderer\"\>\nrenderBoundaryGroups() draws a freeform dashed hull outline around all visible nodes that belong to the same architectural boundary. Hierarchy resolution: only the top-level folder carries detail.boundary; all descendants are resolved by walking parentOf. Hull is computed via d3.polygonHull, perturbed with seeded pseudo-random wobble for a stable hand-drawn look, and smoothed with curveBasisClosed.\n📁 packages/tskb/explorer-app/src/components/BoundaryRenderer.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "explorer.spa.renderBoundaryGroups" [label="Export\<\"explorer.spa.renderBoundaryGroups\"\>\nRenders one <g.boundary-group> per boundary into the provided SVG layer. Boundary membership is resolved by walking parentOf from each visible node upward until a node with detail.boundary is found. Uses d3.polygonHull with seeded wobble perturbation and curveBasisClosed for a stable freeform outline. pointer-events: none on all elements.\n📁 packages/tskb/explorer-app/src/components/BoundaryRenderer.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
           }
 
@@ -524,13 +532,12 @@ digraph KnowledgeGraph {
             fillcolor="#E3F2FD";
             color="#1976D2";
 
-            "tskb.explorer.app.ui" [label="Folder\<\"tskb.explorer.app.ui\"\>\nUI shell components: global spinner, per-node spinner, detail panel, node hover tooltip, and code preview popup\n📁 packages/tskb/explorer-app/src/ui", shape=box, fillcolor="#BBDEFB", style=filled];
+            "tskb.explorer.app.ui" [label="Folder\<\"tskb.explorer.app.ui\"\>\nUI shell components: global spinner, per-node spinner, node hover tooltip, and code preview popup\n📁 packages/tskb/explorer-app/src/ui", shape=box, fillcolor="#BBDEFB", style=filled];
 
             // Modules in tskb.explorer.app.ui
             "explorer.spa.spinner" [label="Module\<\"explorer.spa.spinner\"\>\nGlobal and per-node spinner helpers: showGlobalSpinner/hideGlobalSpinner overlay a full-screen loader; showNodeSpinner/removeNodeSpinner attach a small SVG spinner next to a node while its chunk is loading\n📁 packages/tskb/explorer-app/src/ui/Spinner.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "explorer.spa.showNodeSpinner" [label="Export\<\"explorer.spa.showNodeSpinner\"\>\nAppends a small animated SVG ring at a given (x, y) position inside the node canvas layer. Returns the SVG group element so the caller can remove it via removeNodeSpinner.\n📁 packages/tskb/explorer-app/src/ui/Spinner.ts", shape=component, fillcolor="#C5E1A5", style=filled];
               "explorer.spa.removeNodeSpinner" [label="Export\<\"explorer.spa.removeNodeSpinner\"\>\nRemoves the SVG group returned by showNodeSpinner from the DOM. Called in the finally block of ExplorerApp.onExpand() after the chunk fetch resolves or rejects.\n📁 packages/tskb/explorer-app/src/ui/Spinner.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-            "explorer.spa.detail-panel" [label="Module\<\"explorer.spa.detail-panel\"\>\nSlide-in detail panel mounted in the DOM outside the SVG. Shows node id, type, description, path, and all detail fields (morphology, imports, signature). Opened by onSelect, closed by ESC or the × button.\n📁 packages/tskb/explorer-app/src/ui/DetailPanel.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "explorer.spa.node-tooltip" [label="Module\<\"explorer.spa.node-tooltip\"\>\nHover tooltip anchored to the node's right-center SVG position. Shows a coloured dot, node name, monospace path, and description. Receives updateNodeTooltipTransform() calls from main.ts on every zoom event so it repositions to track the node. Uses mouseover/mouseout bubbling with relatedTarget boundary guards to avoid flicker on child SVG elements.\n📁 packages/tskb/explorer-app/src/ui/NodeTooltip.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "explorer.spa.code-tooltip" [label="Module\<\"explorer.spa.code-tooltip\"\>\nToggle-based code preview popup for module nodes. Click the <> bubble to show/hide; clicking the same node again dismisses it; clicking outside also dismisses. Renders morphology lines with an inline TypeScript tokenizer (no runtime deps) for syntax highlighting, prepended by import lines with a blank-line separator.\n📁 packages/tskb/explorer-app/src/ui/CodeTooltip.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
@@ -637,6 +644,7 @@ digraph KnowledgeGraph {
     "folderIdNavigation" [label="Term\<\"folderIdNavigation\"\>\nNavigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "tskbOutputDir" [label="Term\<\"tskbOutputDir\"\>\nThe .tskb/ directory containing all build outputs: graph.json and graph.dot", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "tskbInit" [label="Term\<\"tskbInit\"\>\nInteractive scaffolder command that creates docs folder, tsconfig, starter doc, package.json script, and opt-in AI integration directories", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "resolvedVia" [label="Term\<\"resolvedVia\"\>\nResolution strategy used by resolveNode: 'id' (exact match), 'path' (filesystem path match), or 'nearest-parent' (deepest folder whose path is a prefix of the identifier)", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "repositoryPattern" [label="Term\<\"repositoryPattern\"\>\nData access abstraction layer that separates business logic from database operations", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "serviceLayer" [label="Term\<\"serviceLayer\"\>\nBusiness logic layer that orchestrates operations between controllers and repositories", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "contextProvider" [label="Term\<\"contextProvider\"\>\nReact pattern for managing and sharing state across component tree without prop drilling", shape=diamond, fillcolor="#F0F4C3", style=filled];
@@ -846,8 +854,8 @@ digraph KnowledgeGraph {
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.lane-engine" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.node-base" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.edge-renderer" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.boundary-renderer" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.spinner" [color=grey, style=dashed];
-  "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.detail-panel" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.node-tooltip" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.code-tooltip" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "lruChunkCache" [color=grey, style=dashed];
@@ -860,6 +868,7 @@ digraph KnowledgeGraph {
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.renderStructureEdges" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.BaseNodeRenderer" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.buildStructureLinks" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.renderBoundaryGroups" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.showNodeSpinner" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.removeNodeSpinner" [color=grey, style=dashed];
   "docs/src/tskb/explorer/serve.tskb.tsx" -> "explorer.server" [color=grey, style=dashed];
@@ -882,7 +891,6 @@ digraph KnowledgeGraph {
   "docs/src/tskb/explorer/explorer.tskb.tsx" -> "explorer.exportExplorer" [color=grey, style=dashed];
   "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.main" [color=grey, style=dashed];
   "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.edge-renderer" [color=grey, style=dashed];
-  "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.detail-panel" [color=grey, style=dashed];
   "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.ExplorerApp" [color=grey, style=dashed];
   "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.ExplorerApp.mount" [color=grey, style=dashed];
   "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.ExplorerApp.setupCanvas" [color=grey, style=dashed];
@@ -896,7 +904,6 @@ digraph KnowledgeGraph {
   "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.showNodeSpinner" [color=grey, style=dashed];
   "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.removeNodeSpinner" [color=grey, style=dashed];
   "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.ExplorerApp.collapseDescendants" [color=grey, style=dashed];
-  "docs/src/tskb/explorer/app.tskb.tsx" -> "explorer.spa.ExplorerApp.onSelect" [color=grey, style=dashed];
   "docs/src/tskb/core/visualization.tskb.tsx" -> "visualization.dot-generator" [color=grey, style=dashed];
   "docs/src/tskb/core/visualization.tskb.tsx" -> "core.visualization" [color=grey, style=dashed];
   "docs/src/tskb/core/visualization.tskb.tsx" -> "generateDot" [color=grey, style=dashed];
@@ -931,9 +938,11 @@ digraph KnowledgeGraph {
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.copilot-instructions" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.graph-finder" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.logger" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.resolve-node" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "tskb.cli" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "tskb.cli.commands" [color=grey, style=dashed];
   "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "tskb.cli.utils" [color=grey, style=dashed];
+  "docs/src/tskb/cli/cli-overview.tskb.tsx" -> "cli.utils.resolve-node.resolveNode" [color=grey, style=dashed];
   "docs/src/taskflow-app/main.tskb.tsx" -> "contextProvider" [color=grey, style=dashed];
   "docs/src/taskflow-app/main.tskb.tsx" -> "serviceLayer" [color=grey, style=dashed];
   "docs/src/taskflow-app/main.tskb.tsx" -> "repositoryPattern" [color=grey, style=dashed];
@@ -1025,6 +1034,7 @@ digraph KnowledgeGraph {
   "explorer.spa.main" -> "explorer.spa.lane-engine" ;
   "explorer.spa.main" -> "explorer.spa.node-base" ;
   "explorer.spa.main" -> "explorer.spa.edge-renderer" ;
+  "explorer.spa.main" -> "explorer.spa.boundary-renderer" ;
   "explorer.spa.main" -> "explorer.spa.node-tooltip" ;
   "explorer.spa.main" -> "explorer.spa.code-tooltip" ;
   "explorer.spa.node-base" -> "explorer.spa.node-tooltip" ;
@@ -1043,10 +1053,10 @@ digraph KnowledgeGraph {
   "explorer.spa.main" -> "explorer.spa.lane-engine" ;
   "explorer.spa.main" -> "explorer.spa.edge-renderer" ;
   "explorer.spa.main" -> "explorer.spa.spinner" ;
-  "explorer.spa.main" -> "explorer.spa.detail-panel" ;
   "explorer.spa.main" -> "explorer.spa.code-tooltip" ;
   "explorer.spa.main" -> "explorer.spa.node-tooltip" ;
   "explorer.spa.main" -> "explorer.spa.node-base" ;
+  "explorer.spa.main" -> "explorer.spa.boundary-renderer" ;
   "explorer.spa.loader" -> "explorer.spa.chunk-types" ;
   "explorer.spa.store" -> "explorer.spa.chunk-types" ;
   "explorer.spa.lane-engine" -> "explorer.spa.store" ;
@@ -1054,7 +1064,7 @@ digraph KnowledgeGraph {
   "explorer.spa.node-base" -> "explorer.spa.node-tooltip" ;
   "explorer.spa.edge-renderer" -> "explorer.spa.lane-engine" ;
   "explorer.spa.edge-renderer" -> "explorer.spa.node-base" ;
-  "explorer.spa.detail-panel" -> "explorer.spa.node-base" ;
+  "explorer.spa.boundary-renderer" -> "explorer.spa.lane-engine" ;
   "explorer.server" -> "cli.utils.logger" ;
   "explorer.server" -> "explorer.transform" ;
   "explorer.server" -> "graph.types" ;
@@ -1084,6 +1094,7 @@ digraph KnowledgeGraph {
   "cli.commands.pick" -> "graph.types" ;
   "cli.commands.pick" -> "cli.utils.graph-finder" ;
   "cli.commands.pick" -> "cli.utils.logger" ;
+  "cli.commands.pick" -> "cli.utils.resolve-node" ;
   "cli.commands.ls" -> "graph.types" ;
   "cli.commands.ls" -> "cli.utils.graph-finder" ;
   "cli.commands.ls" -> "cli.utils.logger" ;
@@ -1096,5 +1107,6 @@ digraph KnowledgeGraph {
   "cli.utils.skill-generator" -> "cli.utils.content-builder" ;
   "cli.utils.copilot-instructions" -> "graph.types" ;
   "cli.utils.copilot-instructions" -> "cli.utils.content-builder" ;
+  "cli.utils.resolve-node" -> "graph.types" ;
 
 }

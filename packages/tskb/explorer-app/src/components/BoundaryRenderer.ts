@@ -121,7 +121,8 @@ function buildHullPath(nodes: PositionedNode[], seed: number): string | null {
 // ─── Group assembly ───────────────────────────────────────────────────────────
 
 const STROKE = "#7c3aed";
-const FILL = "rgba(124,58,237,0.04)";
+const STROKE_OPACITY = 0.3;
+const FILL = "rgba(124,58,237,0.02)";
 
 interface BoundaryGroup {
   name: string;
@@ -163,14 +164,19 @@ function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>):
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
 
+const LABEL_FONT_SIZE = 14;
+
 /**
  * Render one <g.boundary-group> per boundary into `layer`.
+ * Labels use local coordinates and a counter-scale transform so they remain
+ * visually constant size (and readable at any zoom level).
  * Called from ExplorerApp.render() after allNodes is assembled.
  */
 export function renderBoundaryGroups(
   layer: Layer,
   nodes: PositionedNode[],
-  parentOf: Record<string, string>
+  parentOf: Record<string, string>,
+  zoomK: number
 ): void {
   const groups = buildGroups(nodes, parentOf);
 
@@ -198,38 +204,54 @@ export function renderBoundaryGroups(
     .attr("d", (d) => d.path)
     .attr("fill", FILL)
     .attr("stroke", STROKE)
+    .attr("stroke-opacity", 1)
     .attr("stroke-width", 1.5)
     .attr("stroke-dasharray", "8,5");
 
+  // Initial label setup (text content + rect size in local coords)
   merged.select<SVGGElement>(".boundary-label").each(function (d) {
     const g = d3.select(this);
     const text = g.select<SVGTextElement>("text");
     const rect = g.select<SVGRectElement>("rect");
 
     text
-      .attr("font-size", 10)
-      .attr("font-weight", "600")
+      .attr("font-size", LABEL_FONT_SIZE)
+      .attr("font-weight", "700")
       .attr("fill", STROKE)
+      .attr("fill-opacity", 1)
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle")
+      .attr("x", 0)
+      .attr("y", 0)
       .text(d.name);
 
     const textEl = text.node();
-    const textW = textEl ? textEl.getBBox().width : d.name.length * 6;
-    const PX = 5;
-    const PY = 3;
+    const textW = textEl ? textEl.getBBox().width : d.name.length * 8;
+    const PX = 6;
     const bw = textW + PX * 2;
-    const bh = 14;
+    const bh = LABEL_FONT_SIZE + 6;
 
     rect
-      .attr("x", d.labelX - bw / 2)
-      .attr("y", d.labelY - bh / 2)
+      .attr("x", -bw / 2)
+      .attr("y", -bh / 2)
       .attr("width", bw)
       .attr("height", bh)
       .attr("fill", "#ffffff")
       .attr("stroke", STROKE)
+      .attr("stroke-opacity", 1)
       .attr("stroke-width", 0.8);
-
-    text.attr("x", d.labelX).attr("y", d.labelY);
   });
+
+  // Position labels with counter-scale so they stay the same visual size
+  applyBoundaryLabelTransforms(layer, zoomK);
+}
+
+/**
+ * Updates only the label transforms — called on every zoom tick so labels
+ * remain visually constant in size as the canvas is zoomed.
+ */
+export function applyBoundaryLabelTransforms(layer: Layer, zoomK: number): void {
+  layer
+    .selectAll<SVGGElement, BoundaryGroup>(".boundary-label")
+    .attr("transform", (d) => `translate(${d.labelX},${d.labelY}) scale(${1 / zoomK})`);
 }

@@ -2,14 +2,7 @@ import * as d3 from "d3";
 import type { PositionedNode, NodeType } from "../../types";
 import { NODE_SIZES } from "../../layout/lane-engine";
 import { showNodeTooltip, moveNodeTooltip, hideNodeTooltip } from "../../ui/NodeTooltip";
-import {
-  EyeIcon,
-  MinusIcon,
-  ArrowUpLeftIcon,
-  ArrowUpRightIcon,
-  appendIcon,
-  replaceIcon,
-} from "../../ui/icons";
+import { EyeIcon, MinusIcon, replaceIcon } from "../../ui/icons";
 
 // ─── Shared style maps ────────────────────────────────────────────────────────
 
@@ -60,15 +53,6 @@ export type IsExpandedFn = (node: PositionedNode) => boolean;
 
 export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void;
 
-export interface RelationHandlers {
-  hasIncoming: (node: PositionedNode) => boolean;
-  hasOutgoing: (node: PositionedNode) => boolean;
-  isIncomingOpen: (node: PositionedNode) => boolean;
-  isOutgoingOpen: (node: PositionedNode) => boolean;
-  onToggleIncoming: (node: PositionedNode) => void;
-  onToggleOutgoing: (node: PositionedNode) => void;
-}
-
 // ─── BaseNodeRenderer ────────────────────────────────────────────────────────
 
 /**
@@ -88,13 +72,13 @@ export class BaseNodeRenderer implements NodeComponent {
     protected onTraceLinks: TraceLinkHandler,
     protected hasChildren: HasChildrenFn,
     protected isExpanded: IsExpandedFn,
-    protected onCodePreview?: CodePreviewHandler,
-    protected relations?: RelationHandlers
+    protected onCodePreview?: CodePreviewHandler
   ) {}
 
   getSize(node: PositionedNode): { w: number; h: number } {
-    if (node.detail._ghost === "true" && node.type === "folder") {
-      return { w: 130, h: 38 };
+    if (node.detail._ghost === "true") {
+      const base = NODE_SIZES[node.type] ?? NODE_SIZES.module;
+      return { w: Math.min(base.w, 130), h: 28 };
     }
     return NODE_SIZES[node.type] ?? NODE_SIZES.module;
   }
@@ -252,54 +236,6 @@ export class BaseNodeRenderer implements NodeComponent {
     // Icon placeholder — replaced on each update() with Eye or Minus
     expandG.append("g").attr("class", "lucide-icon");
 
-    // Incoming relations bubble — bottom-right corner, half outside bottom edge
-    const incomingG = g
-      .append("g")
-      .attr("class", "node-incoming-btn")
-      .style("cursor", "pointer")
-      .on("click", (event, d) => {
-        event.stopPropagation();
-        this.relations?.onToggleIncoming(d);
-      })
-      .on("mouseenter", function (_, d) {
-        if (d3.select(this).attr("data-active") === "true") return;
-        const c = NODE_COLORS[d.type];
-        d3.select(this).select("circle").attr("fill", c);
-        d3.select(this).select(".lucide-icon").attr("stroke", "#ffffff");
-      })
-      .on("mouseleave", function (_, d) {
-        if (d3.select(this).attr("data-active") === "true") return;
-        const c = NODE_COLORS[d.type];
-        d3.select(this).select("circle").attr("fill", "#ffffff");
-        d3.select(this).select(".lucide-icon").attr("stroke", c);
-      });
-    incomingG.append("circle").attr("r", 9).attr("stroke-width", 1.5).attr("fill", "#ffffff");
-    incomingG.append("g").attr("class", "lucide-icon");
-
-    // Outgoing relations bubble — top-right corner, half outside top edge
-    const outgoingG = g
-      .append("g")
-      .attr("class", "node-outgoing-btn")
-      .style("cursor", "pointer")
-      .on("click", (event, d) => {
-        event.stopPropagation();
-        this.relations?.onToggleOutgoing(d);
-      })
-      .on("mouseenter", function (_, d) {
-        if (d3.select(this).attr("data-active") === "true") return;
-        const c = NODE_COLORS[d.type];
-        d3.select(this).select("circle").attr("fill", c);
-        d3.select(this).select(".lucide-icon").attr("stroke", "#ffffff");
-      })
-      .on("mouseleave", function (_, d) {
-        if (d3.select(this).attr("data-active") === "true") return;
-        const c = NODE_COLORS[d.type];
-        d3.select(this).select("circle").attr("fill", "#ffffff");
-        d3.select(this).select(".lucide-icon").attr("stroke", c);
-      });
-    outgoingG.append("circle").attr("r", 9).attr("stroke-width", 1.5).attr("fill", "#ffffff");
-    outgoingG.append("g").attr("class", "lucide-icon");
-
     this.update(g);
   }
 
@@ -327,7 +263,7 @@ export class BaseNodeRenderer implements NodeComponent {
         .attr("height", h)
         .attr("stroke", isGhost ? "#cbd5e1" : color)
         .attr("stroke-dasharray", isGhost ? "5,3" : "none")
-        .attr("fill", isGhost ? "transparent" : "#ffffff")
+        .attr("fill", "#ffffff")
         .style("opacity", isGhost ? "0.55" : "1");
 
       // Ghost nodes: hide all content elements and anchors
@@ -339,8 +275,6 @@ export class BaseNodeRenderer implements NodeComponent {
       el.select(".node-preview-btn").style("display", "none");
 
       if (isGhost) {
-        el.select(".node-incoming-btn").style("display", "none");
-        el.select(".node-outgoing-btn").style("display", "none");
         el.select(".node-boundary-badge").style("display", "none");
         const maxChars = Math.floor((w - 12) / 5.5);
         el.select(".node-label")
@@ -482,49 +416,6 @@ export class BaseNodeRenderer implements NodeComponent {
           expandIcon,
           10,
           color
-        );
-      }
-
-      // Incoming relations bubble — bottom-right corner, half outside bottom edge
-      const rel = component.relations;
-      const incomingG = el.select<SVGGElement>(".node-incoming-btn");
-      const showIncoming = !isGhost && !!rel && rel.hasIncoming(d);
-      incomingG.style("display", showIncoming ? "block" : "none");
-      if (showIncoming && rel) {
-        const inOpen = rel.isIncomingOpen(d);
-        incomingG
-          .attr("transform", `translate(${w},${h})`)
-          .attr("data-active", inOpen ? "true" : "false");
-        incomingG
-          .select("circle")
-          .attr("stroke", color)
-          .attr("fill", inOpen ? color : "#ffffff");
-        replaceIcon(
-          incomingG as unknown as d3.Selection<SVGGElement, unknown, null, undefined>,
-          ArrowUpLeftIcon,
-          10,
-          inOpen ? "#ffffff" : color
-        );
-      }
-
-      // Outgoing relations bubble — top-right corner, half outside top edge
-      const outgoingG = el.select<SVGGElement>(".node-outgoing-btn");
-      const showOutgoing = !isGhost && !!rel && rel.hasOutgoing(d);
-      outgoingG.style("display", showOutgoing ? "block" : "none");
-      if (showOutgoing && rel) {
-        const outOpen = rel.isOutgoingOpen(d);
-        outgoingG
-          .attr("transform", `translate(${w},0)`)
-          .attr("data-active", outOpen ? "true" : "false");
-        outgoingG
-          .select("circle")
-          .attr("stroke", color)
-          .attr("fill", outOpen ? color : "#ffffff");
-        replaceIcon(
-          outgoingG as unknown as d3.Selection<SVGGElement, unknown, null, undefined>,
-          ArrowUpRightIcon,
-          10,
-          outOpen ? "#ffffff" : color
         );
       }
     });

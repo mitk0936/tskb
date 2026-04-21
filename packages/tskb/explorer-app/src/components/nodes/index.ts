@@ -5,7 +5,6 @@ import {
   type TraceLinkHandler,
   type CodePreviewHandler,
   type IsExpandedFn,
-  type RelationHandlers,
   type NodeComponent,
 } from "./base";
 import type { PositionedNode } from "../../types";
@@ -22,8 +21,7 @@ export function createNodeRenderer(
   onTraceLinks: TraceLinkHandler,
   hasChildren: (node: PositionedNode) => boolean,
   isExpanded: (node: PositionedNode) => boolean,
-  onCodePreview?: CodePreviewHandler,
-  relations?: RelationHandlers
+  onCodePreview?: CodePreviewHandler
 ): NodeComponent {
   return new BaseNodeRenderer(
     onExpand,
@@ -31,7 +29,6 @@ export function createNodeRenderer(
     onTraceLinks,
     hasChildren,
     isExpanded,
-    onCodePreview,
-    relations
+    onCodePreview
   );
 }

@@ -86,12 +86,42 @@ declare global {
         desc: "CLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })";
         type: typeof import("packages/tskb/src/cli/utils/logger.js");
       }>;
+
+      "cli.utils.resolve-node": Module<{
+        desc: "Node resolution utility — resolves any identifier (ID or path) to a graph node, and provides edge helpers for finding parents, referencing docs, and splitting incoming/outgoing edges";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js");
+      }>;
     }
 
     interface Exports {
       "cli.build.ExtractConfig": Export<{
         desc: "Configuration interface for the build command containing glob pattern and tsconfig path";
         type: import("packages/tskb/src/cli/commands/build.js").ExtractConfig;
+      }>;
+
+      "cli.utils.resolve-node.resolveNode": Export<{
+        desc: "Three-step resolution: exact ID match → path match → nearest parent folder. Returns ResolvedNode with the matched node and which strategy succeeded, or null";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").resolveNode;
+      }>;
+
+      "cli.utils.resolve-node.getNodeEdges": Export<{
+        desc: "Splits all graph edges into incoming and outgoing arrays for a given node ID";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").getNodeEdges;
+      }>;
+
+      "cli.utils.resolve-node.findReferencingDocs": Export<{
+        desc: "Returns DocRef array of doc nodes that reference a given node via 'references' edges";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").findReferencingDocs;
+      }>;
+
+      "cli.utils.resolve-node.findParent": Export<{
+        desc: "Finds the parent folder or module of a node by traversing 'belongs-to' (outgoing) or 'contains' (incoming) edges";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").findParent;
+      }>;
+
+      "cli.utils.resolve-node.findAllNodesById": Export<{
+        desc: "Finds all nodes matching an ID across every type dictionary — returns multiple matches when different types share the same ID";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").findAllNodesById;
       }>;
     }
 
@@ -102,6 +132,7 @@ declare global {
       folderIdNavigation: Term<"Navigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths">;
       tskbOutputDir: Term<"The .tskb/ directory containing all build outputs: graph.json and graph.dot">;
       tskbInit: Term<"Interactive scaffolder command that creates docs folder, tsconfig, starter doc, package.json script, and opt-in AI integration directories">;
+      resolvedVia: Term<"Resolution strategy used by resolveNode: 'id' (exact match), 'path' (filesystem path match), or 'nearest-parent' (deepest folder whose path is a prefix of the identifier)">;
     }
   }
 }
@@ -121,6 +152,8 @@ const SkillGenModule = ref as tskb.Modules["cli.utils.skill-generator"];
 const CopilotGenModule = ref as tskb.Modules["cli.utils.copilot-instructions"];
 const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
 const LoggerModule = ref as tskb.Modules["cli.utils.logger"];
+const ResolveNodeModule = ref as tskb.Modules["cli.utils.resolve-node"];
+const ResolveNodeFn = ref as tskb.Exports["cli.utils.resolve-node.resolveNode"];
 
 export default (
   <Doc explains="CLI structure: commands (init, build, search, pick, context, ls, docs, flows) and utils (output generators, content builder, logger)">
@@ -162,6 +195,11 @@ export default (
       <Li>
         {LoggerModule}: Stderr-only logger with info/verbose/error/time — configured once at startup
         via --verbose flag
+      </Li>
+      <Li>
+        {ResolveNodeModule}: Resolves any identifier to a graph node via {ResolveNodeFn} (exact ID →
+        path → nearest parent folder). Also provides edge helpers: getNodeEdges,
+        findReferencingDocs, findParent, findAllNodesById.
       </Li>
     </List>
   </Doc>

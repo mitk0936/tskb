@@ -9,6 +9,9 @@ import {
   renderLaneBands,
   buildRelationLinks,
   renderRelationEdges,
+  renderRelationEndpoints,
+  type StructureLink,
+  type RelationLink,
 } from "./components/edges/EdgeRenderer";
 import {
   showGlobalSpinner,
@@ -16,12 +19,11 @@ import {
   showNodeSpinner,
   removeNodeSpinner,
 } from "./ui/Spinner";
-import { mountDetailPanel } from "./ui/DetailPanel";
 import { mountCodeTooltip, toggleCodeTooltip, updateCodeTooltipTransform } from "./ui/CodeTooltip";
 import { mountNodeTooltip, updateNodeTooltipTransform } from "./ui/NodeTooltip";
 import type { PositionedNode } from "./types";
-import type { NodeComponent, RelationHandlers } from "./components/nodes/base";
-import { renderBoundaryGroups } from "./components/BoundaryRenderer";
+import type { NodeComponent } from "./components/nodes/base";
+import { renderBoundaryGroups, applyBoundaryLabelTransforms } from "./components/BoundaryRenderer";
 
 type Layer = d3.Selection<SVGGElement, unknown, null, undefined>;
 
@@ -37,8 +39,7 @@ export class ExplorerApp {
   private expanded = new Set<string>();
   private selected: PositionedNode | null = null;
   private searchQuery = "";
-  private relationsIncoming = new Set<string>();
-  private relationsOutgoing = new Set<string>();
+  private zoomK = 1;
 
   // Canvas layers — assigned during mount()
   private svgEl!: SVGSVGElement;
@@ -49,8 +50,8 @@ export class ExplorerApp {
   private edgeLayer!: Layer;
   private relationEdgeLayer!: Layer;
   private nodeLayer!: Layer;
+  private relationEndLayer!: Layer;
   private renderer!: NodeComponent;
-  private detailPanel!: ReturnType<typeof mountDetailPanel>;
 
   async mount(): Promise<void> {
     this.setupCanvas();
@@ -75,6 +76,9 @@ export class ExplorerApp {
       .append("g")
       .attr("class", "relation-edge-layer") as unknown as Layer;
     this.nodeLayer = zoomLayer.append("g").attr("class", "node-layer") as unknown as Layer;
+    this.relationEndLayer = zoomLayer
+      .append("g")
+      .attr("class", "relation-end-layer") as unknown as Layer;
 
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
@@ -82,9 +86,11 @@ export class ExplorerApp {
       .on("zoom", (event) => {
         zoomLayer.attr("transform", event.transform);
         const { k, x, y } = event.transform;
+        this.zoomK = k;
         const rect = this.svgEl.getBoundingClientRect();
         updateCodeTooltipTransform({ k, x, y }, rect);
         updateNodeTooltipTransform({ k, x, y }, rect);
+        applyBoundaryLabelTransforms(this.boundaryLayer, k);
       });
 
     svg.call(zoom).on("dblclick.zoom", null);
@@ -92,10 +98,6 @@ export class ExplorerApp {
 
     this.svg = svg;
     this.zoom = zoom;
-
-    this.detailPanel = mountDetailPanel(() => {
-      this.selected = null;
-    });
   }
 
   private setupTooltips(): void {
@@ -106,55 +108,6 @@ export class ExplorerApp {
   private setupRenderer(): void {
     const hasChildren = (node: PositionedNode) => node.detail["_hasChildren"] === "true";
     const isExpanded = (node: PositionedNode) => this.expanded.has(node.id);
-
-    const crossEdges = () => this.store.meta?.crossEdges ?? [];
-    const relations: RelationHandlers = {
-      // source = importer (A), target = imported (B)
-      // incoming button (bottom-right) = on A: "what I import"
-      // outgoing button (top-right)    = on B: "who imports me"
-      hasIncoming: (node) =>
-        crossEdges().some(
-          (e) => (e.type === "related-to" || e.type === "imports") && e.source === node.id
-        ),
-      hasOutgoing: (node) =>
-        crossEdges().some(
-          (e) => (e.type === "related-to" || e.type === "imports") && e.target === node.id
-        ),
-      isIncomingOpen: (node) => this.relationsIncoming.has(node.id),
-      isOutgoingOpen: (node) => this.relationsOutgoing.has(node.id),
-      onToggleIncoming: (node) => {
-        if (this.relationsIncoming.has(node.id)) {
-          this.relationsIncoming.delete(node.id);
-          this.render();
-        } else {
-          this.relationsIncoming.add(node.id);
-          this.render();
-          // expand the modules that this node imports (e.source === node → reveal e.target)
-          const targets = (this.store.meta?.crossEdges ?? [])
-            .filter(
-              (e) => (e.type === "related-to" || e.type === "imports") && e.source === node.id
-            )
-            .map((e) => e.target);
-          void this.expandToReveal(targets, node.id);
-        }
-      },
-      onToggleOutgoing: (node) => {
-        if (this.relationsOutgoing.has(node.id)) {
-          this.relationsOutgoing.delete(node.id);
-          this.render();
-        } else {
-          this.relationsOutgoing.add(node.id);
-          this.render();
-          // expand the modules that import this node (e.target === node → reveal e.source)
-          const sources = (this.store.meta?.crossEdges ?? [])
-            .filter(
-              (e) => (e.type === "related-to" || e.type === "imports") && e.target === node.id
-            )
-            .map((e) => e.source);
-          void this.expandToReveal(sources, node.id);
-        }
-      },
-    };
 
     this.renderer = createNodeRenderer(
       (node) => this.onExpand(node),
@@ -169,8 +122,7 @@ export class ExplorerApp {
           : undefined;
         const { w } = NODE_SIZES[node.type] ?? NODE_SIZES.module;
         toggleCodeTooltip(node.id, code, node.path ?? node.id, node.x + w / 2, node.y, importLines);
-      },
-      relations
+      }
     );
   }
 
@@ -220,21 +172,14 @@ export class ExplorerApp {
     // Lane backgrounds and structure edges
     const CANVAS_W = Math.max(4000, Math.max(...allNodes.map((n) => n.x + 250), 0));
     renderLaneBands(this.laneBgLayer, layout, CANVAS_W);
-    renderBoundaryGroups(this.boundaryLayer, allNodes, this.store.meta.parentOf ?? {});
+    renderBoundaryGroups(this.boundaryLayer, allNodes, this.store.meta.parentOf ?? {}, this.zoomK);
     renderStructureEdges(this.edgeLayer, buildStructureLinks(layout.structureNodes));
 
-    // Relation edges (related-to / references) — rendered above structure edges
+    // Relation edges — visible when either endpoint is expanded
     const crossEdges = this.store.meta?.crossEdges ?? [];
-    renderRelationEdges(
-      this.relationEdgeLayer,
-      buildRelationLinks(
-        allNodes,
-        crossEdges,
-        this.relationsOutgoing,
-        this.relationsIncoming,
-        buildParentLookup(this.store)
-      )
-    );
+    const relationLinks = buildRelationLinks(allNodes, crossEdges);
+    renderRelationEdges(this.relationEdgeLayer, relationLinks);
+    renderRelationEndpoints(this.relationEndLayer, relationLinks);
 
     // Search dim: compute match set once, apply as opacity
     const matchIds = this.searchQuery
@@ -281,6 +226,29 @@ export class ExplorerApp {
       .ease(d3.easeCubicOut)
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .style("opacity", (d) => (matchIds && !matchIds.has(d.id) ? "0.15" : "1"));
+
+    // Dim edges whose endpoints are not in the match set
+    this.edgeLayer
+      .selectAll<SVGPathElement, StructureLink>("path.struct-link")
+      .transition()
+      .duration(220)
+      .style("opacity", (d) =>
+        matchIds && !matchIds.has(d.sourceId) && !matchIds.has(d.targetId) ? "0.08" : "1"
+      );
+    this.relationEdgeLayer
+      .selectAll<SVGGElement, RelationLink>("g.relation-link")
+      .transition()
+      .duration(220)
+      .style("opacity", (d) =>
+        matchIds && !matchIds.has(d.source.id) && !matchIds.has(d.target.id) ? "0.08" : "1"
+      );
+    this.relationEndLayer
+      .selectAll<SVGGElement, RelationLink>("g.relation-endpoint")
+      .transition()
+      .duration(220)
+      .style("opacity", (d) =>
+        matchIds && !matchIds.has(d.source.id) && !matchIds.has(d.target.id) ? "0.08" : "1"
+      );
   }
 
   // ── Interaction handlers ─────────────────────────────────────────────────────
@@ -305,24 +273,91 @@ export class ExplorerApp {
           }
         }
         this.expanded.add(node.id);
+        // Auto-reveal links for each module that just became visible
+        const chunk = this.store.folderChunks.get(node.id);
+        if (chunk) {
+          void this.revealLinkedNodes(chunk.modules.map((m) => m.id));
+        }
         this.render();
         this.scrollToNode(node.id);
       }
     } else if (node.type === "module") {
       if (this.expanded.has(node.id)) {
         this.expanded.delete(node.id);
-        const chunk = this.store.folderChunks.get(node.parentId!);
-        if (chunk) {
-          for (const exp of chunk.exports) {
-            if (exp.parentId === node.id) this.clearRelations(exp.id);
-          }
-        }
       } else {
         this.expanded.add(node.id);
+        void this.revealLinkedNodes([node.id]);
       }
       this.render();
       this.scrollToNode(node.id);
     }
+  }
+
+  /**
+   * For each node in `sourceIds`, finds cross-edges and makes the other endpoint
+   * visible by expanding the minimal set of ancestors:
+   *   - linked node is a module  → expand its parent folder(s) only
+   *   - linked node is an export → expand its parent folder(s) + its parent module
+   * Never adds unrelated intermediate modules to `expanded`.
+   */
+  private async revealLinkedNodes(sourceIds: string[]): Promise<void> {
+    if (!this.store.meta) return;
+    const { parentOf, folderIds } = this.store.meta;
+    const folderSet = new Set(folderIds);
+    const crossEdges = this.store.meta.crossEdges ?? [];
+
+    const foldersToLoad = new Set<string>();
+    const toExpand = new Set<string>(); // only folders + direct parent modules of exports
+
+    for (const srcId of sourceIds) {
+      for (const e of crossEdges) {
+        if (e.type !== "related-to" && e.type !== "imports") continue;
+        const linkedId = e.source === srcId ? e.target : e.target === srcId ? e.source : null;
+        if (!linkedId) continue;
+
+        const directParent = parentOf[linkedId];
+        if (!directParent) continue;
+
+        if (folderSet.has(directParent)) {
+          // linked node is a module — expand its folder ancestors only
+          let cur: string | undefined = directParent;
+          while (cur) {
+            toExpand.add(cur);
+            if (folderSet.has(cur)) foldersToLoad.add(cur);
+            cur = parentOf[cur];
+          }
+        } else {
+          // linked node is an export — expand folder ancestors + direct parent module
+          toExpand.add(directParent); // parent module → makes export visible
+          let cur: string | undefined = parentOf[directParent];
+          while (cur) {
+            toExpand.add(cur);
+            if (folderSet.has(cur)) foldersToLoad.add(cur);
+            cur = parentOf[cur];
+          }
+        }
+      }
+    }
+
+    for (const folderId of foldersToLoad) {
+      if (!this.store.folderChunks.has(folderId)) {
+        try {
+          const chunk = await this.loader.load("folder", folderId);
+          this.store.loadFolderChunk(chunk);
+        } catch (e) {
+          console.error("Failed to load chunk for", folderId, e);
+        }
+      }
+    }
+
+    let changed = false;
+    for (const id of toExpand) {
+      if (!this.expanded.has(id)) {
+        this.expanded.add(id);
+        changed = true;
+      }
+    }
+    if (changed) this.render();
   }
 
   /**
@@ -379,27 +414,17 @@ export class ExplorerApp {
       .call(this.zoom.translateTo, cx, cy, [rect.width / 2, rect.height / 2]);
   }
 
-  /** Recursively removes all descendants of folderId from the expanded and relation sets. */
+  /** Recursively removes all descendants of folderId from the expanded set. */
   private collapseDescendants(folderId: string): void {
     const chunk = this.store.folderChunks.get(folderId);
     if (!chunk) return;
     for (const sf of chunk.subfolders ?? []) {
       this.expanded.delete(sf.id);
-      this.clearRelations(sf.id);
       this.collapseDescendants(sf.id);
     }
     for (const mod of chunk.modules) {
       this.expanded.delete(mod.id);
-      this.clearRelations(mod.id);
-      for (const exp of chunk.exports) {
-        if (exp.parentId === mod.id) this.clearRelations(exp.id);
-      }
     }
-  }
-
-  private clearRelations(nodeId: string): void {
-    this.relationsOutgoing.delete(nodeId);
-    this.relationsIncoming.delete(nodeId);
   }
 
   private onSelect(node: PositionedNode): void {
@@ -410,11 +435,6 @@ export class ExplorerApp {
     // MVP: log — future: animated edge tracer
     console.info("[tskb explorer] trace links for:", node.id, `(${node.edgeCount} edges)`);
   }
-}
-
-/** Returns the node-id → parent-id map baked into the meta chunk at build time. */
-function buildParentLookup(store: GraphStore): Map<string, string> {
-  return new Map(Object.entries(store.meta?.parentOf ?? {}));
 }
 
 new ExplorerApp().mount();

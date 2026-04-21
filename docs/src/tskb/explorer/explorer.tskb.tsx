@@ -39,7 +39,7 @@ declare global {
       }>;
 
       "tskb.explorer.app.ui": Folder<{
-        desc: "UI shell components: global spinner, per-node spinner, detail panel, node hover tooltip, and code preview popup";
+        desc: "UI shell components: global spinner, per-node spinner, node hover tooltip, and code preview popup";
         path: "packages/tskb/explorer-app/src/ui";
       }>;
     }

@@ -4,11 +4,16 @@ import { NODE_SIZES, type LaneLayout } from "../../layout/lane-engine";
 import { NODE_COLORS } from "../nodes/base";
 
 function nodeSize(node: PositionedNode): { w: number; h: number } {
-  if (node.detail._ghost === "true" && node.type === "folder") return { w: 130, h: 38 };
+  if (node.detail._ghost === "true") {
+    const base = NODE_SIZES[node.type] ?? NODE_SIZES.module;
+    return { w: Math.min(base.w, 130), h: 28 };
+  }
   return NODE_SIZES[node.type];
 }
 
 export interface StructureLink {
+  sourceId: string;
+  targetId: string;
   sourceX: number;
   sourceY: number;
   targetX: number;
@@ -34,6 +39,8 @@ export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {
     const isGhost = node.detail._ghost === "true";
 
     links.push({
+      sourceId: parent.id,
+      targetId: node.id,
       sourceX: parent.x + parentSize.w,
       sourceY: parent.y + parentSize.h / 2,
       targetX: node.x,
@@ -102,7 +109,7 @@ export function renderLaneBands(
 
   if (layout.otherNodes.length) {
     lanes.push({
-      label: "Terms / Flows",
+      label: "Externals",
       y: layout.otherLaneY,
       h: layout.totalHeight - layout.otherLaneY,
       color: "#f1f5f9",
@@ -157,36 +164,20 @@ export interface RelationLink {
 
 /**
  * Pairs cross-edges with their positioned source and target nodes.
- * Only produces links where both ends are visible AND at least one endpoint
- * has its relations toggled open (outgoing for source, incoming for target).
- * When a node is not yet visible, the edge attaches to the nearest visible
- * ancestor found by walking up the parentOf map.
+ * Both endpoints must be directly visible (present in the nodes list).
+ * No ancestor fallback — edges appear only once both sides are rendered.
  */
 export function buildRelationLinks(
   nodes: PositionedNode[],
-  crossEdges: ExplorerLink[],
-  relationsOutgoing: ReadonlySet<string>,
-  relationsIncoming: ReadonlySet<string>,
-  parentOf: ReadonlyMap<string, string>
+  crossEdges: ExplorerLink[]
 ): RelationLink[] {
   const byId = new Map(nodes.map((n) => [n.id, n]));
-
-  function nearestVisible(id: string): PositionedNode | undefined {
-    let current: string | undefined = id;
-    while (current) {
-      const node = byId.get(current);
-      if (node) return node;
-      current = parentOf.get(current);
-    }
-    return undefined;
-  }
 
   const seen = new Set<string>();
   return crossEdges.flatMap((e) => {
     if (e.type !== "related-to" && e.type !== "imports") return [];
-    if (!relationsIncoming.has(e.source) && !relationsOutgoing.has(e.target)) return [];
-    const src = nearestVisible(e.source);
-    const tgt = nearestVisible(e.target);
+    const src = byId.get(e.source);
+    const tgt = byId.get(e.target);
     if (!src || !tgt || src.id === tgt.id) return [];
     const key = `${src.id}→${tgt.id}`;
     if (seen.has(key)) return [];
@@ -246,10 +237,12 @@ function hideRelTooltip(): void {
 }
 
 function relationTooltipText(d: RelationLink): string {
-  const prefix = d.type === "imports" ? "imports" : d.label;
-  return prefix
-    ? `${d.source.label} → ${prefix} → ${d.target.label}`
-    : `${d.source.label} → ${d.target.label}`;
+  if (d.type === "imports") {
+    return `${d.source.label} ← imports ← ${d.target.path ?? d.target.label}`;
+  }
+  const prefix = d.label;
+  const targetId = d.target.path ?? d.target.label;
+  return prefix ? `${d.source.label} → ${prefix} → ${targetId}` : `${d.source.label} → ${targetId}`;
 }
 
 /**
@@ -273,41 +266,117 @@ export function renderRelationEdges(
   const merged = entered.merge(groups);
 
   merged.each(function (d) {
-    const { sx, sy, tx, ty } = relAnchorPoints(d.source, d.target);
+    const { sx, sy, tx, ty, fromColor } = relAnchorPoints(d.source, d.target, d.type);
     d3.select(this)
       .select(".relation-path")
       .attr("stroke", "none")
-      .attr("fill", NODE_COLORS[d.target.type])
-      .attr("fill-opacity", 0.35)
+      .attr("fill", fromColor)
+      .attr("fill-opacity", 0.2)
       .attr("d", bandBubble(sx, sy, tx, ty));
   });
 
   merged
     .on("mouseenter", function (event: MouseEvent, d) {
-      d3.select(this).select(".relation-path").attr("fill-opacity", 0.75);
+      d3.select(this).select(".relation-path").attr("fill-opacity", 0.65);
       showRelTooltip(relationTooltipText(d), event.clientX, event.clientY);
     })
     .on("mousemove", function (event: MouseEvent, d) {
       showRelTooltip(relationTooltipText(d), event.clientX, event.clientY);
     })
     .on("mouseleave", function () {
-      d3.select(this).select(".relation-path").attr("fill-opacity", 0.35);
+      d3.select(this).select(".relation-path").attr("fill-opacity", 0.2);
       hideRelTooltip();
     });
 }
 
-/** Outgoing bubble (top-right) of source → ingoing bubble (bottom-center) of target. */
+/**
+ * Renders relation edge endpoint indicators (circle + arrow) in a separate layer
+ * so they appear above node cards.
+ */
+export function renderRelationEndpoints(
+  container: d3.Selection<SVGGElement, unknown, null, undefined>,
+  links: RelationLink[]
+): void {
+  const groups = container
+    .selectAll<SVGGElement, RelationLink>("g.relation-endpoint")
+    .data(links, (d) => `${d.source.id}→${d.target.id}`);
+
+  groups.exit().remove();
+
+  const entered = groups
+    .enter()
+    .append("g")
+    .attr("class", "relation-endpoint")
+    .style("pointer-events", "none");
+
+  // Source endpoint ("from"): top-right of source, arrow ↗
+  const srcEnd = entered.append("g").attr("class", "relation-end-src");
+  srcEnd.append("circle").attr("r", 9).attr("fill", "#ffffff").attr("stroke", "none");
+  srcEnd
+    .append("path")
+    .attr("class", "arrow-icon")
+    .attr("fill", "none")
+    .attr("stroke-width", 1)
+    .attr("stroke-linecap", "round");
+
+  // Target endpoint ("to"): bottom-right of target, arrow ↖
+  const tgtEnd = entered.append("g").attr("class", "relation-end-tgt");
+  tgtEnd.append("circle").attr("r", 9).attr("fill", "#ffffff").attr("stroke", "none");
+  tgtEnd
+    .append("path")
+    .attr("class", "arrow-icon")
+    .attr("fill", "none")
+    .attr("stroke-width", 1)
+    .attr("stroke-linecap", "round");
+
+  const merged = entered.merge(groups);
+
+  merged.each(function (d) {
+    const { sx, sy, tx, ty, fromColor, toColor } = relAnchorPoints(d.source, d.target, d.type);
+    const g = d3.select(this);
+
+    g.select(".relation-end-src").attr("transform", `translate(${sx},${sy})`);
+    g.select<SVGPathElement>(".relation-end-src .arrow-icon")
+      .attr("stroke", fromColor)
+      .attr("d", "M -3,3 L 3,-3 M 0.5,-3 L 3,-3 L 3,-0.5"); // ↗
+
+    g.select(".relation-end-tgt").attr("transform", `translate(${tx},${ty})`);
+    g.select<SVGPathElement>(".relation-end-tgt .arrow-icon")
+      .attr("stroke", toColor)
+      .attr("d", "M 3,3 L -3,-3 M -0.5,-3 L -3,-3 L -3,-0.5"); // ↖
+  });
+}
+
+/**
+ * Returns anchor points and endpoint colors for a relation edge.
+ * - related-to: natural direction — "from" on source, "to" on target.
+ * - imports: source=importer, target=imported. Edge flows FROM imported TO importer,
+ *   so anchors are swapped: "from" on target (imported), "to" on source (importer).
+ */
 function relAnchorPoints(
   src: PositionedNode,
-  tgt: PositionedNode
-): { sx: number; sy: number; tx: number; ty: number } {
+  tgt: PositionedNode,
+  type: RelationLink["type"]
+): { sx: number; sy: number; tx: number; ty: number; fromColor: string; toColor: string } {
   const ss = nodeSize(src);
   const ts = nodeSize(tgt);
+  if (type === "imports") {
+    return {
+      sx: tgt.x + ts.w,
+      sy: tgt.y, // "from" — top-right of imported (target)
+      tx: src.x + ss.w,
+      ty: src.y + ss.h, // "to"   — bottom-right of importer (source)
+      fromColor: NODE_COLORS[tgt.type],
+      toColor: NODE_COLORS[src.type],
+    };
+  }
   return {
-    sx: src.x + ss.w, // right edge — importer (source): bottom-right
-    sy: src.y + ss.h,
-    tx: tgt.x + ts.w, // right edge — imported (target): top-right
-    ty: tgt.y,
+    sx: src.x + ss.w,
+    sy: src.y, // "from" — top-right of source
+    tx: tgt.x + ts.w,
+    ty: tgt.y + ts.h, // "to"   — bottom-right of target
+    fromColor: NODE_COLORS[src.type],
+    toColor: NODE_COLORS[tgt.type],
   };
 }
 

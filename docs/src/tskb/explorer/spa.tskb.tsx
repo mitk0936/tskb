@@ -4,7 +4,6 @@ import {
   Doc,
   H1,
   H2,
-  H3,
   P,
   List,
   Li,
@@ -50,18 +49,18 @@ declare global {
       }>;
 
       "explorer.spa.edge-renderer": Module<{
-        desc: "buildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels";
+        desc: "buildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels; buildRelationLinks() shows cross-edges (imports / related-to) only when both endpoints are directly visible; renderRelationEdges() draws tapered filled band shapes between them";
         type: typeof import("packages/tskb/explorer-app/src/components/edges/EdgeRenderer.js");
+      }>;
+
+      "explorer.spa.boundary-renderer": Module<{
+        desc: "renderBoundaryGroups() draws a freeform dashed hull outline around all visible nodes that belong to the same architectural boundary. Hierarchy resolution: only the top-level folder carries detail.boundary; all descendants are resolved by walking parentOf. Hull is computed via d3.polygonHull, perturbed with seeded pseudo-random wobble for a stable hand-drawn look, and smoothed with curveBasisClosed.";
+        type: typeof import("packages/tskb/explorer-app/src/components/BoundaryRenderer.js");
       }>;
 
       "explorer.spa.spinner": Module<{
         desc: "Global and per-node spinner helpers: showGlobalSpinner/hideGlobalSpinner overlay a full-screen loader; showNodeSpinner/removeNodeSpinner attach a small SVG spinner next to a node while its chunk is loading";
         type: typeof import("packages/tskb/explorer-app/src/ui/Spinner.js");
-      }>;
-
-      "explorer.spa.detail-panel": Module<{
-        desc: "Slide-in detail panel mounted in the DOM outside the SVG. Shows node id, type, description, path, and all detail fields (morphology, imports, signature). Opened by onSelect, closed by ESC or the × button.";
-        type: typeof import("packages/tskb/explorer-app/src/ui/DetailPanel.js");
       }>;
 
       "explorer.spa.node-tooltip": Module<{
@@ -106,6 +105,11 @@ declare global {
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/base.js").BaseNodeRenderer;
       }>;
 
+      "explorer.spa.renderBoundaryGroups": Export<{
+        desc: "Renders one <g.boundary-group> per boundary into the provided SVG layer. Boundary membership is resolved by walking parentOf from each visible node upward until a node with detail.boundary is found. Uses d3.polygonHull with seeded wobble perturbation and curveBasisClosed for a stable freeform outline. pointer-events: none on all elements.";
+        type: typeof import("packages/tskb/explorer-app/src/components/BoundaryRenderer.js").renderBoundaryGroups;
+      }>;
+
       "explorer.spa.showNodeSpinner": Export<{
         desc: "Appends a small animated SVG ring at a given (x, y) position inside the node canvas layer. Returns the SVG group element so the caller can remove it via removeNodeSpinner.";
         type: typeof import("packages/tskb/explorer-app/src/ui/Spinner.js").showNodeSpinner;
@@ -128,8 +132,9 @@ const StoreModule = ref as tskb.Modules["explorer.spa.store"];
 const LaneEngineModule = ref as tskb.Modules["explorer.spa.lane-engine"];
 const NodeBaseModule = ref as tskb.Modules["explorer.spa.node-base"];
 const EdgeRendererModule = ref as tskb.Modules["explorer.spa.edge-renderer"];
+const BoundaryRendererModule = ref as tskb.Modules["explorer.spa.boundary-renderer"];
+const RenderBoundaryGroupsExport = ref as tskb.Exports["explorer.spa.renderBoundaryGroups"];
 const SpinnerModule = ref as tskb.Modules["explorer.spa.spinner"];
-const DetailPanelModule = ref as tskb.Modules["explorer.spa.detail-panel"];
 const NodeTooltipModule = ref as tskb.Modules["explorer.spa.node-tooltip"];
 const CodeTooltipModule = ref as tskb.Modules["explorer.spa.code-tooltip"];
 
@@ -225,11 +230,23 @@ export default (
       reduced opacity. It also renders the labeled background bands for each lane.
     </P>
 
+    <P>
+      {BoundaryRendererModule} draws architectural boundary outlines. When a folder node carries{" "}
+      <code>detail.boundary</code>, all visible descendants (resolved by walking{" "}
+      <code>parentOf</code>) are grouped under that boundary name. {RenderBoundaryGroupsExport}{" "}
+      computes a convex hull over the bounding boxes of all member nodes, perturbs the hull points
+      with a seeded pseudo-random wobble (stable across re-renders), and smooths the result with{" "}
+      <code>d3.curveBasisClosed</code> for a hand-drawn look. The outline renders as a violet dashed
+      stroke with a near-transparent fill and a pill label at the top. All elements have{" "}
+      <code>pointer-events: none</code>.
+    </P>
+
     <Relation from={NodeBaseModule} to={LaneEngineModule} label="reads NODE_SIZES from" />
     <Relation from={EdgeRendererModule} to={LaneEngineModule} label="reads LaneLayout from" />
     <Relation from={MainModule} to={LaneEngineModule} label="calls computeLayout on each render" />
     <Relation from={MainModule} to={NodeBaseModule} label="calls enter/update on node selections" />
     <Relation from={MainModule} to={EdgeRendererModule} label="calls renderStructureEdges" />
+    <Relation from={MainModule} to={BoundaryRendererModule} label="calls renderBoundaryGroups" />
     <Relation from={MainModule} to={NodeTooltipModule} label="propagates zoom transform to" />
     <Relation from={MainModule} to={CodeTooltipModule} label="propagates zoom transform to" />
     <Relation from={NodeBaseModule} to={NodeTooltipModule} label="triggers show/hide on hover" />
@@ -241,11 +258,6 @@ export default (
       loads) and a per-node inline spinner: {ShowNodeSpinnerExport} appends an animated SVG ring at
       the node's canvas position; {RemoveNodeSpinnerExport} removes it in the <code>finally</code>{" "}
       block after the chunk fetch settles.
-    </P>
-    <P>
-      {DetailPanelModule} is a slide-in panel mounted outside the SVG. It shows all fields of the
-      selected node (id, type, description, path, morphology, imports, signature) and is opened by{" "}
-      <code>onSelect</code>, closed by ESC or the × button.
     </P>
     <P>
       {NodeTooltipModule} appears on hover, anchored to the node's right-center SVG position.{" "}
