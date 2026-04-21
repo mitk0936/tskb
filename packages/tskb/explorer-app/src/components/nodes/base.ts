@@ -1,7 +1,8 @@
 import * as d3 from "d3";
 import type { PositionedNode, NodeType } from "../../types";
-import { NODE_SIZES } from "../../layout/lane-engine";
-import { showNodeTooltip, moveNodeTooltip, hideNodeTooltip } from "../../ui/NodeTooltip";
+import { isGhost } from "../../types";
+import { NODE_SIZES, nodeSize } from "../../layout/lane-engine";
+import { showNodeTooltip, hideNodeTooltip } from "../../ui/NodeTooltip";
 import { EyeIcon, MinusIcon, replaceIcon } from "../../ui/icons";
 
 // ─── Shared style maps ────────────────────────────────────────────────────────
@@ -76,11 +77,7 @@ export class BaseNodeRenderer implements NodeComponent {
   ) {}
 
   getSize(node: PositionedNode): { w: number; h: number } {
-    if (node.detail._ghost === "true") {
-      const base = NODE_SIZES[node.type] ?? NODE_SIZES.module;
-      return { w: Math.min(base.w, 130), h: 28 };
-    }
-    return NODE_SIZES[node.type] ?? NODE_SIZES.module;
+    return nodeSize(node);
   }
 
   outgoing(node: PositionedNode) {
@@ -97,20 +94,17 @@ export class BaseNodeRenderer implements NodeComponent {
     // Node-level hover tooltip — use mouseover/mouseout (they bubble, unlike mouseenter/leave)
     // and guard with relatedTarget so we only fire at the group boundary.
     g.on("mouseover", function (event: MouseEvent, d: PositionedNode) {
-      if (d.detail._ghost === "true") return;
+      if (isGhost(d)) return;
       if (!(event.currentTarget as Element).contains(event.relatedTarget as Node)) {
         const { h } = NODE_SIZES[d.type] ?? NODE_SIZES.module;
-        showNodeTooltip(d.label, d.path, d.description, NODE_COLORS[d.type], d.x, d.y + h / 2);
+        const displayName = d.path?.split("/").pop() ?? d.label;
+        showNodeTooltip(displayName, d.path, d.description, NODE_COLORS[d.type], d.x, d.y + h / 2);
       }
-    })
-      .on("mouseout", function (event: MouseEvent) {
-        if (!(event.currentTarget as Element).contains(event.relatedTarget as Node)) {
-          hideNodeTooltip();
-        }
-      })
-      .on("mousemove", (event: MouseEvent) => {
-        moveNodeTooltip(event.clientX, event.clientY);
-      });
+    }).on("mouseout", function (event: MouseEvent) {
+      if (!(event.currentTarget as Element).contains(event.relatedTarget as Node)) {
+        hideNodeTooltip();
+      }
+    });
 
     // Card background
     g.append("rect")
@@ -121,7 +115,7 @@ export class BaseNodeRenderer implements NodeComponent {
       .attr("stroke-width", 1.5)
       .style("cursor", "pointer")
       .on("click", (_, d) => {
-        if (d.detail._ghost !== "true") this.onSelect(d);
+        this.onSelect(d);
       });
 
     // Left accent bar
@@ -155,15 +149,9 @@ export class BaseNodeRenderer implements NodeComponent {
       .attr("stroke", "#e2e8f0")
       .attr("stroke-width", 1);
 
-    // Footer chip buttons — Docs | Flows
+    // Footer chip buttons — Docs | Flows (visual placeholders)
     for (const cls of ["node-btn-docs", "node-btn-flows"]) {
-      const chip = g
-        .append("g")
-        .attr("class", cls)
-        .style("cursor", "pointer")
-        .on("click", (event) => {
-          event.stopPropagation();
-        });
+      const chip = g.append("g").attr("class", cls);
       chip.append("rect").attr("rx", 3).attr("ry", 3).attr("height", 13);
       chip
         .append("text")
@@ -256,25 +244,25 @@ export class BaseNodeRenderer implements NodeComponent {
       const TEXT_X = ICON_X + 15;
       const FOOTER_Y = h - 16;
 
-      const isGhost = d.detail._ghost === "true";
+      const ghost = isGhost(d);
 
       el.select(".node-bg")
         .attr("width", w)
         .attr("height", h)
-        .attr("stroke", isGhost ? "#cbd5e1" : color)
-        .attr("stroke-dasharray", isGhost ? "5,3" : "none")
+        .attr("stroke", ghost ? "#cbd5e1" : color)
+        .attr("stroke-dasharray", ghost ? "5,3" : "none")
         .attr("fill", "#ffffff")
-        .style("opacity", isGhost ? "0.55" : "1");
+        .style("opacity", ghost ? "0.55" : "1");
 
       // Ghost nodes: hide all content elements and anchors
-      el.select(".node-accent").style("display", isGhost ? "none" : "");
-      el.select(".node-icon").style("display", isGhost ? "none" : "");
-      el.select(".node-divider").style("display", isGhost ? "none" : "");
-      el.select(".node-btn-docs").style("display", isGhost ? "none" : "");
-      el.select(".node-btn-flows").style("display", isGhost ? "none" : "");
+      el.select(".node-accent").style("display", ghost ? "none" : "");
+      el.select(".node-icon").style("display", ghost ? "none" : "");
+      el.select(".node-divider").style("display", ghost ? "none" : "");
+      el.select(".node-btn-docs").style("display", ghost ? "none" : "");
+      el.select(".node-btn-flows").style("display", ghost ? "none" : "");
       el.select(".node-preview-btn").style("display", "none");
 
-      if (isGhost) {
+      if (ghost) {
         el.select(".node-boundary-badge").style("display", "none");
         const maxChars = Math.floor((w - 12) / 5.5);
         el.select(".node-label")

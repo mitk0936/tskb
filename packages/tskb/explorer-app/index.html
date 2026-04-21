@@ -20,6 +20,11 @@
         overflow: hidden;
         width: 100vw;
         height: 100vh;
+        user-select: none;
+      }
+
+      input {
+        user-select: text;
       }
 
       #app {
@@ -90,103 +95,6 @@
         height: calc(100vh - 44px);
       }
 
-      /* Detail panel */
-      #detail-panel {
-        position: fixed;
-        top: 44px;
-        right: 0;
-        width: 300px;
-        height: calc(100vh - 44px);
-        background: #ffffff;
-        border-left: 1px solid #e2e8f0;
-        overflow-y: auto;
-        transform: translateX(100%);
-        transition: transform 0.2s ease;
-        z-index: 90;
-      }
-      #detail-panel.open {
-        transform: translateX(0);
-      }
-
-      #detail-panel .panel-header {
-        padding: 14px 16px 10px;
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      #detail-panel .type-badge {
-        font-size: 10px;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-      }
-
-      #detail-panel .panel-title {
-        font-size: 13px;
-        font-weight: 700;
-        color: #0f172a;
-        word-break: break-all;
-      }
-
-      #detail-panel .close-btn {
-        margin-left: auto;
-        background: none;
-        border: none;
-        color: #94a3b8;
-        cursor: pointer;
-        font-size: 16px;
-        padding: 2px 4px;
-      }
-      #detail-panel .close-btn:hover {
-        color: #64748b;
-      }
-
-      #detail-panel .panel-body {
-        padding: 12px 16px;
-      }
-
-      #detail-panel .field {
-        margin-bottom: 12px;
-      }
-
-      #detail-panel .field-label {
-        font-size: 10px;
-        color: #94a3b8;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 3px;
-      }
-
-      #detail-panel .field-value {
-        font-size: 12px;
-        color: #475569;
-        line-height: 1.5;
-        word-break: break-word;
-      }
-
-      #detail-panel .field-value code {
-        background: #f1f5f9;
-        padding: 1px 4px;
-        border-radius: 3px;
-        font-family: monospace;
-        font-size: 11px;
-      }
-
-      #detail-panel .sketch-note {
-        margin-top: 16px;
-        padding: 10px 12px;
-        background: #f8fafc;
-        border-radius: 6px;
-        border: 1px dashed #cbd5e1;
-        font-size: 11px;
-        color: #94a3b8;
-        font-style: italic;
-      }
-
       /* Spinner */
       #global-spinner {
         position: fixed;
@@ -221,16 +129,6 @@
 
       <!-- SVG Canvas (injected by main.ts) -->
       <svg id="canvas"></svg>
-
-      <!-- Detail Panel -->
-      <div id="detail-panel">
-        <div class="panel-header">
-          <span class="type-badge" id="dp-type-badge"></span>
-          <span class="panel-title" id="dp-title"></span>
-          <button class="close-btn" id="dp-close">✕</button>
-        </div>
-        <div class="panel-body" id="dp-body"></div>
-      </div>
 
       <!-- Global spinner -->
       <div id="global-spinner">

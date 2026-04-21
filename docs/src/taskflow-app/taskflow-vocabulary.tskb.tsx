@@ -6,12 +6,12 @@ declare global {
       Client: Folder<{
         desc: "React frontend application with components, pages, and state management";
         path: "examples/taskflow-app/src/client";
-        boundary: "client";
+        boundary: "Sample Client";
       }>;
       Server: Folder<{
         desc: "Node.js backend API with services, controllers, and middleware";
         path: "examples/taskflow-app/src/server";
-        boundary: "server";
+        boundary: "Sample Server";
       }>;
       Shared: Folder<{
         desc: "Shared TypeScript types and utilities used by both client and server";

@@ -15,7 +15,7 @@ declare global {
       "tskb.explorer.app": Folder<{
         desc: "Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/";
         path: "packages/tskb/explorer-app";
-        boundary: "spa";
+        boundary: "TSKB Explorer SPA";
       }>;
 
       "tskb.explorer.app.components": Folder<{
@@ -48,7 +48,7 @@ declare global {
 
     interface Terms {
       knowledgeChunk: Term<"An on-demand JSON fragment of the knowledge graph. meta.json contains root folder, top-level folder summaries, docs, flows, and terms. folder-{id}.json contains modules, exports, sub-folders, and import edges for one folder.">;
-      explorerLane: Term<"A horizontal section of the explorer SVG canvas. Three lanes stack vertically: Structure (code hierarchy, d3.tree), Docs (priority-ordered horizontal list), and Terms/Flows. Each lane has a labeled background band.">;
+      explorerLane: Term<"A horizontal section of the explorer SVG canvas. Three lanes stack vertically: Structure (code hierarchy, d3.tree), Each lane has a labeled background band.">;
       nodeComponent: Term<"Interface for rendering a node type in the D3 canvas: enter() appends SVG elements, update() repositions them, anchor() returns edge connection points, getSize() returns bounding box. Implemented by BaseNodeRenderer; override per type.">;
       lruChunkCache: Term<"Bounded LRU cache inside ChunkLoader (max 50 entries). Map insertion order is used for O(1) LRU: on get, entry is deleted and re-inserted; on set overflow, oldest key is evicted. Chunks are immutable so no invalidation is needed.">;
       explorerStaticExport: Term<"Self-contained static export produced by `tskb explore --export`. Contains the pre-built SPA (index.html + hashed JS chunks) and all graph chunk JSON files. Works offline via file:// because the SPA uses relative fetch paths.">;

@@ -1,6 +1,6 @@
 // ─── CodeTooltip ─────────────────────────────────────────────────────────────
 // Click-toggled code preview popup. Opened by the <> bubble on module nodes.
-// Clicking the bubble again or anywhere outside dismisses it.
+// Closed only via the × button in the header or by clicking the bubble again.
 // Repositions itself on zoom/pan so it tracks the anchor node.
 
 let el: HTMLDivElement | null = null;
@@ -14,6 +14,9 @@ let svgRect: DOMRect | null = null;
 
 export function mountCodeTooltip(svgEl: SVGSVGElement): void {
   svgRect = svgEl.getBoundingClientRect();
+  new ResizeObserver(() => {
+    svgRect = svgEl.getBoundingClientRect();
+  }).observe(svgEl);
 
   el = document.createElement("div");
   el.id = "code-tooltip";
@@ -33,13 +36,6 @@ export function mountCodeTooltip(svgEl: SVGSVGElement): void {
     transition: "opacity 0.15s ease, transform 0.15s ease",
   });
   document.body.appendChild(el);
-
-  // Dismiss when clicking outside the tooltip
-  document.addEventListener("click", (event) => {
-    if (el && activeNodeId && !el.contains(event.target as Node)) {
-      hideCodeTooltip();
-    }
-  });
 }
 
 /**
@@ -81,17 +77,22 @@ export function toggleCodeTooltip(
   if (!el) return;
   el.innerHTML =
     `<div style="` +
-    `padding:5px 12px 5px 14px;` +
+    `padding:5px 8px 5px 14px;` +
     `background:#f8fafc;` +
     `border-bottom:1px solid #e2e8f0;` +
-    `font-size:10px;` +
-    `color:#94a3b8;` +
+    `display:flex;align-items:center;gap:8px;` +
+    `">` +
+    `<span style="` +
+    `flex:1;min-width:0;` +
+    `font-size:10px;color:#94a3b8;` +
     `font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;` +
-    `letter-spacing:0.02em;` +
-    `white-space:nowrap;` +
-    `overflow:hidden;` +
-    `text-overflow:ellipsis;` +
-    `">${escHtml(path)}</div>` +
+    `letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;` +
+    `">${escHtml(path)}</span>` +
+    `<button id="code-tooltip-close" style="` +
+    `flex-shrink:0;border:none;background:none;cursor:pointer;` +
+    `color:#94a3b8;font-size:14px;line-height:1;padding:2px 4px;border-radius:4px;` +
+    `" title="Close">×</button>` +
+    `</div>` +
     `<pre style="` +
     `margin:0;` +
     `padding:10px 16px 12px;` +
@@ -105,6 +106,8 @@ export function toggleCodeTooltip(
 
   el.style.display = "block";
   positionFromSvg();
+  const closeBtn = el.querySelector<HTMLButtonElement>("#code-tooltip-close");
+  if (closeBtn) closeBtn.onclick = () => hideCodeTooltip();
   requestAnimationFrame(() => {
     if (el) {
       el.style.opacity = "1";

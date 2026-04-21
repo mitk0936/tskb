@@ -150,13 +150,9 @@ function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>):
     if (!path) continue;
 
     const topY = Math.min(...members.map((n) => n.y));
-    const cx =
-      members.reduce((s, n) => {
-        const { w } = NODE_SIZES[n.type] ?? NODE_SIZES.module;
-        return s + n.x + w / 2;
-      }, 0) / members.length;
+    const leftX = Math.min(...members.map((n) => n.x));
 
-    groups.push({ name, nodes: members, path, labelX: cx, labelY: topY - PAD - 6 });
+    groups.push({ name, nodes: members, path, labelX: leftX - PAD, labelY: topY - PAD - 6 });
   }
 
   return groups;
@@ -219,7 +215,7 @@ export function renderBoundaryGroups(
       .attr("font-weight", "700")
       .attr("fill", STROKE)
       .attr("fill-opacity", 1)
-      .attr("text-anchor", "middle")
+      .attr("text-anchor", "start")
       .attr("dominant-baseline", "middle")
       .attr("x", 0)
       .attr("y", 0)
@@ -232,7 +228,7 @@ export function renderBoundaryGroups(
     const bh = LABEL_FONT_SIZE + 6;
 
     rect
-      .attr("x", -bw / 2)
+      .attr("x", -PX)
       .attr("y", -bh / 2)
       .attr("width", bw)
       .attr("height", bh)

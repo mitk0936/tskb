@@ -110,12 +110,12 @@ Use these boundary names and no others unless the project introduces a genuinely
 
 | Value | When to use |
 |-------|-------------|
-| `"package"` | An npm package root with its own `package.json`, published or consumed as a library |
-| `"spa"` | A browser single-page application (Vite, CRA, Next.js client bundle). Runs in the browser. |
-| `"client"` | Frontend app in a project that also has a server. Pair with `"server"`. |
-| `"server"` | Node.js (or similar) backend process. Pair with `"client"` when both exist. |
-| `"tests"` | Test suite root — the test runner is a distinct process from production code |
-| `"test-fixture"` | A self-contained project bundled inside tests to simulate a real consumer (e.g. a fixture app) |
+| `"[NAME] repository"` | A distinct git repo |
+| `"[NAME] package"` | An npm package root with its own `package.json`, published or consumed as a library |
+| `"[NAME] SPA"` | A browser single-page application (Vite, CRA, Next.js client bundle). Runs in the browser. |
+| `"[NAME] client"` | Frontend app in a project that also has a server. Pair with `"server"`. |
+| `"[NAME] server"` | Node.js (or similar) backend process. Pair with `"client"` when both exist. |
+| `"[TYPE] tests"` | Test suite root — the test runner is a distinct process from production code |
 
 **Do NOT add boundary to** architectural layers (core, cli, utils, shared types), sub-folders already inside a bounded area, or organizational groupings that have no independent runtime. If in doubt, leave it off — boundary should be rare and meaningful.
 

@@ -6,7 +6,7 @@ declare global {
       tests: Folder<{
         desc: "End-to-end test suite for the tskb CLI, using Vitest";
         path: "tests";
-        boundary: "tests";
+        boundary: "E2E tests";
       }>;
       "tests.e2e": Folder<{
         desc: "E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command";
@@ -15,7 +15,7 @@ declare global {
       "tests.e2e.fixture": Folder<{
         desc: "A small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb";
         path: "tests/e2e/fixture";
-        boundary: "test-fixture";
+        boundary: "test-fixtures";
       }>;
       "tests.e2e.fixture.src": Folder<{
         desc: "Fixture source code: models (User, Task, Project), services (Auth, Task, Project), API routes, and a logger utility";

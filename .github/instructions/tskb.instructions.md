@@ -67,12 +67,12 @@ _Snapshot from last `npm run docs` build._
 
 ## Boundaries
 
-- **client** — `examples/taskflow-app/src/client` — React frontend application with components, pages, and state management
-- **package** — `packages/tskb` — The root folder of the package, with its package.json and main npm README.md
-- **server** — `examples/taskflow-app/src/server` — Node.js backend API with services, controllers, and middleware
-- **spa** — `packages/tskb/explorer-app` — Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/
-- **test-fixture** — `tests/e2e/fixture` — A small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb
-- **tests** — `tests` — End-to-end test suite for the tskb CLI, using Vitest
+- **E2E tests** — `tests` — End-to-end test suite for the tskb CLI, using Vitest
+- **Sample Client** — `examples/taskflow-app/src/client` — React frontend application with components, pages, and state management
+- **Sample Server** — `examples/taskflow-app/src/server` — Node.js backend API with services, controllers, and middleware
+- **test-fixtures** — `tests/e2e/fixture` — A small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb
+- **TSKB Explorer SPA** — `packages/tskb/explorer-app` — Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/
+- **TSKB main package** — `packages/tskb` — The root folder of the package, with its package.json and main npm README.md
 
 ## Externals
 

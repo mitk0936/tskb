@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import type { ExplorerNode, PositionedNode, NodeType } from "../types";
+import { isGhost, hasChildren, childCount } from "../types";
 import type { GraphStore } from "../store/graph-store";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -14,6 +15,14 @@ export const NODE_SIZES: Record<NodeType, { w: number; h: number }> = {
   external: { w: 145, h: 56 },
   file: { w: 130, h: 52 },
 };
+
+export function nodeSize(node: PositionedNode): { w: number; h: number } {
+  if (isGhost(node)) {
+    const base = NODE_SIZES[node.type] ?? NODE_SIZES.module;
+    return { w: Math.min(base.w, 130), h: 28 };
+  }
+  return NODE_SIZES[node.type] ?? NODE_SIZES.module;
+}
 
 const LANE_PADDING = 40;
 const LANE_GAP = 64;
@@ -54,8 +63,8 @@ function buildFolderChildren(
 ): TreeData[] {
   return folders.map((folder) => {
     if (!expanded.has(folder.id)) {
-      const childCount = parseInt((folder.detail._childCount as string) ?? "0", 10);
-      if (childCount > 0) return { ...folder, treeChildren: makeGhostNodes(folder.id, childCount) };
+      const count = childCount(folder);
+      if (count > 0) return { ...folder, treeChildren: makeGhostNodes(folder.id, count) };
       return { ...folder };
     }
     const chunk = store.folderChunks.get(folder.id);
@@ -71,7 +80,7 @@ function buildFolderChildren(
     // Modules
     for (const mod of chunk.modules) {
       if (!expanded.has(mod.id)) {
-        if (mod.detail._hasChildren === "true") {
+        if (hasChildren(mod)) {
           const exportCount = chunk.exports.filter((e) => e.parentId === mod.id).length;
           children.push({ ...mod, treeChildren: makeGhostNodes(mod.id, exportCount, "export") });
         } else {

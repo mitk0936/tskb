@@ -124,7 +124,7 @@
         "type": "folder",
         "desc": "End-to-end test suite for the tskb CLI, using Vitest",
         "path": "tests",
-        "boundary": "tests",
+        "boundary": "E2E tests",
         "structureSummary": "2 folders",
         "children": {
           "folders": [
@@ -186,7 +186,7 @@
         "type": "folder",
         "desc": "A small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb",
         "path": "tests/e2e/fixture",
-        "boundary": "test-fixture",
+        "boundary": "test-fixtures",
         "structureSummary": "2 folders, 2 files",
         "children": {
           "folders": [
@@ -274,7 +274,7 @@
         "type": "folder",
         "desc": "The root folder of the package, with its package.json and main npm README.md",
         "path": "packages/tskb",
-        "boundary": "package",
+        "boundary": "TSKB main package",
         "structureSummary": "4 folders, 5 files",
         "children": {
           "folders": [
@@ -464,7 +464,7 @@
         "type": "folder",
         "desc": "Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/",
         "path": "packages/tskb/explorer-app",
-        "boundary": "spa",
+        "boundary": "TSKB Explorer SPA",
         "structureSummary": "1 folder, 4 files",
         "children": {
           "folders": [
@@ -487,7 +487,7 @@
             }
           ]
         },
-        "edgeCount": 8
+        "edgeCount": 9
       },
       "tskb.explorer.app.components": {
         "id": "tskb.explorer.app.components",
@@ -578,7 +578,7 @@
         "type": "folder",
         "desc": "UI shell components: global spinner, per-node spinner, node hover tooltip, and code preview popup",
         "path": "packages/tskb/explorer-app/src/ui",
-        "structureSummary": "4 files",
+        "structureSummary": "5 files",
         "children": {
           "folders": [],
           "files": [
@@ -599,6 +599,9 @@
               "name": "Spinner.ts",
               "nodeId": "explorer.spa.spinner",
               "desc": "Global and per-node spinner helpers: showGlobalSpinner/hideGlobalSpinner overlay a full-screen loader; showNodeSpinner/removeNodeSpinner attach a small SVG spinner next to a node while its chunk is loading"
+            },
+            {
+              "name": "Toast.ts"
             }
           ]
         },
@@ -790,7 +793,7 @@
         "type": "folder",
         "desc": "React frontend application with components, pages, and state management",
         "path": "examples/taskflow-app/src/client",
-        "boundary": "client",
+        "boundary": "Sample Client",
         "structureSummary": "5 folders, 2 files",
         "children": {
           "folders": [
@@ -836,7 +839,7 @@
         "type": "folder",
         "desc": "Node.js backend API with services, controllers, and middleware",
         "path": "examples/taskflow-app/src/server",
-        "boundary": "server",
+        "boundary": "Sample Server",
         "structureSummary": "4 folders",
         "children": {
           "folders": [
@@ -1668,42 +1671,45 @@
         "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
         "morphologySummary": "1 class, 1 type",
         "morphology": [
-          "export class ExplorerApp { // :34-438",
+          "export class ExplorerApp { // :34-443",
           "  private readonly loader: any // :35",
           "  private readonly store: any // :36",
           "  private expanded: Set<string> // :39",
           "  private selected: any // :40",
           "  private searchQuery: string // :41",
           "  private zoomK: number // :42",
-          "  private svgEl: SVGSVGElement // :45",
-          "  private svg: Selection<SVGSVGElement, unknown, null, undefined> // :46",
-          "  private zoom: ZoomBehavior<SVGSVGElement, unknown> // :47",
-          "  private laneBgLayer: Layer // :48",
-          "  private boundaryLayer: Layer // :49",
-          "  private edgeLayer: Layer // :50",
-          "  private relationEdgeLayer: Layer // :51",
-          "  private nodeLayer: Layer // :52",
-          "  private relationEndLayer: Layer // :53",
-          "  private renderer: NodeComponent // :54",
-          "  mount(): Promise<void> {} // :56-63",
-          "  private setupCanvas(): void {} // :67-101",
-          "  private setupTooltips(): void {} // :103-106",
-          "  private setupRenderer(): void {} // :108-127",
-          "  private setupSearch(): void {} // :129-135",
-          "  private loadInitialData(): Promise<void> {} // :137-155",
-          "  private render(): void {} // :159-252",
-          "  private onExpand(node: PositionedNode): Promise<void> {} // :256-294",
-          "  private revealLinkedNodes(sourceIds: string[]): Promise<void> {} // :303-361",
-          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :367-398",
-          "  private scrollToNode(nodeId: string): void {} // :401-415",
-          "  private collapseDescendants(folderId: string): void {} // :418-428",
-          "  private onSelect(node: PositionedNode): void {} // :430-432",
-          "  private onTraceLinks(node: PositionedNode): void {} // :434-437",
+          "  private cachedLayout: any // :45",
+          "  private layoutDirty: boolean // :46",
+          "  private svgEl: SVGSVGElement // :49",
+          "  private svg: Selection<SVGSVGElement, unknown, null, undefined> // :50",
+          "  private zoom: ZoomBehavior<SVGSVGElement, unknown> // :51",
+          "  private laneBgLayer: Layer // :52",
+          "  private boundaryLayer: Layer // :53",
+          "  private edgeLayer: Layer // :54",
+          "  private relationEdgeLayer: Layer // :55",
+          "  private nodeLayer: Layer // :56",
+          "  private relationEndLayer: Layer // :57",
+          "  private renderer: NodeComponent // :58",
+          "  mount(): Promise<void> {} // :60-70",
+          "  private setupCanvas(): void {} // :74-108",
+          "  private setupTooltips(): void {} // :110-113",
+          "  private setupRenderer(): void {} // :115-133",
+          "  private setupSearch(): void {} // :135-141",
+          "  private loadInitialData(): Promise<void> {} // :143-161",
+          "  private render(): void {} // :165-245",
+          "  private onExpand(node: PositionedNode): Promise<void> {} // :249-290",
+          "  private revealLinkedNodes(sourceIds: string[]): Promise<void> {} // :299-351",
+          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :357-381",
+          "  private fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {} // :384-399",
+          "  private scrollToNode(nodeId: string): void {} // :402-416",
+          "  private collapseDescendants(folderId: string): void {} // :419-429",
+          "  private onSelect(node: PositionedNode): void {} // :431-437",
+          "  private onTraceLinks(node: PositionedNode): void {} // :439-442",
           "}",
           "// — internal —",
           "type Layer = d3.Selection<SVGGElement, unknown, null, undefined> // :28"
         ],
-        "importsSummary": "27 imports from 12 paths",
+        "importsSummary": "29 imports from 14 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "ChunkLoader from \"./graph/loader\"",
@@ -1711,14 +1717,13 @@
           "computeLayout from \"./layout/lane-engine\"",
           "NODE_SIZES from \"./layout/lane-engine\"",
           "createNodeRenderer from \"./components/nodes/index\"",
-          "buildStructureLinks from \"./components/edges/EdgeRenderer\"",
           "renderStructureEdges from \"./components/edges/EdgeRenderer\"",
           "renderLaneBands from \"./components/edges/EdgeRenderer\"",
-          "buildRelationLinks from \"./components/edges/EdgeRenderer\"",
           "renderRelationEdges from \"./components/edges/EdgeRenderer\"",
           "renderRelationEndpoints from \"./components/edges/EdgeRenderer\"",
-          "StructureLink from \"./components/edges/EdgeRenderer\"",
-          "RelationLink from \"./components/edges/EdgeRenderer\"",
+          "computeRenderState from \"./render-state\"",
+          "StructureLink from \"./render-state\"",
+          "RelationLink from \"./render-state\"",
           "showGlobalSpinner from \"./ui/Spinner\"",
           "hideGlobalSpinner from \"./ui/Spinner\"",
           "showNodeSpinner from \"./ui/Spinner\"",
@@ -1728,10 +1733,13 @@
           "updateCodeTooltipTransform from \"./ui/CodeTooltip\"",
           "mountNodeTooltip from \"./ui/NodeTooltip\"",
           "updateNodeTooltipTransform from \"./ui/NodeTooltip\"",
+          "showToast from \"./ui/Toast\"",
           "PositionedNode from \"./types\"",
+          "hasChildren from \"./types\"",
           "NodeComponent from \"./components/nodes/base\"",
           "renderBoundaryGroups from \"./components/BoundaryRenderer\"",
-          "applyBoundaryLabelTransforms from \"./components/BoundaryRenderer\""
+          "applyBoundaryLabelTransforms from \"./components/BoundaryRenderer\"",
+          "LaneLayout from \"./layout/lane-engine\""
         ],
         "importEntries": [
           {
@@ -1765,22 +1773,12 @@
             "typeOnly": false
           },
           {
-            "symbol": "buildStructureLinks",
-            "path": "./components/edges/EdgeRenderer",
-            "typeOnly": false
-          },
-          {
             "symbol": "renderStructureEdges",
             "path": "./components/edges/EdgeRenderer",
             "typeOnly": false
           },
           {
             "symbol": "renderLaneBands",
-            "path": "./components/edges/EdgeRenderer",
-            "typeOnly": false
-          },
-          {
-            "symbol": "buildRelationLinks",
             "path": "./components/edges/EdgeRenderer",
             "typeOnly": false
           },
@@ -1795,13 +1793,18 @@
             "typeOnly": false
           },
           {
+            "symbol": "computeRenderState",
+            "path": "./render-state",
+            "typeOnly": false
+          },
+          {
             "symbol": "StructureLink",
-            "path": "./components/edges/EdgeRenderer",
+            "path": "./render-state",
             "typeOnly": true
           },
           {
             "symbol": "RelationLink",
-            "path": "./components/edges/EdgeRenderer",
+            "path": "./render-state",
             "typeOnly": true
           },
           {
@@ -1850,9 +1853,19 @@
             "typeOnly": false
           },
           {
+            "symbol": "showToast",
+            "path": "./ui/Toast",
+            "typeOnly": false
+          },
+          {
             "symbol": "PositionedNode",
             "path": "./types",
             "typeOnly": true
+          },
+          {
+            "symbol": "hasChildren",
+            "path": "./types",
+            "typeOnly": false
           },
           {
             "symbol": "NodeComponent",
@@ -1868,9 +1881,14 @@
             "symbol": "applyBoundaryLabelTransforms",
             "path": "./components/BoundaryRenderer",
             "typeOnly": false
+          },
+          {
+            "symbol": "LaneLayout",
+            "path": "./layout/lane-engine",
+            "typeOnly": true
           }
         ],
-        "edgeCount": 21
+        "edgeCount": 22
       },
       "explorer.spa.chunk-types": {
         "id": "explorer.spa.chunk-types",
@@ -1988,14 +2006,15 @@
         "resolvedPath": "packages/tskb/explorer-app/src/store/graph-store.ts",
         "morphologySummary": "1 class, 1 type",
         "morphology": [
-          "export class GraphStore { // :9-33",
+          "export class GraphStore { // :9-38",
           "  meta: any // :10",
           "  folderChunks: Map<string, FolderChunk> // :11",
           "  private listeners: Set<Listener> // :13",
           "  loadMeta(meta: MetaChunk): void {} // :15-18",
           "  loadFolderChunk(chunk: FolderChunk): void {} // :20-23",
-          "  subscribe(listener: Listener) => (): void {} // :25-28",
-          "  private notifyListeners(): void {} // :30-32",
+          "  loadFolderChunks(chunks: FolderChunk[]): void {} // :25-28",
+          "  subscribe(listener: Listener) => (): void {} // :30-33",
+          "  private notifyListeners(): void {} // :35-37",
           "}",
           "// — internal —",
           "type Listener = () => void // :3"
@@ -2017,7 +2036,7 @@
             "typeOnly": true
           }
         ],
-        "edgeCount": 11
+        "edgeCount": 12
       },
       "explorer.spa.lane-engine": {
         "id": "explorer.spa.lane-engine",
@@ -2025,37 +2044,41 @@
         "desc": "computeLayout(): builds a d3.hierarchy from visible structure nodes, runs d3.tree for left-to-right positioning, then lays docs and other nodes as horizontal lists below. Collapsed folders with _childCount > 0 inject up to 4 ghost placeholder nodes so the tree reserves space for their children.",
         "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/layout/lane-engine.js\")",
         "resolvedPath": "packages/tskb/explorer-app/src/layout/lane-engine.ts",
-        "morphologySummary": "4 functions, 2 interfaces, 6 variables",
+        "morphologySummary": "5 functions, 2 interfaces, 6 variables",
         "morphology": [
-          "export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>): LaneLayout {} // :108-173",
-          "export const NODE_SIZES: Record<NodeType, { w: number; h: number; }> // :7-16",
-          "export interface LaneLayout { // :94-104",
-          "  structureNodes: PositionedNode[] // :95",
-          "  docsNodes: PositionedNode[] // :96",
-          "  otherNodes: PositionedNode[] // :97",
-          "  docsLaneY: number // :99",
-          "  otherLaneY: number // :101",
-          "  totalHeight: number // :103",
+          "export function nodeSize(node: PositionedNode): { w: number; h: number; } {} // :19-25",
+          "export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>): LaneLayout {} // :117-182",
+          "export const NODE_SIZES: Record<NodeType, { w: number; h: number; }> // :8-17",
+          "export interface LaneLayout { // :103-113",
+          "  structureNodes: PositionedNode[] // :104",
+          "  docsNodes: PositionedNode[] // :105",
+          "  otherNodes: PositionedNode[] // :106",
+          "  docsLaneY: number // :108",
+          "  otherLaneY: number // :110",
+          "  totalHeight: number // :112",
           "}",
           "// — internal —",
-          "const LANE_PADDING: 40 // :18",
-          "const LANE_GAP: 64 // :19",
-          "const LANE_HEADER_H: 28 // :20",
-          "const H_GAP: 60 // :21",
-          "const V_GAP: 18 // :22",
-          "interface TreeData { // :26-28",
-          "  treeChildren: TreeData[] | undefined // :27",
+          "const LANE_PADDING: 40 // :27",
+          "const LANE_GAP: 64 // :28",
+          "const LANE_HEADER_H: 28 // :29",
+          "const H_GAP: 60 // :30",
+          "const V_GAP: 18 // :31",
+          "interface TreeData { // :35-37",
+          "  treeChildren: TreeData[] | undefined // :36",
           "}",
-          "function buildStructureTree(store: GraphStore, expanded: ReadonlySet<string>): TreeData | null {} // :30-36",
-          "function makeGhostNodes(parentId: string, count: number, type?: NodeType): TreeData[] {} // :38-48",
-          "function buildFolderChildren(folders: ExplorerNode[], store: GraphStore, expanded: ReadonlySet<string>): TreeData[] {} // :50-90"
+          "function buildStructureTree(store: GraphStore, expanded: ReadonlySet<string>): TreeData | null {} // :39-45",
+          "function makeGhostNodes(parentId: string, count: number, type?: NodeType): TreeData[] {} // :47-57",
+          "function buildFolderChildren(folders: ExplorerNode[], store: GraphStore, expanded: ReadonlySet<string>): TreeData[] {} // :59-99"
         ],
-        "importsSummary": "5 imports from 3 paths",
+        "importsSummary": "8 imports from 3 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "ExplorerNode from \"../types\"",
           "PositionedNode from \"../types\"",
           "NodeType from \"../types\"",
+          "isGhost from \"../types\"",
+          "hasChildren from \"../types\"",
+          "childCount from \"../types\"",
           "GraphStore from \"../store/graph-store\""
         ],
         "importEntries": [
@@ -2080,12 +2103,27 @@
             "typeOnly": true
           },
           {
+            "symbol": "isGhost",
+            "path": "../types",
+            "typeOnly": false
+          },
+          {
+            "symbol": "hasChildren",
+            "path": "../types",
+            "typeOnly": false
+          },
+          {
+            "symbol": "childCount",
+            "path": "../types",
+            "typeOnly": false
+          },
+          {
             "symbol": "GraphStore",
             "path": "../store/graph-store",
             "typeOnly": true
           }
         ],
-        "edgeCount": 13
+        "edgeCount": 14
       },
       "explorer.spa.node-base": {
         "id": "explorer.spa.node-base",
@@ -2095,40 +2133,41 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
         "morphologySummary": "1 class, 1 function, 1 interface, 6 types, 2 variables",
         "morphology": [
-          "export const NODE_COLORS: Record<NodeType, string> // :9-18",
-          "export const NODE_ICON: Record<NodeType, string> // :20-29",
-          "export interface NodeComponent { // :33-44",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :35",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :37",
-          "  getSize(node: PositionedNode): { w: number; h: number; } // :39",
-          "  outgoing(node: PositionedNode): { x: number; y: number; } // :41",
-          "  ingoing(node: PositionedNode): { x: number; y: number; } // :43",
+          "export const NODE_COLORS: Record<NodeType, string> // :10-19",
+          "export const NODE_ICON: Record<NodeType, string> // :21-30",
+          "export interface NodeComponent { // :34-45",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :36",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :38",
+          "  getSize(node: PositionedNode): { w: number; h: number; } // :40",
+          "  outgoing(node: PositionedNode): { x: number; y: number; } // :42",
+          "  ingoing(node: PositionedNode): { x: number; y: number; } // :44",
           "}",
-          "export type ExpandHandler = (node: PositionedNode) => void // :48",
-          "export type SelectHandler = (node: PositionedNode) => void // :49",
-          "export type TraceLinkHandler = (node: PositionedNode) => void // :50",
-          "export type HasChildrenFn = (node: PositionedNode) => boolean // :51",
-          "export type IsExpandedFn = (node: PositionedNode) => boolean // :52",
-          "export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void // :54",
-          "export class BaseNodeRenderer { // :68-425",
-          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined) {} // :69-76",
-          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :78-84",
-          "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :86-89",
-          "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :91-94",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :96-240",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :242-424",
+          "export type ExpandHandler = (node: PositionedNode) => void // :49",
+          "export type SelectHandler = (node: PositionedNode) => void // :50",
+          "export type TraceLinkHandler = (node: PositionedNode) => void // :51",
+          "export type HasChildrenFn = (node: PositionedNode) => boolean // :52",
+          "export type IsExpandedFn = (node: PositionedNode) => boolean // :53",
+          "export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void // :55",
+          "export class BaseNodeRenderer { // :69-413",
+          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined) {} // :70-77",
+          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :79-81",
+          "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :83-86",
+          "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :88-91",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :93-228",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :230-412",
           "}",
           "// — internal —",
-          "function trunc(s: string, max: number): string {} // :429-432"
+          "function trunc(s: string, max: number): string {} // :417-420"
         ],
-        "importsSummary": "10 imports from 5 paths",
+        "importsSummary": "11 imports from 5 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "PositionedNode from \"../../types\"",
           "NodeType from \"../../types\"",
+          "isGhost from \"../../types\"",
           "NODE_SIZES from \"../../layout/lane-engine\"",
+          "nodeSize from \"../../layout/lane-engine\"",
           "showNodeTooltip from \"../../ui/NodeTooltip\"",
-          "moveNodeTooltip from \"../../ui/NodeTooltip\"",
           "hideNodeTooltip from \"../../ui/NodeTooltip\"",
           "EyeIcon from \"../../ui/icons\"",
           "MinusIcon from \"../../ui/icons\"",
@@ -2151,17 +2190,22 @@
             "typeOnly": true
           },
           {
+            "symbol": "isGhost",
+            "path": "../../types",
+            "typeOnly": false
+          },
+          {
             "symbol": "NODE_SIZES",
             "path": "../../layout/lane-engine",
             "typeOnly": false
           },
           {
-            "symbol": "showNodeTooltip",
-            "path": "../../ui/NodeTooltip",
+            "symbol": "nodeSize",
+            "path": "../../layout/lane-engine",
             "typeOnly": false
           },
           {
-            "symbol": "moveNodeTooltip",
+            "symbol": "showNodeTooltip",
             "path": "../../ui/NodeTooltip",
             "typeOnly": false
           },
@@ -2196,46 +2240,48 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts",
         "morphologySummary": "15 functions, 2 interfaces, 1 variable",
         "morphology": [
-          "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :28-54",
-          "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :59-79",
-          "export function renderLaneBands(container: Selection<SVGGElement, unknown, null, undefined>, layout: LaneLayout, canvasWidth: number): void {} // :84-154",
-          "export function buildRelationLinks(nodes: PositionedNode[], crossEdges: ExplorerLink[]): RelationLink[] {} // :170-187",
-          "export function renderRelationEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: RelationLink[]): void {} // :256-301",
-          "export function renderRelationEndpoints(container: Selection<SVGGElement, unknown, null, undefined>, links: RelationLink[]): void {} // :307-359",
-          "export interface StructureLink { // :14-23",
-          "  sourceId: string // :15",
-          "  targetId: string // :16",
-          "  sourceX: number // :17",
-          "  sourceY: number // :18",
-          "  targetX: number // :19",
-          "  targetY: number // :20",
-          "  targetType: PositionedNode // :21",
-          "  ghost: boolean | undefined // :22",
+          "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :21-47",
+          "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :52-93",
+          "export function renderLaneBands(container: Selection<SVGGElement, unknown, null, undefined>, layout: LaneLayout, canvasWidth: number): void {} // :98-168",
+          "export function buildRelationLinks(nodes: PositionedNode[], crossEdges: ExplorerLink[]): RelationLink[] {} // :184-201",
+          "export function renderRelationEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: RelationLink[]): void {} // :292-337",
+          "export function renderRelationEndpoints(container: Selection<SVGGElement, unknown, null, undefined>, links: RelationLink[]): void {} // :343-395",
+          "export interface StructureLink { // :7-16",
+          "  sourceId: string // :8",
+          "  targetId: string // :9",
+          "  sourceX: number // :10",
+          "  sourceY: number // :11",
+          "  targetX: number // :12",
+          "  targetY: number // :13",
+          "  targetType: PositionedNode // :14",
+          "  ghost: boolean | undefined // :15",
           "}",
-          "export interface RelationLink { // :158-163",
-          "  source: PositionedNode // :159",
-          "  target: PositionedNode // :160",
-          "  label: string | undefined // :161",
-          "  type: \"imports\" | \"imports-type\" | \"related-to\" // :162",
+          "export interface RelationLink { // :172-177",
+          "  source: PositionedNode // :173",
+          "  target: PositionedNode // :174",
+          "  label: string | undefined // :175",
+          "  type: \"imports\" | \"imports-type\" | \"related-to\" // :176",
           "}",
           "// — internal —",
-          "function nodeSize(node: PositionedNode): { w: number; h: number; } {} // :6-12",
-          "const relTooltipEl: HTMLDivElement | null // :191",
-          "function ensureRelTooltip(): HTMLDivElement {} // :193-217",
-          "function showRelTooltip(text: string, clientX: number, clientY: number): void {} // :219-230",
-          "function hideRelTooltip(): void {} // :232-237",
-          "function relationTooltipText(d: RelationLink): string {} // :239-249",
-          "function relAnchorPoints(src: PositionedNode, tgt: PositionedNode, type: \"imports\" | \"imports-type\" | \"related-to\"): { sx: number; sy: number; tx: number; ty: number; fromColor: string; toColor: string; } {} // :367-392",
-          "function cubicH(sx: number, sy: number, tx: number, ty: number): string {} // :397-400",
-          "function _cubicV(sx: number, sy: number, tx: number, ty: number): string {} // :403-406",
-          "function bandBubble(sx: number, sy: number, tx: number, ty: number): string {} // :412-427"
+          "const relTooltipEl: HTMLDivElement | null // :205",
+          "function ensureRelTooltip(): HTMLDivElement {} // :207-231",
+          "function showRelTooltip(text: string, clientX: number, clientY: number): void {} // :233-244",
+          "function hideRelTooltip(): void {} // :246-251",
+          "function relImportPath(fromPath: string | undefined, toPath: string | undefined): string | null {} // :253-269",
+          "function fileName(node: PositionedNode): string {} // :271-273",
+          "function relationTooltipText(d: RelationLink): string {} // :275-285",
+          "function relAnchorPoints(src: PositionedNode, tgt: PositionedNode, type: \"imports\" | \"imports-type\" | \"related-to\"): { sx: number; sy: number; tx: number; ty: number; fromColor: string; toColor: string; } {} // :403-428",
+          "function cubicH(sx: number, sy: number, tx: number, ty: number): string {} // :433-436",
+          "function bandBubble(sx: number, sy: number, tx: number, ty: number): string {} // :442-457"
         ],
-        "importsSummary": "6 imports from 4 paths",
+        "importsSummary": "8 imports from 4 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "PositionedNode from \"../../types\"",
           "ExplorerLink from \"../../types\"",
+          "isGhost from \"../../types\"",
           "NODE_SIZES from \"../../layout/lane-engine\"",
+          "nodeSize from \"../../layout/lane-engine\"",
           "LaneLayout from \"../../layout/lane-engine\"",
           "NODE_COLORS from \"../nodes/base\""
         ],
@@ -2256,7 +2302,17 @@
             "typeOnly": true
           },
           {
+            "symbol": "isGhost",
+            "path": "../../types",
+            "typeOnly": false
+          },
+          {
             "symbol": "NODE_SIZES",
+            "path": "../../layout/lane-engine",
+            "typeOnly": false
+          },
+          {
+            "symbol": "nodeSize",
             "path": "../../layout/lane-engine",
             "typeOnly": false
           },
@@ -2281,8 +2337,8 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/BoundaryRenderer.ts",
         "morphologySummary": "8 functions, 1 interface, 1 type, 6 variables",
         "morphology": [
-          "export function renderBoundaryGroups(layer: Layer, nodes: PositionedNode[], parentOf: Record<string, string>, zoomK: number): void {} // :175-247",
-          "export function applyBoundaryLabelTransforms(layer: Layer, zoomK: number): void {} // :253-257",
+          "export function renderBoundaryGroups(layer: Layer, nodes: PositionedNode[], parentOf: Record<string, string>, zoomK: number): void {} // :171-243",
+          "export function applyBoundaryLabelTransforms(layer: Layer, zoomK: number): void {} // :249-253",
           "// — internal —",
           "type Layer = d3.Selection<SVGGElement, unknown, null, undefined> // :5",
           "function resolveBoundaries(nodes: PositionedNode[], parentOf: Record<string, string>): Map<string, string> {} // :13-49",
@@ -2302,8 +2358,8 @@
           "  labelX: number // :131",
           "  labelY: number // :132",
           "}",
-          "function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>): BoundaryGroup[] {} // :135-163",
-          "const LABEL_FONT_SIZE: 14 // :167"
+          "function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>): BoundaryGroup[] {} // :135-159",
+          "const LABEL_FONT_SIZE: 14 // :163"
         ],
         "importsSummary": "3 imports from 3 paths",
         "imports": [
@@ -2351,13 +2407,12 @@
         "desc": "Hover tooltip anchored to the node's right-center SVG position. Shows a coloured dot, node name, monospace path, and description. Receives updateNodeTooltipTransform() calls from main.ts on every zoom event so it repositions to track the node. Uses mouseover/mouseout bubbling with relatedTarget boundary guards to avoid flicker on child SVG elements.",
         "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/ui/NodeTooltip.js\")",
         "resolvedPath": "packages/tskb/explorer-app/src/ui/NodeTooltip.ts",
-        "morphologySummary": "7 functions, 6 variables",
+        "morphologySummary": "6 functions, 6 variables",
         "morphology": [
-          "export function mountNodeTooltip(svgEl: SVGSVGElement): void {} // :13-28",
-          "export function showNodeTooltip(label: string, path: string | undefined, description: string, color: string, svgX: number, svgY: number): void {} // :30-76",
-          "export function updateNodeTooltipTransform(transform: { k: number; x: number; y: number; }, rect: DOMRect): void {} // :79-86",
-          "export function moveNodeTooltip(_clientX: number, _clientY: number): void {} // :88-90",
-          "export function hideNodeTooltip(): void {} // :92-100",
+          "export function mountNodeTooltip(svgEl: SVGSVGElement): void {} // :13-31",
+          "export function showNodeTooltip(label: string, path: string | undefined, description: string, color: string, svgX: number, svgY: number): void {} // :33-79",
+          "export function updateNodeTooltipTransform(transform: { k: number; x: number; y: number; }, rect: DOMRect): void {} // :82-89",
+          "export function hideNodeTooltip(): void {} // :91-99",
           "// — internal —",
           "const el: HTMLDivElement | null // :5",
           "const raf: number // :6",
@@ -2365,8 +2420,8 @@
           "const anchorSvgY: number // :9",
           "const currentTransform: { k: number; x: number; y: number; } // :10",
           "const svgRect: DOMRect | null // :11",
-          "function positionFromSvg(): void {} // :104-117",
-          "function escHtml(s: string): string {} // :119-121"
+          "function positionFromSvg(): void {} // :103-116",
+          "function escHtml(s: string): string {} // :118-120"
         ],
         "edgeCount": 6
       },
@@ -2378,10 +2433,10 @@
         "resolvedPath": "packages/tskb/explorer-app/src/ui/CodeTooltip.ts",
         "morphologySummary": "9 functions, 8 variables",
         "morphology": [
-          "export function mountCodeTooltip(svgEl: SVGSVGElement): void {} // :15-43",
-          "export function updateCodeTooltipTransform(transform: { k: number; x: number; y: number; }, rect: DOMRect): void {} // :49-56",
-          "export function toggleCodeTooltip(nodeId: string, codeLines: string[], path: string, svgX: number, svgY: number, importLines?: string[] | undefined): void {} // :59-114",
-          "export function hideCodeTooltip(): void {} // :116-124",
+          "export function mountCodeTooltip(svgEl: SVGSVGElement): void {} // :15-39",
+          "export function updateCodeTooltipTransform(transform: { k: number; x: number; y: number; }, rect: DOMRect): void {} // :45-52",
+          "export function toggleCodeTooltip(nodeId: string, codeLines: string[], path: string, svgX: number, svgY: number, importLines?: string[] | undefined): void {} // :55-117",
+          "export function hideCodeTooltip(): void {} // :119-127",
           "// — internal —",
           "const el: HTMLDivElement | null // :6",
           "const activeNodeId: string | null // :7",
@@ -2389,13 +2444,13 @@
           "const anchorSvgY: number // :11",
           "const currentTransform: { k: number; x: number; y: number; } // :12",
           "const svgRect: DOMRect | null // :13",
-          "function positionFromSvg(): void {} // :128-134",
-          "function positionAt(x: number, y: number): void {} // :136-147",
-          "const KW: Set<string> // :151-200",
-          "const C: { kw: string; type: string; str: string; cmt: string; num: string; punc: string; } // :202-209",
-          "function sp(style: string, text: string): string {} // :211-213",
-          "function escHtml(s: string): string {} // :215-217",
-          "function highlight(code: string): string {} // :219-308"
+          "function positionFromSvg(): void {} // :131-137",
+          "function positionAt(x: number, y: number): void {} // :139-150",
+          "const KW: Set<string> // :154-203",
+          "const C: { kw: string; type: string; str: string; cmt: string; num: string; punc: string; } // :205-212",
+          "function sp(style: string, text: string): string {} // :214-216",
+          "function escHtml(s: string): string {} // :218-220",
+          "function highlight(code: string): string {} // :222-311"
         ],
         "edgeCount": 5
       },
@@ -2577,6 +2632,78 @@
           {
             "symbol": "KnowledgeGraph",
             "path": "../graph/types.js",
+            "typeOnly": true
+          }
+        ],
+        "edgeCount": 7
+      },
+      "explorer.spa.render-state": {
+        "id": "explorer.spa.render-state",
+        "type": "module",
+        "desc": "Pure render state — coordinator-facing boundary between application logic and D3 rendering",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/render-state.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/render-state.ts",
+        "morphologySummary": "1 function, 1 interface",
+        "morphology": [
+          "export function computeRenderState(store: GraphStore, layout: LaneLayout, searchQuery: string): RenderState {} // :26-54",
+          "export interface RenderState { // :14-20",
+          "  allNodes: PositionedNode[] // :15",
+          "  canvasW: number // :16",
+          "  structureLinks: StructureLink[] // :17",
+          "  relationLinks: RelationLink[] // :18",
+          "  matchIds: Set<string> | null // :19",
+          "}"
+        ],
+        "importsSummary": "8 imports from 4 paths",
+        "imports": [
+          "PositionedNode from \"./types\"",
+          "LaneLayout from \"./layout/lane-engine\"",
+          "NODE_SIZES from \"./layout/lane-engine\"",
+          "buildStructureLinks from \"./components/edges/EdgeRenderer\"",
+          "buildRelationLinks from \"./components/edges/EdgeRenderer\"",
+          "StructureLink from \"./components/edges/EdgeRenderer\"",
+          "RelationLink from \"./components/edges/EdgeRenderer\"",
+          "GraphStore from \"./store/graph-store\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "PositionedNode",
+            "path": "./types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "LaneLayout",
+            "path": "./layout/lane-engine",
+            "typeOnly": true
+          },
+          {
+            "symbol": "NODE_SIZES",
+            "path": "./layout/lane-engine",
+            "typeOnly": false
+          },
+          {
+            "symbol": "buildStructureLinks",
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": false
+          },
+          {
+            "symbol": "buildRelationLinks",
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": false
+          },
+          {
+            "symbol": "StructureLink",
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": true
+          },
+          {
+            "symbol": "RelationLink",
+            "path": "./components/edges/EdgeRenderer",
+            "typeOnly": true
+          },
+          {
+            "symbol": "GraphStore",
+            "path": "./store/graph-store",
             "typeOnly": true
           }
         ],
@@ -4218,7 +4345,7 @@
       "explorerLane": {
         "id": "explorerLane",
         "type": "term",
-        "desc": "A horizontal section of the explorer SVG canvas. Three lanes stack vertically: Structure (code hierarchy, d3.tree), Docs (priority-ordered horizontal list), and Terms/Flows. Each lane has a labeled background band.",
+        "desc": "A horizontal section of the explorer SVG canvas. Three lanes stack vertically: Structure (code hierarchy, d3.tree), Each lane has a labeled background band.",
         "edgeCount": 1
       },
       "nodeComponent": {
@@ -4736,14 +4863,15 @@
         "resolvedPath": "packages/tskb/explorer-app/src/store/graph-store.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class GraphStore { // :9-33",
+          "export class GraphStore { // :9-38",
           "  meta: any // :10",
           "  folderChunks: Map<string, FolderChunk> // :11",
           "  private listeners: Set<Listener> // :13",
           "  loadMeta(meta: MetaChunk): void {} // :15-18",
           "  loadFolderChunk(chunk: FolderChunk): void {} // :20-23",
-          "  subscribe(listener: Listener) => (): void {} // :25-28",
-          "  private notifyListeners(): void {} // :30-32",
+          "  loadFolderChunks(chunks: FolderChunk[]): void {} // :25-28",
+          "  subscribe(listener: Listener) => (): void {} // :30-33",
+          "  private notifyListeners(): void {} // :35-37",
           "}"
         ],
         "edgeCount": 2
@@ -4756,9 +4884,9 @@
         "resolvedPath": "packages/tskb/explorer-app/src/layout/lane-engine.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>): LaneLayout {} // :108-173"
+          "export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>): LaneLayout {} // :117-182"
         ],
-        "edgeCount": 5
+        "edgeCount": 4
       },
       "explorer.spa.buildStructureLinks": {
         "id": "explorer.spa.buildStructureLinks",
@@ -4768,7 +4896,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :28-54"
+          "export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {} // :21-47"
         ],
         "edgeCount": 4
       },
@@ -4780,7 +4908,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :59-79"
+          "export function renderStructureEdges(container: Selection<SVGGElement, unknown, null, undefined>, links: StructureLink[]): void {} // :52-93"
         ],
         "edgeCount": 4
       },
@@ -4792,13 +4920,13 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class BaseNodeRenderer { // :68-425",
-          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined) {} // :69-76",
-          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :78-84",
-          "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :86-89",
-          "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :91-94",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :96-240",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :242-424",
+          "export class BaseNodeRenderer { // :69-413",
+          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined) {} // :70-77",
+          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :79-81",
+          "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :83-86",
+          "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :88-91",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :93-228",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :230-412",
           "}"
         ],
         "edgeCount": 2
@@ -4811,7 +4939,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/BoundaryRenderer.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function renderBoundaryGroups(layer: Layer, nodes: PositionedNode[], parentOf: Record<string, string>, zoomK: number): void {} // :175-247"
+          "export function renderBoundaryGroups(layer: Layer, nodes: PositionedNode[], parentOf: Record<string, string>, zoomK: number): void {} // :171-243"
         ],
         "edgeCount": 2
       },
@@ -4892,7 +5020,7 @@
       "explorer.spa.ExplorerApp.setupCanvas": {
         "id": "explorer.spa.ExplorerApp.setupCanvas",
         "type": "export",
-        "desc": "Creates the D3 SVG layer stack (zoom-layer → lane-bg-layer / edge-layer / node-layer), configures zoom/pan with tooltip transform propagation",
+        "desc": "Creates the D3 SVG layer stack (zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer), configures zoom/pan with tooltip transform propagation.",
         "typeSignature": "InstanceType<ExplorerApp>[\"setupCanvas\"]",
         "edgeCount": 2
       },
@@ -4927,8 +5055,20 @@
       "explorer.spa.ExplorerApp.render": {
         "id": "explorer.spa.ExplorerApp.render",
         "type": "export",
-        "desc": "Called by the store subscriber or directly after UI state changes. Calls computeLayout, redraws lane bands and structure edges, then runs the D3 enter/update/exit cycle. Search dim is applied by computing a match id set and setting opacity per node.",
+        "desc": "Coordinator: calls computeLayout if the layout is dirty, delegates all pure computation to computeRenderState, then calls the D3 rendering functions in order. Contains no application logic — only orchestration.",
         "typeSignature": "InstanceType<ExplorerApp>[\"render\"]",
+        "edgeCount": 3
+      },
+      "explorer.spa.computeRenderState": {
+        "id": "explorer.spa.computeRenderState",
+        "type": "export",
+        "desc": "Pure render state computation — derives allNodes, canvasW, structureLinks, relationLinks, and matchIds from the store, layout, and search query. No D3 or DOM access. The boundary between coordinator logic and D3 rendering.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/render-state.js\").computeRenderState",
+        "resolvedPath": "packages/tskb/explorer-app/src/render-state.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function computeRenderState(store: GraphStore, layout: LaneLayout, searchQuery: string): RenderState {} // :26-54"
+        ],
         "edgeCount": 3
       },
       "explorer.spa.ExplorerApp.onExpand": {
@@ -5967,7 +6107,7 @@
           {
             "nodeId": "explorer.spa.ExplorerApp.setupCanvas",
             "order": 1,
-            "label": "Appends zoom-layer → lane-bg-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation; mounts detail panel"
+            "label": "Appends zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation"
           },
           {
             "nodeId": "explorer.spa.ExplorerApp.setupTooltips",
@@ -6016,40 +6156,45 @@
           {
             "nodeId": "explorer.spa.computeLayout",
             "order": 1,
-            "label": "computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions"
+            "label": "computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set."
+          },
+          {
+            "nodeId": "explorer.spa.computeRenderState",
+            "order": 2,
+            "label": "computeRenderState(store, layout, searchQuery): derives allNodes, canvasW, structureLinks, relationLinks, matchIds. Pure — no D3."
           },
           {
             "nodeId": "explorer.spa.edge-renderer",
-            "order": 2,
-            "label": "renderLaneBands(): draws labeled background bands for Structure, Docs, Terms/Flows lanes"
+            "order": 3,
+            "label": "renderLaneBands(): draws labeled background bands for Structure and Externals lanes"
           },
           {
             "nodeId": "explorer.spa.buildStructureLinks",
-            "order": 3,
+            "order": 4,
             "label": "buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields"
           },
           {
             "nodeId": "explorer.spa.renderStructureEdges",
-            "order": 4,
+            "order": 5,
             "label": "renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke"
           },
           {
             "nodeId": "explorer.spa.node-base",
-            "order": 5,
+            "order": 6,
             "label": "D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble"
           },
           {
             "nodeId": "explorer.spa.node-base",
-            "order": 6,
+            "order": 7,
             "label": "D3 update: renderer.update() repositions and reskins all merged nodes"
           },
           {
             "nodeId": "explorer.spa.node-base",
-            "order": 7,
+            "order": 8,
             "label": "D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes"
           }
         ],
-        "edgeCount": 8
+        "edgeCount": 9
       },
       "explorer-app-expand": {
         "id": "explorer-app-expand",
@@ -6270,7 +6415,7 @@
         "explains": "ExplorerApp class: boot sequence, render loop, and interaction handlers",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/explorer/app.tskb.tsx",
-        "content": "ExplorerApp <nodeId: explorer.spa.ExplorerApp>in <nodeId: explorer.spa.main>is the single top-level controller for the explorer SPA.\n      All canvas layers, UI state, and callbacks are owned by the class instance. The only public\n      surface is <nodeId: explorer.spa.ExplorerApp.mount>— everything else is private, wired internally via callbacks. Boot sequence <nodeId: explorer.spa.ExplorerApp.mount>runs four synchronous setup methods then awaits data. <nodeId: explorer.spa.ExplorerApp.setupCanvas>  creates the SVG layer stack and wires zoom/pan. <nodeId: explorer.spa.ExplorerApp.setupTooltips>mounts hover and code\n      tooltips. <nodeId: explorer.spa.ExplorerApp.setupRenderer>constructs the node renderer with bound interaction callbacks.   <nodeId: explorer.spa.ExplorerApp.setupSearch>wires the search input. <nodeId: explorer.spa.ExplorerApp.loadInitialData>fetches   meta.json and calls store.loadMeta() , which notifies the render\n      subscriber and triggers the first <nodeId: explorer.spa.ExplorerApp.render>. Render loop <nodeId: explorer.spa.ExplorerApp.render>is triggered by the store subscription (after loadMeta or   loadFolderChunk ) and by direct calls from interaction handlers after UI state\n      changes. It calls <nodeId: explorer.spa.computeLayout>, redraws lane bands and structure edges via   <nodeId: explorer.spa.edge-renderer>, then runs the D3 enter/update/exit cycle through the node renderer. Interaction handlers <nodeId: explorer.spa.ExplorerApp.onExpand>handles folder and module expand/collapse. For folder expand it calls   <nodeId: explorer.spa.showNodeSpinner>, fetches via the loader, calls <nodeId: explorer.spa.removeNodeSpinner>in   finally , then updates the expanded set and calls <nodeId: explorer.spa.ExplorerApp.render>. Collapse\n      delegates to <nodeId: explorer.spa.ExplorerApp.collapseDescendants>to recursively clear all descendants from the\n      expanded set. <flow name=\"explorer-app-boot\" desc=\"ExplorerApp.mount(): four setup phases then meta fetch that triggers the first render\"><step order=\"0\" nodeId=\"explorer.spa.ExplorerApp\" label=\"new ExplorerApp().mount() called on page load\" /><step order=\"1\" nodeId=\"explorer.spa.ExplorerApp.setupCanvas\" label=\"Appends zoom-layer → lane-bg-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation; mounts detail panel\" /><step order=\"2\" nodeId=\"explorer.spa.ExplorerApp.setupTooltips\" label=\"mountNodeTooltip() and mountCodeTooltip() attach DOM tooltip elements anchored to the SVG\" /><step order=\"3\" nodeId=\"explorer.spa.ExplorerApp.setupRenderer\" label=\"createNodeRenderer() wires onExpand / onSelect / onTraceLinks / hasChildren / code preview callbacks to ExplorerApp instance methods\" /><step order=\"4\" nodeId=\"explorer.spa.ExplorerApp.setupSearch\" label=\"Search input 'input' event updates searchQuery and calls render()\" /><step order=\"5\" nodeId=\"explorer.spa.ExplorerApp.loadInitialData\" label=\"loader.load('meta') fetches /chunks/meta.json; global spinner shown while pending\" /><step order=\"6\" nodeId=\"explorer.spa.store\" label=\"store.loadMeta() stores the chunk and notifies the render subscriber\" /><step order=\"7\" nodeId=\"explorer.spa.lane-engine\" label=\"First render(): computeLayout positions top-folder nodes across the Structure lane\" /></flow><flow name=\"explorer-app-render\" desc=\"ExplorerApp.render(): layout → edges → D3 enter/update/exit → search dim\"><step order=\"0\" nodeId=\"explorer.spa.ExplorerApp.render\" label=\"Triggered by store subscription or direct call from interaction handler\" /><step order=\"1\" nodeId=\"explorer.spa.computeLayout\" label=\"computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions\" /><step order=\"2\" nodeId=\"explorer.spa.edge-renderer\" label=\"renderLaneBands(): draws labeled background bands for Structure, Docs, Terms/Flows lanes\" /><step order=\"3\" nodeId=\"explorer.spa.buildStructureLinks\" label=\"buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields\" /><step order=\"4\" nodeId=\"explorer.spa.renderStructureEdges\" label=\"renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke\" /><step order=\"5\" nodeId=\"explorer.spa.node-base\" label=\"D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble\" /><step order=\"6\" nodeId=\"explorer.spa.node-base\" label=\"D3 update: renderer.update() repositions and reskins all merged nodes\" /><step order=\"7\" nodeId=\"explorer.spa.node-base\" label=\"D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes\" /></flow><flow name=\"explorer-app-expand\" desc=\"ExplorerApp.onExpand(): fetch chunk if needed, update expanded set, re-render\"><step order=\"0\" nodeId=\"explorer.spa.node-base\" label=\"User clicks + button; BaseNodeRenderer fires the onExpand callback\" /><step order=\"1\" nodeId=\"explorer.spa.ExplorerApp.onExpand\" label=\"If already expanded: collapseDescendants() clears the subtree, calls render()\" /><step order=\"2\" nodeId=\"explorer.spa.showNodeSpinner\" label=\"If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node\" /><step order=\"3\" nodeId=\"explorer.spa.loader\" label=\"loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json\" /><step order=\"4\" nodeId=\"explorer.spa.removeNodeSpinner\" label=\"removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed\" /><step order=\"5\" nodeId=\"explorer.spa.store\" label=\"store.loadFolderChunk() stores chunk and notifies subscribers\" /><step order=\"6\" nodeId=\"explorer.spa.ExplorerApp.render\" label=\"render() called after expanded set update — new nodes enter, layout recomputed\" /></flow>",
+        "content": "ExplorerApp <nodeId: explorer.spa.ExplorerApp>in <nodeId: explorer.spa.main>is the single top-level controller for the explorer SPA.\n      All canvas layers, UI state, and callbacks are owned by the class instance. The only public\n      surface is <nodeId: explorer.spa.ExplorerApp.mount>— everything else is private, wired internally via callbacks. Boot sequence <nodeId: explorer.spa.ExplorerApp.mount>runs four synchronous setup methods then awaits data. <nodeId: explorer.spa.ExplorerApp.setupCanvas>  creates the SVG layer stack and wires zoom/pan. <nodeId: explorer.spa.ExplorerApp.setupTooltips>mounts hover and code\n      tooltips. <nodeId: explorer.spa.ExplorerApp.setupRenderer>constructs the node renderer with bound interaction callbacks.   <nodeId: explorer.spa.ExplorerApp.setupSearch>wires the search input. <nodeId: explorer.spa.ExplorerApp.loadInitialData>fetches   meta.json and calls store.loadMeta() , which notifies the render\n      subscriber and triggers the first <nodeId: explorer.spa.ExplorerApp.render>. Render loop <nodeId: explorer.spa.ExplorerApp.render>is a pure coordinator: it recomputes the layout when dirty, delegates all\n      application logic to <nodeId: explorer.spa.computeRenderState>in <nodeId: explorer.spa.render-state>, then passes the result\n      straight to the D3 rendering functions. No computation happens inside <nodeId: explorer.spa.ExplorerApp.render>itself —\n      the boundary between logic and rendering is <nodeId: explorer.spa.render-state>. Interaction handlers <nodeId: explorer.spa.ExplorerApp.onExpand>handles folder and module expand/collapse. For folder expand it calls   <nodeId: explorer.spa.showNodeSpinner>, fetches via the loader, calls <nodeId: explorer.spa.removeNodeSpinner>in   finally , then updates the expanded set and calls <nodeId: explorer.spa.ExplorerApp.render>. Collapse\n      delegates to <nodeId: explorer.spa.ExplorerApp.collapseDescendants>to recursively clear all descendants from the\n      expanded set. <flow name=\"explorer-app-boot\" desc=\"ExplorerApp.mount(): four setup phases then meta fetch that triggers the first render\"><step order=\"0\" nodeId=\"explorer.spa.ExplorerApp\" label=\"new ExplorerApp().mount() called on page load\" /><step order=\"1\" nodeId=\"explorer.spa.ExplorerApp.setupCanvas\" label=\"Appends zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation\" /><step order=\"2\" nodeId=\"explorer.spa.ExplorerApp.setupTooltips\" label=\"mountNodeTooltip() and mountCodeTooltip() attach DOM tooltip elements anchored to the SVG\" /><step order=\"3\" nodeId=\"explorer.spa.ExplorerApp.setupRenderer\" label=\"createNodeRenderer() wires onExpand / onSelect / onTraceLinks / hasChildren / code preview callbacks to ExplorerApp instance methods\" /><step order=\"4\" nodeId=\"explorer.spa.ExplorerApp.setupSearch\" label=\"Search input 'input' event updates searchQuery and calls render()\" /><step order=\"5\" nodeId=\"explorer.spa.ExplorerApp.loadInitialData\" label=\"loader.load('meta') fetches /chunks/meta.json; global spinner shown while pending\" /><step order=\"6\" nodeId=\"explorer.spa.store\" label=\"store.loadMeta() stores the chunk and notifies the render subscriber\" /><step order=\"7\" nodeId=\"explorer.spa.lane-engine\" label=\"First render(): computeLayout positions top-folder nodes across the Structure lane\" /></flow><flow name=\"explorer-app-render\" desc=\"ExplorerApp.render(): layout → edges → D3 enter/update/exit → search dim\"><step order=\"0\" nodeId=\"explorer.spa.ExplorerApp.render\" label=\"Triggered by store subscription or direct call from interaction handler\" /><step order=\"1\" nodeId=\"explorer.spa.computeLayout\" label=\"computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set.\" /><step order=\"2\" nodeId=\"explorer.spa.computeRenderState\" label=\"computeRenderState(store, layout, searchQuery): derives allNodes, canvasW, structureLinks, relationLinks, matchIds. Pure — no D3.\" /><step order=\"3\" nodeId=\"explorer.spa.edge-renderer\" label=\"renderLaneBands(): draws labeled background bands for Structure and Externals lanes\" /><step order=\"4\" nodeId=\"explorer.spa.buildStructureLinks\" label=\"buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields\" /><step order=\"5\" nodeId=\"explorer.spa.renderStructureEdges\" label=\"renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke\" /><step order=\"6\" nodeId=\"explorer.spa.node-base\" label=\"D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble\" /><step order=\"7\" nodeId=\"explorer.spa.node-base\" label=\"D3 update: renderer.update() repositions and reskins all merged nodes\" /><step order=\"8\" nodeId=\"explorer.spa.node-base\" label=\"D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes\" /></flow><flow name=\"explorer-app-expand\" desc=\"ExplorerApp.onExpand(): fetch chunk if needed, update expanded set, re-render\"><step order=\"0\" nodeId=\"explorer.spa.node-base\" label=\"User clicks + button; BaseNodeRenderer fires the onExpand callback\" /><step order=\"1\" nodeId=\"explorer.spa.ExplorerApp.onExpand\" label=\"If already expanded: collapseDescendants() clears the subtree, calls render()\" /><step order=\"2\" nodeId=\"explorer.spa.showNodeSpinner\" label=\"If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node\" /><step order=\"3\" nodeId=\"explorer.spa.loader\" label=\"loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json\" /><step order=\"4\" nodeId=\"explorer.spa.removeNodeSpinner\" label=\"removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed\" /><step order=\"5\" nodeId=\"explorer.spa.store\" label=\"store.loadFolderChunk() stores chunk and notifies subscribers\" /><step order=\"6\" nodeId=\"explorer.spa.ExplorerApp.render\" label=\"render() called after expanded set update — new nodes enter, layout recomputed\" /></flow>",
         "format": "tsx",
         "edgeCount": 15
       },
@@ -6682,7 +6827,7 @@
       "from": "explorer-app-boot",
       "to": "explorer.spa.ExplorerApp.setupCanvas",
       "type": "flow-step",
-      "label": "Appends zoom-layer → lane-bg-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation; mounts detail panel"
+      "label": "Appends zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation"
     },
     {
       "from": "explorer-app-boot",
@@ -6730,13 +6875,19 @@
       "from": "explorer-app-render",
       "to": "explorer.spa.computeLayout",
       "type": "flow-step",
-      "label": "computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions"
+      "label": "computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set."
+    },
+    {
+      "from": "explorer-app-render",
+      "to": "explorer.spa.computeRenderState",
+      "type": "flow-step",
+      "label": "computeRenderState(store, layout, searchQuery): derives allNodes, canvasW, structureLinks, relationLinks, matchIds. Pure — no D3."
     },
     {
       "from": "explorer-app-render",
       "to": "explorer.spa.edge-renderer",
       "type": "flow-step",
-      "label": "renderLaneBands(): draws labeled background bands for Structure, Docs, Terms/Flows lanes"
+      "label": "renderLaneBands(): draws labeled background bands for Structure and Externals lanes"
     },
     {
       "from": "explorer-app-render",
@@ -7441,7 +7592,7 @@
     },
     {
       "from": "docs/src/tskb/explorer/app.tskb.tsx",
-      "to": "explorer.spa.edge-renderer",
+      "to": "explorer.spa.render-state",
       "type": "references"
     },
     {
@@ -7486,7 +7637,7 @@
     },
     {
       "from": "docs/src/tskb/explorer/app.tskb.tsx",
-      "to": "explorer.spa.computeLayout",
+      "to": "explorer.spa.computeRenderState",
       "type": "references"
     },
     {
@@ -8440,6 +8591,11 @@
       "type": "belongs-to"
     },
     {
+      "from": "explorer.spa.render-state",
+      "to": "tskb.explorer.app",
+      "type": "belongs-to"
+    },
+    {
       "from": "visualization.dot-generator",
       "to": "core.visualization",
       "type": "belongs-to"
@@ -8750,6 +8906,11 @@
       "type": "belongs-to"
     },
     {
+      "from": "explorer.spa.computeRenderState",
+      "to": "explorer.spa.render-state",
+      "type": "belongs-to"
+    },
+    {
       "from": "extractRegistry",
       "to": "extraction.registry",
       "type": "belongs-to"
@@ -9021,6 +9182,11 @@
     },
     {
       "from": "explorer.spa.main",
+      "to": "explorer.spa.render-state",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.main",
       "to": "explorer.spa.spinner",
       "type": "imports"
     },
@@ -9122,6 +9288,21 @@
     {
       "from": "explorer.export",
       "to": "graph.types",
+      "type": "imports-type"
+    },
+    {
+      "from": "explorer.spa.render-state",
+      "to": "explorer.spa.lane-engine",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.render-state",
+      "to": "explorer.spa.edge-renderer",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.render-state",
+      "to": "explorer.spa.store",
       "type": "imports-type"
     },
     {
@@ -9301,19 +9482,19 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-04-21T09:28:38.372Z",
+    "generatedAt": "2026-04-21T14:15:57.617Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
       "folderCount": 43,
-      "moduleCount": 45,
+      "moduleCount": 46,
       "termCount": 38,
-      "exportCount": 90,
+      "exportCount": 91,
       "fileCount": 9,
       "externalCount": 1,
       "flowCount": 14,
       "docCount": 25,
-      "edgeCount": 557
+      "edgeCount": 564
     }
   }
 }

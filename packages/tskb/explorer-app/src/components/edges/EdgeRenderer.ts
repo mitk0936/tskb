@@ -1,15 +1,8 @@
 import * as d3 from "d3";
 import type { PositionedNode, ExplorerLink } from "../../types";
-import { NODE_SIZES, type LaneLayout } from "../../layout/lane-engine";
+import { isGhost } from "../../types";
+import { NODE_SIZES, nodeSize, type LaneLayout } from "../../layout/lane-engine";
 import { NODE_COLORS } from "../nodes/base";
-
-function nodeSize(node: PositionedNode): { w: number; h: number } {
-  if (node.detail._ghost === "true") {
-    const base = NODE_SIZES[node.type] ?? NODE_SIZES.module;
-    return { w: Math.min(base.w, 130), h: 28 };
-  }
-  return NODE_SIZES[node.type];
-}
 
 export interface StructureLink {
   sourceId: string;
@@ -36,7 +29,7 @@ export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {
 
     const parentSize = nodeSize(parent);
     const childSize = nodeSize(node);
-    const isGhost = node.detail._ghost === "true";
+    const ghost = isGhost(node);
 
     links.push({
       sourceId: parent.id,
@@ -46,7 +39,7 @@ export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {
       targetX: node.x,
       targetY: node.y + childSize.h / 2,
       targetType: node.type,
-      ghost: isGhost,
+      ghost,
     });
   }
 
@@ -62,20 +55,41 @@ export function renderStructureEdges(
 ): void {
   const paths = container
     .selectAll<SVGPathElement, StructureLink>("path.struct-link")
-    .data(links, (d) => `${d.sourceX},${d.sourceY}:${d.targetX},${d.targetY}`);
+    .data(links, (d) => `${d.sourceId}→${d.targetId}`);
 
-  paths
+  paths.exit().remove();
+
+  const merged = paths
     .enter()
     .append("path")
     .attr("class", "struct-link")
     .attr("fill", "none")
     .attr("stroke-width", 1.5)
-    .merge(paths)
-    .attr("stroke", (d) => NODE_COLORS[d.targetType] + (d.ghost ? "59" : "66")) // ghost: 35%, normal: 40%
-    .attr("stroke-dasharray", (d) => (d.ghost ? "4,3" : "none"))
-    .attr("d", (d) => cubicH(d.sourceX, d.sourceY, d.targetX, d.targetY));
+    .merge(paths);
 
-  paths.exit().remove();
+  merged
+    .attr("stroke", (d) => NODE_COLORS[d.targetType] + (d.ghost ? "59" : "66"))
+    .attr("stroke-dasharray", (d) => (d.ghost ? "4,3" : "none"))
+    .transition("layout")
+    .duration(220)
+    .ease(d3.easeCubicOut)
+    .attrTween("d", function (d) {
+      const el = d3.select(this);
+      // Fall back to target coords on first render (no stored position yet)
+      const sx0 = +(el.attr("data-sx") ?? d.sourceX);
+      const sy0 = +(el.attr("data-sy") ?? d.sourceY);
+      const tx0 = +(el.attr("data-tx") ?? d.targetX);
+      const ty0 = +(el.attr("data-ty") ?? d.targetY);
+      el.attr("data-sx", d.sourceX)
+        .attr("data-sy", d.sourceY)
+        .attr("data-tx", d.targetX)
+        .attr("data-ty", d.targetY);
+      const iSx = d3.interpolateNumber(sx0, d.sourceX);
+      const iSy = d3.interpolateNumber(sy0, d.sourceY);
+      const iTx = d3.interpolateNumber(tx0, d.targetX);
+      const iTy = d3.interpolateNumber(ty0, d.targetY);
+      return (t) => cubicH(iSx(t), iSy(t), iTx(t), iTy(t));
+    });
 }
 
 /**
@@ -236,16 +250,38 @@ function hideRelTooltip(): void {
   }
 }
 
-function relationTooltipText(d: RelationLink): string {
-  if (d.type === "imports") {
-    return `${d.source.label} ← imports from ← ${d.target.path ?? d.target.label}`;
+function relImportPath(fromPath: string | undefined, toPath: string | undefined): string | null {
+  if (!fromPath || !toPath) return null;
+  const fromDir = fromPath.split("/").slice(0, -1);
+  const toParts = toPath.split("/");
+  let common = 0;
+  while (
+    common < fromDir.length &&
+    common < toParts.length &&
+    fromDir[common] === toParts[common]
+  ) {
+    common++;
   }
-  if (d.type === "imports-type") {
-    return `${d.source.label} ← imports type(s) from ← ${d.target.path ?? d.target.label}`;
+  const up = fromDir.length - common;
+  const down = toParts.slice(common);
+  const rel = [...Array(up).fill(".."), ...down].join("/");
+  return up === 0 ? `./${rel}` : rel;
+}
+
+function fileName(node: PositionedNode): string {
+  return node.path?.split("/").pop() ?? node.label;
+}
+
+function relationTooltipText(d: RelationLink): string {
+  if (d.type === "imports" || d.type === "imports-type") {
+    const typeLabel = d.type === "imports-type" ? "imports type from" : "imports from";
+    const path = relImportPath(d.source.path, d.target.path) ?? d.target.path ?? d.target.label;
+    return `${fileName(d.source)} ${typeLabel} ${path}`;
   }
   const prefix = d.label;
-  const targetId = d.target.path ?? d.target.label;
-  return prefix ? `${d.source.label} → ${prefix} → ${targetId}` : `${d.source.label} → ${targetId}`;
+  return prefix
+    ? `${fileName(d.source)} → ${prefix} → ${fileName(d.target)}`
+    : `${fileName(d.source)} → ${fileName(d.target)}`;
 }
 
 /**
@@ -397,12 +433,6 @@ function relAnchorPoints(
 function cubicH(sx: number, sy: number, tx: number, ty: number): string {
   const cx = (sx + tx) / 2;
   return `M${sx},${sy} C${cx},${sy} ${cx},${ty} ${tx},${ty}`;
-}
-
-/** Vertical cubic bezier: source on bottom, target on top */
-function _cubicV(sx: number, sy: number, tx: number, ty: number): string {
-  const cy = (sy + ty) / 2;
-  return `M${sx},${sy} C${sx},${cy} ${tx},${cy} ${tx},${ty}`;
 }
 
 /**

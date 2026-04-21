@@ -12,6 +12,9 @@ let svgRect: DOMRect | null = null;
 
 export function mountNodeTooltip(svgEl: SVGSVGElement): void {
   svgRect = svgEl.getBoundingClientRect();
+  new ResizeObserver(() => {
+    svgRect = svgEl.getBoundingClientRect();
+  }).observe(svgEl);
 
   el = document.createElement("div");
   el.id = "node-tooltip";
@@ -83,10 +86,6 @@ export function updateNodeTooltipTransform(
   currentTransform = transform;
   svgRect = rect;
   if (el && el.style.display !== "none") positionFromSvg();
-}
-
-export function moveNodeTooltip(_clientX: number, _clientY: number): void {
-  // No-op: tooltip is now anchored to the node's SVG position, not the cursor.
 }
 
 export function hideNodeTooltip(): void {

@@ -32,6 +32,11 @@ export interface ExplorerLink {
   label?: string;
 }
 
+export const isGhost = (node: ExplorerNode): boolean => node.detail._ghost === "true";
+export const hasChildren = (node: ExplorerNode): boolean => node.detail._hasChildren === "true";
+export const childCount = (node: ExplorerNode): number =>
+  parseInt((node.detail._childCount as string) ?? "0", 10);
+
 /** ExplorerNode with computed SVG x/y after layout */
 export interface PositionedNode extends ExplorerNode {
   x: number;

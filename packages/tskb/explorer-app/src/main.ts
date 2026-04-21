@@ -4,15 +4,12 @@ import { GraphStore } from "./store/graph-store";
 import { computeLayout, NODE_SIZES } from "./layout/lane-engine";
 import { createNodeRenderer } from "./components/nodes/index";
 import {
-  buildStructureLinks,
   renderStructureEdges,
   renderLaneBands,
-  buildRelationLinks,
   renderRelationEdges,
   renderRelationEndpoints,
-  type StructureLink,
-  type RelationLink,
 } from "./components/edges/EdgeRenderer";
+import { computeRenderState, type StructureLink, type RelationLink } from "./render-state";
 import {
   showGlobalSpinner,
   hideGlobalSpinner,
@@ -21,9 +18,12 @@ import {
 } from "./ui/Spinner";
 import { mountCodeTooltip, toggleCodeTooltip, updateCodeTooltipTransform } from "./ui/CodeTooltip";
 import { mountNodeTooltip, updateNodeTooltipTransform } from "./ui/NodeTooltip";
+import { showToast } from "./ui/Toast";
 import type { PositionedNode } from "./types";
+import { hasChildren } from "./types";
 import type { NodeComponent } from "./components/nodes/base";
 import { renderBoundaryGroups, applyBoundaryLabelTransforms } from "./components/BoundaryRenderer";
+import type { LaneLayout } from "./layout/lane-engine";
 
 type Layer = d3.Selection<SVGGElement, unknown, null, undefined>;
 
@@ -40,6 +40,10 @@ export class ExplorerApp {
   private selected: PositionedNode | null = null;
   private searchQuery = "";
   private zoomK = 1;
+
+  // Layout cache — invalidated on structural changes, reused for search-only re-renders
+  private cachedLayout: LaneLayout | null = null;
+  private layoutDirty = true;
 
   // Canvas layers — assigned during mount()
   private svgEl!: SVGSVGElement;
@@ -58,7 +62,10 @@ export class ExplorerApp {
     this.setupTooltips();
     this.setupRenderer();
     this.setupSearch();
-    this.store.subscribe(() => this.render());
+    this.store.subscribe(() => {
+      this.layoutDirty = true;
+      this.render();
+    });
     await this.loadInitialData();
   }
 
@@ -106,7 +113,6 @@ export class ExplorerApp {
   }
 
   private setupRenderer(): void {
-    const hasChildren = (node: PositionedNode) => node.detail["_hasChildren"] === "true";
     const isExpanded = (node: PositionedNode) => this.expanded.has(node.id);
 
     this.renderer = createNodeRenderer(
@@ -159,43 +165,30 @@ export class ExplorerApp {
   private render(): void {
     if (!this.store.meta) return;
 
-    const layout = computeLayout(this.store, this.expanded);
-    const allNodes = [...layout.structureNodes, ...layout.docsNodes, ...layout.otherNodes];
+    if (this.layoutDirty || !this.cachedLayout) {
+      this.cachedLayout = computeLayout(this.store, this.expanded);
+      this.layoutDirty = false;
+    }
+
+    const { allNodes, canvasW, structureLinks, relationLinks, matchIds } = computeRenderState(
+      this.store,
+      this.cachedLayout,
+      this.searchQuery
+    );
 
     // Stats bar
-    const meta = this.store.meta.metadata;
+    const { folderCount, moduleCount, exportCount } = this.store.meta.metadata.stats;
     document.getElementById("stats")!.textContent =
-      `${meta.stats.folderCount ?? 0} folders · ` +
-      `${meta.stats.moduleCount ?? 0} modules · ` +
-      `${meta.stats.exportCount ?? 0} exports`;
+      `${folderCount ?? 0} folders · ${moduleCount ?? 0} modules · ${exportCount ?? 0} exports`;
 
-    // Lane backgrounds and structure edges
-    const CANVAS_W = Math.max(4000, Math.max(...allNodes.map((n) => n.x + 250), 0));
-    renderLaneBands(this.laneBgLayer, layout, CANVAS_W);
+    // Structural layers
+    renderLaneBands(this.laneBgLayer, this.cachedLayout, canvasW);
     renderBoundaryGroups(this.boundaryLayer, allNodes, this.store.meta.parentOf ?? {}, this.zoomK);
-    renderStructureEdges(this.edgeLayer, buildStructureLinks(layout.structureNodes));
-
-    // Relation edges — visible when either endpoint is expanded
-    const crossEdges = this.store.meta?.crossEdges ?? [];
-    const relationLinks = buildRelationLinks(allNodes, crossEdges);
+    renderStructureEdges(this.edgeLayer, structureLinks);
     renderRelationEdges(this.relationEdgeLayer, relationLinks);
     renderRelationEndpoints(this.relationEndLayer, relationLinks);
 
-    // Search dim: compute match set once, apply as opacity
-    const matchIds = this.searchQuery
-      ? new Set(
-          allNodes
-            .filter(
-              (n) =>
-                n.id.toLowerCase().includes(this.searchQuery) ||
-                n.label.toLowerCase().includes(this.searchQuery) ||
-                n.description.toLowerCase().includes(this.searchQuery)
-            )
-            .map((n) => n.id)
-        )
-      : null;
-
-    // D3 enter / update / exit keyed by node id
+    // Node enter / update / exit
     const groups = this.nodeLayer
       .selectAll<SVGGElement, PositionedNode>("g.node")
       .data(allNodes, (d) => d.id);
@@ -227,24 +220,24 @@ export class ExplorerApp {
       .attr("transform", (d) => `translate(${d.x},${d.y})`)
       .style("opacity", (d) => (matchIds && !matchIds.has(d.id) ? "0.15" : "1"));
 
-    // Dim edges whose endpoints are not in the match set
+    // Search dimming
     this.edgeLayer
       .selectAll<SVGPathElement, StructureLink>("path.struct-link")
-      .transition()
+      .transition("search")
       .duration(220)
       .style("opacity", (d) =>
         matchIds && !matchIds.has(d.sourceId) && !matchIds.has(d.targetId) ? "0.08" : "1"
       );
     this.relationEdgeLayer
       .selectAll<SVGGElement, RelationLink>("g.relation-link")
-      .transition()
+      .transition("search")
       .duration(220)
       .style("opacity", (d) =>
         matchIds && !matchIds.has(d.source.id) && !matchIds.has(d.target.id) ? "0.08" : "1"
       );
     this.relationEndLayer
       .selectAll<SVGGElement, RelationLink>("g.relation-endpoint")
-      .transition()
+      .transition("search")
       .duration(220)
       .style("opacity", (d) =>
         matchIds && !matchIds.has(d.source.id) && !matchIds.has(d.target.id) ? "0.08" : "1"
@@ -258,6 +251,7 @@ export class ExplorerApp {
       if (this.expanded.has(node.id)) {
         this.expanded.delete(node.id);
         this.collapseDescendants(node.id);
+        this.layoutDirty = true;
         this.render();
         this.scrollToNode(node.id);
       } else {
@@ -265,7 +259,7 @@ export class ExplorerApp {
           const spinnerEl = showNodeSpinner(this.nodeLayer.node()!, node.x + 190, node.y + 38);
           try {
             const chunk = await this.loader.load("folder", node.id);
-            this.store.loadFolderChunk(chunk);
+            this.store.loadFolderChunk(chunk); // triggers subscriber → layoutDirty + render
           } catch (e) {
             console.error("Failed to load chunk for", node.id, e);
           } finally {
@@ -278,6 +272,7 @@ export class ExplorerApp {
         if (chunk) {
           void this.revealLinkedNodes(chunk.modules.map((m) => m.id));
         }
+        this.layoutDirty = true;
         this.render();
         this.scrollToNode(node.id);
       }
@@ -288,6 +283,7 @@ export class ExplorerApp {
         this.expanded.add(node.id);
         void this.revealLinkedNodes([node.id]);
       }
+      this.layoutDirty = true;
       this.render();
       this.scrollToNode(node.id);
     }
@@ -339,16 +335,7 @@ export class ExplorerApp {
       }
     }
 
-    for (const folderId of foldersToLoad) {
-      if (!this.store.folderChunks.has(folderId)) {
-        try {
-          const chunk = await this.loader.load("folder", folderId);
-          this.store.loadFolderChunk(chunk);
-        } catch (e) {
-          console.error("Failed to load chunk for", folderId, e);
-        }
-      }
-    }
+    await this.fetchAndStoreFolders(foldersToLoad);
 
     let changed = false;
     for (const id of toExpand) {
@@ -357,7 +344,10 @@ export class ExplorerApp {
         changed = true;
       }
     }
-    if (changed) this.render();
+    if (changed) {
+      this.layoutDirty = true;
+      this.render();
+    }
   }
 
   /**
@@ -378,23 +368,34 @@ export class ExplorerApp {
       }
     }
 
-    for (const id of toExpand) {
-      if (folderSet.has(id) && !this.store.folderChunks.has(id)) {
-        try {
-          const chunk = await this.loader.load("folder", id);
-          this.store.loadFolderChunk(chunk);
-        } catch (e) {
-          console.error("Failed to load chunk for", id, e);
-        }
-      }
-      this.expanded.add(id);
-    }
+    const foldersToLoad = new Set([...toExpand].filter((id) => folderSet.has(id)));
+    await this.fetchAndStoreFolders(foldersToLoad);
+    for (const id of toExpand) this.expanded.add(id);
 
+    this.layoutDirty = true;
     this.render();
 
     if (anchorId) {
       this.scrollToNode(anchorId);
     }
+  }
+
+  /** Fetches all folder IDs not yet in the store in parallel, then batch-writes them. */
+  private async fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {
+    const toFetch = [...folderIds].filter((id) => !this.store.folderChunks.has(id));
+    if (!toFetch.length) return;
+    const results = await Promise.all(
+      toFetch.map(async (id) => {
+        try {
+          return await this.loader.load("folder", id);
+        } catch (e) {
+          console.error("Failed to load chunk for", id, e);
+          return null;
+        }
+      })
+    );
+    const chunks = results.filter((c) => c !== null);
+    if (chunks.length) this.store.loadFolderChunks(chunks);
   }
 
   /** Pans the viewport so the node with the given id is centered on screen. */
@@ -428,7 +429,11 @@ export class ExplorerApp {
   }
 
   private onSelect(node: PositionedNode): void {
-    console.log("node selected", node);
+    const hasPath =
+      node.path && (node.type === "folder" || node.type === "module" || node.type === "file");
+    const value = hasPath ? node.path! : node.label;
+    const toast = hasPath ? value : `${value} · ${node.type}`;
+    navigator.clipboard.writeText(value).then(() => showToast(`Copied: ${toast}`));
   }
 
   private onTraceLinks(node: PositionedNode): void {

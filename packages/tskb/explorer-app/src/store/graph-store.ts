@@ -22,6 +22,11 @@ export class GraphStore {
     this.notifyListeners();
   }
 
+  loadFolderChunks(chunks: FolderChunk[]): void {
+    for (const chunk of chunks) this.folderChunks.set(chunk.folderId, chunk);
+    this.notifyListeners();
+  }
+
   subscribe(listener: Listener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);

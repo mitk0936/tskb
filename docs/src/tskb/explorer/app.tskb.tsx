@@ -1,4 +1,4 @@
-import { type Export, Doc, H1, H2, P, Flow, Step, ref } from "tskb";
+import { type Export, type Module, Doc, H1, H2, P, Flow, Step, ref } from "tskb";
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -6,6 +6,13 @@ type ExplorerApp = typeof import("packages/tskb/explorer-app/src/main.js").Explo
 
 declare global {
   namespace tskb {
+    interface Modules {
+      "explorer.spa.render-state": Module<{
+        desc: "Pure render state — coordinator-facing boundary between application logic and D3 rendering";
+        type: typeof import("packages/tskb/explorer-app/src/render-state.js");
+      }>;
+    }
+
     interface Exports {
       "explorer.spa.ExplorerApp": Export<{
         desc: "Top-level SPA controller class. The only public entry point is mount() — everything else is private. Owns the D3 canvas layers, UI state, and the render loop.";
@@ -20,7 +27,7 @@ declare global {
       }>;
 
       "explorer.spa.ExplorerApp.setupCanvas": Export<{
-        desc: "Creates the D3 SVG layer stack (zoom-layer → lane-bg-layer / edge-layer / node-layer), configures zoom/pan with tooltip transform propagation";
+        desc: "Creates the D3 SVG layer stack (zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer), configures zoom/pan with tooltip transform propagation.";
         type: InstanceType<ExplorerApp>["setupCanvas"];
       }>;
 
@@ -45,8 +52,13 @@ declare global {
       }>;
 
       "explorer.spa.ExplorerApp.render": Export<{
-        desc: "Called by the store subscriber or directly after UI state changes. Calls computeLayout, redraws lane bands and structure edges, then runs the D3 enter/update/exit cycle. Search dim is applied by computing a match id set and setting opacity per node.";
+        desc: "Coordinator: calls computeLayout if the layout is dirty, delegates all pure computation to computeRenderState, then calls the D3 rendering functions in order. Contains no application logic — only orchestration.";
         type: InstanceType<ExplorerApp>["render"];
+      }>;
+
+      "explorer.spa.computeRenderState": Export<{
+        desc: "Pure render state computation — derives allNodes, canvasW, structureLinks, relationLinks, and matchIds from the store, layout, and search query. No D3 or DOM access. The boundary between coordinator logic and D3 rendering.";
+        type: typeof import("packages/tskb/explorer-app/src/render-state.js").computeRenderState;
       }>;
 
       "explorer.spa.ExplorerApp.onExpand": Export<{
@@ -89,6 +101,8 @@ const NodeBaseModule = ref as tskb.Modules["explorer.spa.node-base"];
 const EdgeRendererModule = ref as tskb.Modules["explorer.spa.edge-renderer"];
 
 const ComputeLayoutExport = ref as tskb.Exports["explorer.spa.computeLayout"];
+const ComputeRenderStateExport = ref as tskb.Exports["explorer.spa.computeRenderState"];
+const RenderStateModule = ref as tskb.Modules["explorer.spa.render-state"];
 const BuildStructureLinksExport = ref as tskb.Exports["explorer.spa.buildStructureLinks"];
 const RenderStructureEdgesExport = ref as tskb.Exports["explorer.spa.renderStructureEdges"];
 const ShowNodeSpinnerExport = ref as tskb.Exports["explorer.spa.showNodeSpinner"];
@@ -117,10 +131,10 @@ export default (
 
     <H2>Render loop</H2>
     <P>
-      {RenderExport} is triggered by the store subscription (after <code>loadMeta</code> or{" "}
-      <code>loadFolderChunk</code>) and by direct calls from interaction handlers after UI state
-      changes. It calls {ComputeLayoutExport}, redraws lane bands and structure edges via{" "}
-      {EdgeRendererModule}, then runs the D3 enter/update/exit cycle through the node renderer.
+      {RenderExport} is a pure coordinator: it recomputes the layout when dirty, delegates all
+      application logic to {ComputeRenderStateExport} in {RenderStateModule}, then passes the result
+      straight to the D3 rendering functions. No computation happens inside {RenderExport} itself —
+      the boundary between logic and rendering is {RenderStateModule}.
     </P>
 
     <H2>Interaction handlers</H2>
@@ -139,7 +153,7 @@ export default (
       <Step node={ExplorerAppExport} label="new ExplorerApp().mount() called on page load" />
       <Step
         node={SetupCanvasExport}
-        label="Appends zoom-layer → lane-bg-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation; mounts detail panel"
+        label="Appends zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation"
       />
       <Step
         node={SetupTooltipsExport}
@@ -177,11 +191,15 @@ export default (
       />
       <Step
         node={ComputeLayoutExport}
-        label="computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions"
+        label="computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set."
+      />
+      <Step
+        node={ComputeRenderStateExport}
+        label="computeRenderState(store, layout, searchQuery): derives allNodes, canvasW, structureLinks, relationLinks, matchIds. Pure — no D3."
       />
       <Step
         node={EdgeRendererModule}
-        label="renderLaneBands(): draws labeled background bands for Structure, Docs, Terms/Flows lanes"
+        label="renderLaneBands(): draws labeled background bands for Structure and Externals lanes"
       />
       <Step
         node={BuildStructureLinksExport}
