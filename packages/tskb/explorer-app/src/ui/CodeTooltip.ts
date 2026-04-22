@@ -1,10 +1,11 @@
 // ─── CodeTooltip ─────────────────────────────────────────────────────────────
 // Click-toggled code preview popup. Opened by the <> bubble on module nodes.
-// Closed only via the × button in the header or by clicking the bubble again.
+// Closed by × button, clicking the bubble again, or clicking outside.
 // Repositions itself on zoom/pan so it tracks the anchor node.
 
 let el: HTMLDivElement | null = null;
 let activeNodeId: string | null = null;
+let outsideHandler: ((e: MouseEvent) => void) | null = null;
 
 // SVG-space anchor for the popup (set when opened, used to reposition on zoom)
 let anchorSvgX = 0;
@@ -23,17 +24,20 @@ export function mountCodeTooltip(svgEl: SVGSVGElement): void {
   Object.assign(el.style, {
     position: "fixed",
     display: "none",
-    maxWidth: "460px",
-    minWidth: "200px",
+    flexDirection: "column",
+    width: "620px",
+    maxWidth: "90vw",
+    maxHeight: "80vh",
+    minWidth: "260px",
     background: "#ffffff",
     border: "1px solid #e2e8f0",
     borderRadius: "10px",
     boxShadow: "0 12px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)",
     zIndex: "500",
-    overflow: "hidden",
     opacity: "0",
     transform: "translateY(4px) scale(0.98)",
     transition: "opacity 0.15s ease, transform 0.15s ease",
+    userSelect: "text",
   });
   document.body.appendChild(el);
 }
@@ -96,15 +100,17 @@ export function toggleCodeTooltip(
     `<pre style="` +
     `margin:0;` +
     `padding:10px 16px 12px;` +
-    `overflow-x:auto;` +
+    `overflow:auto;` +
     `white-space:pre;` +
     `font-family:'Cascadia Code','JetBrains Mono','Fira Code',monospace;` +
     `font-size:11px;` +
     `line-height:1.7;` +
     `color:#1e293b;` +
+    `flex:1;min-height:0;` +
+    `user-select:text;` +
     `"><code>${highlight(codeContent)}</code></pre>`;
 
-  el.style.display = "block";
+  el.style.display = "flex";
   positionFromSvg();
   const closeBtn = el.querySelector<HTMLButtonElement>("#code-tooltip-close");
   if (closeBtn) closeBtn.onclick = () => hideCodeTooltip();
@@ -114,11 +120,25 @@ export function toggleCodeTooltip(
       el.style.transform = "translateY(0) scale(1)";
     }
   });
+
+  // Register outside-click handler after current event loop tick so the
+  // opening click doesn't immediately trigger it.
+  if (outsideHandler) document.removeEventListener("mousedown", outsideHandler, true);
+  outsideHandler = (e: MouseEvent) => {
+    if (el && !el.contains(e.target as Node)) hideCodeTooltip();
+  };
+  setTimeout(() => {
+    if (outsideHandler) document.addEventListener("mousedown", outsideHandler, true);
+  }, 0);
 }
 
 export function hideCodeTooltip(): void {
   if (!el) return;
   activeNodeId = null;
+  if (outsideHandler) {
+    document.removeEventListener("mousedown", outsideHandler, true);
+    outsideHandler = null;
+  }
   el.style.opacity = "0";
   el.style.transform = "translateY(4px) scale(0.98)";
   setTimeout(() => {
@@ -139,7 +159,7 @@ function positionFromSvg(): void {
 function positionAt(x: number, y: number): void {
   if (!el) return;
   const GAP = 14;
-  const W = el.offsetWidth || 460;
+  const W = el.offsetWidth || 620;
   const H = el.offsetHeight || 220;
   const vw = window.innerWidth;
   const vh = window.innerHeight;

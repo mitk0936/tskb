@@ -164,16 +164,24 @@ export class ExplorerApp {
 
   private render(): void {
     if (!this.store.meta) return;
+    const t0 = performance.now();
+    console.log("[render] start");
 
     if (this.layoutDirty || !this.cachedLayout) {
+      const t = performance.now();
       this.cachedLayout = computeLayout(this.store, this.expanded);
       this.layoutDirty = false;
+      console.log(`[render] computeLayout (${(performance.now() - t).toFixed(1)}ms)`);
     }
 
+    let t = performance.now();
     const { allNodes, canvasW, structureLinks, relationLinks, matchIds } = computeRenderState(
       this.store,
       this.cachedLayout,
       this.searchQuery
+    );
+    console.log(
+      `[render] computeRenderState — ${allNodes.length} nodes, ${structureLinks.length} struct, ${relationLinks.length} relation (${(performance.now() - t).toFixed(1)}ms)`
     );
 
     // Stats bar
@@ -181,12 +189,28 @@ export class ExplorerApp {
     document.getElementById("stats")!.textContent =
       `${folderCount ?? 0} folders · ${moduleCount ?? 0} modules · ${exportCount ?? 0} exports`;
 
-    // Structural layers
+    t = performance.now();
     renderLaneBands(this.laneBgLayer, this.cachedLayout, canvasW);
+    console.log(`[render] renderLaneBands (${(performance.now() - t).toFixed(1)}ms)`);
+
+    t = performance.now();
     renderBoundaryGroups(this.boundaryLayer, allNodes, this.store.meta.parentOf ?? {}, this.zoomK);
+    console.log(`[render] renderBoundaryGroups (${(performance.now() - t).toFixed(1)}ms)`);
+
+    t = performance.now();
     renderStructureEdges(this.edgeLayer, structureLinks);
+    console.log(`[render] renderStructureEdges (${(performance.now() - t).toFixed(1)}ms)`);
+
+    t = performance.now();
     renderRelationEdges(this.relationEdgeLayer, relationLinks);
+    console.log(`[render] renderRelationEdges (${(performance.now() - t).toFixed(1)}ms)`);
+
+    t = performance.now();
     renderRelationEndpoints(this.relationEndLayer, relationLinks);
+    console.log(`[render] renderRelationEndpoints (${(performance.now() - t).toFixed(1)}ms)`);
+
+    t = performance.now();
+    console.log(`[render] D3 nodes… (${(performance.now() - t0).toFixed(1)}ms total so far)`);
 
     // Node enter / update / exit
     const groups = this.nodeLayer
@@ -267,11 +291,6 @@ export class ExplorerApp {
           }
         }
         this.expanded.add(node.id);
-        // Auto-reveal links for each module that just became visible
-        const chunk = this.store.folderChunks.get(node.id);
-        if (chunk) {
-          void this.revealLinkedNodes(chunk.modules.map((m) => m.id));
-        }
         this.layoutDirty = true;
         this.render();
         this.scrollToNode(node.id);
@@ -317,7 +336,9 @@ export class ExplorerApp {
         if (folderSet.has(directParent)) {
           // linked node is a module — expand its folder ancestors only
           let cur: string | undefined = directParent;
-          while (cur) {
+          const seen1 = new Set<string>();
+          while (cur && !seen1.has(cur)) {
+            seen1.add(cur);
             toExpand.add(cur);
             if (folderSet.has(cur)) foldersToLoad.add(cur);
             cur = parentOf[cur];
@@ -326,7 +347,9 @@ export class ExplorerApp {
           // linked node is an export — expand folder ancestors + direct parent module
           toExpand.add(directParent); // parent module → makes export visible
           let cur: string | undefined = parentOf[directParent];
-          while (cur) {
+          const seen2 = new Set<string>();
+          while (cur && !seen2.has(cur)) {
+            seen2.add(cur);
             toExpand.add(cur);
             if (folderSet.has(cur)) foldersToLoad.add(cur);
             cur = parentOf[cur];
@@ -362,7 +385,7 @@ export class ExplorerApp {
     const toExpand = new Set<string>();
     for (const nodeId of nodeIds) {
       let current = parentOf[nodeId];
-      while (current) {
+      while (current && !toExpand.has(current)) {
         toExpand.add(current);
         current = parentOf[current];
       }

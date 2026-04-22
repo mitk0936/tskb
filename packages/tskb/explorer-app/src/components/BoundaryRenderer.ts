@@ -24,20 +24,41 @@ function resolveBoundaries(
   const resolved = new Map<string, string>();
   const cache = new Map<string, string | null>();
 
-  function walk(id: string): string | null {
-    if (cache.has(id)) return cache.get(id)!;
-    if (roots.has(id)) {
-      cache.set(id, roots.get(id)!);
-      return roots.get(id)!;
+  function walk(startId: string): string | null {
+    // Iterative ancestor traversal — avoids call-stack overflow on deep trees.
+    // Collect the chain of uncached ids, then backfill once we hit a terminal.
+    // visited guards against cycles in parentOf (malformed graph data).
+    const chain: string[] = [];
+    const visited = new Set<string>();
+    let id = startId;
+
+    while (true) {
+      if (visited.has(id)) {
+        // Cycle detected — no boundary reachable from this chain
+        for (const chainId of chain) cache.set(chainId, null);
+        return null;
+      }
+      if (cache.has(id)) {
+        const result = cache.get(id) as string | null;
+        for (const chainId of chain) cache.set(chainId, result);
+        return result;
+      }
+      if (roots.has(id)) {
+        const result = roots.get(id)!;
+        cache.set(id, result);
+        for (const chainId of chain) cache.set(chainId, result);
+        return result;
+      }
+      const parent = parentOf[id];
+      if (!parent) {
+        cache.set(id, null);
+        for (const chainId of chain) cache.set(chainId, null);
+        return null;
+      }
+      visited.add(id);
+      chain.push(id);
+      id = parent;
     }
-    const parent = parentOf[id];
-    if (!parent) {
-      cache.set(id, null);
-      return null;
-    }
-    const result = walk(parent);
-    cache.set(id, result);
-    return result;
   }
 
   for (const n of nodes) {
@@ -133,7 +154,11 @@ interface BoundaryGroup {
 }
 
 function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>): BoundaryGroup[] {
+  console.log(
+    `[boundary] buildGroups — ${nodes.length} nodes, ${Object.keys(parentOf).length} parentOf entries`
+  );
   const resolved = resolveBoundaries(nodes, parentOf);
+  console.log(`[boundary] resolveBoundaries done — ${resolved.size} resolved`);
 
   const byBoundary = new Map<string, PositionedNode[]>();
   for (const n of nodes) {
@@ -152,7 +177,7 @@ function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>):
     const topY = Math.min(...members.map((n) => n.y));
     const leftX = Math.min(...members.map((n) => n.x));
 
-    groups.push({ name, nodes: members, path, labelX: leftX - PAD, labelY: topY - PAD - 6 });
+    groups.push({ name, nodes: members, path, labelX: leftX - PAD + 8, labelY: topY - PAD });
   }
 
   return groups;
