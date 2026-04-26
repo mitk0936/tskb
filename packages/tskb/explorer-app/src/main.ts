@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import { ChunkLoader } from "./graph/loader";
 import { GraphStore } from "./store/graph-store";
 import { computeLayout, NODE_SIZES } from "./layout/lane-engine";
+import { NODE_COLORS } from "./components/nodes/base";
 import { createNodeRenderer } from "./components/nodes/index";
 import {
   renderStructureEdges,
@@ -18,8 +19,10 @@ import {
 } from "./ui/Spinner";
 import { mountCodeTooltip, toggleCodeTooltip, updateCodeTooltipTransform } from "./ui/CodeTooltip";
 import { mountNodeTooltip, updateNodeTooltipTransform } from "./ui/NodeTooltip";
+import { mountDomTooltip } from "./ui/DomTooltip";
 import { showToast } from "./ui/Toast";
-import type { PositionedNode } from "./types";
+import { DocPanel } from "./ui/DocPanel";
+import type { PositionedNode, ExplorerNode } from "./types";
 import { hasChildren } from "./types";
 import type { NodeComponent } from "./components/nodes/base";
 import { renderBoundaryGroups, applyBoundaryLabelTransforms } from "./components/BoundaryRenderer";
@@ -34,6 +37,12 @@ type Layer = d3.Selection<SVGGElement, unknown, null, undefined>;
 export class ExplorerApp {
   private readonly loader = new ChunkLoader();
   private readonly store = new GraphStore();
+
+  private readonly docPanel = new DocPanel();
+
+  // Reverse-lookup maps: nodeId → ids of docs/flows that reference it (built from crossEdges)
+  private docsOf = new Map<string, string[]>();
+  private flowsOf = new Map<string, string[]>();
 
   // UI state — expanded set and selected node live here, not in the store
   private expanded = new Set<string>();
@@ -61,6 +70,10 @@ export class ExplorerApp {
     this.setupCanvas();
     this.setupTooltips();
     this.setupRenderer();
+    this.docPanel.setOnNodeRef((nodeId) => this.navigateToNode(nodeId));
+    this.docPanel.setGetNode((nodeId) => this.findNode(nodeId));
+    this.docPanel.setOnNodeHighlight((nodeId) => this.onNodeHighlight(nodeId));
+    this.docPanel.setOnNodePrefetch((nodeId) => this.prefetchNodeChunk(nodeId));
     this.setupSearch();
     this.store.subscribe(() => {
       this.layoutDirty = true;
@@ -110,6 +123,7 @@ export class ExplorerApp {
   private setupTooltips(): void {
     mountNodeTooltip(this.svgEl);
     mountCodeTooltip(this.svgEl);
+    mountDomTooltip();
   }
 
   private setupRenderer(): void {
@@ -128,7 +142,10 @@ export class ExplorerApp {
           : undefined;
         const { w } = NODE_SIZES[node.type] ?? NODE_SIZES.module;
         toggleCodeTooltip(node.id, code, node.path ?? node.id, node.x + w / 2, node.y, importLines);
-      }
+      },
+      (node, chip) => this.onChipClick(node, chip),
+      (nodeId) => this.docsOf.get(nodeId) ?? [],
+      (nodeId) => this.flowsOf.get(nodeId) ?? []
     );
   }
 
@@ -140,10 +157,27 @@ export class ExplorerApp {
     });
   }
 
+  private buildRefMaps(meta: import("./graph/chunk-types").MetaChunk): void {
+    this.docsOf.clear();
+    this.flowsOf.clear();
+    for (const edge of meta.crossEdges) {
+      if (edge.type === "references") {
+        const list = this.docsOf.get(edge.target) ?? [];
+        list.push(edge.source);
+        this.docsOf.set(edge.target, list);
+      } else if (edge.type === "flow-step") {
+        const list = this.flowsOf.get(edge.target) ?? [];
+        list.push(edge.source);
+        this.flowsOf.set(edge.target, list);
+      }
+    }
+  }
+
   private async loadInitialData(): Promise<void> {
     showGlobalSpinner();
     try {
       const meta = await this.loader.load("meta");
+      this.buildRefMaps(meta); // populate maps before render() fires
       this.store.loadMeta(meta);
     } catch (e) {
       console.error("Failed to load meta chunk:", e);
@@ -403,6 +437,30 @@ export class ExplorerApp {
     }
   }
 
+  /**
+   * Silently loads the folder chunks needed to resolve a node by id.
+   * Does NOT expand folders on the canvas or trigger a layout re-render.
+   * Used for doc-panel tooltip prefetch on hover.
+   */
+  private async prefetchNodeChunk(nodeId: string): Promise<void> {
+    if (!this.store.meta) return;
+    const { parentOf, folderIds } = this.store.meta;
+    const folderSet = new Set(folderIds);
+    const toLoad = new Set<string>();
+    let current: string | undefined = parentOf[nodeId];
+    while (current) {
+      if (folderSet.has(current) && !this.store.folderChunks.has(current)) toLoad.add(current);
+      current = parentOf[current];
+    }
+    if (!toLoad.size) return;
+    const results = await Promise.all(
+      [...toLoad].map((id) => this.loader.load("folder", id).catch(() => null))
+    );
+    const chunks = results.filter((c) => c !== null);
+    // Write directly to avoid triggering a canvas re-render
+    for (const chunk of chunks) this.store.folderChunks.set(chunk.folderId, chunk);
+  }
+
   /** Fetches all folder IDs not yet in the store in parallel, then batch-writes them. */
   private async fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {
     const toFetch = [...folderIds].filter((id) => !this.store.folderChunks.has(id));
@@ -452,11 +510,100 @@ export class ExplorerApp {
   }
 
   private onSelect(node: PositionedNode): void {
+    // Panel only opens via chip clicks (docs/flows) — node selection just copies the path
     const hasPath =
       node.path && (node.type === "folder" || node.type === "module" || node.type === "file");
     const value = hasPath ? node.path! : node.label;
     const toast = hasPath ? value : `${value} · ${node.type}`;
     navigator.clipboard.writeText(value).then(() => showToast(`Copied: ${toast}`));
+  }
+
+  private async navigateToNode(nodeId: string): Promise<void> {
+    if (!this.cachedLayout) return;
+
+    const visibleNodes = () => [
+      ...this.cachedLayout!.structureNodes,
+      ...this.cachedLayout!.docsNodes,
+      ...this.cachedLayout!.otherNodes,
+    ];
+
+    let target = visibleNodes().find((n) => n.id === nodeId);
+
+    if (!target) {
+      // Node isn't visible — expand its ancestor chain first
+      await this.expandToReveal([nodeId], nodeId);
+      target = visibleNodes().find((n) => n.id === nodeId);
+      // Re-apply highlight: newly entered D3 nodes don't carry over the filter
+      this.onNodeHighlight(nodeId);
+    } else {
+      this.scrollToNode(nodeId);
+    }
+
+    if (target) this.onSelect(target);
+  }
+
+  /** Search all loaded data for a node by id. */
+  private findNode(nodeId: string): ExplorerNode | undefined {
+    if (this.cachedLayout) {
+      const found = [
+        ...this.cachedLayout.structureNodes,
+        ...this.cachedLayout.docsNodes,
+        ...this.cachedLayout.otherNodes,
+      ].find((n) => n.id === nodeId);
+      if (found) return found;
+    }
+    const meta = this.store.meta;
+    if (meta) {
+      const inMeta =
+        meta.docs.find((n) => n.id === nodeId) ??
+        meta.flows.find((n) => n.id === nodeId) ??
+        meta.terms.find((n) => n.id === nodeId) ??
+        meta.externals.find((n) => n.id === nodeId) ??
+        meta.topFolders.find((n) => n.id === nodeId);
+      if (inMeta) return inMeta;
+    }
+    for (const chunk of this.store.folderChunks.values()) {
+      const found =
+        chunk.modules.find((n) => n.id === nodeId) ??
+        chunk.exports.find((n) => n.id === nodeId) ??
+        chunk.subfolders.find((n) => n.id === nodeId) ??
+        chunk.files.find((n) => n.id === nodeId);
+      if (found) return found;
+    }
+    return undefined;
+  }
+
+  /** Add a colour-matched glow to the referenced node; pass null to clear. */
+  private onNodeHighlight(nodeId: string | null): void {
+    this.nodeLayer.selectAll<SVGGElement, PositionedNode>("g.node").style(
+      "filter",
+      nodeId
+        ? (d) => {
+            if (d.id !== nodeId) return null;
+            const c = NODE_COLORS[d.type] ?? "#3b82f6";
+            return `drop-shadow(0 0 6px ${c}bb) drop-shadow(0 0 14px ${c}66)`;
+          }
+        : null
+    );
+  }
+
+  private onChipClick(node: PositionedNode, chip: "docs" | "flows"): void {
+    const meta = this.store.meta;
+    if (!meta) return;
+
+    if (chip === "docs") {
+      const docIds = this.docsOf.get(node.id) ?? [];
+      const docs = docIds
+        .map((id) => meta.docs.find((d) => d.id === id))
+        .filter(Boolean) as ExplorerNode[];
+      this.docPanel.showRefs(node, "docs", docs);
+    } else {
+      const flowIds = this.flowsOf.get(node.id) ?? [];
+      const flows = flowIds
+        .map((id) => meta.flows.find((f) => f.id === id))
+        .filter(Boolean) as ExplorerNode[];
+      this.docPanel.showRefs(node, "flows", flows);
+    }
   }
 
   private onTraceLinks(node: PositionedNode): void {

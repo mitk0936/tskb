@@ -42,6 +42,7 @@ export interface MetaChunk {
   flows: ExplorerNode[];
   terms: ExplorerNode[];
   externals: ExplorerNode[];
+  files: ExplorerNode[];
   crossEdges: ExplorerLink[];
   /** node-id → parent-id for every declared node; used to resolve nearest visible ancestor */
   parentOf: Record<string, string>;
@@ -56,6 +57,7 @@ export interface FolderChunk {
   subfolders: ExplorerNode[];
   modules: ExplorerNode[];
   exports: ExplorerNode[];
+  files: ExplorerNode[];
   internalEdges: ExplorerLink[];
   externalEdges: ExplorerLink[];
 }
@@ -109,6 +111,7 @@ class GraphToExplorerTransformer {
     const flows = this.buildFlowNodes();
     const terms = this.buildTermNodes();
     const externals = this.buildExternalNodes();
+    const files = this.buildFileNodes();
     const crossEdges = this.buildCrossEdges();
 
     this.buildAllFolderChunksRecursively(ROOT_FOLDER_NAME);
@@ -131,6 +134,7 @@ class GraphToExplorerTransformer {
         flows,
         terms,
         externals,
+        files,
         crossEdges,
         parentOf,
         folderIds,
@@ -189,7 +193,7 @@ class GraphToExplorerTransformer {
         path: doc.filePath,
         priority: doc.priority as ExplorerNode["priority"],
         edgeCount: doc.edgeCount ?? 0,
-        detail: { format: doc.format },
+        detail: { format: doc.format, html: doc.content },
         label: filename,
       });
     });
@@ -200,7 +204,10 @@ class GraphToExplorerTransformer {
       toExplorerNode(flow.id, "flow", flow.desc, {
         priority: flow.priority as ExplorerNode["priority"],
         edgeCount: flow.edgeCount ?? 0,
-        detail: { steps: String(flow.steps.length) },
+        detail: {
+          steps: String(flow.steps.length),
+          stepsJson: JSON.stringify(flow.steps.map((s) => ({ nodeId: s.nodeId, label: s.label }))),
+        },
       })
     );
   }
@@ -220,13 +227,25 @@ class GraphToExplorerTransformer {
     );
   }
 
+  private buildFileNodes(): ExplorerNode[] {
+    // Files are placed in folder chunks (via buildFileNodeForChunk), not in meta.
+    return [];
+  }
+
   private buildCrossEdges(): ExplorerLink[] {
     return this.graph.edges
-      .filter((e) => e.type === "related-to" || e.type === "imports" || e.type === "imports-type")
+      .filter(
+        (e) =>
+          e.type === "related-to" ||
+          e.type === "imports" ||
+          e.type === "imports-type" ||
+          e.type === "references" ||
+          e.type === "flow-step"
+      )
       .map((e) => ({
-        source: e.from, // importer A
-        target: e.to, // imported B
-        type: e.type as "related-to" | "imports" | "imports-type",
+        source: e.from,
+        target: e.to,
+        type: e.type as ExplorerLink["type"],
         ...(e.label ? { label: e.label } : {}),
       }));
   }
@@ -246,8 +265,13 @@ class GraphToExplorerTransformer {
     for (const folderId of childFolderIds) {
       const directModuleIds = this.getDirectModuleIds(folderId);
       const directSubfolderIds = this.getDirectSubfolderIds(folderId);
+      const directFileIds = this.getDirectFileIds(folderId);
 
-      if (directModuleIds.length === 0 && directSubfolderIds.length === 0) {
+      if (
+        directModuleIds.length === 0 &&
+        directSubfolderIds.length === 0 &&
+        directFileIds.length === 0
+      ) {
         // Folder is empty — skip chunk creation but keep recursing
         this.buildAllFolderChunksRecursively(folderId);
         continue;
@@ -258,6 +282,7 @@ class GraphToExplorerTransformer {
       const subfolders = directSubfolderIds.map((sfId) => this.buildSubfolderNode(sfId, folderId));
       const modules = directModuleIds.map((moduleId) => this.buildModuleNode(moduleId, folderId));
       const exports = directModuleIds.flatMap((moduleId) => this.buildExportNodes(moduleId));
+      const files = directFileIds.map((fileId) => this.buildFileNodeForChunk(fileId, folderId));
       const { internalEdges, externalEdges } = this.buildImportEdges(moduleIdSet);
 
       this.folderChunks.set(folderId, {
@@ -266,6 +291,7 @@ class GraphToExplorerTransformer {
         subfolders,
         modules,
         exports,
+        files,
         internalEdges,
         externalEdges,
       });
@@ -313,20 +339,34 @@ class GraphToExplorerTransformer {
   }
 
   private buildExportNodes(moduleId: string): ExplorerNode[] {
-    return (this.edgesByTarget.get(moduleId) ?? [])
-      .filter((e) => e.type === "belongs-to" && this.graph.nodes.exports[e.from])
-      .map((e) => {
+    const results: ExplorerNode[] = [];
+    const visited = new Set<string>();
+    const queue: Array<{ ownerId: string; parentId: string }> = [
+      { ownerId: moduleId, parentId: moduleId },
+    ];
+    while (queue.length > 0) {
+      const { ownerId, parentId } = queue.shift()!;
+      if (visited.has(ownerId)) continue;
+      visited.add(ownerId);
+      for (const e of this.edgesByTarget.get(ownerId) ?? []) {
+        if (e.type !== "belongs-to" || !this.graph.nodes.exports[e.from]) continue;
         const exportNode = this.graph.nodes.exports[e.from]!;
-        return toExplorerNode(exportNode.id, "export", exportNode.desc, {
-          path: exportNode.resolvedPath,
-          parentId: moduleId,
-          edgeCount: exportNode.edgeCount ?? 0,
-          detail: {
-            ...(exportNode.typeSignature ? { signature: exportNode.typeSignature } : {}),
-            ...(exportNode.morphologySummary ? { morphology: exportNode.morphologySummary } : {}),
-          },
-        });
-      });
+        results.push(
+          toExplorerNode(exportNode.id, "export", exportNode.desc, {
+            path: exportNode.resolvedPath,
+            parentId,
+            edgeCount: exportNode.edgeCount ?? 0,
+            detail: {
+              ...(exportNode.typeSignature ? { signature: exportNode.typeSignature } : {}),
+              ...(exportNode.morphologySummary ? { morphology: exportNode.morphologySummary } : {}),
+            },
+          })
+        );
+        // Collect members of this export (e.g. class methods)
+        queue.push({ ownerId: exportNode.id, parentId: exportNode.id });
+      }
+    }
+    return results;
   }
 
   private buildImportEdges(moduleIdSet: Set<string>): {
@@ -385,6 +425,7 @@ class GraphToExplorerTransformer {
           subfolders: ghostSubfolders,
           modules: ghostModules,
           exports: [],
+          files: [],
           internalEdges: [],
           externalEdges: [],
         });
@@ -568,7 +609,7 @@ class GraphToExplorerTransformer {
         if (chain.length === 0 || chain.some((p) => folderPathToId.has(p))) {
           // Direct child, or chain passes through a declared folder — leave in place.
           directModules.push(moduleNode);
-          directExports.push(...chunk.exports.filter((e) => e.parentId === moduleNode.id));
+          directExports.push(...this.getModuleExports(moduleNode.id, chunk.exports));
           continue;
         }
 
@@ -577,7 +618,7 @@ class GraphToExplorerTransformer {
         const deepestLevel = ghostLevels.get(deepestPath)!;
         deepestLevel.modules.push({ ...moduleNode, parentId: deepestPath });
         deepestLevel.exports.push(
-          ...chunk.exports.filter((e) => e.parentId === moduleNode.id).map((e) => ({ ...e }))
+          ...this.getModuleExports(moduleNode.id, chunk.exports).map((e) => ({ ...e }))
         );
       }
 
@@ -622,6 +663,7 @@ class GraphToExplorerTransformer {
           subfolders: [...level.subfolders, ...childGhostNodes],
           modules: level.modules,
           exports: level.exports,
+          files: [],
           internalEdges,
           externalEdges,
         });
@@ -691,8 +733,30 @@ class GraphToExplorerTransformer {
       for (const sf of chunk.subfolders) if (sf.parentId) map[sf.id] = sf.parentId;
       for (const mod of chunk.modules) if (mod.parentId) map[mod.id] = mod.parentId;
       for (const exp of chunk.exports) if (exp.parentId) map[exp.id] = exp.parentId;
+      for (const file of chunk.files) if (file.parentId) map[file.id] = file.parentId;
     }
     return map;
+  }
+
+  /**
+   * Returns all exports from `candidates` that transitively belong to `moduleId`.
+   * Includes direct module exports (parentId === moduleId) AND nested exports
+   * (e.g. class methods whose parentId is a class export that itself belongs to the module).
+   */
+  private getModuleExports(moduleId: string, candidates: ExplorerNode[]): ExplorerNode[] {
+    const owned = new Set<string>([moduleId]);
+    // BFS: keep expanding owned set with exports whose parentId is already owned
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const e of candidates) {
+        if (!owned.has(e.id) && e.parentId && owned.has(e.parentId)) {
+          owned.add(e.id);
+          changed = true;
+        }
+      }
+    }
+    return candidates.filter((e) => e.parentId && owned.has(e.parentId));
   }
 
   // ── Edge/node query helpers ────────────────────────────────────────────────
@@ -701,6 +765,21 @@ class GraphToExplorerTransformer {
     return (this.edgesByTarget.get(folderId) ?? [])
       .filter((e) => e.type === "belongs-to" && this.graph.nodes.modules[e.from])
       .map((e) => e.from);
+  }
+
+  private getDirectFileIds(folderId: string): string[] {
+    return (this.edgesByTarget.get(folderId) ?? [])
+      .filter((e) => e.type === "belongs-to" && this.graph.nodes.files[e.from])
+      .map((e) => e.from);
+  }
+
+  private buildFileNodeForChunk(fileId: string, parentFolderId: string): ExplorerNode {
+    const file = this.graph.nodes.files[fileId]!;
+    return toExplorerNode(file.id, "file", file.desc, {
+      path: file.path,
+      parentId: parentFolderId,
+      edgeCount: file.edgeCount ?? 0,
+    });
   }
 
   private getDirectSubfolderIds(folderId: string): string[] {

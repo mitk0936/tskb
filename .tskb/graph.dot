@@ -379,8 +379,13 @@ digraph KnowledgeGraph {
               "extractModuleMorphology" [label="Export\<\"extractModuleMorphology\"\>\nResolves a module's source file and extracts its export surface — classifies each export by kind (function, class, interface, type, enum, variable) and renders a code stub with line ranges\n📁 packages/tskb/src/core/extraction/module-morphology.ts", shape=component, fillcolor="#C5E1A5", style=filled];
               "extractModuleImports" [label="Export\<\"extractModuleImports\"\>\nWalks import declarations in a module's AST to extract symbol names, paths, and display strings\n📁 packages/tskb/src/core/extraction/module-morphology.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "extraction.documentation" [label="Module\<\"extraction.documentation\"\>\nDocumentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-              "extractDocs" [label="Export\<\"extractDocs\"\>\nMain function that extracts documentation content and references from TSX files by traversing JSX AST\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-              "ExtractedDoc" [label="Export\<\"ExtractedDoc\"\>\nType definition for extracted documentation containing file path, content, and all references to vocabulary items\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "extractDocs" [label="Export\<\"extractDocs\"\>\nEntry point: iterates source files matched by the glob, calls extractFromTsxFile on each .tskb.tsx file, returns ExtractedDoc[]. Accepts an optional ExtractedRegistry used to pre-compute display attributes in the HTML output.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "ExtractedDoc" [label="Export\<\"ExtractedDoc\"\>\nShape of one extracted doc: filePath, format, explains, priority, HTML content string, reference arrays (modules/terms/folders/exports/files/externals), semantic relations, and extracted flows.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "extractFromTsxFile" [label="Export\<\"extractFromTsxFile\"\>\nProcesses a single .tskb.tsx source file: finds the default export, runs buildConstantReferencesMap and extractJsxContent, returns an ExtractedDoc or null if no default export is found.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "buildConstantReferencesMap" [label="Export\<\"buildConstantReferencesMap\"\>\nFirst pass over the source file: walks all variable declarations and maps const names to {category, name} by parsing 'ref as tskb.X[\"y\"]' type assertions. Result is passed into extractJsxContent so inline {MyConst} expressions resolve without re-parsing.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "extractJsxContent" [label="Export\<\"extractJsxContent\"\>\nMain JSX depth-first traversal: structural tags (H1, P, List) emit HTML, XxxRef tags and inline identifier/type-assertion expressions route through the refCategoryMap dispatch table to createReferenceContent, Flow elements validate and collect steps, Relation elements collect edges.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "createReferenceContent" [label="Export\<\"createReferenceContent\"\>\nProduces the <a class=tskb-ref> anchor for a single registry reference. Embeds data-node-id, data-node-type, and data-node-display attributes pre-computed from the registry so the explorer doc panel can show tooltips before the chunk is loaded. Pushes the id into the appropriate references sub-array.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "resolveNodeMeta" [label="Export\<\"resolveNodeMeta\"\>\nLooks up a nodeId across all registry maps (modules, folders, exports, terms, files, externals) and returns {nodeType, display}. Used by extractJsxContent for flow step links so each step anchor carries the same pre-computed attributes as regular refs.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
           }
 
@@ -463,6 +468,7 @@ digraph KnowledgeGraph {
 
           // Modules in tskb.explorer.app
           "explorer.spa.main" [label="Module\<\"explorer.spa.main\"\>\nExplorerApp class — top-level SPA controller. mount() orchestrates four setup methods (setupCanvas, setupTooltips, setupRenderer, setupSearch) then loads meta.json via loadInitialData(). The render() method drives the full D3 enter/update/exit cycle on every store change or UI interaction. Interaction handlers (onExpand, onSelect, onTraceLinks) are private methods passed as callbacks to the renderer. UI state (expanded set, selected node, search query) lives on the class instance; graph data lives in GraphStore.\n📁 packages/tskb/explorer-app/src/main.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.spa.ExplorerApp" [label="Export\<\"explorer.spa.ExplorerApp\"\>\nTop-level SPA controller class. The only public entry point is mount() — everything else is private. Owns the D3 canvas layers, UI state, and the render loop.\n📁 packages/tskb/explorer-app/src/main.ts", shape=component, fillcolor="#C5E1A5", style=filled];
           "explorer.spa.render-state" [label="Module\<\"explorer.spa.render-state\"\>\nPure render state — coordinator-facing boundary between application logic and D3 rendering\n📁 packages/tskb/explorer-app/src/render-state.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "explorer.spa.computeRenderState" [label="Export\<\"explorer.spa.computeRenderState\"\>\nPure render state computation — derives allNodes, canvasW, structureLinks, relationLinks, and matchIds from the store, layout, and search query. No D3 or DOM access. The boundary between coordinator logic and D3 rendering.\n📁 packages/tskb/explorer-app/src/render-state.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
@@ -477,6 +483,8 @@ digraph KnowledgeGraph {
             // Modules in tskb.explorer.app.components
             "explorer.spa.node-base" [label="Module\<\"explorer.spa.node-base\"\>\nNodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with a <> code preview bubble (top-center) and a + expand bubble (right edge). Ghost nodes (detail._ghost = 'true') render as dashed transparent cards showing only their filename label. Tooltip anchor is the node's right-center SVG position.\n📁 packages/tskb/explorer-app/src/components/nodes/base.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "explorer.spa.BaseNodeRenderer" [label="Export\<\"explorer.spa.BaseNodeRenderer\"\>\nDefault NodeComponent implementation: renders any node type as a rounded-rect card with type icon, label, description, edge-count badge, code preview bubble, and expand bubble.\n📁 packages/tskb/explorer-app/src/components/nodes/base.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "explorer.spa.node-index" [label="Module\<\"explorer.spa.node-index\"\>\nNode renderer factory module. createNodeRenderer() is the single dispatch point: currently always returns BaseNodeRenderer; add a type-specific case here when a node type needs a custom renderer.\n📁 packages/tskb/explorer-app/src/components/nodes/index.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "explorer.spa.createNodeRenderer" [label="Export\<\"explorer.spa.createNodeRenderer\"\>\nFactory that constructs a NodeComponent from the full set of interaction callbacks (onExpand, onSelect, onTraceLinks, hasChildren, isExpanded, onCodePreview, onChipClick, getReferencingDocs, getReferencingFlows). Currently always returns BaseNodeRenderer. Add a type-dispatch switch here when a node type needs its own renderer.\n📁 packages/tskb/explorer-app/src/components/nodes/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "explorer.spa.edge-renderer" [label="Module\<\"explorer.spa.edge-renderer\"\>\nbuildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels; buildRelationLinks() shows cross-edges (imports / related-to) only when both endpoints are directly visible; renderRelationEdges() draws tapered filled band shapes between them\n📁 packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "explorer.spa.buildStructureLinks" [label="Export\<\"explorer.spa.buildStructureLinks\"\>\nDerives parent→child StructureLink pairs from the parentId field of every positioned node. Ghost links are flagged for dashed rendering.\n📁 packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts", shape=component, fillcolor="#C5E1A5", style=filled];
               "explorer.spa.renderStructureEdges" [label="Export\<\"explorer.spa.renderStructureEdges\"\>\nDraws parent→child cubic-bezier SVG paths from a StructureLink list. Ghost links render with dashed stroke and reduced opacity.\n📁 packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts", shape=component, fillcolor="#C5E1A5", style=filled];
@@ -542,6 +550,9 @@ digraph KnowledgeGraph {
               "explorer.spa.removeNodeSpinner" [label="Export\<\"explorer.spa.removeNodeSpinner\"\>\nRemoves the SVG group returned by showNodeSpinner from the DOM. Called in the finally block of ExplorerApp.onExpand() after the chunk fetch resolves or rejects.\n📁 packages/tskb/explorer-app/src/ui/Spinner.ts", shape=component, fillcolor="#C5E1A5", style=filled];
             "explorer.spa.node-tooltip" [label="Module\<\"explorer.spa.node-tooltip\"\>\nHover tooltip anchored to the node's right-center SVG position. Shows a coloured dot, node name, monospace path, and description. Receives updateNodeTooltipTransform() calls from main.ts on every zoom event so it repositions to track the node. Uses mouseover/mouseout bubbling with relatedTarget boundary guards to avoid flicker on child SVG elements.\n📁 packages/tskb/explorer-app/src/ui/NodeTooltip.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
             "explorer.spa.code-tooltip" [label="Module\<\"explorer.spa.code-tooltip\"\>\nToggle-based code preview popup for module nodes. Click the <> bubble to show/hide; clicking the same node again dismisses it; clicking outside also dismisses. Renders morphology lines with an inline TypeScript tokenizer (no runtime deps) for syntax highlighting, prepended by import lines with a blank-line separator.\n📁 packages/tskb/explorer-app/src/ui/CodeTooltip.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+            "explorer.spa.doc-panel" [label="Module\<\"explorer.spa.doc-panel\"\>\nSide panel that slides in from the right when a node is selected or a chip is clicked. show(node) renders the node's HTML content or a structured key-value fallback. showRefs(node, kind, items) renders a docs or flows accordion. wireRefLinks() post-processes every tskb-ref anchor: resolves display text, wires hover to DomTooltip, and triggers setOnNodePrefetch to background-load the containing folder chunk on hover so the tooltip updates with description and correct color once the chunk arrives. Styled by doc-panel.css.\n📁 packages/tskb/explorer-app/src/ui/DocPanel.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "explorer.spa.DocPanel" [label="Export\<\"explorer.spa.DocPanel\"\>\nClass managing the detail side panel. show(node) opens with node HTML or key-value fallback; showRefs() opens a docs/flows accordion; hide() closes. Four callbacks wired by ExplorerApp: setOnNodeRef (click-through navigation), setGetNode (live node lookup), setOnNodeHighlight (canvas glow), setOnNodePrefetch (background chunk load on ref link hover).\n📁 packages/tskb/explorer-app/src/ui/DocPanel.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "explorer.spa.dom-tooltip" [label="Module\<\"explorer.spa.dom-tooltip\"\>\nLightweight DOM-anchored tooltip used by DocPanel ref links. Positioned above the hovered anchor element (no SVG coordinate math). Separate from NodeTooltip which is SVG-anchored and zoom-aware. mountDomTooltip() appends the element once; showDomTooltip() builds content and repositions; hideDomTooltip() fades out.\n📁 packages/tskb/explorer-app/src/ui/DomTooltip.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
 
           }
 
@@ -640,6 +651,8 @@ digraph KnowledgeGraph {
     "jsxExpression" [label="Term\<\"jsxExpression\"\>\nA TypeScript AST node representing an embedded expression in JSX curly braces like {ref as tskb.Folders['Auth']}", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "typeAssertion" [label="Term\<\"typeAssertion\"\>\nTypeScript 'as' syntax that casts a value to a specific type, used in tskb to reference vocabulary items: {ref as tskb.Modules['X']}", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "depthFirstTraversal" [label="Term\<\"depthFirstTraversal\"\>\nTree traversal algorithm that explores as far as possible along each branch before backtracking, used to visit all JSX nodes in order", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "constantReferencesMap" [label="Term\<\"constantReferencesMap\"\>\nA Map built at parse time that resolves local const names (e.g. AuthModule) to their registry key and category by reading the 'ref as tskb.X[\"y\"]' type assertion on each declaration. Lets the traversal resolve {AuthModule} inline expressions.", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "refCategoryMap" [label="Term\<\"refCategoryMap\"\>\nA dispatch table in extractJsxContent mapping JSX tag names (ModuleRef, TermRef, FolderRef, ExportRef, FileRef, ExternalRef) to their registry category string. All XxxRef elements route through the same createReferenceContent helper.", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "cliPipeline" [label="Term\<\"cliPipeline\"\>\nThe build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, skill/instructions)", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "commandRouting" [label="Term\<\"commandRouting\"\>\nThe CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, docs, or flows)", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "globPattern" [label="Term\<\"globPattern\"\>\nFile pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing", shape=diamond, fillcolor="#F0F4C3", style=filled];
@@ -663,6 +676,11 @@ digraph KnowledgeGraph {
     label="Externals";
     style=dashed;
     color=gray;
+    "vitest" [label="vitest\nTest runner used for both E2E and unit tests. Global setup builds the fixture graph once; individual test files run CLI subprocesses via execFileSync and assert against graph.json output.\nurl: https://vitest.dev\nkind: npm-package", shape=hexagon, fillcolor="#B2EBF2", style=filled];
+    "npm" [label="npm\nnpm package registry where tskb is published. The package includes the CLI binary, library entry point, JSX runtime, and pre-built explorer SPA assets.\nurl: https://www.npmjs.com/package/tskb\nkind: package-registry", shape=hexagon, fillcolor="#B2EBF2", style=filled];
+    "typescript" [label="typescript\nTypeScript compiler API (the 'typescript' npm package). Provides the AST, type checker, and symbol resolution used throughout registry extraction and documentation parsing.\nurl: https://www.typescriptlang.org\nkind: npm-package", shape=hexagon, fillcolor="#B2EBF2", style=filled];
+    "d3" [label="d3\nD3 data-visualisation library. Used for tree layout (d3.hierarchy, d3.tree), zoom/pan (d3.zoom), SVG path curves (curveBasisClosed), and polygon hull computation (d3.polygonHull).\nurl: https://d3js.org\nkind: npm-package", shape=hexagon, fillcolor="#B2EBF2", style=filled];
+    "vite" [label="vite\nFrontend build tool that bundles the explorer SPA. Configured in packages/tskb/explorer-app/vite.config.ts; outputs to dist/explorer/.\nurl: https://vitejs.dev\nkind: npm-package", shape=hexagon, fillcolor="#B2EBF2", style=filled];
     "pg" [label="pg\nPostgreSQL client for Node.js\nurl: https://node-postgres.com\nkind: npm-package", shape=hexagon, fillcolor="#B2EBF2", style=filled];
   }
 
@@ -673,16 +691,17 @@ digraph KnowledgeGraph {
     color=gray;
     "e2e-test-execution" [label="e2e-test-execution\nFull E2E run: global setup builds fixture graph, test files exercise every CLI command, teardown cleans output\n1. vitest.config (Discovers test files, registers global setup)\n2. tests.global-setup (Builds fixture graph once via tskb build)\n3. tests.helpers (Provides CLI runners and graph loader to all test files)\n4. tests.global-setup (Teardown cleans .tskb/ output directory)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "init-scaffolding-test" [label="init-scaffolding-test\nHow the init command is tested: copies fixture to temp dir, runs init, asserts generated files\n1. tests.helpers (Copies fixture src/ into a temp directory)\n2. cli.build (Runs tskb init --yes in the temp directory)\n3. tests.e2e (Asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs)", shape=cds, fillcolor="#C8E6C9", style=filled];
-    "build-pipeline" [label="build-pipeline\nThe tskb build process: source files through extraction to knowledge graph outputs\n1. cli.build (Orchestrates the pipeline: file discovery, extraction, graph building, output generation)\n2. extractRegistry (Scans TypeScript AST for global tskb namespace declarations (Folders, Modules, Exports, Terms))\n3. extractDocs (Traverses JSX trees in .tskb.tsx files, extracting content, references, relations, and flows)\n4. buildGraph (Merges registry and docs into a unified graph with nodes, edges, and hierarchy)\n5. generateDot (Transforms the graph into DOT format for Graphviz visualization)", shape=cds, fillcolor="#C8E6C9", style=filled];
+    "build-pipeline" [label="build-pipeline\nThe tskb build process: source files through extraction to knowledge graph outputs\n1. cli.build (Orchestrates the pipeline: file discovery, extraction, graph building, output generation)\n2. extractRegistry (Scans TypeScript AST for global tskb namespace declarations (Folders, Modules, Exports, Terms))\n3. extractDocs (Receives completed registry; traverses JSX trees to extract content, references, relations, and flows — embeds data-node-display in reference links using registry-resolved paths)\n4. buildGraph (Merges registry and docs into a unified graph with nodes, edges, and hierarchy)\n5. generateDot (Transforms the graph into DOT format for Graphviz visualization)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "static-analysis" [label="static-analysis\nTypeScript Program creation through extraction to graph\n1. ts.createProgram (creates Program from tsconfig + source files)\n2. extraction.registry (walks AST for Folders, Modules, Terms, Exports)\n3. extraction.documentation (parses JSX trees for content and references)\n4. graph.builder (assembles nodes and edges into knowledge graph)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "graph-to-chunks-transform" [label="graph-to-chunks-transform\nHow KnowledgeGraph becomes ExplorerChunks: edge indexing, meta assembly, recursive folder chunking, ghost node injection, child count patching\n1. cli.commands.explore (Reads graph.json from disk into KnowledgeGraph)\n2. explorer.transform (groupEdgesByKey() builds edgesBySource + edgesByTarget indexes from all graph edges)\n3. explorer.transformGraph (Assembles MetaChunk: root node, topFolders, docs, flows, terms, externals, cross-lane reference edges)\n4. explorer.transformGraph (buildAllFolderChunksRecursively() depth-first: modules, exports, subfolders, internal + external import edges per folder)\n5. explorer.transform (buildGhostIntermediaryChains() synthesizes FolderChunks for every intermediate filesystem directory between a declared folder path and its owned modules/subfolders)\n6. explorer.transform (injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories recorded in folder.children scanner data)\n7. explorer.transform (patchFolderChildCounts() finalizes _hasChildren + _childCount on all folder nodes after ghost injection)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "explorer-expand-flow" [label="explorer-expand-flow\nUser expands a folder node: chunk is fetched, store updated, layout recomputed, SVG re-rendered\n1. explorer.spa.node-base (User clicks + expand button; BaseNodeRenderer fires the onExpand callback)\n2. explorer.spa.main (ExplorerApp.onExpand(): calls showNodeSpinner, delegates to loader, calls removeNodeSpinner in finally; adds node id to expanded set)\n3. explorer.spa.loader (ChunkLoader.load('folder', id) — returns cached chunk or fetches /chunks/folder-{sanitizedId}.json)\n4. explorer.spa.store (store.loadFolderChunk() stores chunk; store notifies subscribers, triggering ExplorerApp.render())\n5. explorer.spa.computeLayout (render() calls computeLayout(store, expanded) — rebuilds d3.hierarchy and recomputes all SVG positions)\n6. explorer.spa.buildStructureLinks (render() calls buildStructureLinks() — derives parent→child link list from updated parentId fields)\n7. explorer.spa.renderStructureEdges (render() calls renderStructureEdges() — redraws cubic-bezier SVG paths; ghost links rendered dashed)\n8. explorer.spa.node-base (render() D3 enter/update/exit — new node cards enter with fade-in, collapsed nodes exit with fade-out)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "explorer-serve-flow" [label="explorer-serve-flow\ntskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand\n1. explorer.explore (Reads graph.json, branches on --export flag)\n2. explorer.transformGraph (Converts KnowledgeGraph into MetaChunk + FolderChunks, serializes all to JSON strings)\n3. explorer.serveExplorer (Starts http server: /chunks/*.json reads from in-memory cache; /* serves SPA assets)\n4. explorer.spa.main (ExplorerApp.mount(): setupCanvas (D3 SVG + zoom/pan), setupRenderer, setupSearch, then loadInitialData fetches meta.json)\n5. explorer.spa.lane-engine (computeLayout() positions all visible nodes across three lanes)\n6. explorer.spa.node-base (D3 enter/update renders node cards into SVG groups)", shape=cds, fillcolor="#C8E6C9", style=filled];
-    "explorer-export-flow" [label="explorer-export-flow\ntskb explore --export: CLI finds graph, transforms all chunks, copies SPA assets, writes chunk JSON files to disk\n1. explorer.explore (Reads graph.json, detects --export flag, resolves output directory (default: .tskb/explorer))\n2. explorer.transformGraph (Converts KnowledgeGraph into MetaChunk + FolderChunks)\n3. explorer.export (copyDir() recursively copies dist/explorer/ SPA assets to output directory)\n4. explorer.exportExplorer (Writes chunks/meta.json and chunks/folder-{id}.json for every folder chunk)", shape=cds, fillcolor="#C8E6C9", style=filled];
+    "explorer-export-flow" [label="explorer-export-flow\ntskb explore --export: reads graph.json, transforms chunks in memory, copies pre-built SPA from dist/explorer/ and writes chunk JSON files into the output directory (default: .tskb/explorer/)\n1. explorer.explore (reads .tskb/graph.json; resolves output directory from --export flag (default: .tskb/explorer/))\n2. explorer.transformGraph (converts KnowledgeGraph → MetaChunk + one FolderChunk per folder, held in memory)\n3. explorer.exportExplorer (copyDir: recursively copies dist/explorer/ (pre-built SPA inside the tskb package) into outputDir/ — produces outputDir/index.html and outputDir/assets/)\n4. explorer.exportExplorer (writes all chunks as JSON: outputDir/chunks/meta.json and outputDir/chunks/folder-{sanitizedId}.json — one file per folder)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "explorer-app-boot" [label="explorer-app-boot\nExplorerApp.mount(): four setup phases then meta fetch that triggers the first render\n1. explorer.spa.ExplorerApp (new ExplorerApp().mount() called on page load)\n2. explorer.spa.ExplorerApp.setupCanvas (Appends zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation)\n3. explorer.spa.ExplorerApp.setupTooltips (mountNodeTooltip() and mountCodeTooltip() attach DOM tooltip elements anchored to the SVG)\n4. explorer.spa.ExplorerApp.setupRenderer (createNodeRenderer() wires onExpand / onSelect / onTraceLinks / hasChildren / code preview callbacks to ExplorerApp instance methods)\n5. explorer.spa.ExplorerApp.setupSearch (Search input 'input' event updates searchQuery and calls render())\n6. explorer.spa.ExplorerApp.loadInitialData (loader.load('meta') fetches /chunks/meta.json; global spinner shown while pending)\n7. explorer.spa.store (store.loadMeta() stores the chunk and notifies the render subscriber)\n8. explorer.spa.lane-engine (First render(): computeLayout positions top-folder nodes across the Structure lane)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "explorer-app-render" [label="explorer-app-render\nExplorerApp.render(): layout → edges → D3 enter/update/exit → search dim\n1. explorer.spa.ExplorerApp.render (Triggered by store subscription or direct call from interaction handler)\n2. explorer.spa.computeLayout (computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set.)\n3. explorer.spa.computeRenderState (computeRenderState(store, layout, searchQuery): derives allNodes, canvasW, structureLinks, relationLinks, matchIds. Pure — no D3.)\n4. explorer.spa.edge-renderer (renderLaneBands(): draws labeled background bands for Structure and Externals lanes)\n5. explorer.spa.buildStructureLinks (buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields)\n6. explorer.spa.renderStructureEdges (renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke)\n7. explorer.spa.node-base (D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble)\n8. explorer.spa.node-base (D3 update: renderer.update() repositions and reskins all merged nodes)\n9. explorer.spa.node-base (D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "explorer-app-expand" [label="explorer-app-expand\nExplorerApp.onExpand(): fetch chunk if needed, update expanded set, re-render\n1. explorer.spa.node-base (User clicks + button; BaseNodeRenderer fires the onExpand callback)\n2. explorer.spa.ExplorerApp.onExpand (If already expanded: collapseDescendants() clears the subtree, calls render())\n3. explorer.spa.showNodeSpinner (If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node)\n4. explorer.spa.loader (loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json)\n5. explorer.spa.removeNodeSpinner (removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed)\n6. explorer.spa.store (store.loadFolderChunk() stores chunk and notifies subscribers)\n7. explorer.spa.ExplorerApp.render (render() called after expanded set update — new nodes enter, layout recomputed)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "module-morphology-extraction" [label="module-morphology-extraction\nHow a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs\n1. extractRegistry (collects Module declarations from tskb namespace)\n2. extractModuleMorphology (resolves source file, classifies exports, renders code stubs)\n3. extractModuleImports (walks import declarations for symbols and paths)\n4. graph.builder (assembles enriched ModuleNode with edges)", shape=cds, fillcolor="#C8E6C9", style=filled];
+    "docs-extraction-pipeline" [label="docs-extraction-pipeline\nSingle .tskb.tsx file through extraction: constant map → JSX traversal → HTML + references\n1. extractDocs (Iterates Program source files; dispatches matched .tsx files to extractFromTsxFile)\n2. extractFromTsxFile (Finds default export, initialises references object and flow/relation collectors)\n3. buildConstantReferencesMap (Walks all variable declarations; maps const names → {category, name} via type-assertion parsing)\n4. extraction.registry (Passed in as optional param; queried by createReferenceContent to pre-compute data-node-display values)\n5. extractJsxContent (Depth-first JSX traversal: structural tags → HTML, XxxRef / inline refs → refCategoryMap → createReferenceContent; Flow elements validated and collected)\n6. createReferenceContent (Emits <a class=tskb-ref data-node-id data-node-type data-node-display>; pushes id into references sub-array)\n7. resolveNodeMeta (Called per Flow step: probes all registry maps to return {nodeType, display} for the step anchor)\n8. ExtractedDoc (Returned: filePath, HTML content, references arrays, flows[], relations[])\n9. graph.builder (Consumes ExtractedDoc: creates DocNode + FlowNode entries and references/flow-step edges)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "login-flow" [label="login-flow\nUser authentication from HTTP request to session token\n1. AuthMiddleware (Validates request format)\n2. AuthService (Checks credentials, generates JWT)\n3. Database (Queries user record)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "task-creation" [label="task-creation\nTask creation with validation and notification\n1. TaskService (Validates input, applies business rules)\n2. TaskRepository (Persists task to database)\n3. NotificationService (Notifies assigned users)", shape=cds, fillcolor="#C8E6C9", style=filled];
   }
@@ -692,31 +711,32 @@ digraph KnowledgeGraph {
     label="Documentation";
     style=dashed;
     color=gray;
-    "docs/src/tskb/tests.tskb.tsx" [label="docs/src/tskb/tests.tskb.tsx\nE2E Test Infrastructure The test suite ( ) validates the entire tskb CLI by running it as a subproce...\n📄 docs/src/tskb/tests.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/main.tskb.tsx" [label="docs/src/tskb/main.tskb.tsx\nArchitecture and implementation docs for the  library The package is located in , with its and for n...\n📄 docs/src/tskb/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/typescript/typescript.tskb.tsx" [label="docs/src/tskb/typescript/typescript.tskb.tsx\nTypeScript Program Located in . exports which creates a   for analyzing code without compilation (no...\n📄 docs/src/tskb/typescript/typescript.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/runtime/runtime.tskb.tsx" [label="docs/src/tskb/runtime/runtime.tskb.tsx\nRuntime Located in . Contains registry type definitions and JSX primitives - no actual\n      runtime...\n📄 docs/src/tskb/runtime/runtime.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/explorer/transform.tskb.tsx" [label="docs/src/tskb/explorer/transform.tskb.tsx\nGraph Transform is the single step between the raw knowledge graph and what the browser\n      receiv...\n📄 docs/src/tskb/explorer/transform.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/tests.tskb.tsx" [label="docs/src/tskb/tests.tskb.tsx\nE2E Test Infrastructure The test suite ( tests) validates the entire tskb CLI by running it as a sub...\n📄 docs/src/tskb/tests.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/main.tskb.tsx" [label="docs/src/tskb/main.tskb.tsx\nArchitecture and implementation docs for the  library The package is located in TSKB.Package.Root, w...\n📄 docs/src/tskb/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/typescript/typescript.tskb.tsx" [label="docs/src/tskb/typescript/typescript.tskb.tsx\nTypeScript Program Located in tskb.typescript. typescript.programexports ts.createProgramwhich creat...\n📄 docs/src/tskb/typescript/typescript.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/runtime/runtime.tskb.tsx" [label="docs/src/tskb/runtime/runtime.tskb.tsx\nRuntime Located in tskb.runtime. Contains registry type definitions and JSX primitives - no actual\n ...\n📄 docs/src/tskb/runtime/runtime.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/explorer/transform.tskb.tsx" [label="docs/src/tskb/explorer/transform.tskb.tsx\nGraph Transform explorer.transformis the single step between the raw knowledge graph and what the br...\n📄 docs/src/tskb/explorer/transform.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/explorer/spa.tskb.tsx" [label="docs/src/tskb/explorer/spa.tskb.tsx\nExplorer SPA The SPA is built with Vite (D3 in a separate vendor chunk) and lives in the   explorer-...\n📄 docs/src/tskb/explorer/spa.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/explorer/serve.tskb.tsx" [label="docs/src/tskb/explorer/serve.tskb.tsx\nExplorer Server in starts a Node built-in http server — no\n      external dependency. It runs the gr...\n📄 docs/src/tskb/explorer/serve.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/explorer/export.tskb.tsx" [label="docs/src/tskb/explorer/export.tskb.tsx\nExplorer Static Export in produces a : a directory containing\n      the pre-built SPA ( index.html +...\n📄 docs/src/tskb/explorer/export.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/explorer/serve.tskb.tsx" [label="docs/src/tskb/explorer/serve.tskb.tsx\nExplorer Server explorer.serveExplorerin explorer.serverstarts a Node built-in http server — no\n    ...\n📄 docs/src/tskb/explorer/serve.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/explorer/export.tskb.tsx" [label="docs/src/tskb/explorer/export.tskb.tsx\nExplorer Static Export explorer.exportExplorerin explorer.exportproduces a explorerStaticExport: a d...\n📄 docs/src/tskb/explorer/export.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/tskb/explorer/explorer.tskb.tsx" [label="docs/src/tskb/explorer/explorer.tskb.tsx\nExplorer The explorer is a D3-powered SPA that renders the knowledge graph as a visual, interactive\n...\n📄 docs/src/tskb/explorer/explorer.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/explorer/app.tskb.tsx" [label="docs/src/tskb/explorer/app.tskb.tsx\nExplorerApp in is the single top-level controller for the explorer SPA.\n      All canvas layers, UI ...\n📄 docs/src/tskb/explorer/app.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/core/visualization.tskb.tsx" [label="docs/src/tskb/core/visualization.tskb.tsx\nVisualization Located in . Contains which provides . Transforms\n      a KnowledgeGraph into Graphviz...\n📄 docs/src/tskb/core/visualization.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/core/registry-extraction.tskb.tsx" [label="docs/src/tskb/core/registry-extraction.tskb.tsx\nRegistry Extraction walks the TypeScript AST for registry declarations, then enriches each\n      mod...\n📄 docs/src/tskb/core/registry-extraction.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/core/graph-builder.tskb.tsx" [label="docs/src/tskb/core/graph-builder.tskb.tsx\nGraph Module Located in . Takes extracted registry and documentation, produces a   . Modules : Defin...\n📄 docs/src/tskb/core/graph-builder.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" [label="docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx\nThe package in is published to npm. is the primary documentation\n      users see on the registry. Wh...\n📄 docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/cli/logging.tskb.tsx" [label="docs/src/tskb/cli/logging.tskb.tsx\nCLI Logger is a module-level singleton that routes all CLI output to stderr, keeping\n      stdout cl...\n📄 docs/src/tskb/cli/logging.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/tskb/cli/cli-overview.tskb.tsx" [label="docs/src/tskb/cli/cli-overview.tskb.tsx\nCLI Located in . Entry point: — parses arguments, routes to command\n      handlers. Commands In : : ...\n📄 docs/src/tskb/cli/cli-overview.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/explorer/app.tskb.tsx" [label="docs/src/tskb/explorer/app.tskb.tsx\nExplorerApp explorer.spa.ExplorerAppin explorer.spa.mainis the single top-level controller for the e...\n📄 docs/src/tskb/explorer/app.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/core/visualization.tskb.tsx" [label="docs/src/tskb/core/visualization.tskb.tsx\nVisualization Located in core.visualization. Contains visualization.dot-generatorwhich provides gene...\n📄 docs/src/tskb/core/visualization.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/core/registry-extraction.tskb.tsx" [label="docs/src/tskb/core/registry-extraction.tskb.tsx\nRegistry Extraction extractRegistrywalks the TypeScript AST for registry declarations, then enriches...\n📄 docs/src/tskb/core/registry-extraction.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/core/graph-builder.tskb.tsx" [label="docs/src/tskb/core/graph-builder.tskb.tsx\nGraph Module Located in core.extraction.graph. Takes extracted registry and documentation, produces ...\n📄 docs/src/tskb/core/graph-builder.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/core/docs-extraction.tskb.tsx" [label="docs/src/tskb/core/docs-extraction.tskb.tsx\nDocumentation Extraction extraction.documentationis the second extraction pass in the build pipeline...\n📄 docs/src/tskb/core/docs-extraction.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" [label="docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx\nThe package in TSKB.Package.Rootis published to npm. npm.README.mdis the primary documentation\n     ...\n📄 docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/cli/logging.tskb.tsx" [label="docs/src/tskb/cli/logging.tskb.tsx\nCLI Logger cli.utils.loggeris a module-level singleton that routes all CLI output to stderr, keeping...\n📄 docs/src/tskb/cli/logging.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/tskb/cli/cli-overview.tskb.tsx" [label="docs/src/tskb/cli/cli-overview.tskb.tsx\nCLI Located in tskb.cli. Entry point: cli.index— parses arguments, routes to command\n      handlers....\n📄 docs/src/tskb/cli/cli-overview.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/main.tskb.tsx" [label="docs/src/taskflow-app/main.tskb.tsx\nTaskFlow Application Full-stack task management application demonstrating modern web architecture pa...\n📄 docs/src/taskflow-app/main.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/flows.tskb.tsx" [label="docs/src/taskflow-app/flows.tskb.tsx\nApplication Flows Login User authentication from HTTP request through service layer to database and ...\n📄 docs/src/taskflow-app/flows.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/taskflow-app/data-layer.tskb.tsx" [label="docs/src/taskflow-app/data-layer.tskb.tsx\nData Layer Architecture The data layer implements the to separate database operations from\n      bus...\n📄 docs/src/taskflow-app/data-layer.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/data-layer.tskb.tsx" [label="docs/src/taskflow-app/data-layer.tskb.tsx\nData Layer Architecture The data layer implements the repositoryPatternto separate database operatio...\n📄 docs/src/taskflow-app/data-layer.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/authentication-system.tskb.tsx" [label="docs/src/taskflow-app/authentication-system.tskb.tsx\nAuthentication System The authentication system provides secure user login, registration, and sessio...\n📄 docs/src/taskflow-app/authentication-system.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/architecture-overview.tskb.tsx" [label="docs/src/taskflow-app/architecture-overview.tskb.tsx\nTaskFlow Architecture Overview TaskFlow is a full-stack task management application demonstrating mo...\n📄 docs/src/taskflow-app/architecture-overview.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx" [label="docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx\nConstraint: Service Layer Isolation Services in MUST NOT directly access the database. All data pers...\n📄 docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx" [label="docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx\nConstraint: Service Layer Isolation Services in ServicesMUST NOT directly access the database. All d...\n📄 docs/src/taskflow-app/constraints/constraint-service-isolation.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx" [label="docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx\nConstraint: API Response Structure All API endpoints MUST return responses following the ApiResponse...\n📄 docs/src/taskflow-app/constraints/constraint-api-responses.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
     "docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx" [label="docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx\nADR: Repository Pattern Over Direct Database Access Status Accepted Context We needed to decide how ...\n📄 docs/src/taskflow-app/adr/adr-repository-pattern.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
-    "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" [label="docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx\nADR: React Context Over Redux for State Management Status Accepted Context The needed a state manage...\n📄 docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
+    "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" [label="docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx\nADR: React Context Over Redux for State Management Status Accepted Context The Clientneeded a state ...\n📄 docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx", shape=note, fillcolor="#E1BEE7", style=filled];
   }
 
   // Relationships
@@ -760,7 +780,7 @@ digraph KnowledgeGraph {
   "explorer-serve-flow" -> "explorer.spa.node-base" ;
   "explorer-export-flow" -> "explorer.explore" ;
   "explorer-export-flow" -> "explorer.transformGraph" ;
-  "explorer-export-flow" -> "explorer.export" ;
+  "explorer-export-flow" -> "explorer.exportExplorer" ;
   "explorer-export-flow" -> "explorer.exportExplorer" ;
   "explorer-app-boot" -> "explorer.spa.ExplorerApp" ;
   "explorer-app-boot" -> "explorer.spa.ExplorerApp.setupCanvas" ;
@@ -790,6 +810,15 @@ digraph KnowledgeGraph {
   "module-morphology-extraction" -> "extractModuleMorphology" ;
   "module-morphology-extraction" -> "extractModuleImports" ;
   "module-morphology-extraction" -> "graph.builder" ;
+  "docs-extraction-pipeline" -> "extractDocs" ;
+  "docs-extraction-pipeline" -> "extractFromTsxFile" ;
+  "docs-extraction-pipeline" -> "buildConstantReferencesMap" ;
+  "docs-extraction-pipeline" -> "extraction.registry" ;
+  "docs-extraction-pipeline" -> "extractJsxContent" ;
+  "docs-extraction-pipeline" -> "createReferenceContent" ;
+  "docs-extraction-pipeline" -> "resolveNodeMeta" ;
+  "docs-extraction-pipeline" -> "ExtractedDoc" ;
+  "docs-extraction-pipeline" -> "graph.builder" ;
   "login-flow" -> "AuthMiddleware" ;
   "login-flow" -> "AuthService" ;
   "login-flow" -> "Database" ;
@@ -855,12 +884,15 @@ digraph KnowledgeGraph {
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.loader" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.store" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.lane-engine" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.node-index" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.node-base" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.edge-renderer" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.boundary-renderer" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.spinner" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.node-tooltip" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.code-tooltip" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.doc-panel" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.dom-tooltip" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "lruChunkCache" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorerLane" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "nodeComponent" [color=grey, style=dashed];
@@ -870,10 +902,12 @@ digraph KnowledgeGraph {
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.computeLayout" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.renderStructureEdges" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.BaseNodeRenderer" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.createNodeRenderer" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.buildStructureLinks" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.renderBoundaryGroups" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.showNodeSpinner" [color=grey, style=dashed];
   "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.removeNodeSpinner" [color=grey, style=dashed];
+  "docs/src/tskb/explorer/spa.tskb.tsx" -> "explorer.spa.DocPanel" [color=grey, style=dashed];
   "docs/src/tskb/explorer/serve.tskb.tsx" -> "explorer.server" [color=grey, style=dashed];
   "docs/src/tskb/explorer/serve.tskb.tsx" -> "cli.commands.explore" [color=grey, style=dashed];
   "docs/src/tskb/explorer/serve.tskb.tsx" -> "cli.utils.graph-finder" [color=grey, style=dashed];
@@ -918,6 +952,21 @@ digraph KnowledgeGraph {
   "docs/src/tskb/core/graph-builder.tskb.tsx" -> "KnowledgeGraph" [color=grey, style=dashed];
   "docs/src/tskb/core/graph-builder.tskb.tsx" -> "FlowNode" [color=grey, style=dashed];
   "docs/src/tskb/core/graph-builder.tskb.tsx" -> "buildGraph" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "extraction.documentation" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "extraction.registry" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "constantReferencesMap" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "typeAssertion" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "depthFirstTraversal" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "refCategoryMap" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "extractDocs" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "ExtractedDoc" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "jsx.Flow" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "extractFromTsxFile" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "buildConstantReferencesMap" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "extractJsxContent" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "createReferenceContent" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "jsx.Step" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "resolveNodeMeta" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "runtime.jsx" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "runtime.registry" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "cli.utils.skill-generator" [color=grey, style=dashed];
@@ -1026,8 +1075,11 @@ digraph KnowledgeGraph {
   "docs/src/taskflow-app/adr/adr-context-over-redux.tskb.tsx" -> "ProjectContext" [color=grey, style=dashed];
 
   // related-to edges
+  "tests" -> "vitest" ;
+  "TSKB.Package.Root" -> "npm" ;
   "tsProgram" -> "typescript.program" ;
   "tsProgram" -> "ref" ;
+  "tskb.typescript" -> "typescript" ;
   "runtime.jsx" -> "graph" ;
   "explorer.spa.store" -> "explorer.spa.chunk-types" ;
   "explorer.spa.loader" -> "explorer.spa.chunk-types" ;
@@ -1040,8 +1092,13 @@ digraph KnowledgeGraph {
   "explorer.spa.main" -> "explorer.spa.boundary-renderer" ;
   "explorer.spa.main" -> "explorer.spa.node-tooltip" ;
   "explorer.spa.main" -> "explorer.spa.code-tooltip" ;
+  "explorer.spa.main" -> "explorer.spa.doc-panel" ;
+  "explorer.spa.doc-panel" -> "explorer.spa.dom-tooltip" ;
   "explorer.spa.node-base" -> "explorer.spa.node-tooltip" ;
   "explorer.spa.node-base" -> "explorer.spa.code-tooltip" ;
+  "tskb.explorer.app.layout" -> "d3" ;
+  "tskb.explorer.app.components" -> "d3" ;
+  "tskb.explorer.app" -> "vite" ;
   "visualization.dot-generator" -> "generateDot" ;
   "visualization.dot-generator" -> "graph.builder" ;
   "buildGraph" -> "KnowledgeGraph" ;
@@ -1051,7 +1108,6 @@ digraph KnowledgeGraph {
   "Jsx.runtime.js" -> "runtime.registry" ;
   "runtime.jsx" -> "runtime.registry" ;
   "explorer.transform" -> "graph.types" ;
-  "explorer.spa.main" -> "explorer.spa.node-base" ;
   "explorer.spa.store" -> "explorer.spa.chunk-types" ;
   "explorer.spa.lane-engine" -> "explorer.spa.store" ;
   "explorer.server" -> "graph.types" ;
@@ -1065,6 +1121,7 @@ digraph KnowledgeGraph {
   "graph.types" -> "runtime.jsx" ;
   "graph.types" -> "extraction.module-morphology" ;
   "extraction.documentation" -> "runtime.jsx" ;
+  "extraction.documentation" -> "extraction.registry" ;
   "cli.commands.search" -> "graph.types" ;
   "cli.commands.pick" -> "graph.types" ;
   "cli.commands.ls" -> "graph.types" ;
@@ -1078,18 +1135,25 @@ digraph KnowledgeGraph {
   "explorer.spa.main" -> "explorer.spa.loader" ;
   "explorer.spa.main" -> "explorer.spa.store" ;
   "explorer.spa.main" -> "explorer.spa.lane-engine" ;
+  "explorer.spa.main" -> "explorer.spa.node-base" ;
+  "explorer.spa.main" -> "explorer.spa.node-index" ;
   "explorer.spa.main" -> "explorer.spa.edge-renderer" ;
   "explorer.spa.main" -> "explorer.spa.render-state" ;
   "explorer.spa.main" -> "explorer.spa.spinner" ;
   "explorer.spa.main" -> "explorer.spa.code-tooltip" ;
   "explorer.spa.main" -> "explorer.spa.node-tooltip" ;
+  "explorer.spa.main" -> "explorer.spa.dom-tooltip" ;
+  "explorer.spa.main" -> "explorer.spa.doc-panel" ;
   "explorer.spa.main" -> "explorer.spa.boundary-renderer" ;
   "explorer.spa.loader" -> "explorer.spa.chunk-types" ;
   "explorer.spa.node-base" -> "explorer.spa.lane-engine" ;
   "explorer.spa.node-base" -> "explorer.spa.node-tooltip" ;
+  "explorer.spa.node-index" -> "explorer.spa.node-base" ;
   "explorer.spa.edge-renderer" -> "explorer.spa.lane-engine" ;
   "explorer.spa.edge-renderer" -> "explorer.spa.node-base" ;
   "explorer.spa.boundary-renderer" -> "explorer.spa.lane-engine" ;
+  "explorer.spa.doc-panel" -> "explorer.spa.dom-tooltip" ;
+  "explorer.spa.doc-panel" -> "explorer.spa.node-base" ;
   "explorer.server" -> "cli.utils.logger" ;
   "explorer.server" -> "explorer.transform" ;
   "cli.commands.explore" -> "cli.utils.graph-finder" ;

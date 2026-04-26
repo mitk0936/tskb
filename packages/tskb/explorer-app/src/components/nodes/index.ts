@@ -4,6 +4,8 @@ import {
   type SelectHandler,
   type TraceLinkHandler,
   type CodePreviewHandler,
+  type ChipClickHandler,
+  type GetRefsFn,
   type NodeComponent,
 } from "./base";
 import type { PositionedNode } from "../../types";
@@ -20,7 +22,10 @@ export function createNodeRenderer(
   onTraceLinks: TraceLinkHandler,
   hasChildren: (node: PositionedNode) => boolean,
   isExpanded: (node: PositionedNode) => boolean,
-  onCodePreview?: CodePreviewHandler
+  onCodePreview?: CodePreviewHandler,
+  onChipClick?: ChipClickHandler,
+  getReferencingDocs?: GetRefsFn,
+  getReferencingFlows?: GetRefsFn
 ): NodeComponent {
   return new BaseNodeRenderer(
     onExpand,
@@ -28,6 +33,9 @@ export function createNodeRenderer(
     onTraceLinks,
     hasChildren,
     isExpanded,
-    onCodePreview
+    onCodePreview,
+    onChipClick,
+    getReferencingDocs,
+    getReferencingFlows
   );
 }

@@ -9,6 +9,7 @@ const ROOT = "__TSKB.ROOT__";
 function makeGraph(partial: {
   folders?: Record<string, { desc: string; path?: string }>;
   modules?: Record<string, { desc: string; resolvedPath?: string }>;
+  exports?: Record<string, { desc: string; resolvedPath?: string; typeSignature?: string }>;
   edges?: { from: string; to: string; type: string }[];
 }): KnowledgeGraph {
   return {
@@ -28,7 +29,12 @@ function makeGraph(partial: {
           { id, type: "module" as const, ...m },
         ])
       ),
-      exports: {},
+      exports: Object.fromEntries(
+        Object.entries(partial.exports ?? {}).map(([id, e]) => [
+          id,
+          { id, type: "export" as const, ...e },
+        ])
+      ),
       terms: {},
       files: {},
       externals: {},
@@ -207,5 +213,107 @@ describe("transformGraph — ghost intermediary chains", () => {
     expect(pkgChunk.modules.some((m) => m.id === "pkg.server")).toBe(true);
     // No new ghost chunk created for pkg/src (declared folder already owns that path)
     expect(result.folders.has("pkg/src")).toBe(false);
+  });
+});
+
+// ─── Nested export hierarchy (InstanceType method pattern) ────────────────────
+
+describe("transformGraph — nested export hierarchy", () => {
+  it("includes direct exports in the chunk when they belong-to the module", () => {
+    const graph = makeGraph({
+      folders: { pkg: { desc: "package", path: "pkg" } },
+      modules: { "pkg.app": { desc: "app module", resolvedPath: "pkg/app.ts" } },
+      exports: { "pkg.app.MyClass": { desc: "the main class", resolvedPath: "pkg/app.ts" } },
+      edges: [
+        { from: ROOT, to: "pkg", type: "contains" },
+        { from: "pkg.app", to: "pkg", type: "belongs-to" },
+        { from: "pkg.app.MyClass", to: "pkg.app", type: "belongs-to" },
+      ],
+    });
+
+    const result = transformGraph(graph);
+    const chunk = result.folders.get("pkg")!;
+
+    expect(chunk.exports.some((e) => e.id === "pkg.app.MyClass")).toBe(true);
+  });
+
+  it("includes nested method exports as children of their class export", () => {
+    const graph = makeGraph({
+      folders: { pkg: { desc: "package", path: "pkg" } },
+      modules: { "pkg.app": { desc: "app module", resolvedPath: "pkg/app.ts" } },
+      exports: {
+        "pkg.app.MyClass": {
+          desc: "the main class",
+          resolvedPath: "pkg/app.ts",
+          typeSignature: "MyClass",
+        },
+        "pkg.app.MyClass.mount": { desc: "mount method" },
+        "pkg.app.MyClass.render": { desc: "render method" },
+      },
+      edges: [
+        { from: ROOT, to: "pkg", type: "contains" },
+        { from: "pkg.app", to: "pkg", type: "belongs-to" },
+        { from: "pkg.app.MyClass", to: "pkg.app", type: "belongs-to" },
+        { from: "pkg.app.MyClass.mount", to: "pkg.app.MyClass", type: "belongs-to" },
+        { from: "pkg.app.MyClass.render", to: "pkg.app.MyClass", type: "belongs-to" },
+      ],
+    });
+
+    const result = transformGraph(graph);
+    const chunk = result.folders.get("pkg")!;
+
+    const exportIds = chunk.exports.map((e) => e.id);
+    expect(exportIds).toContain("pkg.app.MyClass");
+    expect(exportIds).toContain("pkg.app.MyClass.mount");
+    expect(exportIds).toContain("pkg.app.MyClass.render");
+  });
+
+  it("assigns correct parentId so method exports nest under their class", () => {
+    const graph = makeGraph({
+      folders: { pkg: { desc: "package", path: "pkg" } },
+      modules: { "pkg.app": { desc: "app module", resolvedPath: "pkg/app.ts" } },
+      exports: {
+        "pkg.app.MyClass": { desc: "the main class", resolvedPath: "pkg/app.ts" },
+        "pkg.app.MyClass.login": { desc: "login method" },
+      },
+      edges: [
+        { from: ROOT, to: "pkg", type: "contains" },
+        { from: "pkg.app", to: "pkg", type: "belongs-to" },
+        { from: "pkg.app.MyClass", to: "pkg.app", type: "belongs-to" },
+        { from: "pkg.app.MyClass.login", to: "pkg.app.MyClass", type: "belongs-to" },
+      ],
+    });
+
+    const result = transformGraph(graph);
+    const chunk = result.folders.get("pkg")!;
+
+    const methodNode = chunk.exports.find((e) => e.id === "pkg.app.MyClass.login")!;
+    expect(methodNode).toBeDefined();
+    expect(methodNode.parentId).toBe("pkg.app.MyClass");
+  });
+
+  it("includes nested exports in ghost intermediary chunks", () => {
+    const graph = makeGraph({
+      folders: { pkg: { desc: "package", path: "pkg" } },
+      modules: { "pkg.app": { desc: "app module", resolvedPath: "pkg/src/app.ts" } },
+      exports: {
+        "pkg.app.MyClass": { desc: "the main class", resolvedPath: "pkg/src/app.ts" },
+        "pkg.app.MyClass.run": { desc: "run method" },
+      },
+      edges: [
+        { from: ROOT, to: "pkg", type: "contains" },
+        { from: "pkg.app", to: "pkg", type: "belongs-to" },
+        { from: "pkg.app.MyClass", to: "pkg.app", type: "belongs-to" },
+        { from: "pkg.app.MyClass.run", to: "pkg.app.MyClass", type: "belongs-to" },
+      ],
+    });
+
+    const result = transformGraph(graph);
+    const ghostChunk = result.folders.get("pkg/src")!;
+
+    expect(ghostChunk).toBeDefined();
+    const exportIds = ghostChunk.exports.map((e) => e.id);
+    expect(exportIds).toContain("pkg.app.MyClass");
+    expect(exportIds).toContain("pkg.app.MyClass.run");
   });
 });

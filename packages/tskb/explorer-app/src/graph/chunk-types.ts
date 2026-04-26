@@ -18,6 +18,7 @@ export interface MetaChunk {
   flows: ExplorerNode[];
   terms: ExplorerNode[];
   externals: ExplorerNode[];
+  files: ExplorerNode[];
   /** Edges from doc/flow nodes referencing code nodes (cross-lane) */
   crossEdges: ExplorerLink[];
   /** node-id → parent-id for every declared node; used to resolve nearest visible ancestor */
@@ -33,6 +34,7 @@ export interface FolderChunk {
   subfolders: ExplorerNode[];
   modules: ExplorerNode[];
   exports: ExplorerNode[];
+  files: ExplorerNode[];
   /** Import edges between modules within this folder */
   internalEdges: ExplorerLink[];
   /** Import edges from/to modules outside this folder */

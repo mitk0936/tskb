@@ -1,4 +1,17 @@
-import { type Module, type Export, Doc, H1, ref, P, List, Li, Flow, Step } from "tskb";
+import {
+  type Module,
+  type Export,
+  type External,
+  Doc,
+  H1,
+  ref,
+  P,
+  List,
+  Li,
+  Flow,
+  Step,
+  Relation,
+} from "tskb";
 
 declare global {
   namespace tskb {
@@ -14,6 +27,14 @@ declare global {
       }>;
     }
 
+    interface Externals {
+      typescript: External<{
+        desc: "TypeScript compiler API (the 'typescript' npm package). Provides the AST, type checker, and symbol resolution used throughout registry extraction and documentation parsing.";
+        url: "https://www.typescriptlang.org";
+        kind: "npm-package";
+      }>;
+    }
+
     interface Exports {
       "ts.createProgram": Export<{
         desc: "Creates a TypeScript Program for analyzing code structure, types, and symbols without emitting output";
@@ -23,6 +44,7 @@ declare global {
   }
 }
 
+const TypescriptExternal = ref as tskb.Externals["typescript"];
 const TypescriptFolder = ref as tskb.Folders["tskb.typescript"];
 const ProgramModule = ref as tskb.Modules["typescript.program"];
 const CreateProgramExport = ref as tskb.Exports["ts.createProgram"];
@@ -46,6 +68,8 @@ export default (
       <Li>Validates TypeScript errors in specified files</Li>
       <Li>Returns Program with AST, type checker, and symbol resolution</Li>
     </List>
+
+    <Relation from={TypescriptFolder} to={TypescriptExternal} label="wraps compiler API" />
 
     <Flow
       name="static-analysis"

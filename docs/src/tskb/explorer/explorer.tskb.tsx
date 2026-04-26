@@ -1,4 +1,4 @@
-import { type Folder, type Term, Doc, H1, H2, P, ref } from "tskb";
+import { type Folder, type External, type Term, Doc, H1, H2, P, Relation, ref } from "tskb";
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -10,6 +10,7 @@ declare global {
       "tskb.explorer.core": Folder<{
         desc: "CLI-side explorer layer: graph→chunk transform, HTTP server, and static export";
         path: "packages/tskb/src/core/explorer";
+        boundary: "TSKB Explorer server";
       }>;
 
       "tskb.explorer.app": Folder<{
@@ -44,6 +45,21 @@ declare global {
       }>;
     }
 
+    // ── Externals ──────────────────────────────────────────────────────────
+
+    interface Externals {
+      d3: External<{
+        desc: "D3 data-visualisation library. Used for tree layout (d3.hierarchy, d3.tree), zoom/pan (d3.zoom), SVG path curves (curveBasisClosed), and polygon hull computation (d3.polygonHull).";
+        url: "https://d3js.org";
+        kind: "npm-package";
+      }>;
+      vite: External<{
+        desc: "Frontend build tool that bundles the explorer SPA. Configured in packages/tskb/explorer-app/vite.config.ts; outputs to dist/explorer/.";
+        url: "https://vitejs.dev";
+        kind: "npm-package";
+      }>;
+    }
+
     // ── Terms ──────────────────────────────────────────────────────────────
 
     interface Terms {
@@ -59,6 +75,10 @@ declare global {
 
 // ─── Refs ─────────────────────────────────────────────────────────────────────
 
+const D3External = ref as tskb.Externals["d3"];
+const ViteExternal = ref as tskb.Externals["vite"];
+const LayoutFolder = ref as tskb.Folders["tskb.explorer.app.layout"];
+const ComponentsFolder = ref as tskb.Folders["tskb.explorer.app.components"];
 const ExplorerCoreFolder = ref as tskb.Folders["tskb.explorer.core"];
 const ExplorerAppFolder = ref as tskb.Folders["tskb.explorer.app"];
 const TransformModule = ref as tskb.Modules["explorer.transform"];
@@ -105,6 +125,22 @@ export default (
       directory and writes all chunk JSON files alongside them, producing a fully self-contained
       static explorer.
     </P>
+
+    <Relation
+      from={LayoutFolder}
+      to={D3External}
+      label="d3.hierarchy + d3.tree for left-to-right layout"
+    />
+    <Relation
+      from={ComponentsFolder}
+      to={D3External}
+      label="D3 enter/update/exit, d3.polygonHull, curveBasisClosed"
+    />
+    <Relation
+      from={ExplorerAppFolder}
+      to={ViteExternal}
+      label="bundled by Vite into dist/explorer/"
+    />
 
     <H2>Build integration</H2>
     <P>

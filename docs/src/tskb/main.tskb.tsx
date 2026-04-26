@@ -3,6 +3,7 @@ import {
   type Module,
   type Export,
   type File,
+  type External,
   Doc,
   H1,
   ref,
@@ -59,6 +60,14 @@ declare global {
       "sample.tsconfig.json": Module<{
         desc: "An example of required tsconfig.json for building <TSKB> docs";
         type: typeof import("../../tsconfig.json");
+      }>;
+    }
+
+    interface Externals {
+      npm: External<{
+        desc: "npm package registry where tskb is published. The package includes the CLI binary, library entry point, JSX runtime, and pre-built explorer SPA assets.";
+        url: "https://www.npmjs.com/package/tskb";
+        kind: "package-registry";
       }>;
     }
 
@@ -120,6 +129,7 @@ declare global {
   }
 }
 
+const NpmExternal = ref as tskb.Externals["npm"];
 const TSKBRootFolder = ref as tskb.Folders["TSKB.Package.Root"];
 const NpmReadme = ref as tskb.Files["npm.README.md"];
 const PackageJson = ref as tskb.Modules["package.json"];
@@ -158,6 +168,7 @@ export default (
     <P>
       The package is located in {TSKBRootFolder}, with its {PackageJson} and {NpmReadme} for npm.
     </P>
+    <Relation from={TSKBRootFolder} to={NpmExternal} label="published to" />
     <H2>What is {"<TSKB>"}?</H2>
     <P>
       A TypeScript DSL for type-safe architectural documentation. Generates queryable knowledge
@@ -318,7 +329,7 @@ export default (
       />
       <Step
         node={ExtractDocsExport}
-        label="Traverses JSX trees in .tskb.tsx files, extracting content, references, relations, and flows"
+        label="Receives completed registry; traverses JSX trees to extract content, references, relations, and flows — embeds data-node-display in reference links using registry-resolved paths"
       />
       <Step
         node={BuildGraphExport}

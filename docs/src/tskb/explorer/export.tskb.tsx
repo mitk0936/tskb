@@ -67,24 +67,24 @@ export default (
 
     <Flow
       name="explorer-export-flow"
-      desc="tskb explore --export: CLI finds graph, transforms all chunks, copies SPA assets, writes chunk JSON files to disk"
+      desc="tskb explore --export: reads graph.json, transforms chunks in memory, copies pre-built SPA from dist/explorer/ and writes chunk JSON files into the output directory (default: .tskb/explorer/)"
       priority="essential"
     >
       <Step
         node={ExploreExport}
-        label="Reads graph.json, detects --export flag, resolves output directory (default: .tskb/explorer)"
+        label="reads .tskb/graph.json; resolves output directory from --export flag (default: .tskb/explorer/)"
       />
       <Step
         node={TransformGraphExport}
-        label="Converts KnowledgeGraph into MetaChunk + FolderChunks"
-      />
-      <Step
-        node={ExportModule}
-        label="copyDir() recursively copies dist/explorer/ SPA assets to output directory"
+        label="converts KnowledgeGraph → MetaChunk + one FolderChunk per folder, held in memory"
       />
       <Step
         node={ExportExplorerExport}
-        label="Writes chunks/meta.json and chunks/folder-{id}.json for every folder chunk"
+        label="copyDir: recursively copies dist/explorer/ (pre-built SPA inside the tskb package) into outputDir/ — produces outputDir/index.html and outputDir/assets/"
+      />
+      <Step
+        node={ExportExplorerExport}
+        label="writes all chunks as JSON: outputDir/chunks/meta.json and outputDir/chunks/folder-{sanitizedId}.json — one file per folder"
       />
     </Flow>
   </Doc>

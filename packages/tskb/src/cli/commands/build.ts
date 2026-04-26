@@ -157,7 +157,7 @@ export async function build(config: ExtractConfig): Promise<void> {
 
   // Extract documentation
   const docsDone = infoTime("Extracting documentation");
-  const docs = extractDocs(program, new Set(files));
+  const docs = extractDocs(program, new Set(files), registry);
   docsDone();
   info(`└─ ${docs.length} docs`);
 

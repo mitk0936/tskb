@@ -1,5 +1,7 @@
 import type { Folder, Module, Export, External, Term } from "tskb";
 
+type AuthServiceClass = typeof import("../src/services/auth.service.js").AuthService;
+
 declare global {
   namespace tskb {
     interface Folders {
@@ -41,6 +43,22 @@ declare global {
       AuthService: Export<{
         desc: "Handles login, registration, and token management";
         type: typeof import("../src/services/auth.service.js").AuthService;
+      }>;
+      "AuthService.login": Export<{
+        desc: "Authenticates user credentials and returns session tokens";
+        type: InstanceType<AuthServiceClass>["login"];
+      }>;
+      "AuthService.register": Export<{
+        desc: "Creates a new user account and returns session tokens";
+        type: InstanceType<AuthServiceClass>["register"];
+      }>;
+      "AuthService.refreshToken": Export<{
+        desc: "Issues a new access token given a valid refresh token";
+        type: InstanceType<AuthServiceClass>["refreshToken"];
+      }>;
+      "AuthService.logout": Export<{
+        desc: "Invalidates the user session";
+        type: InstanceType<AuthServiceClass>["logout"];
       }>;
       TaskService: Export<{
         desc: "CRUD operations for tasks with status workflow";

@@ -31,6 +31,17 @@
         position: relative;
         width: 100vw;
         height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Content row: canvas + panel side-by-side, below the fixed toolbar */
+      #content-row {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        margin-top: 44px;
+        overflow: hidden;
       }
 
       /* Toolbar */
@@ -86,13 +97,10 @@
         margin-left: auto;
       }
 
-      /* Canvas */
+      /* Canvas — flex child, fills remaining width */
       #canvas {
-        position: absolute;
-        top: 44px;
-        left: 0;
-        width: 100%;
-        height: calc(100vh - 44px);
+        flex: 1;
+        min-width: 0;
       }
 
       /* Spinner */
@@ -127,8 +135,20 @@
         <span id="stats"></span>
       </div>
 
-      <!-- SVG Canvas (injected by main.ts) -->
-      <svg id="canvas"></svg>
+      <!-- Canvas + panel in a flex row so the panel pushes the canvas -->
+      <div id="content-row">
+        <!-- SVG Canvas (injected by main.ts) -->
+        <svg id="canvas"></svg>
+
+        <!-- Doc / node detail side panel -->
+        <div id="doc-panel">
+          <div id="doc-panel-header">
+            <span id="doc-panel-title"></span>
+            <button id="doc-panel-close" title="Close">✕</button>
+          </div>
+          <div id="doc-panel-body"></div>
+        </div>
+      </div>
 
       <!-- Global spinner -->
       <div id="global-spinner">

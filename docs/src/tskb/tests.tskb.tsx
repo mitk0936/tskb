@@ -1,4 +1,18 @@
-import { type Folder, type File, Doc, H1, H2, P, List, Li, Flow, Step, ref } from "tskb";
+import {
+  type Folder,
+  type File,
+  type External,
+  Doc,
+  H1,
+  H2,
+  P,
+  List,
+  Li,
+  Flow,
+  Step,
+  Relation,
+  ref,
+} from "tskb";
 
 declare global {
   namespace tskb {
@@ -24,6 +38,14 @@ declare global {
       "tests.e2e.fixture.docs": Folder<{
         desc: "Fixture tskb docs: vocabulary, architecture, auth, tasks, and a service-isolation constraint. Covers all doc priorities";
         path: "tests/e2e/fixture/docs";
+      }>;
+    }
+
+    interface Externals {
+      vitest: External<{
+        desc: "Test runner used for both E2E and unit tests. Global setup builds the fixture graph once; individual test files run CLI subprocesses via execFileSync and assert against graph.json output.";
+        url: "https://vitest.dev";
+        kind: "npm-package";
       }>;
     }
 
@@ -64,6 +86,7 @@ declare global {
   }
 }
 
+const VitestExternal = ref as tskb.Externals["vitest"];
 const TestsFolder = ref as tskb.Folders["tests"];
 const E2eFolder = ref as tskb.Folders["tests.e2e"];
 const FixtureFolder = ref as tskb.Folders["tests.e2e.fixture"];
@@ -88,6 +111,8 @@ export default (
       against a realistic fixture project. Tests use Vitest and spawn the built CLI binary via
       Node's execFileSync, asserting on stdout and generated artifacts.
     </P>
+
+    <Relation from={TestsFolder} to={VitestExternal} label="test runner" />
 
     <Flow
       name="e2e-test-execution"

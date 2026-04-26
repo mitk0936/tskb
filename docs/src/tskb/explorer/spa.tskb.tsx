@@ -48,6 +48,11 @@ declare global {
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/base.js");
       }>;
 
+      "explorer.spa.node-index": Module<{
+        desc: "Node renderer factory module. createNodeRenderer() is the single dispatch point: currently always returns BaseNodeRenderer; add a type-specific case here when a node type needs a custom renderer.";
+        type: typeof import("packages/tskb/explorer-app/src/components/nodes/index.js");
+      }>;
+
       "explorer.spa.edge-renderer": Module<{
         desc: "buildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels; buildRelationLinks() shows cross-edges (imports / related-to) only when both endpoints are directly visible; renderRelationEdges() draws tapered filled band shapes between them";
         type: typeof import("packages/tskb/explorer-app/src/components/edges/EdgeRenderer.js");
@@ -71,6 +76,16 @@ declare global {
       "explorer.spa.code-tooltip": Module<{
         desc: "Toggle-based code preview popup for module nodes. Click the <> bubble to show/hide; clicking the same node again dismisses it; clicking outside also dismisses. Renders morphology lines with an inline TypeScript tokenizer (no runtime deps) for syntax highlighting, prepended by import lines with a blank-line separator.";
         type: typeof import("packages/tskb/explorer-app/src/ui/CodeTooltip.js");
+      }>;
+
+      "explorer.spa.doc-panel": Module<{
+        desc: "Side panel that slides in from the right when a node is selected or a chip is clicked. show(node) renders the node's HTML content or a structured key-value fallback. showRefs(node, kind, items) renders a docs or flows accordion. wireRefLinks() post-processes every tskb-ref anchor: resolves display text, wires hover to DomTooltip, and triggers setOnNodePrefetch to background-load the containing folder chunk on hover so the tooltip updates with description and correct color once the chunk arrives. Styled by doc-panel.css.";
+        type: typeof import("packages/tskb/explorer-app/src/ui/DocPanel.js");
+      }>;
+
+      "explorer.spa.dom-tooltip": Module<{
+        desc: "Lightweight DOM-anchored tooltip used by DocPanel ref links. Positioned above the hovered anchor element (no SVG coordinate math). Separate from NodeTooltip which is SVG-anchored and zoom-aware. mountDomTooltip() appends the element once; showDomTooltip() builds content and repositions; hideDomTooltip() fades out.";
+        type: typeof import("packages/tskb/explorer-app/src/ui/DomTooltip.js");
       }>;
     }
 
@@ -105,6 +120,11 @@ declare global {
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/base.js").BaseNodeRenderer;
       }>;
 
+      "explorer.spa.createNodeRenderer": Export<{
+        desc: "Factory that constructs a NodeComponent from the full set of interaction callbacks (onExpand, onSelect, onTraceLinks, hasChildren, isExpanded, onCodePreview, onChipClick, getReferencingDocs, getReferencingFlows). Currently always returns BaseNodeRenderer. Add a type-dispatch switch here when a node type needs its own renderer.";
+        type: typeof import("packages/tskb/explorer-app/src/components/nodes/index.js").createNodeRenderer;
+      }>;
+
       "explorer.spa.renderBoundaryGroups": Export<{
         desc: "Renders one <g.boundary-group> per boundary into the provided SVG layer. Boundary membership is resolved by walking parentOf from each visible node upward until a node with detail.boundary is found. Uses d3.polygonHull with seeded wobble perturbation and curveBasisClosed for a stable freeform outline. pointer-events: none on all elements.";
         type: typeof import("packages/tskb/explorer-app/src/components/BoundaryRenderer.js").renderBoundaryGroups;
@@ -119,6 +139,11 @@ declare global {
         desc: "Removes the SVG group returned by showNodeSpinner from the DOM. Called in the finally block of ExplorerApp.onExpand() after the chunk fetch resolves or rejects.";
         type: typeof import("packages/tskb/explorer-app/src/ui/Spinner.js").removeNodeSpinner;
       }>;
+
+      "explorer.spa.DocPanel": Export<{
+        desc: "Class managing the detail side panel. show(node) opens with node HTML or key-value fallback; showRefs() opens a docs/flows accordion; hide() closes. Four callbacks wired by ExplorerApp: setOnNodeRef (click-through navigation), setGetNode (live node lookup), setOnNodeHighlight (canvas glow), setOnNodePrefetch (background chunk load on ref link hover).";
+        type: typeof import("packages/tskb/explorer-app/src/ui/DocPanel.js").DocPanel;
+      }>;
     }
   }
 }
@@ -131,12 +156,17 @@ const LoaderModule = ref as tskb.Modules["explorer.spa.loader"];
 const StoreModule = ref as tskb.Modules["explorer.spa.store"];
 const LaneEngineModule = ref as tskb.Modules["explorer.spa.lane-engine"];
 const NodeBaseModule = ref as tskb.Modules["explorer.spa.node-base"];
+const NodeIndexModule = ref as tskb.Modules["explorer.spa.node-index"];
+const CreateNodeRendererExport = ref as tskb.Exports["explorer.spa.createNodeRenderer"];
 const EdgeRendererModule = ref as tskb.Modules["explorer.spa.edge-renderer"];
 const BoundaryRendererModule = ref as tskb.Modules["explorer.spa.boundary-renderer"];
 const RenderBoundaryGroupsExport = ref as tskb.Exports["explorer.spa.renderBoundaryGroups"];
 const SpinnerModule = ref as tskb.Modules["explorer.spa.spinner"];
 const NodeTooltipModule = ref as tskb.Modules["explorer.spa.node-tooltip"];
 const CodeTooltipModule = ref as tskb.Modules["explorer.spa.code-tooltip"];
+const DocPanelModule = ref as tskb.Modules["explorer.spa.doc-panel"];
+const DocPanelExport = ref as tskb.Exports["explorer.spa.DocPanel"];
+const DomTooltipModule = ref as tskb.Modules["explorer.spa.dom-tooltip"];
 
 const ChunkLoaderExport = ref as tskb.Exports["explorer.spa.ChunkLoader"];
 const GraphStoreExport = ref as tskb.Exports["explorer.spa.GraphStore"];
@@ -217,11 +247,15 @@ export default (
 
     <H2>Node components</H2>
     <P>
-      {NodeBaseModule} defines the {NodeComponentTerm} interface and {BaseNodeRendererExport} — the
-      default renderer for all node types. Each node is an SVG <code>&lt;g&gt;</code> containing a
-      rounded-rect card, type icon, label, description, edge-count badge, a <code>&lt;&gt;</code>{" "}
-      code preview bubble (top-center), and a <code>+</code> expand bubble (right edge).{" "}
-      {GhostNodeTerm}s render as dashed transparent placeholders showing only their filename.
+      {NodeIndexModule} is the extension point for node rendering: {CreateNodeRendererExport}{" "}
+      accepts all interaction callbacks and returns a {NodeComponentTerm}. Currently always
+      delegates to {BaseNodeRendererExport}; add a type-dispatch switch here when a node type needs
+      its own renderer. {NodeBaseModule} defines the {NodeComponentTerm} interface and{" "}
+      {BaseNodeRendererExport} — the default renderer for all node types. Each node is an SVG{" "}
+      <code>&lt;g&gt;</code> containing a rounded-rect card, type icon, label, description,
+      edge-count badge, a <code>&lt;&gt;</code> code preview bubble (top-center), and a{" "}
+      <code>+</code> expand bubble (right edge). {GhostNodeTerm}s render as dashed transparent
+      placeholders showing only their filename.
     </P>
     <P>
       {EdgeRendererModule} derives parent→child links via {BuildStructureLinksExport} and draws them
@@ -249,6 +283,8 @@ export default (
     <Relation from={MainModule} to={BoundaryRendererModule} label="calls renderBoundaryGroups" />
     <Relation from={MainModule} to={NodeTooltipModule} label="propagates zoom transform to" />
     <Relation from={MainModule} to={CodeTooltipModule} label="propagates zoom transform to" />
+    <Relation from={MainModule} to={DocPanelModule} label="opens on node select or chip click" />
+    <Relation from={DocPanelModule} to={DomTooltipModule} label="shows on ref link hover" />
     <Relation from={NodeBaseModule} to={NodeTooltipModule} label="triggers show/hide on hover" />
     <Relation from={NodeBaseModule} to={CodeTooltipModule} label="triggers toggle on <> click" />
 
@@ -264,6 +300,17 @@ export default (
       {CodeTooltipModule} is a click-toggled code preview popup anchored to the node's top-center
       SVG position. Both receive <code>updateXxxTransform()</code> calls from {MainModule} on every
       D3 zoom event so they reposition to track their anchor nodes as the canvas pans and zooms.
+    </P>
+    <P>
+      {DocPanelExport} in {DocPanelModule} is the detail side panel. Clicking a node calls{" "}
+      <code>show(node)</code>, which renders the node's HTML content or a key-value fallback for
+      non-doc nodes. Clicking a docs or flows chip calls <code>showRefs(node, kind, items)</code>,
+      which renders an accordion. The panel header shows the node's relative path in monospace. Ref
+      link anchors (<code>a.tskb-ref</code>) inside the body are post-processed by{" "}
+      <code>wireRefLinks()</code>: hover shows a {DomTooltipModule} with the node's path, type
+      color, and description; if the node's chunk isn't loaded yet, a background prefetch fires via
+      the <code>setOnNodePrefetch</code> callback — the tooltip updates in place when data arrives.
+      Click-through navigation is handled via <code>setOnNodeRef</code>.
     </P>
 
     <Flow

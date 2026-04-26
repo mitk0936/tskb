@@ -111,3 +111,46 @@ describe("graph integrity", () => {
     }
   });
 });
+
+describe("InstanceType method export extraction", () => {
+  it("extracts method exports declared with InstanceType<X>['method'] pattern", () => {
+    const graph = loadGraph();
+    const loginExport = graph.nodes.exports["AuthService.login"];
+    expect(loginExport, "AuthService.login export should exist in graph").toBeDefined();
+    expect(loginExport.type).toBe("export");
+    expect(loginExport.desc).toContain("Authenticates");
+  });
+
+  it("extracts all four AuthService method exports", () => {
+    const graph = loadGraph();
+    const methods = [
+      "AuthService.login",
+      "AuthService.register",
+      "AuthService.refreshToken",
+      "AuthService.logout",
+    ];
+    for (const id of methods) {
+      expect(graph.nodes.exports[id], `${id} should be in graph`).toBeDefined();
+    }
+  });
+
+  it("creates belongs-to edges from method exports to the class export", () => {
+    const graph = loadGraph();
+    const belongsToEdges = graph.edges.filter(
+      (e: { type: string; to: string }) => e.type === "belongs-to" && e.to === "AuthService"
+    );
+    const methodIds = belongsToEdges.map((e: { from: string }) => e.from);
+    expect(methodIds).toContain("AuthService.login");
+    expect(methodIds).toContain("AuthService.register");
+    expect(methodIds).toContain("AuthService.refreshToken");
+    expect(methodIds).toContain("AuthService.logout");
+  });
+
+  it("method exports have a resolved type signature from the InstanceType pattern", () => {
+    const graph = loadGraph();
+    const loginExport = graph.nodes.exports["AuthService.login"];
+    // Should have a type signature derived from the actual method type
+    expect(loginExport.typeSignature).toBeDefined();
+    expect(loginExport.typeSignature.length).toBeGreaterThan(0);
+  });
+});

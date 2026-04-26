@@ -44,6 +44,16 @@ function buildStructureTree(store: GraphStore, expanded: ReadonlySet<string>): T
   };
 }
 
+/** Recursively build a tree of export nodes, preserving class→method hierarchy. */
+function buildExportTree(parentId: string, allExports: ExplorerNode[]): TreeData[] {
+  return allExports
+    .filter((e) => e.parentId === parentId)
+    .map((e) => {
+      const children = buildExportTree(e.id, allExports);
+      return children.length > 0 ? { ...e, treeChildren: children } : { ...e };
+    });
+}
+
 function makeGhostNodes(parentId: string, count: number, type: NodeType = "module"): TreeData[] {
   return Array.from({ length: Math.min(count, 4) }, (_, i) => ({
     id: `${parentId}:ghost:${i}`,
@@ -89,9 +99,14 @@ function buildFolderChildren(
       } else {
         children.push({
           ...mod,
-          treeChildren: chunk.exports.filter((e) => e.parentId === mod.id).map((e) => ({ ...e })),
+          treeChildren: buildExportTree(mod.id, chunk.exports),
         });
       }
+    }
+
+    // Files (leaf nodes — no children)
+    for (const file of chunk.files ?? []) {
+      children.push({ ...file });
     }
 
     return { ...folder, treeChildren: children };

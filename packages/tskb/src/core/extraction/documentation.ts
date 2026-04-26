@@ -1,6 +1,7 @@
 import ts from "typescript";
 import path from "node:path";
 import type { DocPriority } from "../../runtime/jsx.js";
+import type { ExtractedRegistry } from "./registry.js";
 
 /**
  * Extracted documentation data from a single file
@@ -42,7 +43,11 @@ export interface ExtractedDoc {
  * @param filePaths - Set of absolute file paths to process (from glob match)
  * @returns Array of extracted documentation
  */
-export function extractDocs(program: ts.Program, filePaths: Set<string>): ExtractedDoc[] {
+export function extractDocs(
+  program: ts.Program,
+  filePaths: Set<string>,
+  registry?: ExtractedRegistry
+): ExtractedDoc[] {
   const docs: ExtractedDoc[] = [];
 
   // Normalize file paths for comparison (handle different path separators)
@@ -56,7 +61,7 @@ export function extractDocs(program: ts.Program, filePaths: Set<string>): Extrac
 
     // Only process files that were explicitly matched by the glob pattern
     if (normalizedFilePaths.has(normalizedSourcePath) && sourceFile.fileName.endsWith(".tsx")) {
-      const doc = extractFromTsxFile(sourceFile);
+      const doc = extractFromTsxFile(sourceFile, registry);
       if (doc) {
         docs.push(doc);
       }
@@ -69,7 +74,10 @@ export function extractDocs(program: ts.Program, filePaths: Set<string>): Extrac
 /**
  * Extract documentation from TSX file (JSX style)
  */
-function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
+export function extractFromTsxFile(
+  sourceFile: ts.SourceFile,
+  registry?: ExtractedRegistry
+): ExtractedDoc | null {
   const references = {
     modules: [] as string[],
     terms: [] as string[],
@@ -110,7 +118,8 @@ function extractFromTsxFile(sourceFile: ts.SourceFile): ExtractedDoc | null {
     constantReferences,
     docMeta,
     relations,
-    flows
+    flows,
+    registry
   );
 
   // Convert absolute path to relative path (for portability across repos/machines)
@@ -151,7 +160,7 @@ function findDefaultExport(sourceFile: ts.SourceFile): ts.Expression | null {
  * Build a map of constant variable names to their type assertion metadata.
  * This handles cases like: const CliIndexModule = ref as tskb.Modules["cli.index"];
  */
-function buildConstantReferencesMap(
+export function buildConstantReferencesMap(
   sourceFile: ts.SourceFile
 ): Map<string, { category: string; name: string }> {
   const map = new Map<string, { category: string; name: string }>();
@@ -229,7 +238,7 @@ function extractTypeAssertionMetadata(
  *
  * This gives us both human-readable text AND the graph edges we need.
  */
-function extractJsxContent(
+export function extractJsxContent(
   node: ts.Node,
   references: {
     modules: string[];
@@ -247,7 +256,8 @@ function extractJsxContent(
     desc: string;
     priority: DocPriority;
     steps: { nodeId: string; label?: string }[];
-  }[]
+  }[],
+  registry?: ExtractedRegistry
 ): string {
   let content = "";
 
@@ -276,11 +286,38 @@ function extractJsxContent(
           }
         }
 
+        // Handle structural elements — wrap children in proper HTML tags
+        if (name === "H1" || name === "H2" || name === "H3") {
+          const tag = name.toLowerCase() as "h1" | "h2" | "h3";
+          content += `<${tag}>`;
+          if (ts.isJsxElement(n)) n.children.forEach(visit);
+          content += `</${tag}>`;
+          return;
+        }
+        if (name === "P") {
+          content += `<p>`;
+          if (ts.isJsxElement(n)) n.children.forEach(visit);
+          content += `</p>`;
+          return;
+        }
+        if (name === "List") {
+          content += `<ul>`;
+          if (ts.isJsxElement(n)) n.children.forEach(visit);
+          content += `</ul>`;
+          return;
+        }
+        if (name === "Li") {
+          content += `<li>`;
+          if (ts.isJsxElement(n)) n.children.forEach(visit);
+          content += `</li>`;
+          return;
+        }
+
         // Handle Snippet component specially
         if (name === "Snippet") {
           const codeAttr = getCodeAttribute(attributes);
           if (codeAttr) {
-            content += `<snippet>${codeAttr}</snippet>`;
+            content += `<pre class="tskb-snippet"><code>${escapeHtml(codeAttr)}</code></pre>`;
             return;
           }
         }
@@ -324,8 +361,9 @@ function extractJsxContent(
                 : { from: fromVal, to: toVal }
             );
           }
-          // Always add a marker to content for debug
-          content += `<relation from="${fromVal}" to="${toVal}"${labelVal ? ` label="${labelVal}"` : ""} />`;
+          // Emit as a hidden span carrying relation data
+          const labelAttr = labelVal ? ` data-label="${escapeAttr(labelVal)}"` : "";
+          content += `<span class="tskb-relation" data-from="${escapeAttr(fromVal ?? "")}" data-to="${escapeAttr(toVal ?? "")}"${labelAttr}></span>`;
           return;
         }
         // Helper to stringify JSX expressions for Relation extraction
@@ -420,14 +458,19 @@ function extractJsxContent(
               }
             }
             flows.push({ name: flowName, desc: flowDesc, priority: resolvedPriority, steps });
-            // Add content marker
-            const stepMarkers = steps
-              .map(
-                (s, i) =>
-                  `<step order="${i}" nodeId="${s.nodeId}"${s.label ? ` label="${s.label}"` : ""} />`
-              )
+            // Emit flow as HTML with step links
+            const stepItems = steps
+              .map((s) => {
+                const label = s.label ? ` — ${escapeHtml(s.label)}` : "";
+                const { nodeType, display } = registry
+                  ? resolveNodeMeta(s.nodeId, registry)
+                  : { nodeType: "", display: s.nodeId };
+                const typeAttr = nodeType ? ` data-node-type="${escapeAttr(nodeType)}"` : "";
+                const displayAttr = ` data-node-display="${escapeAttr(display)}"`;
+                return `<li><a class="tskb-ref" data-node-id="${escapeAttr(s.nodeId)}"${typeAttr}${displayAttr}>${escapeHtml(s.nodeId)}</a>${label}</li>`;
+              })
               .join("");
-            content += `<flow name="${flowName}" desc="${flowDesc}">${stepMarkers}</flow>`;
+            content += `<div class="tskb-flow"><p class="tskb-flow-desc">${escapeHtml(flowDesc)}</p><ol>${stepItems}</ol></div>`;
           }
           return;
         }
@@ -436,36 +479,34 @@ function extractJsxContent(
         if (name === "Adr") {
           const adrMeta = getAdrAttributes(attributes);
           if (adrMeta) {
-            content += `<adr ${adrMeta}>`;
-            // Process children
+            content += `<section class="tskb-adr" ${adrMeta}>`;
             if (ts.isJsxElement(n)) {
               n.children.forEach(visit);
             }
-            content += `</adr>`;
+            content += `</section>`;
             return;
           }
         }
 
         // Extract references
-        if (name === "ModuleRef") {
+        const refCategoryMap: Record<string, string> = {
+          ModuleRef: "Modules",
+          TermRef: "Terms",
+          FolderRef: "Folders",
+          ExportRef: "Exports",
+          FileRef: "Files",
+          ExternalRef: "Externals",
+        };
+        if (name in refCategoryMap) {
           const refName = getNameAttribute(attributes);
           if (refName) {
-            references.modules.push(refName);
-            content += `<nodeId: ${refName}>`;
-            return; // Don't process children
-          }
-        } else if (name === "TermRef") {
-          const refName = getNameAttribute(attributes);
-          if (refName) {
-            references.terms.push(refName);
-            content += `<nodeId: ${refName}>`;
-            return;
-          }
-        } else if (name === "FolderRef") {
-          const refName = getNameAttribute(attributes);
-          if (refName) {
-            references.folders.push(refName);
-            content += `<nodeId: ${refName}>`;
+            const refContent = createReferenceContent(
+              refCategoryMap[name],
+              refName,
+              references,
+              registry
+            );
+            if (refContent) content += refContent;
             return;
           }
         }
@@ -496,7 +537,8 @@ function extractJsxContent(
           const refContent = createReferenceContent(
             refMetadata.category,
             refMetadata.name,
-            references
+            references,
+            registry
           );
           if (refContent) {
             content += refContent;
@@ -508,7 +550,7 @@ function extractJsxContent(
       }
       // Handle type assertions: {ref as tskb.Folders['Name']}
       else if (ts.isAsExpression(n.expression)) {
-        const refContent = extractReferenceFromTypeAssertion(n.expression, references);
+        const refContent = extractReferenceFromTypeAssertion(n.expression, references, registry);
         if (refContent) {
           content += refContent;
         }
@@ -536,11 +578,12 @@ function extractReferenceFromTypeAssertion(
     exports: string[];
     files: string[];
     externals: string[];
-  }
+  },
+  registry?: ExtractedRegistry
 ): string | null {
   const metadata = extractTypeAssertionMetadata(assertion);
   if (metadata) {
-    return createReferenceContent(metadata.category, metadata.name, references);
+    return createReferenceContent(metadata.category, metadata.name, references, registry);
   }
   return null;
 }
@@ -548,7 +591,7 @@ function extractReferenceFromTypeAssertion(
 /**
  * Create reference content and add to the appropriate references array
  */
-function createReferenceContent(
+export function createReferenceContent(
   category: string,
   name: string,
   references: {
@@ -558,26 +601,52 @@ function createReferenceContent(
     exports: string[];
     files: string[];
     externals: string[];
-  }
+  },
+  registry?: ExtractedRegistry
 ): string | null {
+  const typeMap: Record<string, string> = {
+    Folders: "folder",
+    Modules: "module",
+    Exports: "export",
+    Terms: "term",
+    Files: "file",
+    Externals: "external",
+  };
+  const nodeType = typeMap[category] ?? "";
+
+  // Pre-compute display text using registry data so wireRefLinks works
+  // even when the chunk containing this node hasn't been loaded yet.
+  let display: string;
+  if (category === "Modules" && registry) {
+    display = registry.modules.get(name)?.resolvedPath ?? name;
+  } else if (category === "Folders" && registry) {
+    display = (registry.folders.get(name)?.path ?? name) + "/";
+  } else if (category === "Files" && registry) {
+    display = registry.files.get(name)?.resolvedPath ?? name;
+  } else {
+    // Exports, Terms, Externals: use the name as-is
+    display = name;
+  }
+
+  const nodeLink = `<a class="tskb-ref" data-node-id="${escapeAttr(name)}" data-node-type="${nodeType}" data-node-display="${escapeAttr(display)}">${escapeHtml(name)}</a>`;
   if (category === "Folders") {
     references.folders.push(name);
-    return `<nodeId: ${name}>`;
+    return nodeLink;
   } else if (category === "Modules") {
     references.modules.push(name);
-    return `<nodeId: ${name}>`;
+    return nodeLink;
   } else if (category === "Terms") {
     references.terms.push(name);
-    return `<nodeId: ${name}>`;
+    return nodeLink;
   } else if (category === "Exports") {
     references.exports.push(name);
-    return `<nodeId: ${name}>`;
+    return nodeLink;
   } else if (category === "Files") {
     references.files.push(name);
-    return `<nodeId: ${name}>`;
+    return nodeLink;
   } else if (category === "Externals") {
     references.externals.push(name);
-    return `<nodeId: ${name}>`;
+    return nodeLink;
   }
   return null;
 }
@@ -608,7 +677,8 @@ function getNameAttribute(attributes: ts.JsxAttributes): string | undefined {
 }
 
 /**
- * Get the code function from a "code" attribute and convert it to string
+ * Get the code function from a "code" attribute and convert it to string.
+ * Strips the arrow-function wrapper so only the body statements are returned.
  */
 function getCodeAttribute(attributes: ts.JsxAttributes): string | undefined {
   for (const prop of attributes.properties) {
@@ -620,13 +690,34 @@ function getCodeAttribute(attributes: ts.JsxAttributes): string | undefined {
       ts.isJsxExpression(prop.initializer) &&
       prop.initializer.expression
     ) {
-      // Get the source text of the function
+      const expr = prop.initializer.expression;
       const sourceFile = prop.getSourceFile();
-      const codeText = prop.initializer.expression.getText(sourceFile);
-      return codeText;
+
+      if (ts.isArrowFunction(expr) && ts.isBlock(expr.body)) {
+        const stmts = expr.body.statements;
+        if (stmts.length === 0) return "";
+        const raw = sourceFile.text.slice(
+          stmts[0].getStart(sourceFile),
+          stmts[stmts.length - 1].getEnd()
+        );
+        return dedent(raw);
+      }
+
+      return expr.getText(sourceFile);
     }
   }
   return undefined;
+}
+
+function dedent(code: string): string {
+  const lines = code.split("\n");
+  const indent = lines
+    .filter((l) => l.trim().length > 0)
+    .reduce((min, l) => Math.min(min, l.match(/^(\s*)/)![1].length), Infinity);
+  return lines
+    .map((l) => l.slice(indent))
+    .join("\n")
+    .trim();
 }
 
 /**
@@ -691,4 +782,51 @@ function extractStepNode(
     }
   }
   return undefined;
+}
+
+/**
+ * Resolve a node's type string and display text from the registry.
+ * Used for flow step links and any other place where the category is unknown.
+ */
+export function resolveNodeMeta(
+  nodeId: string,
+  registry: ExtractedRegistry
+): { nodeType: string; display: string } {
+  if (registry.modules.has(nodeId)) {
+    return { nodeType: "module", display: registry.modules.get(nodeId)!.resolvedPath ?? nodeId };
+  }
+  if (registry.folders.has(nodeId)) {
+    return { nodeType: "folder", display: (registry.folders.get(nodeId)!.path ?? nodeId) + "/" };
+  }
+  if (registry.exports.has(nodeId)) {
+    return { nodeType: "export", display: nodeId };
+  }
+  if (registry.terms.has(nodeId)) {
+    return { nodeType: "term", display: nodeId };
+  }
+  if (registry.files.has(nodeId)) {
+    return { nodeType: "file", display: registry.files.get(nodeId)!.resolvedPath ?? nodeId };
+  }
+  if (registry.externals.has(nodeId)) {
+    return { nodeType: "external", display: nodeId };
+  }
+  return { nodeType: "", display: nodeId };
+}
+
+/**
+ * Escape text for safe HTML insertion.
+ */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Escape text for use in HTML attribute values (double-quoted).
+ */
+function escapeAttr(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 }

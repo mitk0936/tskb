@@ -53,6 +53,8 @@ export type HasChildrenFn = (node: PositionedNode) => boolean;
 export type IsExpandedFn = (node: PositionedNode) => boolean;
 
 export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void;
+export type ChipClickHandler = (node: PositionedNode, chip: "docs" | "flows") => void;
+export type GetRefsFn = (nodeId: string) => string[];
 
 // ─── BaseNodeRenderer ────────────────────────────────────────────────────────
 
@@ -73,7 +75,10 @@ export class BaseNodeRenderer implements NodeComponent {
     protected onTraceLinks: TraceLinkHandler,
     protected hasChildren: HasChildrenFn,
     protected isExpanded: IsExpandedFn,
-    protected onCodePreview?: CodePreviewHandler
+    protected onCodePreview?: CodePreviewHandler,
+    protected onChipClick?: ChipClickHandler,
+    protected getReferencingDocs?: GetRefsFn,
+    protected getReferencingFlows?: GetRefsFn
   ) {}
 
   getSize(node: PositionedNode): { w: number; h: number } {
@@ -94,9 +99,8 @@ export class BaseNodeRenderer implements NodeComponent {
     // Node-level hover tooltip — use mouseover/mouseout (they bubble, unlike mouseenter/leave)
     // and guard with relatedTarget so we only fire at the group boundary.
     g.on("mouseover", function (event: MouseEvent, d: PositionedNode) {
-      if (isGhost(d)) return;
       if (!(event.currentTarget as Element).contains(event.relatedTarget as Node)) {
-        const { h } = NODE_SIZES[d.type] ?? NODE_SIZES.module;
+        const { h } = nodeSize(d); // nodeSize handles ghost nodes (h=28) correctly
         const displayName = d.path?.split("/").pop() ?? d.label;
         showNodeTooltip(displayName, d.path, d.description, NODE_COLORS[d.type], d.x, d.y + h / 2);
       }
@@ -149,9 +153,24 @@ export class BaseNodeRenderer implements NodeComponent {
       .attr("stroke", "#e2e8f0")
       .attr("stroke-width", 1);
 
-    // Footer chip buttons — Docs | Flows (visual placeholders)
-    for (const cls of ["node-btn-docs", "node-btn-flows"]) {
-      const chip = g.append("g").attr("class", cls);
+    // Footer chip buttons — Docs | Flows
+    for (const chipType of ["docs", "flows"] as const) {
+      const cls = `node-btn-${chipType}`;
+      const chip = g
+        .append("g")
+        .attr("class", cls)
+        .style("display", "none") // hidden until update() shows them
+        .style("cursor", "pointer")
+        .on("click", (event, d) => {
+          event.stopPropagation();
+          if (this.onChipClick) this.onChipClick(d, chipType);
+        })
+        .on("mouseenter", function () {
+          d3.select(this).style("filter", "brightness(0.88)");
+        })
+        .on("mouseleave", function () {
+          d3.select(this).style("filter", "none");
+        });
       chip.append("rect").attr("rx", 3).attr("ry", 3).attr("height", 13);
       chip
         .append("text")
@@ -339,26 +358,61 @@ export class BaseNodeRenderer implements NodeComponent {
         .attr("y1", FOOTER_Y - 5)
         .attr("y2", FOOTER_Y - 5);
 
-      // Footer chip buttons
+      // Footer chip buttons — only on structure nodes that have referencing docs/flows
       const CHIP_Y = FOOTER_Y - 1;
-      const _CHIP_PAD_X = 6;
-      const chipColor = "#e2e8f0";
-      const chipTextColor = "#64748b";
+      const isStructureNode = d.type !== "doc" && d.type !== "flow";
+      const docsIds =
+        isStructureNode && component.getReferencingDocs ? component.getReferencingDocs(d.id) : [];
+      const flowsIds =
+        isStructureNode && component.getReferencingFlows ? component.getReferencingFlows(d.id) : [];
+
+      const CHIP_DOCS_BG = "#ede9fe";
+      const CHIP_DOCS_TEXT = "#7c3aed";
+      const CHIP_FLOWS_BG = "#cffafe";
+      const CHIP_FLOWS_TEXT = "#0e7490";
+
+      let chipX = ACCENT + 6;
 
       const docsChip = el.select<SVGGElement>(".node-btn-docs");
-      docsChip.attr("transform", `translate(${ACCENT + 6},${CHIP_Y})`);
-      docsChip.select("rect").attr("width", 28).attr("fill", chipColor).attr("stroke", "none");
-      docsChip.select("text").attr("x", 14).attr("y", 6.5).attr("fill", chipTextColor).text("Docs");
+      if (docsIds.length > 0) {
+        const label = `☰ Docs (${docsIds.length})`;
+        const chipW = label.length * 4.6 + 8;
+        docsChip.style("display", "block").attr("transform", `translate(${chipX},${CHIP_Y})`);
+        docsChip
+          .select("rect")
+          .attr("width", chipW)
+          .attr("fill", CHIP_DOCS_BG)
+          .attr("stroke", "none");
+        docsChip
+          .select("text")
+          .attr("x", chipW / 2)
+          .attr("y", 6.5)
+          .attr("fill", CHIP_DOCS_TEXT)
+          .text(label);
+        chipX += chipW + 4;
+      } else {
+        docsChip.style("display", "none");
+      }
 
       const flowsChip = el.select<SVGGElement>(".node-btn-flows");
-      flowsChip.attr("transform", `translate(${ACCENT + 6 + 28 + 4},${CHIP_Y})`);
-      flowsChip.select("rect").attr("width", 30).attr("fill", chipColor).attr("stroke", "none");
-      flowsChip
-        .select("text")
-        .attr("x", 15)
-        .attr("y", 6.5)
-        .attr("fill", chipTextColor)
-        .text("Flows");
+      if (flowsIds.length > 0) {
+        const label = `→ Flows (${flowsIds.length})`;
+        const chipW = label.length * 4.6 + 8;
+        flowsChip.style("display", "block").attr("transform", `translate(${chipX},${CHIP_Y})`);
+        flowsChip
+          .select("rect")
+          .attr("width", chipW)
+          .attr("fill", CHIP_FLOWS_BG)
+          .attr("stroke", "none");
+        flowsChip
+          .select("text")
+          .attr("x", chipW / 2)
+          .attr("y", 6.5)
+          .attr("fill", CHIP_FLOWS_TEXT)
+          .text(label);
+      } else {
+        flowsChip.style("display", "none");
+      }
 
       // Boundary badge — right-aligned in footer, only for folders with a declared boundary
       const boundary = d.type === "folder" ? (d.detail.boundary as string | undefined) : undefined;

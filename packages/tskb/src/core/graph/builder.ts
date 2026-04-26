@@ -112,7 +112,7 @@ export function buildGraph(
   // Build hierarchical edges
   buildFolderHierarchy(graph);
   buildModuleFolderMembership(graph);
-  buildExportMembership(graph);
+  buildExportMembership(graph, registry);
   buildFileFolderMembership(graph);
 
   // Build import edges between modules
@@ -705,12 +705,27 @@ function buildModuleFolderMembership(graph: KnowledgeGraph): void {
  * 1. First try to find a matching module (same file)
  * 2. If no module, find the most specific folder containing it
  */
-function buildExportMembership(graph: KnowledgeGraph): void {
+function buildExportMembership(graph: KnowledgeGraph, registry: ExtractedRegistry): void {
   const exports = Object.values(graph.nodes.exports);
   const modules = Object.values(graph.nodes.modules);
   const folders = Object.values(graph.nodes.folders);
 
   for (const exp of exports) {
+    // InstanceType<X>["method"] membership: link to the class export whose typeSignature === ownerAlias.
+    // Must run for all exports (including those without a resolvedPath).
+    const regEntry = registry.exports.get(exp.id);
+    if (regEntry?.ownerAlias) {
+      for (const [candidateId, candidateNode] of Object.entries(graph.nodes.exports)) {
+        const sig = candidateNode.typeSignature;
+        const ownerMatches =
+          sig?.endsWith(`.${regEntry.ownerAlias}`) || sig === regEntry.ownerAlias; // e.g. typeof import("...").AuthService // e.g. local alias `type ExplorerApp = ...`
+        if (candidateId !== exp.id && ownerMatches) {
+          graph.edges.push({ from: exp.id, to: candidateId, type: "belongs-to" });
+          break;
+        }
+      }
+    }
+
     if (!exp.resolvedPath) continue;
 
     // Normalize path for comparison

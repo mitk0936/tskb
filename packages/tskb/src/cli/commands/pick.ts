@@ -262,12 +262,22 @@ function resolveModule(
     if (folder) parentFolder = { nodeId: parentEdge.to, desc: folder.desc, path: folder.path };
   }
 
-  // exports that belong to this module
+  // exports that belong to this module (direct and nested, e.g. class methods)
   const exps: ModulePickResult["exports"] = [];
-  for (const edge of edges.incoming) {
-    if (edge.type === "belongs-to") {
-      const exp = graph.nodes.exports[edge.from];
-      if (exp) exps.push({ nodeId: edge.from, desc: exp.desc, typeSignature: exp.typeSignature });
+  const expQueue: string[] = [id]; // start from the module, then recurse into class exports
+  const expVisited = new Set<string>();
+  while (expQueue.length > 0) {
+    const ownerId = expQueue.shift()!;
+    if (expVisited.has(ownerId)) continue;
+    expVisited.add(ownerId);
+    for (const edge of graph.edges) {
+      if (edge.to === ownerId && edge.type === "belongs-to") {
+        const exp = graph.nodes.exports[edge.from];
+        if (exp) {
+          exps.push({ nodeId: edge.from, desc: exp.desc, typeSignature: exp.typeSignature });
+          expQueue.push(edge.from); // recurse into this export's members
+        }
+      }
     }
   }
 

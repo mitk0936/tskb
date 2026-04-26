@@ -44,6 +44,7 @@ export interface ExtractedRegistry {
       type?: string;
       importPath?: string;
       memberName?: string;
+      ownerAlias?: string;
       resolvedPath?: string;
       pathExists: boolean;
       morphology?: ModuleMorphology;
@@ -872,6 +873,7 @@ function extractExports(
         resolvedPath,
         pathExists,
         memberName: exportData.memberName,
+        ownerAlias: exportData.ownerAlias,
       });
     }
   }
@@ -889,8 +891,14 @@ function extractExports(
  */
 function extractExportType(
   typeNode: ts.TypeNode,
-  _checker: ts.TypeChecker
-): { desc: string; type?: string; importPath?: string; memberName?: string } | null {
+  checker: ts.TypeChecker
+): {
+  desc: string;
+  type?: string;
+  importPath?: string;
+  memberName?: string;
+  ownerAlias?: string;
+} | null {
   if (!ts.isTypeReferenceNode(typeNode)) return null;
 
   const typeArgs = typeNode.typeArguments;
@@ -903,6 +911,7 @@ function extractExportType(
   let typeSignature: string | undefined;
   let importPath: string | undefined;
   let memberName: string | undefined;
+  let ownerAlias: string | undefined;
 
   for (const member of objectType.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -923,10 +932,34 @@ function extractExportType(
 
       // Try to extract member name from typeof import("...").memberName
       memberName = extractImportMember(propType);
+
+      // If no direct import found, the type may be a local alias (e.g. `type Foo = typeof import("...").Foo`).
+      // Resolve through the checker to get the import path and member from the alias declaration.
+      if (!importPath && ts.isTypeReferenceNode(propType)) {
+        const resolved = resolveTypeAliasImport(propType, checker);
+        if (resolved) {
+          importPath = resolved.importPath;
+          memberName = resolved.memberName;
+        }
+      }
+
+      // Detect InstanceType<X>["method"] — class member export.
+      // Resolve the alias (e.g. `AuthServiceClass`) to the actual class name (e.g. `AuthService`)
+      // so buildExportMembership can match against typeSignature via `.endsWith('.AuthService')`.
+      const rawAlias = extractInstanceTypeOwner(propType);
+      if (rawAlias && ts.isIndexedAccessTypeNode(propType)) {
+        const aliasArg = (propType.objectType as ts.TypeReferenceNode).typeArguments?.[0];
+        if (aliasArg && ts.isTypeReferenceNode(aliasArg)) {
+          const resolved = resolveTypeAliasImport(aliasArg, checker);
+          ownerAlias = resolved?.memberName ?? rawAlias;
+        } else {
+          ownerAlias = rawAlias;
+        }
+      }
     }
   }
 
-  return desc ? { desc, type: typeSignature, importPath, memberName } : null;
+  return desc ? { desc, type: typeSignature, importPath, memberName, ownerAlias } : null;
 }
 
 /**
@@ -984,6 +1017,51 @@ function extractImportMember(typeNode: ts.TypeNode): string | undefined {
 
   visit(typeNode);
   return memberName;
+}
+
+/**
+ * Resolve a local type alias (e.g. `type Foo = typeof import("...").Foo`) through the
+ * TypeScript checker and extract the import path and member name from the alias declaration.
+ * Returns undefined if the type node is not a resolvable alias.
+ */
+function resolveTypeAliasImport(
+  typeNode: ts.TypeReferenceNode,
+  checker: ts.TypeChecker
+): { importPath: string; memberName?: string } | undefined {
+  const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+  if (!symbol) return undefined;
+
+  // Follow alias chain (handles re-exports and multi-hop aliases)
+  const aliased = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+  const decls = aliased.declarations ?? symbol.declarations ?? [];
+  for (const decl of decls) {
+    if (!ts.isTypeAliasDeclaration(decl)) continue;
+    const path = extractImportPath(decl.type);
+    if (path) {
+      return { importPath: path, memberName: extractImportMember(decl.type) };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Detect `InstanceType<X>["method"]` pattern and return the local alias name X.
+ * Used to link class-method exports back to their owner class export.
+ */
+function extractInstanceTypeOwner(typeNode: ts.TypeNode): string | undefined {
+  if (!ts.isIndexedAccessTypeNode(typeNode)) return undefined;
+  const obj = typeNode.objectType;
+  if (
+    !ts.isTypeReferenceNode(obj) ||
+    !ts.isIdentifier(obj.typeName) ||
+    obj.typeName.text !== "InstanceType" ||
+    !obj.typeArguments ||
+    obj.typeArguments.length !== 1
+  )
+    return undefined;
+  const arg = obj.typeArguments[0];
+  if (!ts.isTypeReferenceNode(arg) || !ts.isIdentifier(arg.typeName)) return undefined;
+  return arg.typeName.text;
 }
 
 /**

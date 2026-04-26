@@ -37,7 +37,7 @@ declare global {
       }>;
 
       "explorer.spa.ExplorerApp.setupRenderer": Export<{
-        desc: "Constructs the BaseNodeRenderer via createNodeRenderer, passing bound callbacks (onExpand, onSelect, onTraceLinks, hasChildren, code preview handler).";
+        desc: "Calls createNodeRenderer with all bound interaction callbacks (onExpand, onSelect, onTraceLinks, hasChildren, isExpanded, onCodePreview, onChipClick, getReferencingDocs, getReferencingFlows) and stores the result as this.renderer.";
         type: InstanceType<ExplorerApp>["setupRenderer"];
       }>;
 
@@ -74,6 +74,11 @@ declare global {
       "explorer.spa.ExplorerApp.collapseDescendants": Export<{
         desc: "Recursively removes all sub-folders and modules of a given folder from the expanded set. Called by onExpand on collapse before render().";
         type: InstanceType<ExplorerApp>["collapseDescendants"];
+      }>;
+
+      "explorer.spa.ExplorerApp.prefetchNodeChunk": Export<{
+        desc: "Silently loads the folder chunks needed to resolve a node by id. Walks meta.parentOf up the ancestor chain and fetches any unloaded folder chunks directly into store.folderChunks — without adding to the expanded set or triggering a canvas re-render. Called by DocPanel on ref link hover so tooltips can update with description and color once data arrives.";
+        type: InstanceType<ExplorerApp>["prefetchNodeChunk"];
       }>;
     }
   }

@@ -55,7 +55,7 @@ All paths are relative to project root and can be used directly to read files.
 ## Folder Structure
 
 - **__TSKB.ROOT__** (`.`) — The root directory (automatically added by tskb)
-  - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [2 folders, 2 files]
+  - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [1 folder, 2 files]
     - **examples.taskflow-app** (`examples/taskflow-app`) — Example application, not meant to be run, but used as reference for example docs [3 folders, 7 files]
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [1 folder]
     - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [4 folders, 5 files]
@@ -71,12 +71,18 @@ _Snapshot from last `npm run docs` build._
 - **Sample Client** — `examples/taskflow-app/src/client` — React frontend application with components, pages, and state management
 - **Sample Server** — `examples/taskflow-app/src/server` — Node.js backend API with services, controllers, and middleware
 - **test-fixtures** — `tests/e2e/fixture` — A small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb
+- **TSKB Explorer server** — `packages/tskb/src/core/explorer` — CLI-side explorer layer: graph→chunk transform, HTTP server, and static export
 - **TSKB Explorer SPA** — `packages/tskb/explorer-app` — Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/
 - **TSKB main package** — `packages/tskb` — The root folder of the package, with its package.json and main npm README.md
 
 ## Externals
 
+- **d3** — D3 data-visualisation library. Used for tree layout (d3.hierarchy, d3.tree), zoom/pan (d3.zoom), SVG path curves (curveBasisClosed), and polygon hull computation (d3.polygonHull). (url: https://d3js.org, kind: npm-package)
+- **npm** — npm package registry where tskb is published. The package includes the CLI binary, library entry point, JSX runtime, and pre-built explorer SPA assets. (url: https://www.npmjs.com/package/tskb, kind: package-registry)
 - **pg** — PostgreSQL client for Node.js (url: https://node-postgres.com, kind: npm-package)
+- **typescript** — TypeScript compiler API (the 'typescript' npm package). Provides the AST, type checker, and symbol resolution used throughout registry extraction and documentation parsing. (url: https://www.typescriptlang.org, kind: npm-package)
+- **vite** — Frontend build tool that bundles the explorer SPA. Configured in packages/tskb/explorer-app/vite.config.ts; outputs to dist/explorer/. (url: https://vitejs.dev, kind: npm-package)
+- **vitest** — Test runner used for both E2E and unit tests. Global setup builds the fixture graph once; individual test files run CLI subprocesses via execFileSync and assert against graph.json output. (url: https://vitest.dev, kind: npm-package)
 
 ## Flows
 
@@ -88,12 +94,12 @@ _Snapshot from last `npm run docs` build._
   ts.createProgram → extraction.registry → extraction.documentation → graph.builder
 - **explorer-serve-flow** [essential] — tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand
   explorer.explore → explorer.transformGraph → explorer.serveExplorer → explorer.spa.main → explorer.spa.lane-engine → explorer.spa.node-base
-- **explorer-export-flow** [essential] — tskb explore --export: CLI finds graph, transforms all chunks, copies SPA assets, writes chunk JSON files to disk
-  explorer.explore → explorer.transformGraph → explorer.export → explorer.exportExplorer
+- **explorer-export-flow** [essential] — tskb explore --export: reads graph.json, transforms chunks in memory, copies pre-built SPA from dist/explorer/ and writes chunk JSON files into the output directory (default: .tskb/explorer/)
+  explorer.explore → explorer.transformGraph → explorer.exportExplorer → explorer.exportExplorer
 - **module-morphology-extraction** [essential] — How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs
   extractRegistry → extractModuleMorphology → extractModuleImports → graph.builder
 
-_Plus 8 supplementary flows available via `npx --no -- tskb flows --plain`._
+_Plus 9 supplementary flows available via `npx --no -- tskb flows --plain`._
 
 ## Documentation
 
@@ -103,6 +109,6 @@ _Plus 8 supplementary flows available via `npx --no -- tskb flows --plain`._
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — Runtime module structure: JSX primitives and registry type definitions
 - `docs/src/tskb/typescript/typescript.tskb.tsx` — TypeScript Program creation for static analysis without compilation
 
-_Plus 20 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 21 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 Constraint docs define architectural rules that **MUST** be followed when working on related code.
