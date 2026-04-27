@@ -515,7 +515,7 @@ export class ExplorerApp {
       node.path && (node.type === "folder" || node.type === "module" || node.type === "file");
     const value = hasPath ? node.path! : node.label;
     const toast = hasPath ? value : `${value} · ${node.type}`;
-    navigator.clipboard.writeText(value).then(() => showToast(`Copied: ${toast}`));
+    navigator.clipboard.writeText(value).then(() => showToast(`⎘ ${toast}`));
   }
 
   private async navigateToNode(nodeId: string): Promise<void> {

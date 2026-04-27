@@ -11,7 +11,7 @@ import type {
   GraphEdge,
 } from "./types.js";
 import type { ExtractedRegistry } from "../extraction/registry.js";
-import type { ExtractedDoc } from "../extraction/documentation.js";
+import type { ExtractedDoc } from "../extraction/documentation/index.js";
 import fs from "node:fs";
 import path from "node:path";
 import { ROOT_FOLDER_NAME } from "../constants.js";
@@ -355,7 +355,8 @@ function buildFlowNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       };
       graph.nodes.flows[flow.name] = node;
 
-      // Create flow-step edges
+      // Create flow-step edges (deduplicated — a node may appear in multiple steps)
+      const seenStepTargets = new Set<string>();
       for (let i = 0; i < flow.steps.length; i++) {
         const step = flow.steps[i];
         // Verify the step target exists in the graph
@@ -367,12 +368,15 @@ function buildFlowNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
           graph.nodes.files[step.nodeId] ||
           graph.nodes.externals[step.nodeId];
         if (exists) {
-          graph.edges.push({
-            from: flow.name,
-            to: step.nodeId,
-            type: "flow-step",
-            label: step.label,
-          });
+          if (!seenStepTargets.has(step.nodeId)) {
+            seenStepTargets.add(step.nodeId);
+            graph.edges.push({
+              from: flow.name,
+              to: step.nodeId,
+              type: "flow-step",
+              label: step.label,
+            });
+          }
         } else {
           throw new Error(
             `Unresolved flow step reference "${step.nodeId}" in flow "${flow.name}" (doc "${doc.filePath}"):\n` +

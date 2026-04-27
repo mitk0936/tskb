@@ -6,20 +6,20 @@ import type { GraphStore } from "../store/graph-store";
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 export const NODE_SIZES: Record<NodeType, { w: number; h: number }> = {
-  folder: { w: 190, h: 76 },
-  module: { w: 165, h: 68 },
-  export: { w: 145, h: 56 },
-  doc: { w: 165, h: 68 },
-  flow: { w: 165, h: 68 },
-  term: { w: 145, h: 56 },
-  external: { w: 145, h: 56 },
-  file: { w: 130, h: 52 },
+  folder: { w: 190, h: 52 },
+  module: { w: 165, h: 48 },
+  export: { w: 145, h: 40 },
+  doc: { w: 165, h: 48 },
+  flow: { w: 165, h: 48 },
+  term: { w: 145, h: 40 },
+  external: { w: 145, h: 40 },
+  file: { w: 130, h: 38 },
 };
 
 export function nodeSize(node: PositionedNode): { w: number; h: number } {
   if (isGhost(node)) {
     const base = NODE_SIZES[node.type] ?? NODE_SIZES.module;
-    return { w: Math.min(base.w, 130), h: 28 };
+    return { w: Math.min(base.w, 130), h: 22 };
   }
   return NODE_SIZES[node.type] ?? NODE_SIZES.module;
 }

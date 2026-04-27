@@ -15,7 +15,7 @@ export function mountDomTooltip(): void {
     pointerEvents: "none",
     zIndex: "500",
     opacity: "0",
-    transform: "translateY(-4px)",
+    transform: "translateX(4px)",
     transition: "opacity 0.12s ease, transform 0.12s ease",
   });
   document.body.appendChild(el);
@@ -32,12 +32,12 @@ export function showDomTooltip(
   buildContent(label, path, description, color);
   el.style.display = "block";
   // Reading offsetWidth after display=block forces synchronous reflow → correct dimensions
-  positionAbove(anchorEl);
+  positionLeft(anchorEl);
   cancelAnimationFrame(raf);
   raf = requestAnimationFrame(() => {
     if (el) {
       el.style.opacity = "1";
-      el.style.transform = "translateY(0)";
+      el.style.transform = "translateX(0)";
     }
   });
 }
@@ -46,7 +46,7 @@ export function hideDomTooltip(): void {
   if (!el) return;
   cancelAnimationFrame(raf);
   el.style.opacity = "0";
-  el.style.transform = "translateY(-4px)";
+  el.style.transform = "translateX(4px)";
   setTimeout(() => {
     if (el && el.style.opacity === "0") el.style.display = "none";
   }, 120);
@@ -79,14 +79,14 @@ function buildContent(
     `${nameLine}${pathLine}${descLine}</div>`;
 }
 
-function positionAbove(anchorEl: HTMLElement): void {
+function positionLeft(anchorEl: HTMLElement): void {
   if (!el) return;
   const r = anchorEl.getBoundingClientRect();
   const W = el.offsetWidth || 240;
   const H = el.offsetHeight || 60;
-  const GAP = 6;
-  const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
-  const top = Math.max(8, r.top - H - GAP);
+  const GAP = 10;
+  const left = Math.max(8, r.left - W - GAP);
+  const top = Math.max(8, Math.min(r.top + r.height / 2 - H / 2, window.innerHeight - H - 8));
   el.style.left = `${left}px`;
   el.style.top = `${top}px`;
 }

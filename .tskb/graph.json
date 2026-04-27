@@ -644,15 +644,14 @@
         "type": "folder",
         "desc": "Contains the logic for extracting registry and documentation from TypeScript AST",
         "path": "packages/tskb/src/core/extraction",
-        "structureSummary": "5 files",
+        "structureSummary": "1 folder, 4 files",
         "children": {
-          "folders": [],
-          "files": [
+          "folders": [
             {
-              "name": "documentation.ts",
-              "nodeId": "extraction.documentation",
-              "desc": "Documentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files"
-            },
+              "name": "documentation"
+            }
+          ],
+          "files": [
             {
               "name": "folder-summary.ts"
             },
@@ -1547,7 +1546,7 @@
         "morphologySummary": "1 class, 5 functions, 7 interfaces, 1 type",
         "morphology": [
           "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :87-89",
-          "export function sanitizeFolderId(id: string): string {} // :862-864",
+          "export function sanitizeFolderId(id: string): string {} // :863-865",
           "export type NodeType = | \"folder\"\n  | \"module\"\n  | \"export\"\n  | \"doc\"\n  | \"flow\"\n  | \"term\"\n  | \"external\"\n  | \"file\" // :7-15",
           "export interface ExplorerNode { // :17-27",
           "  id: string // :18",
@@ -1603,7 +1602,7 @@
           "  subfolders: ExplorerNode[] // :82",
           "  childGhostPaths: string[] // :84",
           "}",
-          "class GraphToExplorerTransformer { // :93-798",
+          "class GraphToExplorerTransformer { // :93-799",
           "  private readonly graph: KnowledgeGraph // :94",
           "  private readonly edgesBySource: Map<string, GraphEdge[]> // :96",
           "  private readonly edgesByTarget: Map<string, GraphEdge[]> // :98",
@@ -1621,39 +1620,39 @@
           "  private buildAllFolderChunksRecursively(parentId: string): void {} // :260-301",
           "  private buildSubfolderNode(subfolderId: string, parentFolderId: string): ExplorerNode {} // :303-319",
           "  private buildModuleNode(moduleId: string, parentFolderId: string): ExplorerNode {} // :321-339",
-          "  private buildExportNodes(moduleId: string): ExplorerNode[] {} // :341-370",
-          "  private buildImportEdges(moduleIdSet: Set<string>): { internalEdges: ExplorerLink[]; externalEdges: ExplorerLink[]; } {} // :372-389",
-          "  private injectGhostNodes(): void {} // :397-437",
-          "  private buildGhostModuleNodes(childFiles: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined): ExplorerNode[] {} // :439-463",
-          "  private buildGhostSubfolderNodes(childFolders: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined, folderPathToId: Map<string, string>): ExplorerNode[] {} // :465-502",
-          "  private buildFolderPathIndex(): Map<string, string> {} // :504-510",
-          "  private computeGhostChain(folderPath: string, itemDirPath: string): string[] {} // :517-523",
-          "  private ensureGhostChain(chain: string[], folderPath: string, ghostLevels: Map<string, GhostLevelBuilder>): void {} // :529-554",
-          "  private buildGhostFolderNode(ghostPath: string, parentId: string): ExplorerNode {} // :557-573",
-          "  private buildGhostIntermediaryChains(): void {} // :581-686",
-          "  private sortAllChunks(): void {} // :689-696",
-          "  private patchFolderChildCounts(topFolders: ExplorerNode[]): void {} // :704-719",
-          "  private patchFolderNodeDetail(node: ExplorerNode): void {} // :721-727",
-          "  private buildParentOf(): Record<string, string> {} // :730-739",
-          "  private getModuleExports(moduleId: string, candidates: ExplorerNode[]): ExplorerNode[] {} // :746-760",
-          "  private getDirectModuleIds(folderId: string): string[] {} // :764-768",
-          "  private getDirectFileIds(folderId: string): string[] {} // :770-774",
-          "  private buildFileNodeForChunk(fileId: string, parentFolderId: string): ExplorerNode {} // :776-783",
-          "  private getDirectSubfolderIds(folderId: string): string[] {} // :785-789",
-          "  private countDirectModules(folderId: string): number {} // :791-793",
-          "  private countDirectSubfolders(folderId: string): number {} // :795-797",
+          "  private buildExportNodes(moduleId: string): ExplorerNode[] {} // :341-371",
+          "  private buildImportEdges(moduleIdSet: Set<string>): { internalEdges: ExplorerLink[]; externalEdges: ExplorerLink[]; } {} // :373-390",
+          "  private injectGhostNodes(): void {} // :398-438",
+          "  private buildGhostModuleNodes(childFiles: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined): ExplorerNode[] {} // :440-464",
+          "  private buildGhostSubfolderNodes(childFolders: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined, folderPathToId: Map<string, string>): ExplorerNode[] {} // :466-503",
+          "  private buildFolderPathIndex(): Map<string, string> {} // :505-511",
+          "  private computeGhostChain(folderPath: string, itemDirPath: string): string[] {} // :518-524",
+          "  private ensureGhostChain(chain: string[], folderPath: string, ghostLevels: Map<string, GhostLevelBuilder>): void {} // :530-555",
+          "  private buildGhostFolderNode(ghostPath: string, parentId: string): ExplorerNode {} // :558-574",
+          "  private buildGhostIntermediaryChains(): void {} // :582-687",
+          "  private sortAllChunks(): void {} // :690-697",
+          "  private patchFolderChildCounts(topFolders: ExplorerNode[]): void {} // :705-720",
+          "  private patchFolderNodeDetail(node: ExplorerNode): void {} // :722-728",
+          "  private buildParentOf(): Record<string, string> {} // :731-740",
+          "  private getModuleExports(moduleId: string, candidates: ExplorerNode[]): ExplorerNode[] {} // :747-761",
+          "  private getDirectModuleIds(folderId: string): string[] {} // :765-769",
+          "  private getDirectFileIds(folderId: string): string[] {} // :771-775",
+          "  private buildFileNodeForChunk(fileId: string, parentFolderId: string): ExplorerNode {} // :777-784",
+          "  private getDirectSubfolderIds(folderId: string): string[] {} // :786-790",
+          "  private countDirectModules(folderId: string): number {} // :792-794",
+          "  private countDirectSubfolders(folderId: string): number {} // :796-798",
           "}",
-          "function groupEdgesByKey(edges: GraphEdge[], key: \"from\" | \"to\"): Map<string, GraphEdge[]> {} // :802-811",
-          "interface NodeOpts { // :813-820",
-          "  path: string | undefined // :814",
-          "  parentId: string | undefined // :815",
-          "  priority: \"supplementary\" | \"essential\" | \"constraint\" | undefined // :816",
-          "  edgeCount: number | undefined // :817",
-          "  detail: Record<string, string | string[]> | undefined // :818",
-          "  label: string | undefined // :819",
+          "function groupEdgesByKey(edges: GraphEdge[], key: \"from\" | \"to\"): Map<string, GraphEdge[]> {} // :803-812",
+          "interface NodeOpts { // :814-821",
+          "  path: string | undefined // :815",
+          "  parentId: string | undefined // :816",
+          "  priority: \"supplementary\" | \"essential\" | \"constraint\" | undefined // :817",
+          "  edgeCount: number | undefined // :818",
+          "  detail: Record<string, string | string[]> | undefined // :819",
+          "  label: string | undefined // :820",
           "}",
-          "function toExplorerNode(id: string, type: NodeType, description: string, opts?: NodeOpts): ExplorerNode {} // :822-847",
-          "function makeFallbackRoot(): ExplorerNode {} // :849-858"
+          "function toExplorerNode(id: string, type: NodeType, description: string, opts?: NodeOpts): ExplorerNode {} // :823-848",
+          "function makeFallbackRoot(): ExplorerNode {} // :850-859"
         ],
         "importsSummary": "3 imports from 2 paths",
         "imports": [
@@ -1678,7 +1677,7 @@
             "typeOnly": false
           }
         ],
-        "edgeCount": 12
+        "edgeCount": 9
       },
       "explorer.spa.main": {
         "id": "explorer.spa.main",
@@ -2184,37 +2183,38 @@
         "desc": "NodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with a <> code preview bubble (top-center) and a + expand bubble (right edge). Ghost nodes (detail._ghost = 'true') render as dashed transparent cards showing only their filename label. Tooltip anchor is the node's right-center SVG position.",
         "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/components/nodes/base.js\")",
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
-        "morphologySummary": "1 class, 1 function, 1 interface, 8 types, 2 variables",
+        "morphologySummary": "1 class, 2 functions, 1 interface, 8 types, 2 variables",
         "morphology": [
-          "export const NODE_COLORS: Record<NodeType, string> // :10-19",
-          "export const NODE_ICON: Record<NodeType, string> // :21-30",
-          "export interface NodeComponent { // :34-45",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :36",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :38",
-          "  getSize(node: PositionedNode): { w: number; h: number; } // :40",
-          "  outgoing(node: PositionedNode): { x: number; y: number; } // :42",
-          "  ingoing(node: PositionedNode): { x: number; y: number; } // :44",
+          "export function exportDisplayLabel(label: string, morphologySummary?: string | undefined): string {} // :472-477",
+          "export const NODE_COLORS: Record<NodeType, string> // :11-20",
+          "export const NODE_ICON: Record<NodeType, string> // :22-31",
+          "export interface NodeComponent { // :35-46",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :37",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void // :39",
+          "  getSize(node: PositionedNode): { w: number; h: number; } // :41",
+          "  outgoing(node: PositionedNode): { x: number; y: number; } // :43",
+          "  ingoing(node: PositionedNode): { x: number; y: number; } // :45",
           "}",
-          "export type ExpandHandler = (node: PositionedNode) => void // :49",
-          "export type SelectHandler = (node: PositionedNode) => void // :50",
-          "export type TraceLinkHandler = (node: PositionedNode) => void // :51",
-          "export type HasChildrenFn = (node: PositionedNode) => boolean // :52",
-          "export type IsExpandedFn = (node: PositionedNode) => boolean // :53",
-          "export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void // :55",
-          "export type ChipClickHandler = (node: PositionedNode, chip: \"docs\" | \"flows\") => void // :56",
-          "export type GetRefsFn = (nodeId: string) => string[] // :57",
-          "export class BaseNodeRenderer { // :71-467",
-          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, onChipClick: ChipClickHandler | undefined, getReferencingDocs: GetRefsFn | undefined, getReferencingFlows: GetRefsFn | undefined) {} // :72-82",
-          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :84-86",
-          "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :88-91",
-          "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :93-96",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :98-247",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :249-466",
+          "export type ExpandHandler = (node: PositionedNode) => void // :50",
+          "export type SelectHandler = (node: PositionedNode) => void // :51",
+          "export type TraceLinkHandler = (node: PositionedNode) => void // :52",
+          "export type HasChildrenFn = (node: PositionedNode) => boolean // :53",
+          "export type IsExpandedFn = (node: PositionedNode) => boolean // :54",
+          "export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void // :56",
+          "export type ChipClickHandler = (node: PositionedNode, chip: \"docs\" | \"flows\") => void // :57",
+          "export type GetRefsFn = (nodeId: string) => string[] // :58",
+          "export class BaseNodeRenderer { // :72-462",
+          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, onChipClick: ChipClickHandler | undefined, getReferencingDocs: GetRefsFn | undefined, getReferencingFlows: GetRefsFn | undefined) {} // :73-83",
+          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :85-87",
+          "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :89-92",
+          "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :94-97",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-257",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :259-461",
           "}",
           "// — internal —",
-          "function trunc(s: string, max: number): string {} // :471-474"
+          "function trunc(s: string, max: number): string {} // :466-469"
         ],
-        "importsSummary": "11 imports from 5 paths",
+        "importsSummary": "12 imports from 6 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "PositionedNode from \"../../types\"",
@@ -2224,6 +2224,7 @@
           "nodeSize from \"../../layout/lane-engine\"",
           "showNodeTooltip from \"../../ui/NodeTooltip\"",
           "hideNodeTooltip from \"../../ui/NodeTooltip\"",
+          "showToast from \"../../ui/Toast\"",
           "EyeIcon from \"../../ui/icons\"",
           "MinusIcon from \"../../ui/icons\"",
           "replaceIcon from \"../../ui/icons\""
@@ -2270,6 +2271,11 @@
             "typeOnly": false
           },
           {
+            "symbol": "showToast",
+            "path": "../../ui/Toast",
+            "typeOnly": false
+          },
+          {
             "symbol": "EyeIcon",
             "path": "../../ui/icons",
             "typeOnly": false
@@ -2285,7 +2291,7 @@
             "typeOnly": false
           }
         ],
-        "edgeCount": 20
+        "edgeCount": 17
       },
       "explorer.spa.node-index": {
         "id": "explorer.spa.node-index",
@@ -2463,8 +2469,8 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/BoundaryRenderer.ts",
         "morphologySummary": "8 functions, 1 interface, 1 type, 6 variables",
         "morphology": [
-          "export function renderBoundaryGroups(layer: Layer, nodes: PositionedNode[], parentOf: Record<string, string>, zoomK: number): void {} // :196-268",
-          "export function applyBoundaryLabelTransforms(layer: Layer, zoomK: number): void {} // :274-278",
+          "export function renderBoundaryGroups(layer: Layer, nodes: PositionedNode[], parentOf: Record<string, string>, zoomK: number): void {} // :198-282",
+          "export function applyBoundaryLabelTransforms(layer: Layer, zoomK: number): void {} // :288-297",
           "// — internal —",
           "type Layer = d3.Selection<SVGGElement, unknown, null, undefined> // :5",
           "function resolveBoundaries(nodes: PositionedNode[], parentOf: Record<string, string>): Map<string, string> {} // :13-70",
@@ -2484,8 +2490,8 @@
           "  labelX: number // :152",
           "  labelY: number // :153",
           "}",
-          "function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>): BoundaryGroup[] {} // :156-184",
-          "const LABEL_FONT_SIZE: 14 // :188"
+          "function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>): BoundaryGroup[] {} // :156-186",
+          "const LABEL_FONT_SIZE: 14 // :190"
         ],
         "importsSummary": "3 imports from 3 paths",
         "imports": [
@@ -2622,7 +2628,7 @@
           "  private renderDetail(node: PositionedNode): string {} // :229-243",
           "}"
         ],
-        "importsSummary": "7 imports from 5 paths",
+        "importsSummary": "8 imports from 5 paths",
         "imports": [
           "* from \"./doc-panel.css\"",
           "PositionedNode from \"../types\"",
@@ -2630,6 +2636,7 @@
           "showDomTooltip from \"./DomTooltip\"",
           "hideDomTooltip from \"./DomTooltip\"",
           "NODE_COLORS from \"../components/nodes/base\"",
+          "exportDisplayLabel from \"../components/nodes/base\"",
           "showToast from \"./Toast\""
         ],
         "importEntries": [
@@ -2664,6 +2671,11 @@
             "typeOnly": false
           },
           {
+            "symbol": "exportDisplayLabel",
+            "path": "../components/nodes/base",
+            "typeOnly": false
+          },
+          {
             "symbol": "showToast",
             "path": "./Toast",
             "typeOnly": false
@@ -2686,7 +2698,7 @@
           "const el: HTMLDivElement | null // :6",
           "const raf: number // :7",
           "function buildContent(label: string, path: string | undefined, description: string, color: string): void {} // :57-80",
-          "function positionAbove(anchorEl: HTMLElement): void {} // :82-92",
+          "function positionLeft(anchorEl: HTMLElement): void {} // :82-92",
           "function escHtml(s: string): string {} // :94-96"
         ],
         "edgeCount": 5
@@ -3145,17 +3157,17 @@
           "function buildExternalNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): void {} // :249-259",
           "function enrichFolderChildren(graph: KnowledgeGraph): void {} // :267-312",
           "function detectPackageFolders(graph: KnowledgeGraph): void {} // :318-333",
-          "function buildFlowNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {} // :340-386",
-          "function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {} // :391-408",
-          "function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {} // :433-568",
-          "function buildFolderHierarchy(graph: KnowledgeGraph): void {} // :587-625",
-          "function buildModuleFolderMembership(graph: KnowledgeGraph): void {} // :647-688",
-          "function buildExportMembership(graph: KnowledgeGraph, registry: ExtractedRegistry): void {} // :708-789",
-          "function buildFileFolderMembership(graph: KnowledgeGraph): void {} // :796-831",
-          "function buildModuleImportEdges(graph: KnowledgeGraph): void {} // :840-902",
-          "function stripExtension(filePath: string): string {} // :907-910",
-          "function computeEdgeCounts(graph: KnowledgeGraph): void {} // :915-929",
-          "function updateStats(graph: KnowledgeGraph): void {} // :934-944"
+          "function buildFlowNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {} // :340-390",
+          "function buildDocNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {} // :395-412",
+          "function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {} // :437-572",
+          "function buildFolderHierarchy(graph: KnowledgeGraph): void {} // :591-629",
+          "function buildModuleFolderMembership(graph: KnowledgeGraph): void {} // :651-692",
+          "function buildExportMembership(graph: KnowledgeGraph, registry: ExtractedRegistry): void {} // :712-793",
+          "function buildFileFolderMembership(graph: KnowledgeGraph): void {} // :800-835",
+          "function buildModuleImportEdges(graph: KnowledgeGraph): void {} // :844-906",
+          "function stripExtension(filePath: string): string {} // :911-914",
+          "function computeEdgeCounts(graph: KnowledgeGraph): void {} // :919-933",
+          "function updateStats(graph: KnowledgeGraph): void {} // :938-948"
         ],
         "importsSummary": "15 imports from 6 paths",
         "imports": [
@@ -3170,7 +3182,7 @@
           "DocNode from \"./types.js\"",
           "GraphEdge from \"./types.js\"",
           "ExtractedRegistry from \"../extraction/registry.js\"",
-          "ExtractedDoc from \"../extraction/documentation.js\"",
+          "ExtractedDoc from \"../extraction/documentation/index.js\"",
           "fs from \"node:fs\"",
           "path from \"node:path\"",
           "ROOT_FOLDER_NAME from \"../constants.js\""
@@ -3233,7 +3245,7 @@
           },
           {
             "symbol": "ExtractedDoc",
-            "path": "../extraction/documentation.js",
+            "path": "../extraction/documentation/index.js",
             "typeOnly": true
           },
           {
@@ -3387,45 +3399,52 @@
         "id": "extraction.documentation",
         "type": "module",
         "desc": "Documentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files",
-        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\")",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
-        "morphologySummary": "17 functions, 1 interface",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation/index.js\")",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation/index.ts",
+        "morphologySummary": "2 classes, 5 functions, 1 interface",
         "morphology": [
-          "export function extractDocs(program: Program, filePaths: Set<string>, registry?: ExtractedRegistry | undefined): ExtractedDoc[] {} // :46-72",
-          "export function extractFromTsxFile(sourceFile: SourceFile, registry?: ExtractedRegistry | undefined): ExtractedDoc | null {} // :77-145",
-          "export function buildConstantReferencesMap(sourceFile: SourceFile): Map<string, { category: string; name: string; }> {} // :163-189",
-          "export function extractJsxContent(node: Node, references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; }, constantReferences: Map<string, { category: string; name: string; }>, docMeta: { ...; }, relations?: { ...; }[] | undefined, flows?: { ...; }[] | undefined, registry?: ExtractedRegistry | undefined): string {} // :241-567",
-          "export function createReferenceContent(category: string, name: string, references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; }, registry?: ExtractedRegistry | undefined): string | null {} // :594-652",
-          "export function resolveNodeMeta(nodeId: string, registry: ExtractedRegistry): { nodeType: string; display: string; } {} // :791-814",
-          "export interface ExtractedDoc { // :9-35",
-          "  filePath: string // :11",
-          "  format: \"tsx\" // :12",
-          "  explains: string // :14",
-          "  priority: DocPriority // :16",
-          "  content: string // :17",
-          "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; } // :18-25",
-          "  relations: { from: string; to: string; label?: string | undefined; }[] | undefined // :27",
-          "  flows: { name: string; desc: string; priority: DocPriority; steps: { nodeId: string; label?: string | undefined; }[]; }[] | undefined // :29-34",
+          "export function extractDocs(program: Program, filePaths: Set<string>, registry?: ExtractedRegistry | undefined): ExtractedDoc[] {} // :47-65",
+          "export function extractFromTsxFile(sourceFile: SourceFile, registry?: ExtractedRegistry | undefined): ExtractedDoc | null {} // :72-103",
+          "export interface ExtractedDoc { // :13-39",
+          "  filePath: string // :15",
+          "  format: \"tsx\" // :16",
+          "  explains: string // :18",
+          "  priority: DocPriority // :20",
+          "  content: string // :21",
+          "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; } // :22-29",
+          "  relations: { from: string; to: string; label?: string | undefined; }[] | undefined // :31",
+          "  flows: { name: string; desc: string; priority: DocPriority; steps: { nodeId: string; label?: string | undefined; }[]; }[] | undefined // :33-38",
           "}",
-          "// — internal —",
-          "function findDefaultExport(sourceFile: SourceFile): Expression | null {} // :150-157",
-          "function extractTypeAssertionMetadata(assertion: AsExpression): { category: string; name: string; } | null {} // :194-222",
-          "function extractReferenceFromTypeAssertion(assertion: AsExpression, references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; }, registry?: ExtractedRegistry | undefined): string | null {} // :572-589",
-          "function getStringAttribute(attributes: JsxAttributes, attrName: string): string | undefined {} // :657-670",
-          "function getNameAttribute(attributes: JsxAttributes): string | undefined {} // :675-677",
-          "function getCodeAttribute(attributes: JsxAttributes): string | undefined {} // :683-710",
-          "function dedent(code: string): string {} // :712-721",
-          "function getAdrAttributes(attributes: JsxAttributes): string | undefined {} // :726-750",
-          "function extractStepNode(attributes: JsxAttributes, constantReferences: Map<string, { category: string; name: string; }>): string | undefined {} // :756-785",
-          "function escapeHtml(text: string): string {} // :819-825",
-          "function escapeAttr(text: string): string {} // :830-832"
+          "export class Documentation { // :108-111",
+          "  static extractDocs: (program: Program, filePaths: Set<string>, registry?: ExtractedRegistry | undefined) => ExtractedDoc[] // :109",
+          "  static extractFromTsxFile: (sourceFile: SourceFile, registry?: ExtractedRegistry | undefined) => ExtractedDoc | null // :110",
+          "}",
+          "export function buildRefMap(sourceFile: SourceFile): ConstantRefMap {}",
+          "export function buildRefLink(category: string, name: string, refs: DocRefs, registry?: ExtractedRegistry | undefined): string | null {}",
+          "export function resolveNodeMeta(nodeId: string, registry: ExtractedRegistry): { nodeType: string; display: string; } {}",
+          "export class JsxExtractor {",
+          "  private tring: string",
+          "  private readonly - ess: DocRefs",
+          "  private readonly : string: DocMeta",
+          "  private readonly files: str: { from: string; to: string; label?: string | undefined; }[]",
+          "  private readonly {from,: { name: string; desc: string; priority: DocPriority; steps: { nodeId: string; label?: string | undefined; }[]; }[]",
+          "  constructor(ng;\n    desc:: ConstantRefMap, steps: : ExtractedRegistry | undefined) {}",
+          "  tring }[];\n(node: Node): { html: string; refs: DocRefs; docMeta: DocMeta; relations: { from: string; to: string; label?: string | undefined; }[]; flows: { name: string; desc: string; priority: DocPriority; steps: { ...; }[]; }[]; } {}",
+          "  private {\n    (node: Node): void {}",
+          "  private f no default e(node: JsxElement): void {}",
+          "  private ractedRegistr(node: JsxSelfClosingElement | JsxElement): void {}",
+          "  private ls.js\";\nexport {(expr: Expression): void {}",
+          "}"
         ],
-        "importsSummary": "4 imports from 4 paths",
+        "importsSummary": "7 imports from 6 paths",
         "imports": [
           "ts from \"typescript\"",
           "path from \"node:path\"",
-          "DocPriority from \"../../runtime/jsx.js\"",
-          "ExtractedRegistry from \"./registry.js\""
+          "ExtractedRegistry from \"../registry.js\"",
+          "DocPriority from \"../../../runtime/jsx.js\"",
+          "buildRefMap from \"./doc-utils.js\"",
+          "findDefaultExport from \"./doc-utils.js\"",
+          "JsxExtractor from \"./jsx-extractor.js\""
         ],
         "importEntries": [
           {
@@ -3439,14 +3458,29 @@
             "typeOnly": false
           },
           {
-            "symbol": "DocPriority",
-            "path": "../../runtime/jsx.js",
+            "symbol": "ExtractedRegistry",
+            "path": "../registry.js",
             "typeOnly": true
           },
           {
-            "symbol": "ExtractedRegistry",
-            "path": "./registry.js",
+            "symbol": "DocPriority",
+            "path": "../../../runtime/jsx.js",
             "typeOnly": true
+          },
+          {
+            "symbol": "buildRefMap",
+            "path": "./doc-utils.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "findDefaultExport",
+            "path": "./doc-utils.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "JsxExtractor",
+            "path": "./jsx-extractor.js",
+            "typeOnly": false
           }
         ],
         "edgeCount": 13
@@ -3712,99 +3746,106 @@
         "desc": "Pick command module - resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/commands/pick.js\")",
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
-        "morphologySummary": "22 functions, 8 interfaces, 2 types, 1 variable",
+        "morphologySummary": "23 functions, 8 interfaces, 2 types, 1 variable",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :557-634",
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :571-648",
           "// — internal —",
-          "interface FolderPickResult { // :19-42",
-          "  type: \"folder\" // :20",
-          "  resolvedVia: ResolvedVia // :21",
-          "  node: { nodeId: string; desc: string; path?: string | undefined; boundary?: string | undefined; packageName?: string | undefined; structureSummary?: string | undefined; children?: FolderChildren | undefined; } // :22-30",
-          "  parent: { nodeId: string; type: string; desc: string; } | undefined // :31",
-          "  exports: { nodeId: string; desc: string; path?: string | undefined; }[] // :32",
-          "  importedBy: { moduleId: string; desc: string; }[] | undefined // :33",
-          "  referencingDocs: DocRef[] // :34",
-          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :35-41",
+          "interface FolderPickResult { // :21-45",
+          "  type: \"folder\" // :22",
+          "  resolvedVia: ResolvedVia // :23",
+          "  node: { nodeId: string; desc: string; path?: string | undefined; boundary?: string | undefined; packageName?: string | undefined; structureSummary?: string | undefined; children?: FolderChildren | undefined; } // :24-32",
+          "  parent: { nodeId: string; type: string; desc: string; } | undefined // :33",
+          "  exports: { nodeId: string; desc: string; path?: string | undefined; }[] // :34",
+          "  importedBy: { moduleId: string; desc: string; }[] | undefined // :35",
+          "  referencingDocs: DocRef[] // :36",
+          "  referencingFlows: FlowRef[] // :37",
+          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :38-44",
           "}",
-          "interface ModulePickResult { // :44-68",
-          "  type: \"module\" // :45",
-          "  resolvedVia: ResolvedVia // :46",
-          "  node: { nodeId: string; desc: string; typeSignature?: string | undefined; resolvedPath?: string | undefined; morphologySummary?: string | undefined; morphology?: string[] | undefined; importsSummary?: string | undefined; imports?: { ...; }[] | undefined; } // :47-56",
-          "  parentFolder: { nodeId: string; desc: string; path?: string | undefined; } | undefined // :57",
-          "  exports: { nodeId: string; desc: string; typeSignature?: string | undefined; }[] // :58",
-          "  importedBy: { moduleId: string; desc: string; }[] | undefined // :59",
-          "  referencingDocs: DocRef[] // :60",
-          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :61-67",
+          "interface ModulePickResult { // :47-72",
+          "  type: \"module\" // :48",
+          "  resolvedVia: ResolvedVia // :49",
+          "  node: { nodeId: string; desc: string; typeSignature?: string | undefined; resolvedPath?: string | undefined; morphologySummary?: string | undefined; morphology?: string[] | undefined; importsSummary?: string | undefined; imports?: { ...; }[] | undefined; } // :50-59",
+          "  parentFolder: { nodeId: string; desc: string; path?: string | undefined; } | undefined // :60",
+          "  exports: { nodeId: string; desc: string; typeSignature?: string | undefined; }[] // :61",
+          "  importedBy: { moduleId: string; desc: string; }[] | undefined // :62",
+          "  referencingDocs: DocRef[] // :63",
+          "  referencingFlows: FlowRef[] // :64",
+          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :65-71",
           "}",
-          "interface ExportPickResult { // :70-90",
-          "  type: \"export\" // :71",
-          "  resolvedVia: ResolvedVia // :72",
-          "  node: { nodeId: string; desc: string; typeSignature?: string | undefined; resolvedPath?: string | undefined; morphologySummary?: string | undefined; morphology?: string[] | undefined; } // :73-80",
-          "  parent: { nodeId: string; type: string; desc: string; morphologySummary?: string | undefined; } | undefined // :81",
-          "  referencingDocs: DocRef[] // :82",
-          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :83-89",
+          "interface ExportPickResult { // :74-95",
+          "  type: \"export\" // :75",
+          "  resolvedVia: ResolvedVia // :76",
+          "  node: { nodeId: string; desc: string; typeSignature?: string | undefined; resolvedPath?: string | undefined; morphologySummary?: string | undefined; morphology?: string[] | undefined; } // :77-84",
+          "  parent: { nodeId: string; type: string; desc: string; morphologySummary?: string | undefined; } | undefined // :85",
+          "  referencingDocs: DocRef[] // :86",
+          "  referencingFlows: FlowRef[] // :87",
+          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :88-94",
           "}",
-          "interface TermPickResult { // :92-104",
-          "  type: \"term\" // :93",
-          "  resolvedVia: ResolvedVia // :94",
-          "  node: { nodeId: string; desc: string; } // :95",
-          "  referencingDocs: DocRef[] // :96",
-          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :97-103",
+          "interface TermPickResult { // :97-110",
+          "  type: \"term\" // :98",
+          "  resolvedVia: ResolvedVia // :99",
+          "  node: { nodeId: string; desc: string; } // :100",
+          "  referencingDocs: DocRef[] // :101",
+          "  referencingFlows: FlowRef[] // :102",
+          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :103-109",
           "}",
-          "interface FilePickResult { // :106-123",
-          "  type: \"file\" // :107",
-          "  resolvedVia: ResolvedVia // :108",
-          "  node: { nodeId: string; desc: string; path?: string | undefined; } // :109-113",
-          "  parentFolder: { nodeId: string; desc: string; path?: string | undefined; } | undefined // :114",
-          "  referencingDocs: DocRef[] // :115",
-          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :116-122",
+          "interface FilePickResult { // :112-130",
+          "  type: \"file\" // :113",
+          "  resolvedVia: ResolvedVia // :114",
+          "  node: { nodeId: string; desc: string; path?: string | undefined; } // :115-119",
+          "  parentFolder: { nodeId: string; desc: string; path?: string | undefined; } | undefined // :120",
+          "  referencingDocs: DocRef[] // :121",
+          "  referencingFlows: FlowRef[] // :122",
+          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :123-129",
           "}",
-          "interface ExternalPickResult { // :125-141",
-          "  type: \"external\" // :126",
-          "  resolvedVia: ResolvedVia // :127",
-          "  node: { nodeId: string; desc: string; metadata: Record<string, string>; } // :128-132",
-          "  referencingDocs: DocRef[] // :133",
-          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :134-140",
+          "interface ExternalPickResult { // :132-149",
+          "  type: \"external\" // :133",
+          "  resolvedVia: ResolvedVia // :134",
+          "  node: { nodeId: string; desc: string; metadata: Record<string, string>; } // :135-139",
+          "  referencingDocs: DocRef[] // :140",
+          "  referencingFlows: FlowRef[] // :141",
+          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :142-148",
           "}",
-          "interface DocPickResult { // :143-161",
-          "  type: \"doc\" // :144",
-          "  resolvedVia: ResolvedVia // :145",
-          "  node: { nodeId: string; explains: string; filePath: string; format: string; priority: string; content: string; } // :146-153",
-          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :154-160",
+          "interface DocPickResult { // :151-169",
+          "  type: \"doc\" // :152",
+          "  resolvedVia: ResolvedVia // :153",
+          "  node: { nodeId: string; explains: string; filePath: string; format: string; priority: string; content: string; } // :154-161",
+          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :162-168",
           "}",
-          "interface FlowPickResult { // :163-180",
-          "  type: \"flow\" // :164",
-          "  resolvedVia: ResolvedVia // :165",
-          "  node: { nodeId: string; desc: string; priority: string; steps: { nodeId: string; order: number; label?: string | undefined; nodeType?: string | undefined; }[]; } // :166-171",
-          "  referencingDocs: DocRef[] // :172",
-          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :173-179",
+          "interface FlowPickResult { // :171-188",
+          "  type: \"flow\" // :172",
+          "  resolvedVia: ResolvedVia // :173",
+          "  node: { nodeId: string; desc: string; priority: string; steps: { nodeId: string; order: number; label?: string | undefined; nodeType?: string | undefined; }[]; } // :174-179",
+          "  referencingDocs: DocRef[] // :180",
+          "  relations: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined // :181-187",
           "}",
-          "type PickResult = | FolderPickResult\n  | ModulePickResult\n  | ExportPickResult\n  | TermPickResult\n  | FilePickResult\n  | ExternalPickRe... // :182-190",
-          "type NodeResolver = (\n  id: string,\n  node: AnyNode,\n  edges: NodeEdges,\n  graph: KnowledgeGraph\n) => T // :194-199",
-          "function resolveFolder(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): FolderPickResult {} // :201-247",
-          "function resolveModule(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): ModulePickResult {} // :249-315",
-          "function resolveExport(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): ExportPickResult {} // :317-348",
-          "function resolveTerm(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): TermPickResult {} // :350-364",
-          "function resolveFile(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): FilePickResult {} // :366-393",
-          "function resolveExternal(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): ExternalPickResult {} // :395-413",
-          "function resolveDoc(id: string, node: AnyNode, _edges: NodeEdges, _graph: KnowledgeGraph): DocPickResult {} // :415-435",
-          "function resolveFlow(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): FlowPickResult {} // :437-467",
-          "function enrichImportsWithModuleIds(imports: string[], moduleResolvedPath: string | undefined, edges: NodeEdges, graph: KnowledgeGraph): { entry: string; moduleId?: string | undefined; moduleType?: string | undefined; }[] {} // :474-537",
-          "function stripExt(filePath: string): string {} // :539-542",
-          "const resolvers: Record<string, NodeResolver<PickResult>> // :544-553",
-          "function formatDocs(docs: DocRef[]): string[] {} // :638-645",
-          "function formatRelations(relations?: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined): string[] {} // :647-665",
-          "function formatModulePlain(result: ModulePickResult): string[] {} // :667-750",
-          "function formatFolderPlain(result: FolderPickResult): string[] {} // :752-799",
-          "function formatExportPlain(result: ExportPickResult): string[] {} // :801-830",
-          "function formatTermPlain(result: TermPickResult): string[] {} // :832-839",
-          "function formatFilePlain(result: FilePickResult): string[] {} // :841-855",
-          "function formatExternalPlain(result: ExternalPickResult): string[] {} // :857-871",
-          "function formatFlowPlain(result: FlowPickResult): string[] {} // :873-892",
-          "function formatDocPlain(result: DocPickResult): string[] {} // :894-906",
-          "function formatPickPlain(result: PickResult, ambiguousTypes?: (\"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\")[] | undefined): string {} // :908-947"
+          "type PickResult = | FolderPickResult\n  | ModulePickResult\n  | ExportPickResult\n  | TermPickResult\n  | FilePickResult\n  | ExternalPickRe... // :190-198",
+          "type NodeResolver = (\n  id: string,\n  node: AnyNode,\n  edges: NodeEdges,\n  graph: KnowledgeGraph\n) => T // :202-207",
+          "function resolveFolder(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): FolderPickResult {} // :209-256",
+          "function resolveModule(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): ModulePickResult {} // :258-325",
+          "function resolveExport(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): ExportPickResult {} // :327-359",
+          "function resolveTerm(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): TermPickResult {} // :361-376",
+          "function resolveFile(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): FilePickResult {} // :378-406",
+          "function resolveExternal(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): ExternalPickResult {} // :408-427",
+          "function resolveDoc(id: string, node: AnyNode, _edges: NodeEdges, _graph: KnowledgeGraph): DocPickResult {} // :429-449",
+          "function resolveFlow(id: string, node: AnyNode, edges: NodeEdges, graph: KnowledgeGraph): FlowPickResult {} // :451-481",
+          "function enrichImportsWithModuleIds(imports: string[], moduleResolvedPath: string | undefined, edges: NodeEdges, graph: KnowledgeGraph): { entry: string; moduleId?: string | undefined; moduleType?: string | undefined; }[] {} // :488-551",
+          "function stripExt(filePath: string): string {} // :553-556",
+          "const resolvers: Record<string, NodeResolver<PickResult>> // :558-567",
+          "function formatDocs(docs: DocRef[]): string[] {} // :652-659",
+          "function formatFlows(flows: FlowRef[]): string[] {} // :661-668",
+          "function formatRelations(relations?: { from: string; fromType?: string | undefined; to: string; toType?: string | undefined; label?: string | undefined; }[] | undefined): string[] {} // :670-688",
+          "function formatModulePlain(result: ModulePickResult): string[] {} // :690-774",
+          "function formatFolderPlain(result: FolderPickResult): string[] {} // :776-824",
+          "function formatExportPlain(result: ExportPickResult): string[] {} // :826-856",
+          "function formatTermPlain(result: TermPickResult): string[] {} // :858-866",
+          "function formatFilePlain(result: FilePickResult): string[] {} // :868-883",
+          "function formatExternalPlain(result: ExternalPickResult): string[] {} // :885-900",
+          "function formatFlowPlain(result: FlowPickResult): string[] {} // :902-921",
+          "function formatDocPlain(result: DocPickResult): string[] {} // :923-935",
+          "function formatPickPlain(result: PickResult, ambiguousTypes?: (\"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\")[] | undefined): string {} // :937-976"
         ],
-        "importsSummary": "17 imports from 6 paths",
+        "importsSummary": "19 imports from 6 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
@@ -3818,10 +3859,12 @@
           "resolveNode from \"../utils/resolve-node.js\"",
           "getNodeEdges from \"../utils/resolve-node.js\"",
           "findReferencingDocs from \"../utils/resolve-node.js\"",
+          "findReferencingFlows from \"../utils/resolve-node.js\"",
           "findParent from \"../utils/resolve-node.js\"",
           "findAllNodesById from \"../utils/resolve-node.js\"",
           "NodeEdges from \"../utils/resolve-node.js\"",
           "DocRef from \"../utils/resolve-node.js\"",
+          "FlowRef from \"../utils/resolve-node.js\"",
           "ResolvedVia from \"../utils/resolve-node.js\""
         ],
         "importEntries": [
@@ -3886,6 +3929,11 @@
             "typeOnly": false
           },
           {
+            "symbol": "findReferencingFlows",
+            "path": "../utils/resolve-node.js",
+            "typeOnly": false
+          },
+          {
             "symbol": "findParent",
             "path": "../utils/resolve-node.js",
             "typeOnly": false
@@ -3902,6 +3950,11 @@
           },
           {
             "symbol": "DocRef",
+            "path": "../utils/resolve-node.js",
+            "typeOnly": true
+          },
+          {
+            "symbol": "FlowRef",
             "path": "../utils/resolve-node.js",
             "typeOnly": true
           },
@@ -4324,13 +4377,14 @@
         "desc": "Node resolution utility — resolves any identifier (ID or path) to a graph node, and provides edge helpers for finding parents, referencing docs, and splitting incoming/outgoing edges",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/resolve-node.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/resolve-node.ts",
-        "morphologySummary": "6 functions, 3 interfaces, 1 type",
+        "morphologySummary": "7 functions, 4 interfaces, 1 type",
         "morphology": [
-          "export function findAllNodesById(graph: KnowledgeGraph, id: string): { node: AnyNode; type: \"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\"; }[] {} // :34-49",
-          "export function resolveNode(graph: KnowledgeGraph, identifier: string): ResolvedNode | null {} // :51-139",
-          "export function getNodeEdges(allEdges: GraphEdge[], nodeId: string): NodeEdges {} // :143-151",
-          "export function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): DocRef[] {} // :153-169",
-          "export function findParent(edges: NodeEdges, graph: KnowledgeGraph): { nodeId: string; type: string; desc: string; morphologySummary?: string | undefined; } | undefined {} // :171-187",
+          "export function findAllNodesById(graph: KnowledgeGraph, id: string): { node: AnyNode; type: \"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\"; }[] {} // :40-55",
+          "export function resolveNode(graph: KnowledgeGraph, identifier: string): ResolvedNode | null {} // :57-145",
+          "export function getNodeEdges(allEdges: GraphEdge[], nodeId: string): NodeEdges {} // :149-157",
+          "export function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): DocRef[] {} // :159-175",
+          "export function findReferencingFlows(edges: NodeEdges, graph: KnowledgeGraph): FlowRef[] {} // :177-192",
+          "export function findParent(edges: NodeEdges, graph: KnowledgeGraph): { nodeId: string; type: string; desc: string; morphologySummary?: string | undefined; } | undefined {} // :194-210",
           "export interface NodeEdges { // :6-9",
           "  incoming: GraphEdge[] // :7",
           "  outgoing: GraphEdge[] // :8",
@@ -4341,15 +4395,20 @@
           "  filePath: string // :14",
           "  priority: string // :15",
           "}",
-          "export type ResolvedVia = \"id\" | \"path\" | \"nearest-parent\" // :20",
-          "export interface ResolvedNode { // :22-28",
-          "  id: string // :23",
-          "  node: AnyNode // :24",
-          "  resolvedVia: ResolvedVia // :25",
-          "  ambiguousTypes: (\"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\")[] | undefined // :27",
+          "export interface FlowRef { // :18-22",
+          "  nodeId: string // :19",
+          "  desc: string // :20",
+          "  priority: string // :21",
+          "}",
+          "export type ResolvedVia = \"id\" | \"path\" | \"nearest-parent\" // :26",
+          "export interface ResolvedNode { // :28-34",
+          "  id: string // :29",
+          "  node: AnyNode // :30",
+          "  resolvedVia: ResolvedVia // :31",
+          "  ambiguousTypes: (\"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\")[] | undefined // :33",
           "}",
           "// — internal —",
-          "function normalizePath(p: string): string {} // :189-196"
+          "function normalizePath(p: string): string {} // :212-219"
         ],
         "importsSummary": "5 imports from 2 paths",
         "imports": [
@@ -4672,7 +4731,7 @@
       "refCategoryMap": {
         "id": "refCategoryMap",
         "type": "term",
-        "desc": "A dispatch table in extractJsxContent mapping JSX tag names (ModuleRef, TermRef, FolderRef, ExportRef, FileRef, ExternalRef) to their registry category string. All XxxRef elements route through the same createReferenceContent helper.",
+        "desc": "A dispatch table in JsxExtractor.visitElement mapping JSX tag names (ModuleRef, TermRef, FolderRef, ExportRef, FileRef, ExternalRef) to their registry category string. All XxxRef elements route through the same buildRefLink helper.",
         "edgeCount": 1
       },
       "cliPipeline": {
@@ -4869,7 +4928,7 @@
         "resolvedPath": "packages/tskb/src/cli/commands/pick.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :557-634"
+          "export function pick(identifier: string, optimized?: boolean, plain?: boolean): Promise<void> {} // :571-648"
         ],
         "edgeCount": 2
       },
@@ -5087,7 +5146,7 @@
         "morphology": [
           "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :87-89"
         ],
-        "edgeCount": 7
+        "edgeCount": 6
       },
       "explorer.sanitizeFolderId": {
         "id": "explorer.sanitizeFolderId",
@@ -5097,7 +5156,7 @@
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function sanitizeFolderId(id: string): string {} // :862-864"
+          "export function sanitizeFolderId(id: string): string {} // :863-865"
         ],
         "edgeCount": 1
       },
@@ -5183,13 +5242,13 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class BaseNodeRenderer { // :71-467",
-          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, onChipClick: ChipClickHandler | undefined, getReferencingDocs: GetRefsFn | undefined, getReferencingFlows: GetRefsFn | undefined) {} // :72-82",
-          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :84-86",
-          "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :88-91",
-          "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :93-96",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :98-247",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :249-466",
+          "export class BaseNodeRenderer { // :72-462",
+          "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, onChipClick: ChipClickHandler | undefined, getReferencingDocs: GetRefsFn | undefined, getReferencingFlows: GetRefsFn | undefined) {} // :73-83",
+          "  getSize(node: PositionedNode): { w: number; h: number; } {} // :85-87",
+          "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :89-92",
+          "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :94-97",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-257",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :259-461",
           "}"
         ],
         "edgeCount": 2
@@ -5214,7 +5273,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/BoundaryRenderer.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function renderBoundaryGroups(layer: Layer, nodes: PositionedNode[], parentOf: Record<string, string>, zoomK: number): void {} // :196-268"
+          "export function renderBoundaryGroups(layer: Layer, nodes: PositionedNode[], parentOf: Record<string, string>, zoomK: number): void {} // :198-282"
         ],
         "edgeCount": 2
       },
@@ -5310,7 +5369,7 @@
         "morphology": [
           "export function exportExplorer(graph: KnowledgeGraph, outputDir: string): Promise<void> {} // :16-44"
         ],
-        "edgeCount": 5
+        "edgeCount": 4
       },
       "explorer.spa.ExplorerApp": {
         "id": "explorer.spa.ExplorerApp",
@@ -5578,11 +5637,11 @@
         "id": "extractDocs",
         "type": "export",
         "desc": "Entry point: iterates source files matched by the glob, calls extractFromTsxFile on each .tskb.tsx file, returns ExtractedDoc[]. Accepts an optional ExtractedRegistry used to pre-compute display attributes in the HTML output.",
-        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\").extractDocs",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation/index.js\").extractDocs",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation/index.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function extractDocs(program: Program, filePaths: Set<string>, registry?: ExtractedRegistry | undefined): ExtractedDoc[] {} // :46-72"
+          "export function extractDocs(program: Program, filePaths: Set<string>, registry?: ExtractedRegistry | undefined): ExtractedDoc[] {} // :47-65"
         ],
         "edgeCount": 4
       },
@@ -5590,19 +5649,19 @@
         "id": "ExtractedDoc",
         "type": "export",
         "desc": "Shape of one extracted doc: filePath, format, explains, priority, HTML content string, reference arrays (modules/terms/folders/exports/files/externals), semantic relations, and extracted flows.",
-        "typeSignature": "import(\"packages/tskb/src/core/extraction/documentation.js\").ExtractedDoc",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "typeSignature": "import(\"packages/tskb/src/core/extraction/documentation/index.js\").ExtractedDoc",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation/index.ts",
         "morphologySummary": "1 interface",
         "morphology": [
-          "export interface ExtractedDoc { // :9-35",
-          "  filePath: string // :11",
-          "  format: \"tsx\" // :12",
-          "  explains: string // :14",
-          "  priority: DocPriority // :16",
-          "  content: string // :17",
-          "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; } // :18-25",
-          "  relations: { from: string; to: string; label?: string | undefined; }[] | undefined // :27",
-          "  flows: { name: string; desc: string; priority: DocPriority; steps: { nodeId: string; label?: string | undefined; }[]; }[] | undefined // :29-34",
+          "export interface ExtractedDoc { // :13-39",
+          "  filePath: string // :15",
+          "  format: \"tsx\" // :16",
+          "  explains: string // :18",
+          "  priority: DocPriority // :20",
+          "  content: string // :21",
+          "  references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; } // :22-29",
+          "  relations: { from: string; to: string; label?: string | undefined; }[] | undefined // :31",
+          "  flows: { name: string; desc: string; priority: DocPriority; steps: { nodeId: string; label?: string | undefined; }[]; }[] | undefined // :33-38",
           "}"
         ],
         "edgeCount": 3
@@ -5610,60 +5669,72 @@
       "extractFromTsxFile": {
         "id": "extractFromTsxFile",
         "type": "export",
-        "desc": "Processes a single .tskb.tsx source file: finds the default export, runs buildConstantReferencesMap and extractJsxContent, returns an ExtractedDoc or null if no default export is found.",
-        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\").extractFromTsxFile",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "desc": "Processes a single .tskb.tsx source file: builds the constant ref map, finds the default export, creates a JsxExtractor, returns an ExtractedDoc or null.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation/index.js\").extractFromTsxFile",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation/index.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function extractFromTsxFile(sourceFile: SourceFile, registry?: ExtractedRegistry | undefined): ExtractedDoc | null {} // :77-145"
+          "export function extractFromTsxFile(sourceFile: SourceFile, registry?: ExtractedRegistry | undefined): ExtractedDoc | null {} // :72-103"
         ],
         "edgeCount": 3
       },
-      "buildConstantReferencesMap": {
-        "id": "buildConstantReferencesMap",
+      "buildRefMap": {
+        "id": "buildRefMap",
         "type": "export",
-        "desc": "First pass over the source file: walks all variable declarations and maps const names to {category, name} by parsing 'ref as tskb.X[\"y\"]' type assertions. Result is passed into extractJsxContent so inline {MyConst} expressions resolve without re-parsing.",
-        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\").buildConstantReferencesMap",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "desc": "First pass over the source file: walks all variable declarations and maps const names to {category, name} by parsing 'ref as tskb.X[\"y\"]' type assertions. Result is passed into JsxExtractor so inline {MyConst} expressions resolve without re-parsing.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation/index.js\").buildRefMap",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation/index.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function buildConstantReferencesMap(sourceFile: SourceFile): Map<string, { category: string; name: string; }> {} // :163-189"
+          "export function buildRefMap(sourceFile: SourceFile): ConstantRefMap {}"
         ],
         "edgeCount": 3
       },
-      "extractJsxContent": {
-        "id": "extractJsxContent",
+      "JsxExtractor": {
+        "id": "JsxExtractor",
         "type": "export",
-        "desc": "Main JSX depth-first traversal: structural tags (H1, P, List) emit HTML, XxxRef tags and inline identifier/type-assertion expressions route through the refCategoryMap dispatch table to createReferenceContent, Flow elements validate and collect steps, Relation elements collect edges.",
-        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\").extractJsxContent",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
-        "morphologySummary": "1 function",
+        "desc": "Stateful JSX tree walker. Created once per file by extractFromTsxFile. Accumulates HTML, references, relations, and flows via visit() dispatch. Component handlers (handleDoc, handleFlow, handleRelation, handleRefTag, handleWrapped, etc.) each own one JSX element type. Call extract() once with the default-export node.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation/index.js\").JsxExtractor",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation/index.ts",
+        "morphologySummary": "1 class",
         "morphology": [
-          "export function extractJsxContent(node: Node, references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; }, constantReferences: Map<string, { category: string; name: string; }>, docMeta: { ...; }, relations?: { ...; }[] | undefined, flows?: { ...; }[] | undefined, registry?: ExtractedRegistry | undefined): string {} // :241-567"
+          "export class JsxExtractor {",
+          "  private tring: string",
+          "  private readonly - ess: DocRefs",
+          "  private readonly : string: DocMeta",
+          "  private readonly files: str: { from: string; to: string; label?: string | undefined; }[]",
+          "  private readonly {from,: { name: string; desc: string; priority: DocPriority; steps: { nodeId: string; label?: string | undefined; }[]; }[]",
+          "  constructor(ng;\n    desc:: ConstantRefMap, steps: : ExtractedRegistry | undefined) {}",
+          "  tring }[];\n(node: Node): { html: string; refs: DocRefs; docMeta: DocMeta; relations: { from: string; to: string; label?: string | undefined; }[]; flows: { name: string; desc: string; priority: DocPriority; steps: { ...; }[]; }[]; } {}",
+          "  private {\n    (node: Node): void {}",
+          "  private f no default e(node: JsxElement): void {}",
+          "  private ractedRegistr(node: JsxSelfClosingElement | JsxElement): void {}",
+          "  private ls.js\";\nexport {(expr: Expression): void {}",
+          "}"
         ],
         "edgeCount": 3
       },
-      "createReferenceContent": {
-        "id": "createReferenceContent",
+      "buildRefLink": {
+        "id": "buildRefLink",
         "type": "export",
-        "desc": "Produces the <a class=tskb-ref> anchor for a single registry reference. Embeds data-node-id, data-node-type, and data-node-display attributes pre-computed from the registry so the explorer doc panel can show tooltips before the chunk is loaded. Pushes the id into the appropriate references sub-array.",
-        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\").createReferenceContent",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "desc": "Produces the <a class=tskb-ref> anchor for a single registry reference. Embeds data-node-id, data-node-type, and data-node-display attributes pre-computed from the registry so the explorer doc panel can show tooltips before the chunk is loaded. Pushes the id into the appropriate refs sub-array.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation/index.js\").buildRefLink",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation/index.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function createReferenceContent(category: string, name: string, references: { modules: string[]; terms: string[]; folders: string[]; exports: string[]; files: string[]; externals: string[]; }, registry?: ExtractedRegistry | undefined): string | null {} // :594-652"
+          "export function buildRefLink(category: string, name: string, refs: DocRefs, registry?: ExtractedRegistry | undefined): string | null {}"
         ],
         "edgeCount": 3
       },
       "resolveNodeMeta": {
         "id": "resolveNodeMeta",
         "type": "export",
-        "desc": "Looks up a nodeId across all registry maps (modules, folders, exports, terms, files, externals) and returns {nodeType, display}. Used by extractJsxContent for flow step links so each step anchor carries the same pre-computed attributes as regular refs.",
-        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation.js\").resolveNodeMeta",
-        "resolvedPath": "packages/tskb/src/core/extraction/documentation.ts",
+        "desc": "Looks up a nodeId across all registry maps (modules, folders, exports, terms, files, externals) and returns {nodeType, display}. Used by JsxExtractor for flow step links so each step anchor carries the same pre-computed attributes as regular refs.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/extraction/documentation/index.js\").resolveNodeMeta",
+        "resolvedPath": "packages/tskb/src/core/extraction/documentation/index.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function resolveNodeMeta(nodeId: string, registry: ExtractedRegistry): { nodeType: string; display: string; } {} // :791-814"
+          "export function resolveNodeMeta(nodeId: string, registry: ExtractedRegistry): { nodeType: string; display: string; } {}"
         ],
         "edgeCount": 3
       },
@@ -5690,7 +5761,7 @@
         "resolvedPath": "packages/tskb/src/cli/utils/resolve-node.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function resolveNode(graph: KnowledgeGraph, identifier: string): ResolvedNode | null {} // :51-139"
+          "export function resolveNode(graph: KnowledgeGraph, identifier: string): ResolvedNode | null {} // :57-145"
         ],
         "edgeCount": 2
       },
@@ -5702,7 +5773,7 @@
         "resolvedPath": "packages/tskb/src/cli/utils/resolve-node.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function getNodeEdges(allEdges: GraphEdge[], nodeId: string): NodeEdges {} // :143-151"
+          "export function getNodeEdges(allEdges: GraphEdge[], nodeId: string): NodeEdges {} // :149-157"
         ],
         "edgeCount": 1
       },
@@ -5714,7 +5785,7 @@
         "resolvedPath": "packages/tskb/src/cli/utils/resolve-node.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): DocRef[] {} // :153-169"
+          "export function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): DocRef[] {} // :159-175"
         ],
         "edgeCount": 1
       },
@@ -5726,7 +5797,7 @@
         "resolvedPath": "packages/tskb/src/cli/utils/resolve-node.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function findParent(edges: NodeEdges, graph: KnowledgeGraph): { nodeId: string; type: string; desc: string; morphologySummary?: string | undefined; } | undefined {} // :171-187"
+          "export function findParent(edges: NodeEdges, graph: KnowledgeGraph): { nodeId: string; type: string; desc: string; morphologySummary?: string | undefined; } | undefined {} // :194-210"
         ],
         "edgeCount": 1
       },
@@ -5738,7 +5809,7 @@
         "resolvedPath": "packages/tskb/src/cli/utils/resolve-node.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function findAllNodesById(graph: KnowledgeGraph, id: string): { node: AnyNode; type: \"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\"; }[] {} // :34-49"
+          "export function findAllNodesById(graph: KnowledgeGraph, id: string): { node: AnyNode; type: \"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\"; }[] {} // :40-55"
         ],
         "edgeCount": 1
       },
@@ -6176,7 +6247,7 @@
         "type": "file",
         "desc": "Vitest global setup — builds the fixture graph once before all tests, cleans .tskb/ on teardown",
         "path": "tests/e2e/global-setup.ts",
-        "edgeCount": 4
+        "edgeCount": 3
       },
       "tests.helpers": {
         "id": "tests.helpers",
@@ -6318,7 +6389,7 @@
             "label": "Teardown cleans .tskb/ output directory"
           }
         ],
-        "edgeCount": 4
+        "edgeCount": 3
       },
       "init-scaffolding-test": {
         "id": "init-scaffolding-test",
@@ -6449,7 +6520,7 @@
             "label": "patchFolderChildCounts() finalizes _hasChildren + _childCount on all folder nodes after ghost injection"
           }
         ],
-        "edgeCount": 7
+        "edgeCount": 3
       },
       "explorer-expand-flow": {
         "id": "explorer-expand-flow",
@@ -6498,7 +6569,7 @@
             "label": "render() D3 enter/update/exit — new node cards enter with fade-in, collapsed nodes exit with fade-out"
           }
         ],
-        "edgeCount": 8
+        "edgeCount": 7
       },
       "explorer-serve-flow": {
         "id": "explorer-serve-flow",
@@ -6566,7 +6637,7 @@
             "label": "writes all chunks as JSON: outputDir/chunks/meta.json and outputDir/chunks/folder-{sanitizedId}.json — one file per folder"
           }
         ],
-        "edgeCount": 4
+        "edgeCount": 3
       },
       "explorer-app-boot": {
         "id": "explorer-app-boot",
@@ -6669,7 +6740,7 @@
             "label": "D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes"
           }
         ],
-        "edgeCount": 9
+        "edgeCount": 7
       },
       "explorer-app-expand": {
         "id": "explorer-app-expand",
@@ -6758,27 +6829,27 @@
           {
             "nodeId": "extractFromTsxFile",
             "order": 1,
-            "label": "Finds default export, initialises references object and flow/relation collectors"
+            "label": "Builds constant ref map, finds default export, instantiates JsxExtractor"
           },
           {
-            "nodeId": "buildConstantReferencesMap",
+            "nodeId": "buildRefMap",
             "order": 2,
             "label": "Walks all variable declarations; maps const names → {category, name} via type-assertion parsing"
           },
           {
             "nodeId": "extraction.registry",
             "order": 3,
-            "label": "Passed in as optional param; queried by createReferenceContent to pre-compute data-node-display values"
+            "label": "Passed in as optional param; queried by buildRefLink to pre-compute data-node-display values"
           },
           {
-            "nodeId": "extractJsxContent",
+            "nodeId": "JsxExtractor",
             "order": 4,
-            "label": "Depth-first JSX traversal: structural tags → HTML, XxxRef / inline refs → refCategoryMap → createReferenceContent; Flow elements validated and collected"
+            "label": "Depth-first JSX traversal via visitElement dispatch: structural tags → HTML, XxxRef / inline refs → buildRefLink; Flow and Relation elements validated and collected"
           },
           {
-            "nodeId": "createReferenceContent",
+            "nodeId": "buildRefLink",
             "order": 5,
-            "label": "Emits <a class=tskb-ref data-node-id data-node-type data-node-display>; pushes id into references sub-array"
+            "label": "Emits <a class=tskb-ref data-node-id data-node-type data-node-display>; pushes id into refs sub-array"
           },
           {
             "nodeId": "resolveNodeMeta",
@@ -6874,7 +6945,7 @@
         "explains": "TypeScript Program creation for static analysis without compilation",
         "priority": "essential",
         "filePath": "docs/src/tskb/typescript/typescript.tskb.tsx",
-        "content": "<h1>TypeScript Program </h1><p>Located in <a class=\"tskb-ref\" data-node-id=\"tskb.typescript\" data-node-type=\"folder\" data-node-display=\"packages/tskb/src/typescript/\">tskb.typescript</a>. <a class=\"tskb-ref\" data-node-id=\"typescript.program\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/typescript/program.ts\">typescript.program</a>exports <a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a>which creates a   <a class=\"tskb-ref\" data-node-id=\"tsProgram\" data-node-type=\"term\" data-node-display=\"tsProgram\">tsProgram</a>for analyzing code without compilation (noEmit=true). </p><ul><li>Reads and parses tsconfig.json for compiler options </li><li>Validates TypeScript errors in specified files </li><li>Returns Program with AST, type checker, and symbol resolution </li></ul><span class=\"tskb-relation\" data-from=\"tskb.typescript\" data-to=\"typescript\" data-label=\"wraps compiler API\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">TypeScript Program creation through extraction to graph</p><ol><li><a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a> — creates Program from tsconfig + source files</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a> — walks AST for Folders, Modules, Terms, Exports</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.documentation\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/documentation.ts\">extraction.documentation</a> — parses JSX trees for content and references</li><li><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a> — assembles nodes and edges into knowledge graph</li></ol></div>",
+        "content": "<h1>TypeScript Program </h1><p>Located in <a class=\"tskb-ref\" data-node-id=\"tskb.typescript\" data-node-type=\"folder\" data-node-display=\"packages/tskb/src/typescript/\">tskb.typescript</a>. <a class=\"tskb-ref\" data-node-id=\"typescript.program\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/typescript/program.ts\">typescript.program</a>exports <a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a>which creates a   <a class=\"tskb-ref\" data-node-id=\"tsProgram\" data-node-type=\"term\" data-node-display=\"tsProgram\">tsProgram</a>for analyzing code without compilation (noEmit=true). </p><ul><li>Reads and parses tsconfig.json for compiler options </li><li>Validates TypeScript errors in specified files </li><li>Returns Program with AST, type checker, and symbol resolution </li></ul><span class=\"tskb-relation\" data-from=\"tskb.typescript\" data-to=\"typescript\" data-label=\"wraps compiler API\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">TypeScript Program creation through extraction to graph</p><ol><li><a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a> — creates Program from tsconfig + source files</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a> — walks AST for Folders, Modules, Terms, Exports</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.documentation\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/documentation/index.ts\">extraction.documentation</a> — parses JSX trees for content and references</li><li><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a> — assembles nodes and edges into knowledge graph</li></ol></div>",
         "format": "tsx",
         "edgeCount": 4
       },
@@ -6984,7 +7055,7 @@
         "explains": "Documentation extraction: JSX AST traversal, reference collection, and HTML content generation",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/core/docs-extraction.tskb.tsx",
-        "content": "<h1>Documentation Extraction </h1><p><a class=\"tskb-ref\" data-node-id=\"extraction.documentation\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/documentation.ts\">extraction.documentation</a>is the second extraction pass in the build pipeline. <a class=\"tskb-ref\" data-node-id=\"extractDocs\" data-node-type=\"export\" data-node-display=\"extractDocs\">extractDocs</a>  receives the TypeScript Program and the <a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a>output, and produces an   <a class=\"tskb-ref\" data-node-id=\"ExtractedDoc\" data-node-type=\"export\" data-node-display=\"ExtractedDoc\">ExtractedDoc</a>for each .tskb.tsx file. Each result carries the HTML\n      content string, the reference arrays used to build graph edges, and any embedded   <a class=\"tskb-ref\" data-node-id=\"jsx.Flow\" data-node-type=\"export\" data-node-display=\"jsx.Flow\">jsx.Flow</a>and <Relation> declarations. </p><h2>Two-pass strategy per file </h2><p>Each file is processed by <a class=\"tskb-ref\" data-node-id=\"extractFromTsxFile\" data-node-type=\"export\" data-node-display=\"extractFromTsxFile\">extractFromTsxFile</a>in two steps. First,   <a class=\"tskb-ref\" data-node-id=\"buildConstantReferencesMap\" data-node-type=\"export\" data-node-display=\"buildConstantReferencesMap\">buildConstantReferencesMap</a>walks all variable declarations and builds the   <a class=\"tskb-ref\" data-node-id=\"constantReferencesMap\" data-node-type=\"term\" data-node-display=\"constantReferencesMap\">constantReferencesMap</a>— a lookup from local const names like AuthModule to\n      their registry key. This lets the JSX traversal resolve inline {AuthModule}   expressions without re-parsing the <a class=\"tskb-ref\" data-node-id=\"typeAssertion\" data-node-type=\"term\" data-node-display=\"typeAssertion\">typeAssertion</a>. Second, <a class=\"tskb-ref\" data-node-id=\"extractJsxContent\" data-node-type=\"export\" data-node-display=\"extractJsxContent\">extractJsxContent</a>  performs <a class=\"tskb-ref\" data-node-id=\"depthFirstTraversal\" data-node-type=\"term\" data-node-display=\"depthFirstTraversal\">depthFirstTraversal</a>over the default export JSX tree, emitting HTML and\n      collecting references. </p><h2>Reference resolution </h2><p>References appear in three forms: explicit tag elements ( <ModuleRef> ,   <TermRef> , etc.), inline identifier expressions ( {AuthModule} ), and inline type assertions ( {ref as tskb.Modules['auth']} ). All three routes converge on   <a class=\"tskb-ref\" data-node-id=\"createReferenceContent\" data-node-type=\"export\" data-node-display=\"createReferenceContent\">createReferenceContent</a>via the <a class=\"tskb-ref\" data-node-id=\"refCategoryMap\" data-node-type=\"term\" data-node-display=\"refCategoryMap\">refCategoryMap</a>dispatch table inside   <a class=\"tskb-ref\" data-node-id=\"extractJsxContent\" data-node-type=\"export\" data-node-display=\"extractJsxContent\">extractJsxContent</a>. </p><p><a class=\"tskb-ref\" data-node-id=\"createReferenceContent\" data-node-type=\"export\" data-node-display=\"createReferenceContent\">createReferenceContent</a>embeds data-node-type and   data-node-display attributes pre-computed from <a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a>so the explorer\n      doc panel can render tooltips for unloaded nodes before their chunk is fetched. </p><h2>Flow and Relation extraction </h2><p><a class=\"tskb-ref\" data-node-id=\"jsx.Flow\" data-node-type=\"export\" data-node-display=\"jsx.Flow\">jsx.Flow</a>elements are validated inside <a class=\"tskb-ref\" data-node-id=\"extractJsxContent\" data-node-type=\"export\" data-node-display=\"extractJsxContent\">extractJsxContent</a>— only <a class=\"tskb-ref\" data-node-id=\"jsx.Step\" data-node-type=\"export\" data-node-display=\"jsx.Step\">jsx.Step</a>  children are allowed, text nodes throw. Each <a class=\"tskb-ref\" data-node-id=\"jsx.Step\" data-node-type=\"export\" data-node-display=\"jsx.Step\">jsx.Step</a>node attribute is resolved\n      through <a class=\"tskb-ref\" data-node-id=\"constantReferencesMap\" data-node-type=\"term\" data-node-display=\"constantReferencesMap\">constantReferencesMap</a>, then <a class=\"tskb-ref\" data-node-id=\"resolveNodeMeta\" data-node-type=\"export\" data-node-display=\"resolveNodeMeta\">resolveNodeMeta</a>looks up the node type and\n      display string from the registry so every step link carries the same pre-computed attributes\n      as regular refs. Validated flows are pushed into the flows[] array of   <a class=\"tskb-ref\" data-node-id=\"ExtractedDoc\" data-node-type=\"export\" data-node-display=\"ExtractedDoc\">ExtractedDoc</a>and also emitted as an HTML <div class=\"tskb-flow\">   block. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">Single .tskb.tsx file through extraction: constant map → JSX traversal → HTML + references</p><ol><li><a class=\"tskb-ref\" data-node-id=\"extractDocs\" data-node-type=\"export\" data-node-display=\"extractDocs\">extractDocs</a> — Iterates Program source files; dispatches matched .tsx files to extractFromTsxFile</li><li><a class=\"tskb-ref\" data-node-id=\"extractFromTsxFile\" data-node-type=\"export\" data-node-display=\"extractFromTsxFile\">extractFromTsxFile</a> — Finds default export, initialises references object and flow/relation collectors</li><li><a class=\"tskb-ref\" data-node-id=\"buildConstantReferencesMap\" data-node-type=\"export\" data-node-display=\"buildConstantReferencesMap\">buildConstantReferencesMap</a> — Walks all variable declarations; maps const names → {category, name} via type-assertion parsing</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a> — Passed in as optional param; queried by createReferenceContent to pre-compute data-node-display values</li><li><a class=\"tskb-ref\" data-node-id=\"extractJsxContent\" data-node-type=\"export\" data-node-display=\"extractJsxContent\">extractJsxContent</a> — Depth-first JSX traversal: structural tags → HTML, XxxRef / inline refs → refCategoryMap → createReferenceContent; Flow elements validated and collected</li><li><a class=\"tskb-ref\" data-node-id=\"createReferenceContent\" data-node-type=\"export\" data-node-display=\"createReferenceContent\">createReferenceContent</a> — Emits &lt;a class=tskb-ref data-node-id data-node-type data-node-display&gt;; pushes id into references sub-array</li><li><a class=\"tskb-ref\" data-node-id=\"resolveNodeMeta\" data-node-type=\"export\" data-node-display=\"resolveNodeMeta\">resolveNodeMeta</a> — Called per Flow step: probes all registry maps to return {nodeType, display} for the step anchor</li><li><a class=\"tskb-ref\" data-node-id=\"ExtractedDoc\" data-node-type=\"export\" data-node-display=\"ExtractedDoc\">ExtractedDoc</a> — Returned: filePath, HTML content, references arrays, flows[], relations[]</li><li><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a> — Consumes ExtractedDoc: creates DocNode + FlowNode entries and references/flow-step edges</li></ol></div>",
+        "content": "<h1>Documentation Extraction </h1><p><a class=\"tskb-ref\" data-node-id=\"extraction.documentation\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/documentation/index.ts\">extraction.documentation</a>is the second extraction pass in the build pipeline. <a class=\"tskb-ref\" data-node-id=\"extractDocs\" data-node-type=\"export\" data-node-display=\"extractDocs\">extractDocs</a>  receives the TypeScript Program and the <a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a>output, and produces an   <a class=\"tskb-ref\" data-node-id=\"ExtractedDoc\" data-node-type=\"export\" data-node-display=\"ExtractedDoc\">ExtractedDoc</a>for each .tskb.tsx file. Each result carries the HTML\n      content string, the reference arrays used to build graph edges, and any embedded   <a class=\"tskb-ref\" data-node-id=\"jsx.Flow\" data-node-type=\"export\" data-node-display=\"jsx.Flow\">jsx.Flow</a>and <Relation> declarations. </p><h2>Two-pass strategy per file </h2><p>Each file is processed by <a class=\"tskb-ref\" data-node-id=\"extractFromTsxFile\" data-node-type=\"export\" data-node-display=\"extractFromTsxFile\">extractFromTsxFile</a>in two steps. First, <a class=\"tskb-ref\" data-node-id=\"buildRefMap\" data-node-type=\"export\" data-node-display=\"buildRefMap\">buildRefMap</a>  walks all variable declarations and builds the <a class=\"tskb-ref\" data-node-id=\"constantReferencesMap\" data-node-type=\"term\" data-node-display=\"constantReferencesMap\">constantReferencesMap</a>— a lookup from\n      local const names like AuthModule to their registry key. This lets the traversal\n      resolve inline {AuthModule} expressions without re-parsing the   <a class=\"tskb-ref\" data-node-id=\"typeAssertion\" data-node-type=\"term\" data-node-display=\"typeAssertion\">typeAssertion</a>. Second, <a class=\"tskb-ref\" data-node-id=\"JsxExtractor\" data-node-type=\"export\" data-node-display=\"JsxExtractor\">JsxExtractor</a>is instantiated with the map and performs   <a class=\"tskb-ref\" data-node-id=\"depthFirstTraversal\" data-node-type=\"term\" data-node-display=\"depthFirstTraversal\">depthFirstTraversal</a>over the default export JSX tree, accumulating HTML and references. </p><h2>Reference resolution </h2><p>References appear in three forms: explicit tag elements ( <ModuleRef> ,   <TermRef> , etc.), inline identifier expressions ( {AuthModule} ), and inline type assertions ( {ref as tskb.Modules['auth']} ). All three routes converge on   <a class=\"tskb-ref\" data-node-id=\"buildRefLink\" data-node-type=\"export\" data-node-display=\"buildRefLink\">buildRefLink</a>via the <a class=\"tskb-ref\" data-node-id=\"refCategoryMap\" data-node-type=\"term\" data-node-display=\"refCategoryMap\">refCategoryMap</a>dispatch table inside <a class=\"tskb-ref\" data-node-id=\"JsxExtractor\" data-node-type=\"export\" data-node-display=\"JsxExtractor\">JsxExtractor</a>. </p><p><a class=\"tskb-ref\" data-node-id=\"buildRefLink\" data-node-type=\"export\" data-node-display=\"buildRefLink\">buildRefLink</a>embeds data-node-type and data-node-display   attributes pre-computed from <a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a>so the explorer doc panel can render tooltips\n      for unloaded nodes before their chunk is fetched. </p><h2>Flow and Relation extraction </h2><p><a class=\"tskb-ref\" data-node-id=\"jsx.Flow\" data-node-type=\"export\" data-node-display=\"jsx.Flow\">jsx.Flow</a>elements are validated inside <a class=\"tskb-ref\" data-node-id=\"JsxExtractor\" data-node-type=\"export\" data-node-display=\"JsxExtractor\">JsxExtractor</a>— only <a class=\"tskb-ref\" data-node-id=\"jsx.Step\" data-node-type=\"export\" data-node-display=\"jsx.Step\">jsx.Step</a>  children are allowed, text nodes throw. Each <a class=\"tskb-ref\" data-node-id=\"jsx.Step\" data-node-type=\"export\" data-node-display=\"jsx.Step\">jsx.Step</a>node attribute is resolved\n      through <a class=\"tskb-ref\" data-node-id=\"constantReferencesMap\" data-node-type=\"term\" data-node-display=\"constantReferencesMap\">constantReferencesMap</a>, then <a class=\"tskb-ref\" data-node-id=\"resolveNodeMeta\" data-node-type=\"export\" data-node-display=\"resolveNodeMeta\">resolveNodeMeta</a>looks up the node type and\n      display string from the registry so every step link carries the same pre-computed attributes\n      as regular refs. Validated flows are pushed into the flows[] array of   <a class=\"tskb-ref\" data-node-id=\"ExtractedDoc\" data-node-type=\"export\" data-node-display=\"ExtractedDoc\">ExtractedDoc</a>and also emitted as an HTML <div class=\"tskb-flow\">   block. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">Single .tskb.tsx file through extraction: constant map → JSX traversal → HTML + references</p><ol><li><a class=\"tskb-ref\" data-node-id=\"extractDocs\" data-node-type=\"export\" data-node-display=\"extractDocs\">extractDocs</a> — Iterates Program source files; dispatches matched .tsx files to extractFromTsxFile</li><li><a class=\"tskb-ref\" data-node-id=\"extractFromTsxFile\" data-node-type=\"export\" data-node-display=\"extractFromTsxFile\">extractFromTsxFile</a> — Builds constant ref map, finds default export, instantiates JsxExtractor</li><li><a class=\"tskb-ref\" data-node-id=\"buildRefMap\" data-node-type=\"export\" data-node-display=\"buildRefMap\">buildRefMap</a> — Walks all variable declarations; maps const names → {category, name} via type-assertion parsing</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a> — Passed in as optional param; queried by buildRefLink to pre-compute data-node-display values</li><li><a class=\"tskb-ref\" data-node-id=\"JsxExtractor\" data-node-type=\"export\" data-node-display=\"JsxExtractor\">JsxExtractor</a> — Depth-first JSX traversal via visitElement dispatch: structural tags → HTML, XxxRef / inline refs → buildRefLink; Flow and Relation elements validated and collected</li><li><a class=\"tskb-ref\" data-node-id=\"buildRefLink\" data-node-type=\"export\" data-node-display=\"buildRefLink\">buildRefLink</a> — Emits &lt;a class=tskb-ref data-node-id data-node-type data-node-display&gt;; pushes id into refs sub-array</li><li><a class=\"tskb-ref\" data-node-id=\"resolveNodeMeta\" data-node-type=\"export\" data-node-display=\"resolveNodeMeta\">resolveNodeMeta</a> — Called per Flow step: probes all registry maps to return {nodeType, display} for the step anchor</li><li><a class=\"tskb-ref\" data-node-id=\"ExtractedDoc\" data-node-type=\"export\" data-node-display=\"ExtractedDoc\">ExtractedDoc</a> — Returned: filePath, HTML content, references arrays, flows[], relations[]</li><li><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a> — Consumes ExtractedDoc: creates DocNode + FlowNode entries and references/flow-step edges</li></ol></div>",
         "format": "tsx",
         "edgeCount": 15
       },
@@ -7129,12 +7200,6 @@
       "label": "Provides CLI runners and graph loader to all test files"
     },
     {
-      "from": "e2e-test-execution",
-      "to": "tests.global-setup",
-      "type": "flow-step",
-      "label": "Teardown cleans .tskb/ output directory"
-    },
-    {
       "from": "init-scaffolding-test",
       "to": "tests.helpers",
       "type": "flow-step",
@@ -7225,30 +7290,6 @@
       "label": "Assembles MetaChunk: root node, topFolders, docs, flows, terms, externals, cross-lane reference edges"
     },
     {
-      "from": "graph-to-chunks-transform",
-      "to": "explorer.transformGraph",
-      "type": "flow-step",
-      "label": "buildAllFolderChunksRecursively() depth-first: modules, exports, subfolders, internal + external import edges per folder"
-    },
-    {
-      "from": "graph-to-chunks-transform",
-      "to": "explorer.transform",
-      "type": "flow-step",
-      "label": "buildGhostIntermediaryChains() synthesizes FolderChunks for every intermediate filesystem directory between a declared folder path and its owned modules/subfolders"
-    },
-    {
-      "from": "graph-to-chunks-transform",
-      "to": "explorer.transform",
-      "type": "flow-step",
-      "label": "injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories recorded in folder.children scanner data"
-    },
-    {
-      "from": "graph-to-chunks-transform",
-      "to": "explorer.transform",
-      "type": "flow-step",
-      "label": "patchFolderChildCounts() finalizes _hasChildren + _childCount on all folder nodes after ghost injection"
-    },
-    {
       "from": "explorer-expand-flow",
       "to": "explorer.spa.node-base",
       "type": "flow-step",
@@ -7289,12 +7330,6 @@
       "to": "explorer.spa.renderStructureEdges",
       "type": "flow-step",
       "label": "render() calls renderStructureEdges() — redraws cubic-bezier SVG paths; ghost links rendered dashed"
-    },
-    {
-      "from": "explorer-expand-flow",
-      "to": "explorer.spa.node-base",
-      "type": "flow-step",
-      "label": "render() D3 enter/update/exit — new node cards enter with fade-in, collapsed nodes exit with fade-out"
     },
     {
       "from": "explorer-serve-flow",
@@ -7349,12 +7384,6 @@
       "to": "explorer.exportExplorer",
       "type": "flow-step",
       "label": "copyDir: recursively copies dist/explorer/ (pre-built SPA inside the tskb package) into outputDir/ — produces outputDir/index.html and outputDir/assets/"
-    },
-    {
-      "from": "explorer-export-flow",
-      "to": "explorer.exportExplorer",
-      "type": "flow-step",
-      "label": "writes all chunks as JSON: outputDir/chunks/meta.json and outputDir/chunks/folder-{sanitizedId}.json — one file per folder"
     },
     {
       "from": "explorer-app-boot",
@@ -7447,18 +7476,6 @@
       "label": "D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble"
     },
     {
-      "from": "explorer-app-render",
-      "to": "explorer.spa.node-base",
-      "type": "flow-step",
-      "label": "D3 update: renderer.update() repositions and reskins all merged nodes"
-    },
-    {
-      "from": "explorer-app-render",
-      "to": "explorer.spa.node-base",
-      "type": "flow-step",
-      "label": "D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes"
-    },
-    {
       "from": "explorer-app-expand",
       "to": "explorer.spa.node-base",
       "type": "flow-step",
@@ -7534,11 +7551,11 @@
       "from": "docs-extraction-pipeline",
       "to": "extractFromTsxFile",
       "type": "flow-step",
-      "label": "Finds default export, initialises references object and flow/relation collectors"
+      "label": "Builds constant ref map, finds default export, instantiates JsxExtractor"
     },
     {
       "from": "docs-extraction-pipeline",
-      "to": "buildConstantReferencesMap",
+      "to": "buildRefMap",
       "type": "flow-step",
       "label": "Walks all variable declarations; maps const names → {category, name} via type-assertion parsing"
     },
@@ -7546,19 +7563,19 @@
       "from": "docs-extraction-pipeline",
       "to": "extraction.registry",
       "type": "flow-step",
-      "label": "Passed in as optional param; queried by createReferenceContent to pre-compute data-node-display values"
+      "label": "Passed in as optional param; queried by buildRefLink to pre-compute data-node-display values"
     },
     {
       "from": "docs-extraction-pipeline",
-      "to": "extractJsxContent",
+      "to": "JsxExtractor",
       "type": "flow-step",
-      "label": "Depth-first JSX traversal: structural tags → HTML, XxxRef / inline refs → refCategoryMap → createReferenceContent; Flow elements validated and collected"
+      "label": "Depth-first JSX traversal via visitElement dispatch: structural tags → HTML, XxxRef / inline refs → buildRefLink; Flow and Relation elements validated and collected"
     },
     {
       "from": "docs-extraction-pipeline",
-      "to": "createReferenceContent",
+      "to": "buildRefLink",
       "type": "flow-step",
-      "label": "Emits <a class=tskb-ref data-node-id data-node-type data-node-display>; pushes id into references sub-array"
+      "label": "Emits <a class=tskb-ref data-node-id data-node-type data-node-display>; pushes id into refs sub-array"
     },
     {
       "from": "docs-extraction-pipeline",
@@ -8453,17 +8470,17 @@
     },
     {
       "from": "docs/src/tskb/core/docs-extraction.tskb.tsx",
-      "to": "buildConstantReferencesMap",
+      "to": "buildRefMap",
       "type": "references"
     },
     {
       "from": "docs/src/tskb/core/docs-extraction.tskb.tsx",
-      "to": "extractJsxContent",
+      "to": "JsxExtractor",
       "type": "references"
     },
     {
       "from": "docs/src/tskb/core/docs-extraction.tskb.tsx",
-      "to": "createReferenceContent",
+      "to": "buildRefLink",
       "type": "references"
     },
     {
@@ -9792,17 +9809,17 @@
       "type": "belongs-to"
     },
     {
-      "from": "buildConstantReferencesMap",
+      "from": "buildRefMap",
       "to": "extraction.documentation",
       "type": "belongs-to"
     },
     {
-      "from": "extractJsxContent",
+      "from": "JsxExtractor",
       "to": "extraction.documentation",
       "type": "belongs-to"
     },
     {
-      "from": "createReferenceContent",
+      "from": "buildRefLink",
       "to": "extraction.documentation",
       "type": "belongs-to"
     },
@@ -10223,12 +10240,12 @@
     },
     {
       "from": "extraction.documentation",
-      "to": "runtime.jsx",
+      "to": "extraction.registry",
       "type": "imports-type"
     },
     {
       "from": "extraction.documentation",
-      "to": "extraction.registry",
+      "to": "runtime.jsx",
       "type": "imports-type"
     },
     {
@@ -10368,7 +10385,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-04-26T13:51:01.692Z",
+    "generatedAt": "2026-04-27T13:00:47.771Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
@@ -10380,7 +10397,7 @@
       "externalCount": 6,
       "flowCount": 15,
       "docCount": 26,
-      "edgeCount": 630
+      "edgeCount": 621
     }
   }
 }

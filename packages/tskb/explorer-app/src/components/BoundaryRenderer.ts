@@ -176,8 +176,10 @@ function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>):
 
     const topY = Math.min(...members.map((n) => n.y));
     const leftX = Math.min(...members.map((n) => n.x));
+    const rightX = Math.max(...members.map((n) => n.x + (NODE_SIZES[n.type]?.w ?? 160)));
+    const centerX = (leftX + rightX) / 2;
 
-    groups.push({ name, nodes: members, path, labelX: leftX - PAD + 8, labelY: topY - PAD });
+    groups.push({ name, nodes: members, path, labelX: centerX, labelY: topY - PAD + 4 });
   }
 
   return groups;
@@ -214,6 +216,7 @@ export function renderBoundaryGroups(
     .style("pointer-events", "none");
 
   enter.append("path").attr("class", "boundary-hull");
+  enter.append("line").attr("class", "boundary-label-tick");
   const labelG = enter.append("g").attr("class", "boundary-label");
   labelG.append("rect").attr("rx", 3).attr("ry", 3);
   labelG.append("text");
@@ -240,7 +243,7 @@ export function renderBoundaryGroups(
       .attr("font-weight", "700")
       .attr("fill", STROKE)
       .attr("fill-opacity", 1)
-      .attr("text-anchor", "start")
+      .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle")
       .attr("x", 0)
       .attr("y", 0)
@@ -253,7 +256,7 @@ export function renderBoundaryGroups(
     const bh = LABEL_FONT_SIZE + 6;
 
     rect
-      .attr("x", -PX)
+      .attr("x", -bw / 2)
       .attr("y", -bh / 2)
       .attr("width", bw)
       .attr("height", bh)
@@ -262,6 +265,17 @@ export function renderBoundaryGroups(
       .attr("stroke-opacity", 1)
       .attr("stroke-width", 0.8);
   });
+
+  // Tick line: vertical connector from label bottom to hull top edge (in SVG coords)
+  merged
+    .select<SVGLineElement>(".boundary-label-tick")
+    .attr("x1", (d) => d.labelX)
+    .attr("x2", (d) => d.labelX)
+    .attr("y1", (d) => d.labelY + (LABEL_FONT_SIZE + 6) / 2 / zoomK)
+    .attr("y2", (d) => d.labelY + PAD - 4)
+    .attr("stroke", STROKE)
+    .attr("stroke-opacity", 0.5)
+    .attr("stroke-width", 1);
 
   // Position labels with counter-scale so they stay the same visual size
   applyBoundaryLabelTransforms(layer, zoomK);
@@ -275,4 +289,9 @@ export function applyBoundaryLabelTransforms(layer: Layer, zoomK: number): void 
   layer
     .selectAll<SVGGElement, BoundaryGroup>(".boundary-label")
     .attr("transform", (d) => `translate(${d.labelX},${d.labelY}) scale(${1 / zoomK})`);
+
+  // Tick line y1 depends on zoomK (label height in SVG space shrinks as you zoom out)
+  layer
+    .selectAll<SVGLineElement, BoundaryGroup>(".boundary-label-tick")
+    .attr("y1", (d) => d.labelY + (LABEL_FONT_SIZE + 6) / 2 / zoomK);
 }

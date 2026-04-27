@@ -7,10 +7,12 @@ import {
   resolveNode,
   getNodeEdges,
   findReferencingDocs,
+  findReferencingFlows,
   findParent,
   findAllNodesById,
   type NodeEdges,
   type DocRef,
+  type FlowRef,
   type ResolvedVia,
 } from "../utils/resolve-node.js";
 
@@ -32,6 +34,7 @@ interface FolderPickResult {
   exports: Array<{ nodeId: string; desc: string; path?: string }>;
   importedBy?: Array<{ moduleId: string; desc: string }>;
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -58,6 +61,7 @@ interface ModulePickResult {
   exports: Array<{ nodeId: string; desc: string; typeSignature?: string }>;
   importedBy?: Array<{ moduleId: string; desc: string }>;
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -80,6 +84,7 @@ interface ExportPickResult {
   };
   parent?: { nodeId: string; type: string; desc: string; morphologySummary?: string };
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -94,6 +99,7 @@ interface TermPickResult {
   resolvedVia: ResolvedVia;
   node: { nodeId: string; desc: string };
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -113,6 +119,7 @@ interface FilePickResult {
   };
   parentFolder?: { nodeId: string; desc: string; path?: string };
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -131,6 +138,7 @@ interface ExternalPickResult {
     metadata: Record<string, string>;
   };
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -243,6 +251,7 @@ function resolveFolder(
     exports,
     ...(importedBy.length > 0 ? { importedBy } : {}),
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -311,6 +320,7 @@ function resolveModule(
     exports: exps,
     ...(importedBy.length > 0 ? { importedBy } : {}),
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -344,6 +354,7 @@ function resolveExport(
     },
     parent,
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -360,6 +371,7 @@ function resolveTerm(
     resolvedVia: "id",
     node: { nodeId: id, desc: term.desc },
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -389,6 +401,7 @@ function resolveFile(
     },
     parentFolder,
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -409,6 +422,7 @@ function resolveExternal(
       metadata: external.metadata,
     },
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -644,6 +658,15 @@ function formatDocs(docs: DocRef[]): string[] {
   return lines;
 }
 
+function formatFlows(flows: FlowRef[]): string[] {
+  if (flows.length === 0) return [];
+  const lines = ["  flows:"];
+  for (const f of flows) {
+    lines.push(`    id: ${f.nodeId} [${f.priority}] — ${f.desc}`);
+  }
+  return lines;
+}
+
 function formatRelations(
   relations?: Array<{
     from: string;
@@ -744,6 +767,7 @@ function formatModulePlain(result: ModulePickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -793,6 +817,7 @@ function formatFolderPlain(result: FolderPickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -824,6 +849,7 @@ function formatExportPlain(result: ExportPickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -833,6 +859,7 @@ function formatTermPlain(result: TermPickResult): string[] {
   const lines: string[] = [`id: ${result.node.nodeId} (term)`, `  ${result.node.desc}`];
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -849,6 +876,7 @@ function formatFilePlain(result: FilePickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -865,6 +893,7 @@ function formatExternalPlain(result: ExternalPickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;

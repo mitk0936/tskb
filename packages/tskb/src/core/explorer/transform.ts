@@ -359,6 +359,7 @@ class GraphToExplorerTransformer {
             detail: {
               ...(exportNode.typeSignature ? { signature: exportNode.typeSignature } : {}),
               ...(exportNode.morphologySummary ? { morphology: exportNode.morphologySummary } : {}),
+              ...(exportNode.morphology?.length ? { code: exportNode.morphology } : {}),
             },
           })
         );
@@ -446,14 +447,14 @@ class GraphToExplorerTransformer {
 
     return childFiles
       .filter(({ name }) => {
-        if (!name.endsWith(".ts") && !name.endsWith(".tsx")) return false;
+        if (!/\.(ts|tsx|js|jsx|mjs|cjs)$/.test(name)) return false;
         if (name.endsWith(".d.ts")) return false;
         return !knownModulePaths.has(`${folderPath}/${name}`);
       })
       .map(({ name }) => ({
         id: `${folderPath}/${name}`,
         type: "module" as const,
-        label: name.replace(/\.tsx?$/, ""),
+        label: name.replace(/\.(tsx?|jsx?|mjs|cjs)$/, ""),
         description: "",
         path: `${folderPath}/${name}`,
         parentId: parentFolderId,

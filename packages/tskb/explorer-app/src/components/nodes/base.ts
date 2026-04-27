@@ -3,6 +3,7 @@ import type { PositionedNode, NodeType } from "../../types";
 import { isGhost } from "../../types";
 import { NODE_SIZES, nodeSize } from "../../layout/lane-engine";
 import { showNodeTooltip, hideNodeTooltip } from "../../ui/NodeTooltip";
+import { showToast } from "../../ui/Toast";
 import { EyeIcon, MinusIcon, replaceIcon } from "../../ui/icons";
 
 // ─── Shared style maps ────────────────────────────────────────────────────────
@@ -132,13 +133,22 @@ export class BaseNodeRenderer implements NodeComponent {
       .attr("dominant-baseline", "middle")
       .attr("fill", "#64748b");
 
-    // Label
+    // Label — click copies the node path/id to clipboard
     g.append("text")
       .attr("class", "node-label")
       .attr("font-size", 11)
       .attr("font-weight", "700")
       .attr("fill", "#1e293b")
-      .attr("dominant-baseline", "middle");
+      .attr("dominant-baseline", "middle")
+      .style("cursor", "pointer")
+      .on("click", function (event: MouseEvent, d: PositionedNode) {
+        event.stopPropagation();
+        const text = d.path ?? d.label;
+        navigator.clipboard
+          .writeText(text)
+          .then(() => showToast(`⎘ ${text}`))
+          .catch(() => {});
+      });
 
     // Description
     g.append("text")
@@ -259,9 +269,8 @@ export class BaseNodeRenderer implements NodeComponent {
       const canExpand = component.hasChildren(d);
 
       const ACCENT = 4;
-      const ICON_X = ACCENT + 7;
-      const TEXT_X = ICON_X + 15;
-      const FOOTER_Y = h - 16;
+      const TEXT_X = ACCENT + 8;
+      const FOOTER_Y = h - 14;
 
       const ghost = isGhost(d);
 
@@ -273,10 +282,12 @@ export class BaseNodeRenderer implements NodeComponent {
         .attr("fill", "#ffffff")
         .style("opacity", ghost ? "0.55" : "1");
 
-      // Ghost nodes: hide all content elements and anchors
+      // Icon, divider, and desc are not rendered — always hidden
+      el.select(".node-icon").style("display", "none");
+      el.select(".node-divider").style("display", "none");
+
+      // Ghost nodes: hide structural chrome; show only the filename label
       el.select(".node-accent").style("display", ghost ? "none" : "");
-      el.select(".node-icon").style("display", ghost ? "none" : "");
-      el.select(".node-divider").style("display", ghost ? "none" : "");
       el.select(".node-btn-docs").style("display", ghost ? "none" : "");
       el.select(".node-btn-flows").style("display", ghost ? "none" : "");
       el.select(".node-preview-btn").style("display", "none");
@@ -291,7 +302,7 @@ export class BaseNodeRenderer implements NodeComponent {
           .attr("fill", "#94a3b8")
           .attr("font-style", "italic")
           .text(trunc(d.path?.split("/").pop() || d.label, maxChars));
-        el.select(".node-desc").text("").style("display", "none");
+        el.select(".node-desc").style("display", "none");
 
         // Ghost folder nodes support expand just like real folders
         const ghostExpandG = el.select<SVGGElement>(".node-expand-btn");
@@ -310,23 +321,17 @@ export class BaseNodeRenderer implements NodeComponent {
         return;
       }
 
-      // Restore display for non-ghost nodes
       el.select(".node-label").style("display", null);
-      el.select(".node-desc").style("display", null);
+      el.select(".node-desc").style("display", "none");
 
       el.select(".node-accent").attr("height", h).attr("fill", color);
 
-      el.select(".node-icon")
-        .attr("x", ICON_X)
-        .attr("y", h * 0.32)
-        .text(NODE_ICON[d.type]);
-
       const hasCode =
-        d.type === "module" &&
+        (d.type === "module" || d.type === "export") &&
         Array.isArray(d.detail.code) &&
         (d.detail.code as string[]).length > 0;
       const isPathType = d.type === "folder" || d.type === "file" || d.type === "module";
-      const maxChars = Math.floor((w - TEXT_X - 6) / 5.5);
+      const maxChars = Math.floor((w - TEXT_X - 14) / 5.5);
       let titleText: string;
       if (isPathType && d.path) {
         const segment = d.path.split("/").pop() ?? d.label;
@@ -335,28 +340,18 @@ export class BaseNodeRenderer implements NodeComponent {
         } else if (d.type === "folder") {
           titleText = `/${segment}`; // folders: /name
         } else {
-          titleText = segment; // modules/files: name.ts (path includes extension)
+          titleText = segment; // modules/files: name.ts
         }
+      } else if (d.type === "export") {
+        titleText = exportDisplayLabel(d.label, d.detail.morphology as string | undefined);
       } else {
         titleText = d.label;
       }
 
       el.select(".node-label")
         .attr("x", TEXT_X)
-        .attr("y", h * 0.3)
+        .attr("y", FOOTER_Y / 2)
         .text(trunc(titleText, maxChars));
-
-      const descText = isPathType ? (d.description ? `Desc: ${d.description}` : "") : d.description;
-      el.select(".node-desc")
-        .attr("x", TEXT_X)
-        .attr("y", h * 0.57)
-        .text(trunc(descText, maxChars));
-
-      el.select(".node-divider")
-        .attr("x1", ACCENT + 6)
-        .attr("x2", w - 6)
-        .attr("y1", FOOTER_Y - 5)
-        .attr("y2", FOOTER_Y - 5);
 
       // Footer chip buttons — only on structure nodes that have referencing docs/flows
       const CHIP_Y = FOOTER_Y - 1;
@@ -471,4 +466,12 @@ export class BaseNodeRenderer implements NodeComponent {
 function trunc(s: string, max: number): string {
   if (!s) return "";
   return s.length > max ? s.slice(0, max - 1) + "…" : s;
+}
+
+/** Returns a display label for an export node with a kind suffix: fn(...) or Class {...}. */
+export function exportDisplayLabel(label: string, morphologySummary?: string): string {
+  if (!morphologySummary) return label;
+  if (morphologySummary.includes("function")) return `${label}(...)`;
+  if (morphologySummary.includes("class")) return `${label} {...}`;
+  return label;
 }

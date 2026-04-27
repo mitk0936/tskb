@@ -378,14 +378,14 @@ digraph KnowledgeGraph {
             "extraction.module-morphology" [label="Module\<\"extraction.module-morphology\"\>\nExtracts public API shape from TypeScript modules — exports, imports, type stubs, and line ranges using the type checker\n📁 packages/tskb/src/core/extraction/module-morphology.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
               "extractModuleMorphology" [label="Export\<\"extractModuleMorphology\"\>\nResolves a module's source file and extracts its export surface — classifies each export by kind (function, class, interface, type, enum, variable) and renders a code stub with line ranges\n📁 packages/tskb/src/core/extraction/module-morphology.ts", shape=component, fillcolor="#C5E1A5", style=filled];
               "extractModuleImports" [label="Export\<\"extractModuleImports\"\>\nWalks import declarations in a module's AST to extract symbol names, paths, and display strings\n📁 packages/tskb/src/core/extraction/module-morphology.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-            "extraction.documentation" [label="Module\<\"extraction.documentation\"\>\nDocumentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-              "extractDocs" [label="Export\<\"extractDocs\"\>\nEntry point: iterates source files matched by the glob, calls extractFromTsxFile on each .tskb.tsx file, returns ExtractedDoc[]. Accepts an optional ExtractedRegistry used to pre-compute display attributes in the HTML output.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-              "ExtractedDoc" [label="Export\<\"ExtractedDoc\"\>\nShape of one extracted doc: filePath, format, explains, priority, HTML content string, reference arrays (modules/terms/folders/exports/files/externals), semantic relations, and extracted flows.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-              "extractFromTsxFile" [label="Export\<\"extractFromTsxFile\"\>\nProcesses a single .tskb.tsx source file: finds the default export, runs buildConstantReferencesMap and extractJsxContent, returns an ExtractedDoc or null if no default export is found.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-              "buildConstantReferencesMap" [label="Export\<\"buildConstantReferencesMap\"\>\nFirst pass over the source file: walks all variable declarations and maps const names to {category, name} by parsing 'ref as tskb.X[\"y\"]' type assertions. Result is passed into extractJsxContent so inline {MyConst} expressions resolve without re-parsing.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-              "extractJsxContent" [label="Export\<\"extractJsxContent\"\>\nMain JSX depth-first traversal: structural tags (H1, P, List) emit HTML, XxxRef tags and inline identifier/type-assertion expressions route through the refCategoryMap dispatch table to createReferenceContent, Flow elements validate and collect steps, Relation elements collect edges.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-              "createReferenceContent" [label="Export\<\"createReferenceContent\"\>\nProduces the <a class=tskb-ref> anchor for a single registry reference. Embeds data-node-id, data-node-type, and data-node-display attributes pre-computed from the registry so the explorer doc panel can show tooltips before the chunk is loaded. Pushes the id into the appropriate references sub-array.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
-              "resolveNodeMeta" [label="Export\<\"resolveNodeMeta\"\>\nLooks up a nodeId across all registry maps (modules, folders, exports, terms, files, externals) and returns {nodeType, display}. Used by extractJsxContent for flow step links so each step anchor carries the same pre-computed attributes as regular refs.\n📁 packages/tskb/src/core/extraction/documentation.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+            "extraction.documentation" [label="Module\<\"extraction.documentation\"\>\nDocumentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files\n📁 packages/tskb/src/core/extraction/documentation/index.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+              "extractDocs" [label="Export\<\"extractDocs\"\>\nEntry point: iterates source files matched by the glob, calls extractFromTsxFile on each .tskb.tsx file, returns ExtractedDoc[]. Accepts an optional ExtractedRegistry used to pre-compute display attributes in the HTML output.\n📁 packages/tskb/src/core/extraction/documentation/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "ExtractedDoc" [label="Export\<\"ExtractedDoc\"\>\nShape of one extracted doc: filePath, format, explains, priority, HTML content string, reference arrays (modules/terms/folders/exports/files/externals), semantic relations, and extracted flows.\n📁 packages/tskb/src/core/extraction/documentation/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "extractFromTsxFile" [label="Export\<\"extractFromTsxFile\"\>\nProcesses a single .tskb.tsx source file: builds the constant ref map, finds the default export, creates a JsxExtractor, returns an ExtractedDoc or null.\n📁 packages/tskb/src/core/extraction/documentation/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "buildRefMap" [label="Export\<\"buildRefMap\"\>\nFirst pass over the source file: walks all variable declarations and maps const names to {category, name} by parsing 'ref as tskb.X[\"y\"]' type assertions. Result is passed into JsxExtractor so inline {MyConst} expressions resolve without re-parsing.\n📁 packages/tskb/src/core/extraction/documentation/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "JsxExtractor" [label="Export\<\"JsxExtractor\"\>\nStateful JSX tree walker. Created once per file by extractFromTsxFile. Accumulates HTML, references, relations, and flows via visit() dispatch. Component handlers (handleDoc, handleFlow, handleRelation, handleRefTag, handleWrapped, etc.) each own one JSX element type. Call extract() once with the default-export node.\n📁 packages/tskb/src/core/extraction/documentation/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "buildRefLink" [label="Export\<\"buildRefLink\"\>\nProduces the <a class=tskb-ref> anchor for a single registry reference. Embeds data-node-id, data-node-type, and data-node-display attributes pre-computed from the registry so the explorer doc panel can show tooltips before the chunk is loaded. Pushes the id into the appropriate refs sub-array.\n📁 packages/tskb/src/core/extraction/documentation/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "resolveNodeMeta" [label="Export\<\"resolveNodeMeta\"\>\nLooks up a nodeId across all registry maps (modules, folders, exports, terms, files, externals) and returns {nodeType, display}. Used by JsxExtractor for flow step links so each step anchor carries the same pre-computed attributes as regular refs.\n📁 packages/tskb/src/core/extraction/documentation/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
           }
 
@@ -652,7 +652,7 @@ digraph KnowledgeGraph {
     "typeAssertion" [label="Term\<\"typeAssertion\"\>\nTypeScript 'as' syntax that casts a value to a specific type, used in tskb to reference vocabulary items: {ref as tskb.Modules['X']}", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "depthFirstTraversal" [label="Term\<\"depthFirstTraversal\"\>\nTree traversal algorithm that explores as far as possible along each branch before backtracking, used to visit all JSX nodes in order", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "constantReferencesMap" [label="Term\<\"constantReferencesMap\"\>\nA Map built at parse time that resolves local const names (e.g. AuthModule) to their registry key and category by reading the 'ref as tskb.X[\"y\"]' type assertion on each declaration. Lets the traversal resolve {AuthModule} inline expressions.", shape=diamond, fillcolor="#F0F4C3", style=filled];
-    "refCategoryMap" [label="Term\<\"refCategoryMap\"\>\nA dispatch table in extractJsxContent mapping JSX tag names (ModuleRef, TermRef, FolderRef, ExportRef, FileRef, ExternalRef) to their registry category string. All XxxRef elements route through the same createReferenceContent helper.", shape=diamond, fillcolor="#F0F4C3", style=filled];
+    "refCategoryMap" [label="Term\<\"refCategoryMap\"\>\nA dispatch table in JsxExtractor.visitElement mapping JSX tag names (ModuleRef, TermRef, FolderRef, ExportRef, FileRef, ExternalRef) to their registry category string. All XxxRef elements route through the same buildRefLink helper.", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "cliPipeline" [label="Term\<\"cliPipeline\"\>\nThe build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, skill/instructions)", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "commandRouting" [label="Term\<\"commandRouting\"\>\nThe CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, docs, or flows)", shape=diamond, fillcolor="#F0F4C3", style=filled];
     "globPattern" [label="Term\<\"globPattern\"\>\nFile pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing", shape=diamond, fillcolor="#F0F4C3", style=filled];
@@ -701,7 +701,7 @@ digraph KnowledgeGraph {
     "explorer-app-render" [label="explorer-app-render\nExplorerApp.render(): layout → edges → D3 enter/update/exit → search dim\n1. explorer.spa.ExplorerApp.render (Triggered by store subscription or direct call from interaction handler)\n2. explorer.spa.computeLayout (computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set.)\n3. explorer.spa.computeRenderState (computeRenderState(store, layout, searchQuery): derives allNodes, canvasW, structureLinks, relationLinks, matchIds. Pure — no D3.)\n4. explorer.spa.edge-renderer (renderLaneBands(): draws labeled background bands for Structure and Externals lanes)\n5. explorer.spa.buildStructureLinks (buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields)\n6. explorer.spa.renderStructureEdges (renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke)\n7. explorer.spa.node-base (D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble)\n8. explorer.spa.node-base (D3 update: renderer.update() repositions and reskins all merged nodes)\n9. explorer.spa.node-base (D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "explorer-app-expand" [label="explorer-app-expand\nExplorerApp.onExpand(): fetch chunk if needed, update expanded set, re-render\n1. explorer.spa.node-base (User clicks + button; BaseNodeRenderer fires the onExpand callback)\n2. explorer.spa.ExplorerApp.onExpand (If already expanded: collapseDescendants() clears the subtree, calls render())\n3. explorer.spa.showNodeSpinner (If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node)\n4. explorer.spa.loader (loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json)\n5. explorer.spa.removeNodeSpinner (removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed)\n6. explorer.spa.store (store.loadFolderChunk() stores chunk and notifies subscribers)\n7. explorer.spa.ExplorerApp.render (render() called after expanded set update — new nodes enter, layout recomputed)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "module-morphology-extraction" [label="module-morphology-extraction\nHow a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs\n1. extractRegistry (collects Module declarations from tskb namespace)\n2. extractModuleMorphology (resolves source file, classifies exports, renders code stubs)\n3. extractModuleImports (walks import declarations for symbols and paths)\n4. graph.builder (assembles enriched ModuleNode with edges)", shape=cds, fillcolor="#C8E6C9", style=filled];
-    "docs-extraction-pipeline" [label="docs-extraction-pipeline\nSingle .tskb.tsx file through extraction: constant map → JSX traversal → HTML + references\n1. extractDocs (Iterates Program source files; dispatches matched .tsx files to extractFromTsxFile)\n2. extractFromTsxFile (Finds default export, initialises references object and flow/relation collectors)\n3. buildConstantReferencesMap (Walks all variable declarations; maps const names → {category, name} via type-assertion parsing)\n4. extraction.registry (Passed in as optional param; queried by createReferenceContent to pre-compute data-node-display values)\n5. extractJsxContent (Depth-first JSX traversal: structural tags → HTML, XxxRef / inline refs → refCategoryMap → createReferenceContent; Flow elements validated and collected)\n6. createReferenceContent (Emits <a class=tskb-ref data-node-id data-node-type data-node-display>; pushes id into references sub-array)\n7. resolveNodeMeta (Called per Flow step: probes all registry maps to return {nodeType, display} for the step anchor)\n8. ExtractedDoc (Returned: filePath, HTML content, references arrays, flows[], relations[])\n9. graph.builder (Consumes ExtractedDoc: creates DocNode + FlowNode entries and references/flow-step edges)", shape=cds, fillcolor="#C8E6C9", style=filled];
+    "docs-extraction-pipeline" [label="docs-extraction-pipeline\nSingle .tskb.tsx file through extraction: constant map → JSX traversal → HTML + references\n1. extractDocs (Iterates Program source files; dispatches matched .tsx files to extractFromTsxFile)\n2. extractFromTsxFile (Builds constant ref map, finds default export, instantiates JsxExtractor)\n3. buildRefMap (Walks all variable declarations; maps const names → {category, name} via type-assertion parsing)\n4. extraction.registry (Passed in as optional param; queried by buildRefLink to pre-compute data-node-display values)\n5. JsxExtractor (Depth-first JSX traversal via visitElement dispatch: structural tags → HTML, XxxRef / inline refs → buildRefLink; Flow and Relation elements validated and collected)\n6. buildRefLink (Emits <a class=tskb-ref data-node-id data-node-type data-node-display>; pushes id into refs sub-array)\n7. resolveNodeMeta (Called per Flow step: probes all registry maps to return {nodeType, display} for the step anchor)\n8. ExtractedDoc (Returned: filePath, HTML content, references arrays, flows[], relations[])\n9. graph.builder (Consumes ExtractedDoc: creates DocNode + FlowNode entries and references/flow-step edges)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "login-flow" [label="login-flow\nUser authentication from HTTP request to session token\n1. AuthMiddleware (Validates request format)\n2. AuthService (Checks credentials, generates JWT)\n3. Database (Queries user record)", shape=cds, fillcolor="#C8E6C9", style=filled];
     "task-creation" [label="task-creation\nTask creation with validation and notification\n1. TaskService (Validates input, applies business rules)\n2. TaskRepository (Persists task to database)\n3. NotificationService (Notifies assigned users)", shape=cds, fillcolor="#C8E6C9", style=filled];
   }
@@ -744,7 +744,6 @@ digraph KnowledgeGraph {
   "e2e-test-execution" -> "vitest.config" ;
   "e2e-test-execution" -> "tests.global-setup" ;
   "e2e-test-execution" -> "tests.helpers" ;
-  "e2e-test-execution" -> "tests.global-setup" ;
   "init-scaffolding-test" -> "tests.helpers" ;
   "init-scaffolding-test" -> "cli.build" ;
   "init-scaffolding-test" -> "tests.e2e" ;
@@ -760,10 +759,6 @@ digraph KnowledgeGraph {
   "graph-to-chunks-transform" -> "cli.commands.explore" ;
   "graph-to-chunks-transform" -> "explorer.transform" ;
   "graph-to-chunks-transform" -> "explorer.transformGraph" ;
-  "graph-to-chunks-transform" -> "explorer.transformGraph" ;
-  "graph-to-chunks-transform" -> "explorer.transform" ;
-  "graph-to-chunks-transform" -> "explorer.transform" ;
-  "graph-to-chunks-transform" -> "explorer.transform" ;
   "explorer-expand-flow" -> "explorer.spa.node-base" ;
   "explorer-expand-flow" -> "explorer.spa.main" ;
   "explorer-expand-flow" -> "explorer.spa.loader" ;
@@ -771,7 +766,6 @@ digraph KnowledgeGraph {
   "explorer-expand-flow" -> "explorer.spa.computeLayout" ;
   "explorer-expand-flow" -> "explorer.spa.buildStructureLinks" ;
   "explorer-expand-flow" -> "explorer.spa.renderStructureEdges" ;
-  "explorer-expand-flow" -> "explorer.spa.node-base" ;
   "explorer-serve-flow" -> "explorer.explore" ;
   "explorer-serve-flow" -> "explorer.transformGraph" ;
   "explorer-serve-flow" -> "explorer.serveExplorer" ;
@@ -780,7 +774,6 @@ digraph KnowledgeGraph {
   "explorer-serve-flow" -> "explorer.spa.node-base" ;
   "explorer-export-flow" -> "explorer.explore" ;
   "explorer-export-flow" -> "explorer.transformGraph" ;
-  "explorer-export-flow" -> "explorer.exportExplorer" ;
   "explorer-export-flow" -> "explorer.exportExplorer" ;
   "explorer-app-boot" -> "explorer.spa.ExplorerApp" ;
   "explorer-app-boot" -> "explorer.spa.ExplorerApp.setupCanvas" ;
@@ -797,8 +790,6 @@ digraph KnowledgeGraph {
   "explorer-app-render" -> "explorer.spa.buildStructureLinks" ;
   "explorer-app-render" -> "explorer.spa.renderStructureEdges" ;
   "explorer-app-render" -> "explorer.spa.node-base" ;
-  "explorer-app-render" -> "explorer.spa.node-base" ;
-  "explorer-app-render" -> "explorer.spa.node-base" ;
   "explorer-app-expand" -> "explorer.spa.node-base" ;
   "explorer-app-expand" -> "explorer.spa.ExplorerApp.onExpand" ;
   "explorer-app-expand" -> "explorer.spa.showNodeSpinner" ;
@@ -812,10 +803,10 @@ digraph KnowledgeGraph {
   "module-morphology-extraction" -> "graph.builder" ;
   "docs-extraction-pipeline" -> "extractDocs" ;
   "docs-extraction-pipeline" -> "extractFromTsxFile" ;
-  "docs-extraction-pipeline" -> "buildConstantReferencesMap" ;
+  "docs-extraction-pipeline" -> "buildRefMap" ;
   "docs-extraction-pipeline" -> "extraction.registry" ;
-  "docs-extraction-pipeline" -> "extractJsxContent" ;
-  "docs-extraction-pipeline" -> "createReferenceContent" ;
+  "docs-extraction-pipeline" -> "JsxExtractor" ;
+  "docs-extraction-pipeline" -> "buildRefLink" ;
   "docs-extraction-pipeline" -> "resolveNodeMeta" ;
   "docs-extraction-pipeline" -> "ExtractedDoc" ;
   "docs-extraction-pipeline" -> "graph.builder" ;
@@ -962,9 +953,9 @@ digraph KnowledgeGraph {
   "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "ExtractedDoc" [color=grey, style=dashed];
   "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "jsx.Flow" [color=grey, style=dashed];
   "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "extractFromTsxFile" [color=grey, style=dashed];
-  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "buildConstantReferencesMap" [color=grey, style=dashed];
-  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "extractJsxContent" [color=grey, style=dashed];
-  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "createReferenceContent" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "buildRefMap" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "JsxExtractor" [color=grey, style=dashed];
+  "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "buildRefLink" [color=grey, style=dashed];
   "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "jsx.Step" [color=grey, style=dashed];
   "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "resolveNodeMeta" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx" -> "runtime.jsx" [color=grey, style=dashed];
@@ -1120,8 +1111,8 @@ digraph KnowledgeGraph {
   "graph.builder" -> "extraction.documentation" ;
   "graph.types" -> "runtime.jsx" ;
   "graph.types" -> "extraction.module-morphology" ;
-  "extraction.documentation" -> "runtime.jsx" ;
   "extraction.documentation" -> "extraction.registry" ;
+  "extraction.documentation" -> "runtime.jsx" ;
   "cli.commands.search" -> "graph.types" ;
   "cli.commands.pick" -> "graph.types" ;
   "cli.commands.ls" -> "graph.types" ;

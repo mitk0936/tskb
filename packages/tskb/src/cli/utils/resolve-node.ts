@@ -15,6 +15,12 @@ export interface DocRef {
   priority: string;
 }
 
+export interface FlowRef {
+  nodeId: string;
+  desc: string;
+  priority: string;
+}
+
 // --- Node resolution ---
 
 export type ResolvedVia = "id" | "path" | "nearest-parent";
@@ -166,6 +172,23 @@ export function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): Do
     }
   }
   return docs;
+}
+
+export function findReferencingFlows(edges: NodeEdges, graph: KnowledgeGraph): FlowRef[] {
+  const flows: FlowRef[] = [];
+  for (const edge of edges.incoming) {
+    if (edge.type === "flow-step") {
+      const flow = graph.nodes.flows[edge.from];
+      if (flow) {
+        flows.push({
+          nodeId: edge.from,
+          desc: flow.desc,
+          priority: flow.priority,
+        });
+      }
+    }
+  }
+  return flows;
 }
 
 export function findParent(

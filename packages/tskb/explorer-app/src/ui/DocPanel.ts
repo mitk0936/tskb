@@ -1,7 +1,7 @@
 import "./doc-panel.css";
 import type { PositionedNode, ExplorerNode } from "../types";
 import { showDomTooltip, hideDomTooltip } from "./DomTooltip";
-import { NODE_COLORS } from "../components/nodes/base";
+import { NODE_COLORS, exportDisplayLabel } from "../components/nodes/base";
 import { showToast } from "./Toast";
 
 export type OnNodeRefClick = (nodeId: string) => void;
@@ -32,7 +32,7 @@ export class DocPanel {
     this.title.addEventListener("click", () => {
       if (!this.title.dataset.copyable) return;
       const text = this.title.textContent ?? "";
-      if (text) navigator.clipboard.writeText(text).then(() => showToast(`Copied: ${text}`));
+      if (text) navigator.clipboard.writeText(text).then(() => showToast(`⎘ ${text}`));
     });
 
     // Delegate clicks on node-ref links inside the panel body
@@ -113,7 +113,7 @@ export class DocPanel {
       if (node) {
         let display: string;
         if (node.type === "export") {
-          display = node.label; // just the export name
+          display = exportDisplayLabel(node.label, node.detail.morphology as string | undefined);
         } else if (node.type === "folder") {
           display = (node.path ?? node.label) + "/"; // path with trailing slash
         } else {
