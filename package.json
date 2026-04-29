@@ -13,7 +13,7 @@
     "build:docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json",
     "clean": "npx rimraf --glob node_modules **/node_modules **/dist **/.tskb",
     "test": "vitest run",
-    "test:coverage": "c8 --src packages/tskb/src --include \"packages/tskb/dist/**\" --reporter text --reporter html -o coverage vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "lint": "npm run lint --workspaces --if-present && eslint --config docs/eslint.config.js docs/src",
     "lint:fix": "npm run lint:fix --workspaces --if-present && eslint --config docs/eslint.config.js docs/src --fix",
@@ -27,7 +27,6 @@
   "devDependencies": {
     "@types/node": "^25.6.0",
     "@vitest/coverage-v8": "^4.1.1",
-    "c8": "^11.0.0",
     "eslint": "^10.2.0",
     "husky": "^9.1.7",
     "mkdirp": "^3.0.1",

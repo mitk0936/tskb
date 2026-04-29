@@ -334,76 +334,10 @@ export class ExplorerApp {
         this.expanded.delete(node.id);
       } else {
         this.expanded.add(node.id);
-        void this.revealLinkedNodes([node.id]);
       }
       this.layoutDirty = true;
       this.render();
       this.scrollToNode(node.id);
-    }
-  }
-
-  /**
-   * For each node in `sourceIds`, finds cross-edges and makes the other endpoint
-   * visible by expanding the minimal set of ancestors:
-   *   - linked node is a module  → expand its parent folder(s) only
-   *   - linked node is an export → expand its parent folder(s) + its parent module
-   * Never adds unrelated intermediate modules to `expanded`.
-   */
-  private async revealLinkedNodes(sourceIds: string[]): Promise<void> {
-    if (!this.store.meta) return;
-    const { parentOf, folderIds } = this.store.meta;
-    const folderSet = new Set(folderIds);
-    const crossEdges = this.store.meta.crossEdges ?? [];
-
-    const foldersToLoad = new Set<string>();
-    const toExpand = new Set<string>(); // only folders + direct parent modules of exports
-
-    for (const srcId of sourceIds) {
-      for (const e of crossEdges) {
-        if (e.type !== "related-to" && e.type !== "imports") continue;
-        const linkedId = e.source === srcId ? e.target : e.target === srcId ? e.source : null;
-        if (!linkedId) continue;
-
-        const directParent = parentOf[linkedId];
-        if (!directParent) continue;
-
-        if (folderSet.has(directParent)) {
-          // linked node is a module — expand its folder ancestors only
-          let cur: string | undefined = directParent;
-          const seen1 = new Set<string>();
-          while (cur && !seen1.has(cur)) {
-            seen1.add(cur);
-            toExpand.add(cur);
-            if (folderSet.has(cur)) foldersToLoad.add(cur);
-            cur = parentOf[cur];
-          }
-        } else {
-          // linked node is an export — expand folder ancestors + direct parent module
-          toExpand.add(directParent); // parent module → makes export visible
-          let cur: string | undefined = parentOf[directParent];
-          const seen2 = new Set<string>();
-          while (cur && !seen2.has(cur)) {
-            seen2.add(cur);
-            toExpand.add(cur);
-            if (folderSet.has(cur)) foldersToLoad.add(cur);
-            cur = parentOf[cur];
-          }
-        }
-      }
-    }
-
-    await this.fetchAndStoreFolders(foldersToLoad);
-
-    let changed = false;
-    for (const id of toExpand) {
-      if (!this.expanded.has(id)) {
-        this.expanded.add(id);
-        changed = true;
-      }
-    }
-    if (changed) {
-      this.layoutDirty = true;
-      this.render();
     }
   }
 

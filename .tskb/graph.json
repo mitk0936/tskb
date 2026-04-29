@@ -39,12 +39,9 @@
         "type": "folder",
         "desc": "Example application, not meant to be run, but used as reference for example docs",
         "path": "examples/taskflow-app",
-        "structureSummary": "3 folders, 7 files",
+        "structureSummary": "2 folders, 7 files",
         "children": {
           "folders": [
-            {
-              "name": "dist"
-            },
             {
               "name": "docker"
             },
@@ -272,19 +269,13 @@
         "desc": "The root folder of the package, with its package.json and main npm README.md",
         "path": "packages/tskb",
         "boundary": "TSKB main package",
-        "structureSummary": "4 folders, 5 files",
+        "structureSummary": "2 folders, 5 files",
         "children": {
           "folders": [
-            {
-              "name": "dist"
-            },
             {
               "name": "explorer-app",
               "nodeId": "tskb.explorer.app",
               "desc": "Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/"
-            },
-            {
-              "name": "node_modules"
             },
             {
               "name": "src"
@@ -1687,7 +1678,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
         "morphologySummary": "1 class, 1 type",
         "morphology": [
-          "export class ExplorerApp { // :37-613",
+          "export class ExplorerApp { // :37-547",
           "  private readonly loader: any // :38",
           "  private readonly store: any // :39",
           "  private readonly docPanel: any // :41",
@@ -1717,19 +1708,18 @@
           "  private buildRefMaps(meta: any): void {} // :160-174",
           "  private loadInitialData(): Promise<void> {} // :176-195",
           "  private render(): void {} // :199-303",
-          "  private onExpand(node: PositionedNode): Promise<void> {} // :307-343",
-          "  private revealLinkedNodes(sourceIds: string[]): Promise<void> {} // :352-408",
-          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :414-438",
-          "  private prefetchNodeChunk(nodeId: string): Promise<void> {} // :445-462",
-          "  private fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {} // :465-480",
-          "  private scrollToNode(nodeId: string): void {} // :483-497",
-          "  private collapseDescendants(folderId: string): void {} // :500-510",
-          "  private onSelect(node: PositionedNode): void {} // :512-519",
-          "  private navigateToNode(nodeId: string): Promise<void> {} // :521-543",
-          "  private findNode(nodeId: string): any {} // :546-574",
-          "  private onNodeHighlight(nodeId: string | null): void {} // :577-588",
-          "  private onChipClick(node: PositionedNode, chip: \"docs\" | \"flows\"): void {} // :590-607",
-          "  private onTraceLinks(node: PositionedNode): void {} // :609-612",
+          "  private onExpand(node: PositionedNode): Promise<void> {} // :307-342",
+          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :348-372",
+          "  private prefetchNodeChunk(nodeId: string): Promise<void> {} // :379-396",
+          "  private fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {} // :399-414",
+          "  private scrollToNode(nodeId: string): void {} // :417-431",
+          "  private collapseDescendants(folderId: string): void {} // :434-444",
+          "  private onSelect(node: PositionedNode): void {} // :446-453",
+          "  private navigateToNode(nodeId: string): Promise<void> {} // :455-477",
+          "  private findNode(nodeId: string): any {} // :480-508",
+          "  private onNodeHighlight(nodeId: string | null): void {} // :511-522",
+          "  private onChipClick(node: PositionedNode, chip: \"docs\" | \"flows\"): void {} // :524-541",
+          "  private onTraceLinks(node: PositionedNode): void {} // :543-546",
           "}",
           "// — internal —",
           "type Layer = d3.Selection<SVGGElement, unknown, null, undefined> // :31"
@@ -5379,7 +5369,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class ExplorerApp { // :37-613",
+          "export class ExplorerApp { // :37-547",
           "  private readonly loader: any // :38",
           "  private readonly store: any // :39",
           "  private readonly docPanel: any // :41",
@@ -5409,19 +5399,18 @@
           "  private buildRefMaps(meta: any): void {} // :160-174",
           "  private loadInitialData(): Promise<void> {} // :176-195",
           "  private render(): void {} // :199-303",
-          "  private onExpand(node: PositionedNode): Promise<void> {} // :307-343",
-          "  private revealLinkedNodes(sourceIds: string[]): Promise<void> {} // :352-408",
-          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :414-438",
-          "  private prefetchNodeChunk(nodeId: string): Promise<void> {} // :445-462",
-          "  private fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {} // :465-480",
-          "  private scrollToNode(nodeId: string): void {} // :483-497",
-          "  private collapseDescendants(folderId: string): void {} // :500-510",
-          "  private onSelect(node: PositionedNode): void {} // :512-519",
-          "  private navigateToNode(nodeId: string): Promise<void> {} // :521-543",
-          "  private findNode(nodeId: string): any {} // :546-574",
-          "  private onNodeHighlight(nodeId: string | null): void {} // :577-588",
-          "  private onChipClick(node: PositionedNode, chip: \"docs\" | \"flows\"): void {} // :590-607",
-          "  private onTraceLinks(node: PositionedNode): void {} // :609-612",
+          "  private onExpand(node: PositionedNode): Promise<void> {} // :307-342",
+          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :348-372",
+          "  private prefetchNodeChunk(nodeId: string): Promise<void> {} // :379-396",
+          "  private fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {} // :399-414",
+          "  private scrollToNode(nodeId: string): void {} // :417-431",
+          "  private collapseDescendants(folderId: string): void {} // :434-444",
+          "  private onSelect(node: PositionedNode): void {} // :446-453",
+          "  private navigateToNode(nodeId: string): Promise<void> {} // :455-477",
+          "  private findNode(nodeId: string): any {} // :480-508",
+          "  private onNodeHighlight(nodeId: string | null): void {} // :511-522",
+          "  private onChipClick(node: PositionedNode, chip: \"docs\" | \"flows\"): void {} // :524-541",
+          "  private onTraceLinks(node: PositionedNode): void {} // :543-546",
           "}"
         ],
         "edgeCount": 14
@@ -10385,7 +10374,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-04-27T13:00:47.771Z",
+    "generatedAt": "2026-04-29T07:10:38.507Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
