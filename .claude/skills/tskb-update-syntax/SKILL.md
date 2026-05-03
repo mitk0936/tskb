@@ -249,6 +249,70 @@ To support the types your snippets need, extend the docs `tsconfig.json`:
 
 The docs `tsconfig.json` is independent from the project's build config — tailor it for documentation without affecting production builds.
 
+## Relations
+
+A `<Relation from={A} to={B} label="..." />` is a single semantic edge between two registered nodes. Use it for one-line "X relates to Y" facts. For anything with order or multiple participants, use a `<Flow>` instead.
+
+### What Relations are for
+
+**Pointing out non-obvious links between parts of the codebase** — connections a reader wouldn't see by following the folder tree, the imports, or the module morphology. Two distant modules that share a hidden coupling. A module that depends on an external boundary the import graph doesn't make obvious. A folder that owns a domain term defined elsewhere. If the link is already visible from the structural edges (`belongs-to`, `contains`) or the import graph, you don't need a Relation.
+
+### What labels should say
+
+Describe the **functional or architectural relationship** — the role one part plays for the other. Not how it's wired in code.
+
+- **Good:** "owns user identity", "is the source of truth for tasks", "wraps the compiler API", "depends on for auth", "renders into".
+- **Bad:** "calls login()", "imports `validateToken`", "instantiates new AuthService()". These are implementation details — the imports edge and morphology already capture them, and they break the moment a method is renamed.
+
+If the only thing you can say about the edge is the name of a function call, you don't need a Relation.
+
+### Direction matters
+
+`from` is the dependent or initiator; `to` is the thing being depended on or used. Read the label as a verb phrase from `from` to `to`: `<Relation from={AuthService} to={Postgres} label="persists sessions to" />` reads as "AuthService persists sessions to Postgres".
+
+## Flows
+
+A `<Flow>` describes a multi-step process through the system — how several parts work together to do one thing. Reach for a Flow when a `<Relation>` is too thin (more than two participants, or order matters) and when describing the path in prose would hide the structure.
+
+### What goes in a flow
+
+- **Lean on registered nodes.** Steps should reference real anchors from the registry — usually modules and exports, with externals, terms, and folders pulled in where they help tell the story.
+- **Cover the whole path.** Include every meaningful node a request touches, not just the endpoints.
+- **The first `<Step>` is the orchestrator.** Make the thing that kicks off the flow the actual first step, not just a mention in `desc`. If the trigger is a CLI command, a test file, an HTTP route, or a cron handler, that node belongs at the top of the flow. This way the flow stays anchored to a real entry point: when that file or export is renamed, moved, or removed, the build catches it. Use the `desc` to add the real-world context around the trigger ("user submits login form", "cron tick fires", "developer runs `npm test`").
+
+### Step labels
+
+- Short, plain wording. Describe what *this node does in this flow*, not what the node is in general.
+- Keep them in the actual execution order.
+- **Avoid drift-prone details.** Don't bake hardcoded paths, filenames, default values, CLI flag spellings, or environment variables into labels or `desc`. None of that is validated — when the code changes, the flow silently lies. Stick to roles ("reads the graph file from disk", "writes chunks to the output directory") and let the registered node anchors carry the implementation. If an exact path or value is essential, put it in a `<Snippet>` where the type checker can see it.
+
+### Don't branch
+
+A flow is one path. If two branches both matter, write two flows. If only one really matters, document that one and mention the alternative in prose.
+
+### Naming
+
+Kebab-case, area-prefixed: `auth-login`, `task-dispatch`, `dashboard-load`. The prefix groups related flows in `tskb flows` output.
+
+### `priority="essential"`
+
+Reserve for flows the system can't run without — the core paths a new dev needs to see on day one. Essential flows are bundled into generated skills; supplementary flows stay queryable via `tskb flows` but don't get auto-loaded.
+
+### Example
+
+```tsx
+<Flow
+  name="auth-login"
+  desc="User submits login form; API route validates credentials and issues a JWT"
+  priority="essential"
+>
+  <Step node={ApiRoutes} label="receives login request" />
+  <Step node={AuthServiceExport} label="validates credentials" />
+  <Step node={Postgres} label="queries user record" />
+  <Step node={AuthServiceExport} label="signs and returns JWT" />
+</Flow>
+```
+
 ## Writing Style
 
 **Do:**
@@ -256,7 +320,8 @@ The docs `tsconfig.json` is independent from the project's build config — tail
 - One question per doc. Many small docs beat one big doc.
 - Keep prose short — a few sentences plus references.
 - Let `{NodeRef}` carry meaning. Links beat repeating.
-- Use `<Flow>` for multi-step processes.
+- Use `<Flow>` for multi-step processes — anchor the trigger in a real use case, lean on registered nodes for steps, and don't branch.
+- Use `<Relation>` to surface non-obvious links — labels describe the functional role one node plays for the other, not the function name being called.
 - Use `priority="constraint"` for rules that must not be broken.
 - **Write in plain English.** Short sentences, common words, no jargon. Docs are read by people from many backgrounds, including non-native English speakers. If a plain word fits, use it.
 

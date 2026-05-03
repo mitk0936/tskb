@@ -88,7 +88,7 @@ export function toggleCodeTooltip(
     `">` +
     `<span style="` +
     `flex:1;min-width:0;` +
-    `font-size:10px;color:#94a3b8;` +
+    `font-size:12px;color:#94a3b8;` +
     `font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;` +
     `letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;` +
     `">${escHtml(path)}</span>` +

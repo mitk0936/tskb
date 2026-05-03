@@ -78,7 +78,7 @@ export default (
 
     <Flow
       name="static-analysis"
-      desc="TypeScript Program creation through extraction to graph"
+      desc="`tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly"
       priority="essential"
     >
       <Step node={CreateProgramExport} label="creates Program from tsconfig + source files" />

@@ -190,16 +190,6 @@ export class BaseNodeRenderer implements NodeComponent {
         .attr("text-anchor", "middle");
     }
 
-    // Boundary badge — right-aligned in footer, only for folders with a boundary
-    const boundaryG = g.append("g").attr("class", "node-boundary-badge");
-    boundaryG.append("rect").attr("rx", 3).attr("ry", 3).attr("height", 13);
-    boundaryG
-      .append("text")
-      .attr("font-size", 8)
-      .attr("font-weight", "600")
-      .attr("dominant-baseline", "middle")
-      .attr("text-anchor", "middle");
-
     // Code preview bubble — top-center, half outside top edge
     const previewG = g
       .append("g")
@@ -293,7 +283,6 @@ export class BaseNodeRenderer implements NodeComponent {
       el.select(".node-preview-btn").style("display", "none");
 
       if (ghost) {
-        el.select(".node-boundary-badge").style("display", "none");
         const maxChars = Math.floor((w - 12) / 5.5);
         el.select(".node-label")
           .style("display", null)
@@ -407,29 +396,6 @@ export class BaseNodeRenderer implements NodeComponent {
           .text(label);
       } else {
         flowsChip.style("display", "none");
-      }
-
-      // Boundary badge — right-aligned in footer, only for folders with a declared boundary
-      const boundary = d.type === "folder" ? (d.detail.boundary as string | undefined) : undefined;
-      const boundaryG = el.select<SVGGElement>(".node-boundary-badge");
-      boundaryG.style("display", boundary ? "block" : "none");
-      if (boundary) {
-        const PAD = 5;
-        const charW = 4.8;
-        const badgeW = Math.ceil(boundary.length * charW) + PAD * 2;
-        boundaryG.attr("transform", `translate(${w - 6 - badgeW},${CHIP_Y})`);
-        boundaryG
-          .select("rect")
-          .attr("width", badgeW)
-          .attr("fill", "#ede9fe")
-          .attr("stroke", "#7c3aed")
-          .attr("stroke-width", 0.8);
-        boundaryG
-          .select("text")
-          .attr("x", badgeW / 2)
-          .attr("y", 6.5)
-          .attr("fill", "#7c3aed")
-          .text(boundary);
       }
 
       // Code preview bubble — top-center, half above the card

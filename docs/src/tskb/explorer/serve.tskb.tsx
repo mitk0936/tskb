@@ -80,26 +80,23 @@ export default (
 
     <Flow
       name="explorer-serve-flow"
-      desc="tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand"
+      desc="Developer runs `tskb explore`: the CLI loads the graph, transforms it into chunks, starts an HTTP server, and the browser loads the SPA and fetches chunks on demand"
       priority="essential"
     >
-      <Step node={ExploreExport} label="Reads graph.json, branches on --export flag" />
+      <Step node={ExploreExport} label="loads the graph file and routes to the serve path" />
       <Step
         node={TransformGraphExport}
-        label="Converts KnowledgeGraph into MetaChunk + FolderChunks, serializes all to JSON strings"
+        label="converts the KnowledgeGraph into a MetaChunk and one FolderChunk per folder, held in memory"
       />
       <Step
         node={ServeExplorerExport}
-        label="Starts http server: /chunks/*.json reads from in-memory cache; /* serves SPA assets"
+        label="starts the HTTP server: chunk routes serve the in-memory chunks as JSON; everything else serves the SPA assets"
       />
       <Step
         node={MainModule}
-        label="ExplorerApp.mount(): setupCanvas (D3 SVG + zoom/pan), setupRenderer, setupSearch, then loadInitialData fetches meta.json"
+        label="ExplorerApp mounts on page load: sets up canvas, renderer, and search, then fetches the meta chunk"
       />
-      <Step
-        node={LaneEngineModule}
-        label="computeLayout() positions all visible nodes across three lanes"
-      />
+      <Step node={LaneEngineModule} label="positions all visible nodes across the three lanes" />
       <Step node={NodeBaseModule} label="D3 enter/update renders node cards into SVG groups" />
     </Flow>
   </Doc>

@@ -7,7 +7,9 @@
   display: flex;
   flex-direction: column;
   z-index: 90;
-  transition: width 0.25s ease, box-shadow 0.25s ease;
+  transition:
+    width 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 #doc-panel.open {
@@ -56,7 +58,7 @@
 }
 
 .title-kind-chip {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 10px;
@@ -66,11 +68,17 @@
   font-family: inherit;
 }
 
-.title-kind-docs  { background: #ede9fe; color: #6d28d9; }
-.title-kind-flows { background: #d1fae5; color: #065f46; }
+.title-kind-docs {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+.title-kind-flows {
+  background: #d1fae5;
+  color: #065f46;
+}
 
 .title-refs-target {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   color: #64748b;
   font-family: "SF Mono", "Fira Code", monospace;
@@ -282,9 +290,18 @@
   letter-spacing: 0.04em;
 }
 
-.priority-essential   { background: #dbeafe; color: #1d4ed8; }
-.priority-constraint  { background: #fce7f3; color: #be185d; }
-.priority-supplementary { background: #f1f5f9; color: #64748b; }
+.priority-essential {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.priority-constraint {
+  background: #fce7f3;
+  color: #be185d;
+}
+.priority-supplementary {
+  background: #f1f5f9;
+  color: #64748b;
+}
 
 /* ── Empty state ──────────────────────────────────────────────────────────── */
 

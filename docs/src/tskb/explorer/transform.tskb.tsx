@@ -31,7 +31,6 @@ const TransformModule = ref as tskb.Modules["explorer.transform"];
 const TransformGraphExport = ref as tskb.Exports["explorer.transformGraph"];
 const GhostNodeTerm = ref as tskb.Terms["ghostNode"];
 const ChunkTerm = ref as tskb.Terms["knowledgeChunk"];
-const ExploreCommandModule = ref as tskb.Modules["cli.commands.explore"];
 
 // ─── Documentation ────────────────────────────────────────────────────────────
 
@@ -111,32 +110,27 @@ export default (
 
     <Flow
       name="graph-to-chunks-transform"
-      desc="How KnowledgeGraph becomes ExplorerChunks: edge indexing, meta assembly, recursive folder chunking, ghost node injection, child count patching"
+      desc="The explorer asks transformGraph to chunk a KnowledgeGraph for delivery: edges are indexed, the meta chunk is built, folder chunks are walked, ghosts are filled in, then counts and ordering are finalised"
     >
-      <Step node={ExploreCommandModule} label="Reads graph.json from disk into KnowledgeGraph" />
-      <Step
-        node={TransformModule}
-        label="groupEdgesByKey() builds edgesBySource + edgesByTarget indexes from all graph edges"
-      />
       <Step
         node={TransformGraphExport}
-        label="Assembles MetaChunk: root node, topFolders, docs, flows, terms, externals, cross-lane reference edges"
-      />
-      <Step
-        node={TransformGraphExport}
-        label="buildAllFolderChunksRecursively() depth-first: modules, exports, subfolders, internal + external import edges per folder"
+        label="entry point: instantiates the transformer, indexes edges by source and target, then runs the phases below"
       />
       <Step
         node={TransformModule}
-        label="buildGhostIntermediaryChains() synthesizes FolderChunks for every intermediate filesystem directory between a declared folder path and its owned modules/subfolders"
+        label="builds the meta chunk: root folder, top folders, docs, flows, terms, externals, and cross-lane edges"
       />
       <Step
         node={TransformModule}
-        label="injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories recorded in folder.children scanner data"
+        label="recursively builds one folder chunk per folder with its direct modules, exports, sub-folders, and import edges (split into internal vs external)"
       />
       <Step
         node={TransformModule}
-        label="patchFolderChildCounts() finalizes _hasChildren + _childCount on all folder nodes after ghost injection"
+        label="fills in ghost intermediary folders for path gaps between a declared folder and its modules, then injects ghost nodes for undeclared files and folders found by the scanner"
+      />
+      <Step
+        node={TransformModule}
+        label="patches folder child counts so the SPA can show expand affordances, sorts chunk contents alphabetically, and builds the parent-of map"
       />
     </Flow>
   </Doc>

@@ -131,7 +131,7 @@
             }
           ]
         },
-        "edgeCount": 11
+        "edgeCount": 10
       },
       "tests.e2e.fixture": {
         "id": "tests.e2e.fixture",
@@ -1684,7 +1684,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
         "morphologySummary": "1 class, 2 functions, 1 interface, 8 types, 2 variables",
         "morphology": [
-          "export function exportDisplayLabel(label: string, morphologySummary?: string | undefined): string {} // :472-477",
+          "export function exportDisplayLabel(label: string, morphologySummary?: string | undefined): string {} // :438-443",
           "export const NODE_COLORS: Record<NodeType, string> // :11-20",
           "export const NODE_ICON: Record<NodeType, string> // :22-31",
           "export interface NodeComponent { // :35-46",
@@ -1702,16 +1702,16 @@
           "export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void // :56",
           "export type ChipClickHandler = (node: PositionedNode, chip: \"docs\" | \"flows\") => void // :57",
           "export type GetRefsFn = (nodeId: string) => string[] // :58",
-          "export class BaseNodeRenderer { // :72-462",
+          "export class BaseNodeRenderer { // :72-428",
           "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, onChipClick: ChipClickHandler | undefined, getReferencingDocs: GetRefsFn | undefined, getReferencingFlows: GetRefsFn | undefined) {} // :73-83",
           "  getSize(node: PositionedNode): { w: number; h: number; } {} // :85-87",
           "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :89-92",
           "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :94-97",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-257",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :259-461",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-247",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :249-427",
           "}",
           "// — internal —",
-          "function trunc(s: string, max: number): string {} // :466-469"
+          "function trunc(s: string, max: number): string {} // :432-435"
         ],
         "importsSummary": "12 imports from 6 paths",
         "imports": [
@@ -2327,7 +2327,7 @@
             "typeOnly": true
           }
         ],
-        "edgeCount": 7
+        "edgeCount": 6
       },
       "explorer.export": {
         "id": "explorer.export",
@@ -3704,14 +3704,14 @@
           "export function buildTocBody(graph: KnowledgeGraph, buildScript?: string): string {} // :121-141",
           "export function buildQueryBody(graph: KnowledgeGraph, buildScript?: string): string {} // :147-154",
           "export function buildUpdateBody(graph: KnowledgeGraph, buildScript?: string): string {} // :161-349",
-          "export function buildUpdateSyntaxBody(_graph: KnowledgeGraph): string {} // :361-642",
+          "export function buildUpdateSyntaxBody(_graph: KnowledgeGraph): string {} // :361-707",
           "// — internal —",
-          "function buildFolderTree(graph: KnowledgeGraph, maxDepth?: number): string {} // :650-670",
-          "function buildConstraintDocsSummary(graph: KnowledgeGraph): string {} // :679-691",
-          "function buildDocSummaries(graph: KnowledgeGraph, essentialOnly: boolean): string {} // :697-721",
-          "function buildFlowsSummary(graph: KnowledgeGraph): string {} // :726-751",
-          "function buildBoundariesSummary(graph: KnowledgeGraph): string {} // :756-768",
-          "function buildExternalsSummary(graph: KnowledgeGraph): string {} // :770-787"
+          "function buildFolderTree(graph: KnowledgeGraph, maxDepth?: number): string {} // :715-735",
+          "function buildConstraintDocsSummary(graph: KnowledgeGraph): string {} // :744-756",
+          "function buildDocSummaries(graph: KnowledgeGraph, essentialOnly: boolean): string {} // :762-786",
+          "function buildFlowsSummary(graph: KnowledgeGraph): string {} // :791-816",
+          "function buildBoundariesSummary(graph: KnowledgeGraph): string {} // :821-833",
+          "function buildExternalsSummary(graph: KnowledgeGraph): string {} // :835-852"
         ],
         "importsSummary": "3 imports from 3 paths",
         "imports": [
@@ -4567,13 +4567,13 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class BaseNodeRenderer { // :72-462",
+          "export class BaseNodeRenderer { // :72-428",
           "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, onChipClick: ChipClickHandler | undefined, getReferencingDocs: GetRefsFn | undefined, getReferencingFlows: GetRefsFn | undefined) {} // :73-83",
           "  getSize(node: PositionedNode): { w: number; h: number; } {} // :85-87",
           "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :89-92",
           "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :94-97",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-257",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :259-461",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-247",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :249-427",
           "}"
         ],
         "edgeCount": 2
@@ -5187,7 +5187,7 @@
         "type": "file",
         "desc": "Tests for `tskb init`.",
         "path": "tests/e2e/init.test.ts",
-        "edgeCount": 2
+        "edgeCount": 3
       },
       "tests.build": {
         "id": "tests.build",
@@ -5281,28 +5281,28 @@
       "e2e-test-execution": {
         "id": "e2e-test-execution",
         "type": "flow",
-        "desc": "Full E2E run: global setup builds fixture graph, test files exercise every CLI command, teardown cleans output",
-        "priority": "essential",
+        "desc": "Developer runs `npm test`: Vitest loads config, global setup builds the fixture graph, test files exercise every CLI command, teardown cleans output",
+        "priority": "supplementary",
         "steps": [
           {
             "nodeId": "vitest.config",
             "order": 0,
-            "label": "Discovers test files, registers global setup"
+            "label": "discovers test files, registers global setup"
           },
           {
             "nodeId": "tests.global-setup",
             "order": 1,
-            "label": "Builds fixture graph once via tskb build"
+            "label": "builds fixture graph once via tskb build"
           },
           {
             "nodeId": "tests.helpers",
             "order": 2,
-            "label": "Provides CLI runners and graph loader to all test files"
+            "label": "provides CLI runners and graph loader to all test files"
           },
           {
             "nodeId": "tests.global-setup",
             "order": 3,
-            "label": "Teardown cleans .tskb/ output directory"
+            "label": "teardown cleans .tskb/ output directory"
           }
         ],
         "edgeCount": 3
@@ -5310,23 +5310,28 @@
       "init-scaffolding-test": {
         "id": "init-scaffolding-test",
         "type": "flow",
-        "desc": "How the init command is tested: copies fixture to temp dir, runs init, asserts generated files",
+        "desc": "`init.test.ts` runs: copies fixture to a temp dir, invokes `tskb init`, asserts the generated files",
         "priority": "supplementary",
         "steps": [
           {
-            "nodeId": "tests.helpers",
+            "nodeId": "tests.init",
             "order": 0,
-            "label": "Copies fixture src/ into a temp directory"
+            "label": "orchestrates the test: arranges temp dir, runs init, asserts output"
+          },
+          {
+            "nodeId": "tests.helpers",
+            "order": 1,
+            "label": "copies fixture src/ into the temp directory"
           },
           {
             "nodeId": "cli.build",
-            "order": 1,
-            "label": "Runs tskb init --yes in the temp directory"
+            "order": 2,
+            "label": "runs tskb init --yes in the temp directory"
           },
           {
-            "nodeId": "tests.e2e",
-            "order": 2,
-            "label": "Asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs"
+            "nodeId": "tests.init",
+            "order": 3,
+            "label": "asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs"
           }
         ],
         "edgeCount": 3
@@ -5368,7 +5373,7 @@
       "static-analysis": {
         "id": "static-analysis",
         "type": "flow",
-        "desc": "TypeScript Program creation through extraction to graph",
+        "desc": "`tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly",
         "priority": "essential",
         "steps": [
           {
@@ -5397,46 +5402,36 @@
       "graph-to-chunks-transform": {
         "id": "graph-to-chunks-transform",
         "type": "flow",
-        "desc": "How KnowledgeGraph becomes ExplorerChunks: edge indexing, meta assembly, recursive folder chunking, ghost node injection, child count patching",
+        "desc": "The explorer asks transformGraph to chunk a KnowledgeGraph for delivery: edges are indexed, the meta chunk is built, folder chunks are walked, ghosts are filled in, then counts and ordering are finalised",
         "priority": "supplementary",
         "steps": [
           {
-            "nodeId": "cli.commands.explore",
+            "nodeId": "explorer.transformGraph",
             "order": 0,
-            "label": "Reads graph.json from disk into KnowledgeGraph"
+            "label": "entry point: instantiates the transformer, indexes edges by source and target, then runs the phases below"
           },
           {
             "nodeId": "explorer.transform",
             "order": 1,
-            "label": "groupEdgesByKey() builds edgesBySource + edgesByTarget indexes from all graph edges"
+            "label": "builds the meta chunk: root folder, top folders, docs, flows, terms, externals, and cross-lane edges"
           },
           {
-            "nodeId": "explorer.transformGraph",
+            "nodeId": "explorer.transform",
             "order": 2,
-            "label": "Assembles MetaChunk: root node, topFolders, docs, flows, terms, externals, cross-lane reference edges"
+            "label": "recursively builds one folder chunk per folder with its direct modules, exports, sub-folders, and import edges (split into internal vs external)"
           },
           {
-            "nodeId": "explorer.transformGraph",
+            "nodeId": "explorer.transform",
             "order": 3,
-            "label": "buildAllFolderChunksRecursively() depth-first: modules, exports, subfolders, internal + external import edges per folder"
+            "label": "fills in ghost intermediary folders for path gaps between a declared folder and its modules, then injects ghost nodes for undeclared files and folders found by the scanner"
           },
           {
             "nodeId": "explorer.transform",
             "order": 4,
-            "label": "buildGhostIntermediaryChains() synthesizes FolderChunks for every intermediate filesystem directory between a declared folder path and its owned modules/subfolders"
-          },
-          {
-            "nodeId": "explorer.transform",
-            "order": 5,
-            "label": "injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories recorded in folder.children scanner data"
-          },
-          {
-            "nodeId": "explorer.transform",
-            "order": 6,
-            "label": "patchFolderChildCounts() finalizes _hasChildren + _childCount on all folder nodes after ghost injection"
+            "label": "patches folder child counts so the SPA can show expand affordances, sorts chunk contents alphabetically, and builds the parent-of map"
           }
         ],
-        "edgeCount": 3
+        "edgeCount": 2
       },
       "explorer-expand-flow": {
         "id": "explorer-expand-flow",
@@ -5490,33 +5485,33 @@
       "explorer-serve-flow": {
         "id": "explorer-serve-flow",
         "type": "flow",
-        "desc": "tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand",
+        "desc": "Developer runs `tskb explore`: the CLI loads the graph, transforms it into chunks, starts an HTTP server, and the browser loads the SPA and fetches chunks on demand",
         "priority": "essential",
         "steps": [
           {
             "nodeId": "explorer.explore",
             "order": 0,
-            "label": "Reads graph.json, branches on --export flag"
+            "label": "loads the graph file and routes to the serve path"
           },
           {
             "nodeId": "explorer.transformGraph",
             "order": 1,
-            "label": "Converts KnowledgeGraph into MetaChunk + FolderChunks, serializes all to JSON strings"
+            "label": "converts the KnowledgeGraph into a MetaChunk and one FolderChunk per folder, held in memory"
           },
           {
             "nodeId": "explorer.serveExplorer",
             "order": 2,
-            "label": "Starts http server: /chunks/*.json reads from in-memory cache; /* serves SPA assets"
+            "label": "starts the HTTP server: chunk routes serve the in-memory chunks as JSON; everything else serves the SPA assets"
           },
           {
             "nodeId": "explorer.spa.main",
             "order": 3,
-            "label": "ExplorerApp.mount(): setupCanvas (D3 SVG + zoom/pan), setupRenderer, setupSearch, then loadInitialData fetches meta.json"
+            "label": "ExplorerApp mounts on page load: sets up canvas, renderer, and search, then fetches the meta chunk"
           },
           {
             "nodeId": "explorer.spa.lane-engine",
             "order": 4,
-            "label": "computeLayout() positions all visible nodes across three lanes"
+            "label": "positions all visible nodes across the three lanes"
           },
           {
             "nodeId": "explorer.spa.node-base",
@@ -5529,28 +5524,23 @@
       "explorer-export-flow": {
         "id": "explorer-export-flow",
         "type": "flow",
-        "desc": "tskb explore --export: reads graph.json, transforms chunks in memory, copies pre-built SPA from dist/explorer/ and writes chunk JSON files into the output directory (default: .tskb/explorer/)",
+        "desc": "Developer runs the explorer export command: the graph file is read, chunks are transformed in memory, then the pre-built SPA and chunk files are written to the output directory",
         "priority": "essential",
         "steps": [
           {
             "nodeId": "explorer.explore",
             "order": 0,
-            "label": "reads .tskb/graph.json; resolves output directory from --export flag (default: .tskb/explorer/)"
+            "label": "reads the graph file and resolves the output directory from the export flag"
           },
           {
             "nodeId": "explorer.transformGraph",
             "order": 1,
-            "label": "converts KnowledgeGraph → MetaChunk + one FolderChunk per folder, held in memory"
+            "label": "converts KnowledgeGraph into a MetaChunk plus one FolderChunk per folder, held in memory"
           },
           {
             "nodeId": "explorer.exportExplorer",
             "order": 2,
-            "label": "copyDir: recursively copies dist/explorer/ (pre-built SPA inside the tskb package) into outputDir/ — produces outputDir/index.html and outputDir/assets/"
-          },
-          {
-            "nodeId": "explorer.exportExplorer",
-            "order": 3,
-            "label": "writes all chunks as JSON: outputDir/chunks/meta.json and outputDir/chunks/folder-{sanitizedId}.json — one file per folder"
+            "label": "copies the pre-built SPA into the output directory and writes all chunk JSON files alongside it"
           }
         ],
         "edgeCount": 3
@@ -5607,13 +5597,13 @@
       "explorer-app-render": {
         "id": "explorer-app-render",
         "type": "flow",
-        "desc": "ExplorerApp.render(): layout → edges → D3 enter/update/exit → search dim",
+        "desc": "A store update or interaction calls ExplorerApp.render(): layout, edges, D3 join, search dim",
         "priority": "supplementary",
         "steps": [
           {
             "nodeId": "explorer.spa.ExplorerApp.render",
             "order": 0,
-            "label": "Triggered by store subscription or direct call from interaction handler"
+            "label": "triggered by store subscription or a direct call from an interaction handler"
           },
           {
             "nodeId": "explorer.spa.computeLayout",
@@ -5643,17 +5633,7 @@
           {
             "nodeId": "explorer.spa.node-base",
             "order": 6,
-            "label": "D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble"
-          },
-          {
-            "nodeId": "explorer.spa.node-base",
-            "order": 7,
-            "label": "D3 update: renderer.update() repositions and reskins all merged nodes"
-          },
-          {
-            "nodeId": "explorer.spa.node-base",
-            "order": 8,
-            "label": "D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes"
+            "label": "D3 enter/update/exit: new node cards appended, merged nodes repositioned, removed nodes fade out; search dim sets 0.15 on non-matching nodes"
           }
         ],
         "edgeCount": 7
@@ -5705,8 +5685,8 @@
       "module-morphology-extraction": {
         "id": "module-morphology-extraction",
         "type": "flow",
-        "desc": "How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs",
-        "priority": "essential",
+        "desc": "During `tskb build`, extractRegistry enriches every Module declaration with its public API: exports, imports, and type stubs",
+        "priority": "supplementary",
         "steps": [
           {
             "nodeId": "extractRegistry",
@@ -5803,7 +5783,7 @@
         "explains": "How is the tskb CLI validated end-to-end?",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/tests.tskb.tsx",
-        "content": "<h1>E2E Test Infrastructure </h1><p>The test suite ( <a class=\"tskb-ref\" data-node-id=\"tests\" data-node-type=\"folder\" data-node-display=\"tests/\">tests</a>) validates the entire tskb CLI by running it as a subprocess\n      against a realistic fixture project. Tests use Vitest and spawn the built CLI binary via\n      Node's execFileSync, asserting on stdout and generated artifacts. </p><span class=\"tskb-relation\" data-from=\"tests\" data-to=\"vitest\" data-label=\"test runner\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">Full E2E run: global setup builds fixture graph, test files exercise every CLI command, teardown cleans output</p><ol><li><a class=\"tskb-ref\" data-node-id=\"vitest.config\" data-node-type=\"file\" data-node-display=\"vitest.config.ts\">vitest.config</a> — Discovers test files, registers global setup</li><li><a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"file\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a> — Builds fixture graph once via tskb build</li><li><a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"file\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a> — Provides CLI runners and graph loader to all test files</li><li><a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"file\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a> — Teardown cleans .tskb/ output directory</li></ol></div><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">How the init command is tested: copies fixture to temp dir, runs init, asserts generated files</p><ol><li><a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"file\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a> — Copies fixture src/ into a temp directory</li><li><a class=\"tskb-ref\" data-node-id=\"cli.build\" data-node-type=\"export\" data-node-display=\"cli.build\">cli.build</a> — Runs tskb init --yes in the temp directory</li><li><a class=\"tskb-ref\" data-node-id=\"tests.e2e\" data-node-type=\"folder\" data-node-display=\"tests/e2e/\">tests.e2e</a> — Asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs</li></ol></div><h2>Fixture Project </h2><p>The fixture at <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>is a small task-management TypeScript app with models,\n      services, API routes, and utilities. It includes its own tskb docs folder with 6 doc files\n      covering all three priority levels (essential, constraint, supplementary) and all registry\n      primitives (Folder, Module, Export, Term, External, Relation, Flow). This makes it a\n      comprehensive test subject for the full build and query pipeline. </p><h2>Test Structure </h2><p>Tests are split into focused files under <a class=\"tskb-ref\" data-node-id=\"tests.e2e\" data-node-type=\"folder\" data-node-display=\"tests/e2e/\">tests.e2e</a>, sharing utilities from <a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"file\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a>. A\n      Vitest global setup ( <a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"file\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a>) builds the fixture graph once before any test runs. </p><ul><li><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"file\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a>— scaffolding tests with idempotency checks </li><li><a class=\"tskb-ref\" data-node-id=\"tests.build\" data-node-type=\"file\" data-node-display=\"tests/e2e/build.test.ts\">tests.build</a>— graph output validation: node counts, priorities, edges </li><li><a class=\"tskb-ref\" data-node-id=\"tests.commands\" data-node-type=\"file\" data-node-display=\"tests/e2e/commands.test.ts\">tests.commands</a>— exercises every query command in plain and JSON modes </li><li><a class=\"tskb-ref\" data-node-id=\"tests.disambiguation\" data-node-type=\"file\" data-node-display=\"tests/e2e/disambiguation.test.ts\">tests.disambiguation</a>— ambiguous ID resolution across commands </li><li><a class=\"tskb-ref\" data-node-id=\"tests.graph-integrity\" data-node-type=\"file\" data-node-display=\"tests/e2e/graph-integrity.test.ts\">tests.graph-integrity</a>— edge consistency, type signatures, external metadata </li></ul><h2>Running Tests </h2><p>Tests require the package to be built first (npm run build). Run with npm test (vitest run) or\n      npm run test:watch (vitest) for interactive mode. The 60-second timeout in <a class=\"tskb-ref\" data-node-id=\"vitest.config\" data-node-type=\"file\" data-node-display=\"vitest.config.ts\">vitest.config</a>accounts for CLI subprocess startup cost. </p>",
+        "content": "<h1>E2E Test Infrastructure </h1><p>The test suite ( <a class=\"tskb-ref\" data-node-id=\"tests\" data-node-type=\"folder\" data-node-display=\"tests/\">tests</a>) validates the entire tskb CLI by running it as a subprocess\n      against a realistic fixture project. Tests use Vitest and spawn the built CLI binary via\n      Node's execFileSync, asserting on stdout and generated artifacts. </p><span class=\"tskb-relation\" data-from=\"tests\" data-to=\"vitest\" data-label=\"test runner\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">Developer runs `npm test`: Vitest loads config, global setup builds the fixture graph, test files exercise every CLI command, teardown cleans output</p><ol><li><a class=\"tskb-ref\" data-node-id=\"vitest.config\" data-node-type=\"file\" data-node-display=\"vitest.config.ts\">vitest.config</a> — discovers test files, registers global setup</li><li><a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"file\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a> — builds fixture graph once via tskb build</li><li><a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"file\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a> — provides CLI runners and graph loader to all test files</li><li><a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"file\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a> — teardown cleans .tskb/ output directory</li></ol></div><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">`init.test.ts` runs: copies fixture to a temp dir, invokes `tskb init`, asserts the generated files</p><ol><li><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"file\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a> — orchestrates the test: arranges temp dir, runs init, asserts output</li><li><a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"file\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a> — copies fixture src/ into the temp directory</li><li><a class=\"tskb-ref\" data-node-id=\"cli.build\" data-node-type=\"export\" data-node-display=\"cli.build\">cli.build</a> — runs tskb init --yes in the temp directory</li><li><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"file\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a> — asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs</li></ol></div><h2>Fixture Project </h2><p>The fixture at <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>is a small task-management TypeScript app with models,\n      services, API routes, and utilities. It includes its own tskb docs folder with 6 doc files\n      covering all three priority levels (essential, constraint, supplementary) and all registry\n      primitives (Folder, Module, Export, Term, External, Relation, Flow). This makes it a\n      comprehensive test subject for the full build and query pipeline. </p><h2>Test Structure </h2><p>Tests are split into focused files under <a class=\"tskb-ref\" data-node-id=\"tests.e2e\" data-node-type=\"folder\" data-node-display=\"tests/e2e/\">tests.e2e</a>, sharing utilities from <a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"file\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a>. A\n      Vitest global setup ( <a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"file\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a>) builds the fixture graph once before any test runs. </p><ul><li><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"file\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a>— scaffolding tests with idempotency checks </li><li><a class=\"tskb-ref\" data-node-id=\"tests.build\" data-node-type=\"file\" data-node-display=\"tests/e2e/build.test.ts\">tests.build</a>— graph output validation: node counts, priorities, edges </li><li><a class=\"tskb-ref\" data-node-id=\"tests.commands\" data-node-type=\"file\" data-node-display=\"tests/e2e/commands.test.ts\">tests.commands</a>— exercises every query command in plain and JSON modes </li><li><a class=\"tskb-ref\" data-node-id=\"tests.disambiguation\" data-node-type=\"file\" data-node-display=\"tests/e2e/disambiguation.test.ts\">tests.disambiguation</a>— ambiguous ID resolution across commands </li><li><a class=\"tskb-ref\" data-node-id=\"tests.graph-integrity\" data-node-type=\"file\" data-node-display=\"tests/e2e/graph-integrity.test.ts\">tests.graph-integrity</a>— edge consistency, type signatures, external metadata </li></ul><h2>Running Tests </h2><p>Tests require the package to be built first (npm run build). Run with npm test (vitest run) or\n      npm run test:watch (vitest) for interactive mode. The 60-second timeout in <a class=\"tskb-ref\" data-node-id=\"vitest.config\" data-node-type=\"file\" data-node-display=\"vitest.config.ts\">vitest.config</a>accounts for CLI subprocess startup cost. </p>",
         "format": "tsx",
         "edgeCount": 11
       },
@@ -5833,7 +5813,7 @@
         "explains": "How does tskb create a TypeScript Program for static analysis without compiling?",
         "priority": "essential",
         "filePath": "docs/src/tskb/typescript/typescript.tskb.tsx",
-        "content": "<h1>TypeScript Program </h1><p>Located in <a class=\"tskb-ref\" data-node-id=\"tskb.typescript\" data-node-type=\"folder\" data-node-display=\"packages/tskb/src/typescript/\">tskb.typescript</a>. <a class=\"tskb-ref\" data-node-id=\"typescript.program\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/typescript/program.ts\">typescript.program</a>exports <a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a>which creates a   <a class=\"tskb-ref\" data-node-id=\"tsProgram\" data-node-type=\"term\" data-node-display=\"tsProgram\">tsProgram</a>for analyzing code without compilation (noEmit=true). </p><ul><li>Reads and parses tsconfig.json for compiler options </li><li>Validates TypeScript errors in specified files </li><li>Returns Program with AST, type checker, and symbol resolution </li></ul><span class=\"tskb-relation\" data-from=\"tskb.typescript\" data-to=\"typescript\" data-label=\"wraps compiler API\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">TypeScript Program creation through extraction to graph</p><ol><li><a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a> — creates Program from tsconfig + source files</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a> — walks AST for Folders, Modules, Terms, Exports</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.documentation\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/documentation/index.ts\">extraction.documentation</a> — parses JSX trees for content and references</li><li><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a> — assembles nodes and edges into knowledge graph</li></ol></div>",
+        "content": "<h1>TypeScript Program </h1><p>Located in <a class=\"tskb-ref\" data-node-id=\"tskb.typescript\" data-node-type=\"folder\" data-node-display=\"packages/tskb/src/typescript/\">tskb.typescript</a>. <a class=\"tskb-ref\" data-node-id=\"typescript.program\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/typescript/program.ts\">typescript.program</a>exports <a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a>which creates a   <a class=\"tskb-ref\" data-node-id=\"tsProgram\" data-node-type=\"term\" data-node-display=\"tsProgram\">tsProgram</a>for analyzing code without compilation (noEmit=true). </p><ul><li>Reads and parses tsconfig.json for compiler options </li><li>Validates TypeScript errors in specified files </li><li>Returns Program with AST, type checker, and symbol resolution </li></ul><span class=\"tskb-relation\" data-from=\"tskb.typescript\" data-to=\"typescript\" data-label=\"wraps compiler API\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">`tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly</p><ol><li><a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a> — creates Program from tsconfig + source files</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a> — walks AST for Folders, Modules, Terms, Exports</li><li><a class=\"tskb-ref\" data-node-id=\"extraction.documentation\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/documentation/index.ts\">extraction.documentation</a> — parses JSX trees for content and references</li><li><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a> — assembles nodes and edges into knowledge graph</li></ol></div>",
         "format": "tsx",
         "edgeCount": 4
       },
@@ -5853,7 +5833,7 @@
         "explains": "How does the KnowledgeGraph become the chunks the explorer SPA loads?",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/explorer/transform.tskb.tsx",
-        "content": "<h1>Graph Transform </h1><p><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a>is the single step between the raw knowledge graph and what the browser\n      receives. <a class=\"tskb-ref\" data-node-id=\"explorer.transformGraph\" data-node-type=\"export\" data-node-display=\"explorer.transformGraph\">explorer.transformGraph</a>is implemented as a class ( GraphToExplorerTransformer ) whose transform() method orchestrates\n      all steps — edge indexing, meta assembly, folder chunk recursion, ghost injection, and child\n      count patching. </p><h2>Output shape </h2><p>The output is ExplorerChunks : a MetaChunk plus a   Map&lt;folderId, FolderChunk&gt; . The server and exporter serialize each entry to\n      a separate <a class=\"tskb-ref\" data-node-id=\"knowledgeChunk\" data-node-type=\"term\" data-node-display=\"knowledgeChunk\">knowledgeChunk</a>JSON file: meta.json and   folder-&#123;sanitizedId&#125;.json . </p><p>MetaChunk contains: root folder node, top-level folder summaries (with   _hasChildren / _childCount hints), all doc nodes, flow nodes, term\n      nodes, external nodes, and cross-lane references edges. </p><p>FolderChunk contains: direct sub-folders, direct modules, all exports of\n      those modules, import edges between modules in this folder ( internalEdges ), and\n      import edges that cross the folder boundary ( externalEdges ). </p><h2>Edge lookup indexes </h2><p>Before anything else, the transformer builds two Map&lt;nodeId, GraphEdge[]&gt;   indexes — one keyed by the source node id ( edgesBySource ) and one by the target\n      node id ( edgesByTarget ). All subsequent queries run in O(1) per node instead of\n      scanning the full edge list. </p><h2>Recursive folder chunking </h2><p>buildAllFolderChunksRecursively() does a depth-first walk starting from the root\n      folder, following contains edges. For each folder it finds direct modules (via   belongs-to edges pointing at the folder) and direct sub-folders (via   contains edges from the folder). Folders with neither are skipped but still\n      recursed into, so deeply nested folders with content are always reached. </p><h2>Ghost node injection </h2><p>Ghost injection runs in two passes. First, buildGhostIntermediaryChains() detects\n      path gaps between a declared folder's path and its owned modules or sub-folders. When a module\n      lives at pkg/src/core/server.ts but its declared parent folder has path   pkg , the transformer synthesizes <a class=\"tskb-ref\" data-node-id=\"ghostNode\" data-node-type=\"term\" data-node-display=\"ghostNode\">ghostNode</a>FolderChunk entries\n      for every intermediate directory ( pkg/src , pkg/src/core ) and\n      re-parents the module to the deepest one. The chain is not synthesized if any intermediate\n      path is already owned by a declared folder. </p><p>Second, injectGhostNodes() scans every declared folder's   folder.children.files and folder.children.folders (scanner data\n      recorded during tskb build ). Any .ts / .tsx file not\n      already in a chunk becomes a ghost module node. Any direct child directory not already\n      represented (either as a declared folder or a ghost intermediary) and not a transparent\n      intermediary becomes a ghost folder node. Ghost intermediary chunks are not processed by this\n      pass — they only contain what the graph already knows. </p><h2>Child count patching </h2><p>After ghost injection is complete, patchFolderChildCounts() writes the final   _hasChildren and _childCount detail fields on every folder   ExplorerNode . These fields drive the expand button visibility and badge in the\n      SPA. The patch runs last so ghost nodes are included in the counts. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">How KnowledgeGraph becomes ExplorerChunks: edge indexing, meta assembly, recursive folder chunking, ghost node injection, child count patching</p><ol><li><a class=\"tskb-ref\" data-node-id=\"cli.commands.explore\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/cli/commands/explore.ts\">cli.commands.explore</a> — Reads graph.json from disk into KnowledgeGraph</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a> — groupEdgesByKey() builds edgesBySource + edgesByTarget indexes from all graph edges</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transformGraph\" data-node-type=\"export\" data-node-display=\"explorer.transformGraph\">explorer.transformGraph</a> — Assembles MetaChunk: root node, topFolders, docs, flows, terms, externals, cross-lane reference edges</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transformGraph\" data-node-type=\"export\" data-node-display=\"explorer.transformGraph\">explorer.transformGraph</a> — buildAllFolderChunksRecursively() depth-first: modules, exports, subfolders, internal + external import edges per folder</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a> — buildGhostIntermediaryChains() synthesizes FolderChunks for every intermediate filesystem directory between a declared folder path and its owned modules/subfolders</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a> — injectGhostNodes() adds placeholder ExplorerNodes for undeclared .ts/.tsx files and undeclared child directories recorded in folder.children scanner data</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a> — patchFolderChildCounts() finalizes _hasChildren + _childCount on all folder nodes after ghost injection</li></ol></div>",
+        "content": "<h1>Graph Transform </h1><p><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a>is the single step between the raw knowledge graph and what the browser\n      receives. <a class=\"tskb-ref\" data-node-id=\"explorer.transformGraph\" data-node-type=\"export\" data-node-display=\"explorer.transformGraph\">explorer.transformGraph</a>is implemented as a class ( GraphToExplorerTransformer ) whose transform() method orchestrates\n      all steps — edge indexing, meta assembly, folder chunk recursion, ghost injection, and child\n      count patching. </p><h2>Output shape </h2><p>The output is ExplorerChunks : a MetaChunk plus a   Map&lt;folderId, FolderChunk&gt; . The server and exporter serialize each entry to\n      a separate <a class=\"tskb-ref\" data-node-id=\"knowledgeChunk\" data-node-type=\"term\" data-node-display=\"knowledgeChunk\">knowledgeChunk</a>JSON file: meta.json and   folder-&#123;sanitizedId&#125;.json . </p><p>MetaChunk contains: root folder node, top-level folder summaries (with   _hasChildren / _childCount hints), all doc nodes, flow nodes, term\n      nodes, external nodes, and cross-lane references edges. </p><p>FolderChunk contains: direct sub-folders, direct modules, all exports of\n      those modules, import edges between modules in this folder ( internalEdges ), and\n      import edges that cross the folder boundary ( externalEdges ). </p><h2>Edge lookup indexes </h2><p>Before anything else, the transformer builds two Map&lt;nodeId, GraphEdge[]&gt;   indexes — one keyed by the source node id ( edgesBySource ) and one by the target\n      node id ( edgesByTarget ). All subsequent queries run in O(1) per node instead of\n      scanning the full edge list. </p><h2>Recursive folder chunking </h2><p>buildAllFolderChunksRecursively() does a depth-first walk starting from the root\n      folder, following contains edges. For each folder it finds direct modules (via   belongs-to edges pointing at the folder) and direct sub-folders (via   contains edges from the folder). Folders with neither are skipped but still\n      recursed into, so deeply nested folders with content are always reached. </p><h2>Ghost node injection </h2><p>Ghost injection runs in two passes. First, buildGhostIntermediaryChains() detects\n      path gaps between a declared folder's path and its owned modules or sub-folders. When a module\n      lives at pkg/src/core/server.ts but its declared parent folder has path   pkg , the transformer synthesizes <a class=\"tskb-ref\" data-node-id=\"ghostNode\" data-node-type=\"term\" data-node-display=\"ghostNode\">ghostNode</a>FolderChunk entries\n      for every intermediate directory ( pkg/src , pkg/src/core ) and\n      re-parents the module to the deepest one. The chain is not synthesized if any intermediate\n      path is already owned by a declared folder. </p><p>Second, injectGhostNodes() scans every declared folder's   folder.children.files and folder.children.folders (scanner data\n      recorded during tskb build ). Any .ts / .tsx file not\n      already in a chunk becomes a ghost module node. Any direct child directory not already\n      represented (either as a declared folder or a ghost intermediary) and not a transparent\n      intermediary becomes a ghost folder node. Ghost intermediary chunks are not processed by this\n      pass — they only contain what the graph already knows. </p><h2>Child count patching </h2><p>After ghost injection is complete, patchFolderChildCounts() writes the final   _hasChildren and _childCount detail fields on every folder   ExplorerNode . These fields drive the expand button visibility and badge in the\n      SPA. The patch runs last so ghost nodes are included in the counts. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">The explorer asks transformGraph to chunk a KnowledgeGraph for delivery: edges are indexed, the meta chunk is built, folder chunks are walked, ghosts are filled in, then counts and ordering are finalised</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.transformGraph\" data-node-type=\"export\" data-node-display=\"explorer.transformGraph\">explorer.transformGraph</a> — entry point: instantiates the transformer, indexes edges by source and target, then runs the phases below</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a> — builds the meta chunk: root folder, top folders, docs, flows, terms, externals, and cross-lane edges</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a> — recursively builds one folder chunk per folder with its direct modules, exports, sub-folders, and import edges (split into internal vs external)</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a> — fills in ghost intermediary folders for path gaps between a declared folder and its modules, then injects ghost nodes for undeclared files and folders found by the scanner</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transform\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/transform.ts\">explorer.transform</a> — patches folder child counts so the SPA can show expand affordances, sorts chunk contents alphabetically, and builds the parent-of map</li></ol></div>",
         "format": "tsx",
         "edgeCount": 4
       },
@@ -5873,7 +5853,7 @@
         "explains": "How does the explorer HTTP server serve chunks and SPA assets?",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/explorer/serve.tskb.tsx",
-        "content": "<h1>Explorer Server </h1><p><a class=\"tskb-ref\" data-node-id=\"explorer.serveExplorer\" data-node-type=\"export\" data-node-display=\"explorer.serveExplorer\">explorer.serveExplorer</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.server\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/server.ts\">explorer.server</a>starts a Node built-in http server — no\n      external dependency. It runs the graph transform once at startup, serializes every <a class=\"tskb-ref\" data-node-id=\"knowledgeChunk\" data-node-type=\"term\" data-node-display=\"knowledgeChunk\">knowledgeChunk</a>  to JSON, and keeps all of them in a Map&lt;string, string&gt; for the lifetime of\n      the process. Subsequent chunk requests are pure string writes with no re-serialization. </p><h2>Request routing </h2><p>Two routes are handled: </p><p>/chunks/*.json — chunk API. The key is extracted from the pathname (e.g.   meta or folder-tskb.core ) and looked up in the in-memory cache. A\n      404 is returned if the key is unknown. </p><p>/* (static assets) — SPA files are served from dist/explorer/ ,\n      resolved via import.meta.url so the path stays correct after   npm pack . Any unknown path falls back to index.html so the SPA\n      router handles client-side navigation. A path traversal guard rejects any request that\n      resolves outside dist/explorer/ . </p><h2>Command entry point </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.explore\" data-node-type=\"export\" data-node-display=\"explorer.explore\">explorer.explore</a>in <a class=\"tskb-ref\" data-node-id=\"cli.commands.explore\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/cli/commands/explore.ts\">cli.commands.explore</a>locates graph.json via   <a class=\"tskb-ref\" data-node-id=\"cli.utils.graph-finder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/cli/utils/graph-finder.ts\">cli.utils.graph-finder</a>, parses it, then branches: if --export is provided it calls   exportExplorer ; otherwise it calls <a class=\"tskb-ref\" data-node-id=\"explorer.serveExplorer\" data-node-type=\"export\" data-node-display=\"explorer.serveExplorer\">explorer.serveExplorer</a>. The module is\n      dynamically imported so the SPA assets directory is only resolved when actually needed. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.explore\" data-node-type=\"export\" data-node-display=\"explorer.explore\">explorer.explore</a> — Reads graph.json, branches on --export flag</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transformGraph\" data-node-type=\"export\" data-node-display=\"explorer.transformGraph\">explorer.transformGraph</a> — Converts KnowledgeGraph into MetaChunk + FolderChunks, serializes all to JSON strings</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.serveExplorer\" data-node-type=\"export\" data-node-display=\"explorer.serveExplorer\">explorer.serveExplorer</a> — Starts http server: /chunks/*.json reads from in-memory cache; /* serves SPA assets</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a> — ExplorerApp.mount(): setupCanvas (D3 SVG + zoom/pan), setupRenderer, setupSearch, then loadInitialData fetches meta.json</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.lane-engine\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/layout/lane-engine.ts\">explorer.spa.lane-engine</a> — computeLayout() positions all visible nodes across three lanes</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a> — D3 enter/update renders node cards into SVG groups</li></ol></div>",
+        "content": "<h1>Explorer Server </h1><p><a class=\"tskb-ref\" data-node-id=\"explorer.serveExplorer\" data-node-type=\"export\" data-node-display=\"explorer.serveExplorer\">explorer.serveExplorer</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.server\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/server.ts\">explorer.server</a>starts a Node built-in http server — no\n      external dependency. It runs the graph transform once at startup, serializes every <a class=\"tskb-ref\" data-node-id=\"knowledgeChunk\" data-node-type=\"term\" data-node-display=\"knowledgeChunk\">knowledgeChunk</a>  to JSON, and keeps all of them in a Map&lt;string, string&gt; for the lifetime of\n      the process. Subsequent chunk requests are pure string writes with no re-serialization. </p><h2>Request routing </h2><p>Two routes are handled: </p><p>/chunks/*.json — chunk API. The key is extracted from the pathname (e.g.   meta or folder-tskb.core ) and looked up in the in-memory cache. A\n      404 is returned if the key is unknown. </p><p>/* (static assets) — SPA files are served from dist/explorer/ ,\n      resolved via import.meta.url so the path stays correct after   npm pack . Any unknown path falls back to index.html so the SPA\n      router handles client-side navigation. A path traversal guard rejects any request that\n      resolves outside dist/explorer/ . </p><h2>Command entry point </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.explore\" data-node-type=\"export\" data-node-display=\"explorer.explore\">explorer.explore</a>in <a class=\"tskb-ref\" data-node-id=\"cli.commands.explore\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/cli/commands/explore.ts\">cli.commands.explore</a>locates graph.json via   <a class=\"tskb-ref\" data-node-id=\"cli.utils.graph-finder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/cli/utils/graph-finder.ts\">cli.utils.graph-finder</a>, parses it, then branches: if --export is provided it calls   exportExplorer ; otherwise it calls <a class=\"tskb-ref\" data-node-id=\"explorer.serveExplorer\" data-node-type=\"export\" data-node-display=\"explorer.serveExplorer\">explorer.serveExplorer</a>. The module is\n      dynamically imported so the SPA assets directory is only resolved when actually needed. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">Developer runs `tskb explore`: the CLI loads the graph, transforms it into chunks, starts an HTTP server, and the browser loads the SPA and fetches chunks on demand</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.explore\" data-node-type=\"export\" data-node-display=\"explorer.explore\">explorer.explore</a> — loads the graph file and routes to the serve path</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transformGraph\" data-node-type=\"export\" data-node-display=\"explorer.transformGraph\">explorer.transformGraph</a> — converts the KnowledgeGraph into a MetaChunk and one FolderChunk per folder, held in memory</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.serveExplorer\" data-node-type=\"export\" data-node-display=\"explorer.serveExplorer\">explorer.serveExplorer</a> — starts the HTTP server: chunk routes serve the in-memory chunks as JSON; everything else serves the SPA assets</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a> — ExplorerApp mounts on page load: sets up canvas, renderer, and search, then fetches the meta chunk</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.lane-engine\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/layout/lane-engine.ts\">explorer.spa.lane-engine</a> — positions all visible nodes across the three lanes</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a> — D3 enter/update renders node cards into SVG groups</li></ol></div>",
         "format": "tsx",
         "edgeCount": 6
       },
@@ -5883,7 +5863,7 @@
         "explains": "How does the explorer export to a static directory that opens from file://?",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/explorer/export.tskb.tsx",
-        "content": "<h1>Explorer Static Export </h1><p><a class=\"tskb-ref\" data-node-id=\"explorer.exportExplorer\" data-node-type=\"export\" data-node-display=\"explorer.exportExplorer\">explorer.exportExplorer</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.export\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/export.ts\">explorer.export</a>produces a <a class=\"tskb-ref\" data-node-id=\"explorerStaticExport\" data-node-type=\"term\" data-node-display=\"explorerStaticExport\">explorerStaticExport</a>: a directory containing\n      the pre-built SPA ( index.html + hashed JS/CSS assets) and all <a class=\"tskb-ref\" data-node-id=\"knowledgeChunk\" data-node-type=\"term\" data-node-display=\"knowledgeChunk\">knowledgeChunk</a>JSON\n      files written to a chunks/ sub-directory. </p><h2>Output layout </h2><p>The default output directory is .tskb/explorer/ . The structure mirrors what the\n      server serves dynamically: </p><p>index.html , assets/ — Vite-built SPA with content-hashed filenames. </p><p>chunks/meta.json — MetaChunk: root, top-level folders, docs, flows, terms,\n      externals. </p><p>chunks/folder-&#123;sanitizedId&#125;.json — one FolderChunk per folder with\n      modules or sub-folders. </p><h2>File:// compatibility </h2><p>The SPA fetches chunks using relative paths ( ./chunks/meta.json ) rather than\n      absolute server routes. This means the exported output works when opened directly in a browser\n      via file:// without running a server, making it suitable for archiving or sharing\n      as a zip. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">tskb explore --export: reads graph.json, transforms chunks in memory, copies pre-built SPA from dist/explorer/ and writes chunk JSON files into the output directory (default: .tskb/explorer/)</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.explore\" data-node-type=\"export\" data-node-display=\"explorer.explore\">explorer.explore</a> — reads .tskb/graph.json; resolves output directory from --export flag (default: .tskb/explorer/)</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transformGraph\" data-node-type=\"export\" data-node-display=\"explorer.transformGraph\">explorer.transformGraph</a> — converts KnowledgeGraph → MetaChunk + one FolderChunk per folder, held in memory</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.exportExplorer\" data-node-type=\"export\" data-node-display=\"explorer.exportExplorer\">explorer.exportExplorer</a> — copyDir: recursively copies dist/explorer/ (pre-built SPA inside the tskb package) into outputDir/ — produces outputDir/index.html and outputDir/assets/</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.exportExplorer\" data-node-type=\"export\" data-node-display=\"explorer.exportExplorer\">explorer.exportExplorer</a> — writes all chunks as JSON: outputDir/chunks/meta.json and outputDir/chunks/folder-{sanitizedId}.json — one file per folder</li></ol></div>",
+        "content": "<h1>Explorer Static Export </h1><p><a class=\"tskb-ref\" data-node-id=\"explorer.exportExplorer\" data-node-type=\"export\" data-node-display=\"explorer.exportExplorer\">explorer.exportExplorer</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.export\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/explorer/export.ts\">explorer.export</a>produces a <a class=\"tskb-ref\" data-node-id=\"explorerStaticExport\" data-node-type=\"term\" data-node-display=\"explorerStaticExport\">explorerStaticExport</a>: a directory containing\n      the pre-built SPA ( index.html + hashed JS/CSS assets) and all <a class=\"tskb-ref\" data-node-id=\"knowledgeChunk\" data-node-type=\"term\" data-node-display=\"knowledgeChunk\">knowledgeChunk</a>JSON\n      files written to a chunks/ sub-directory. </p><h2>Output layout </h2><p>The default output directory is .tskb/explorer/ . The structure mirrors what the\n      server serves dynamically: </p><p>index.html , assets/ — Vite-built SPA with content-hashed filenames. </p><p>chunks/meta.json — MetaChunk: root, top-level folders, docs, flows, terms,\n      externals. </p><p>chunks/folder-&#123;sanitizedId&#125;.json — one FolderChunk per folder with\n      modules or sub-folders. </p><h2>File:// compatibility </h2><p>The SPA fetches chunks using relative paths ( ./chunks/meta.json ) rather than\n      absolute server routes. This means the exported output works when opened directly in a browser\n      via file:// without running a server, making it suitable for archiving or sharing\n      as a zip. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">Developer runs the explorer export command: the graph file is read, chunks are transformed in memory, then the pre-built SPA and chunk files are written to the output directory</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.explore\" data-node-type=\"export\" data-node-display=\"explorer.explore\">explorer.explore</a> — reads the graph file and resolves the output directory from the export flag</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.transformGraph\" data-node-type=\"export\" data-node-display=\"explorer.transformGraph\">explorer.transformGraph</a> — converts KnowledgeGraph into a MetaChunk plus one FolderChunk per folder, held in memory</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.exportExplorer\" data-node-type=\"export\" data-node-display=\"explorer.exportExplorer\">explorer.exportExplorer</a> — copies the pre-built SPA into the output directory and writes all chunk JSON files alongside it</li></ol></div>",
         "format": "tsx",
         "edgeCount": 4
       },
@@ -5903,7 +5883,7 @@
         "explains": "How does the ExplorerApp class boot, render, and respond to interaction?",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/explorer/app.tskb.tsx",
-        "content": "<h1>ExplorerApp </h1><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp\">explorer.spa.ExplorerApp</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>is the single top-level controller for the explorer SPA.\n      All canvas layers, UI state, and callbacks are owned by the class instance. The only public\n      surface is <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.mount\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.mount\">explorer.spa.ExplorerApp.mount</a>— everything else is private, wired internally via callbacks. </p><h2>Boot sequence </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.mount\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.mount\">explorer.spa.ExplorerApp.mount</a>runs four synchronous setup methods then awaits data. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupCanvas\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupCanvas\">explorer.spa.ExplorerApp.setupCanvas</a>  creates the SVG layer stack and wires zoom/pan. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupTooltips\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupTooltips\">explorer.spa.ExplorerApp.setupTooltips</a>mounts hover and code\n      tooltips. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupRenderer\">explorer.spa.ExplorerApp.setupRenderer</a>constructs the node renderer with bound interaction callbacks.   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupSearch\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupSearch\">explorer.spa.ExplorerApp.setupSearch</a>wires the search input. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.loadInitialData\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.loadInitialData\">explorer.spa.ExplorerApp.loadInitialData</a>fetches   meta.json and calls store.loadMeta() , which notifies the render\n      subscriber and triggers the first <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a>. </p><h2>Render loop </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a>is a pure coordinator: it recomputes the layout when dirty, delegates all\n      application logic to <a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeRenderState\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeRenderState\">explorer.spa.computeRenderState</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.render-state\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/render-state.ts\">explorer.spa.render-state</a>, then passes the result\n      straight to the D3 rendering functions. No computation happens inside <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a>itself —\n      the boundary between logic and rendering is <a class=\"tskb-ref\" data-node-id=\"explorer.spa.render-state\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/render-state.ts\">explorer.spa.render-state</a>. </p><h2>Interaction handlers </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.onExpand\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.onExpand\">explorer.spa.ExplorerApp.onExpand</a>handles folder and module expand/collapse. For folder expand it calls   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.showNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.showNodeSpinner\">explorer.spa.showNodeSpinner</a>, fetches via the loader, calls <a class=\"tskb-ref\" data-node-id=\"explorer.spa.removeNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.removeNodeSpinner\">explorer.spa.removeNodeSpinner</a>in   finally , then updates the expanded set and calls <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a>. Collapse\n      delegates to <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.collapseDescendants\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.collapseDescendants\">explorer.spa.ExplorerApp.collapseDescendants</a>to recursively clear all descendants from the\n      expanded set. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">ExplorerApp.mount(): four setup phases then meta fetch that triggers the first render</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp\">explorer.spa.ExplorerApp</a> — new ExplorerApp().mount() called on page load</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupCanvas\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupCanvas\">explorer.spa.ExplorerApp.setupCanvas</a> — Appends zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupTooltips\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupTooltips\">explorer.spa.ExplorerApp.setupTooltips</a> — mountNodeTooltip() and mountCodeTooltip() attach DOM tooltip elements anchored to the SVG</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupRenderer\">explorer.spa.ExplorerApp.setupRenderer</a> — createNodeRenderer() wires onExpand / onSelect / onTraceLinks / hasChildren / code preview callbacks to ExplorerApp instance methods</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupSearch\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupSearch\">explorer.spa.ExplorerApp.setupSearch</a> — Search input 'input' event updates searchQuery and calls render()</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.loadInitialData\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.loadInitialData\">explorer.spa.ExplorerApp.loadInitialData</a> — loader.load('meta') fetches /chunks/meta.json; global spinner shown while pending</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.store\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/store/graph-store.ts\">explorer.spa.store</a> — store.loadMeta() stores the chunk and notifies the render subscriber</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.lane-engine\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/layout/lane-engine.ts\">explorer.spa.lane-engine</a> — First render(): computeLayout positions top-folder nodes across the Structure lane</li></ol></div><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">ExplorerApp.render(): layout → edges → D3 enter/update/exit → search dim</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a> — Triggered by store subscription or direct call from interaction handler</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeLayout\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeLayout\">explorer.spa.computeLayout</a> — computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set.</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeRenderState\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeRenderState\">explorer.spa.computeRenderState</a> — computeRenderState(store, layout, searchQuery): derives allNodes, canvasW, structureLinks, relationLinks, matchIds. Pure — no D3.</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.edge-renderer\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts\">explorer.spa.edge-renderer</a> — renderLaneBands(): draws labeled background bands for Structure and Externals lanes</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.buildStructureLinks\" data-node-type=\"export\" data-node-display=\"explorer.spa.buildStructureLinks\">explorer.spa.buildStructureLinks</a> — buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderStructureEdges\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderStructureEdges\">explorer.spa.renderStructureEdges</a> — renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a> — D3 enter: new &lt;g.node&gt; elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a> — D3 update: renderer.update() repositions and reskins all merged nodes</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a> — D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes</li></ol></div><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">ExplorerApp.onExpand(): fetch chunk if needed, update expanded set, re-render</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a> — User clicks + button; BaseNodeRenderer fires the onExpand callback</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.onExpand\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.onExpand\">explorer.spa.ExplorerApp.onExpand</a> — If already expanded: collapseDescendants() clears the subtree, calls render()</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.showNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.showNodeSpinner\">explorer.spa.showNodeSpinner</a> — If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.loader\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/graph/loader.ts\">explorer.spa.loader</a> — loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.removeNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.removeNodeSpinner\">explorer.spa.removeNodeSpinner</a> — removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.store\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/store/graph-store.ts\">explorer.spa.store</a> — store.loadFolderChunk() stores chunk and notifies subscribers</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a> — render() called after expanded set update — new nodes enter, layout recomputed</li></ol></div>",
+        "content": "<h1>ExplorerApp </h1><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp\">explorer.spa.ExplorerApp</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>is the single top-level controller for the explorer SPA.\n      All canvas layers, UI state, and callbacks are owned by the class instance. The only public\n      surface is <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.mount\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.mount\">explorer.spa.ExplorerApp.mount</a>— everything else is private, wired internally via callbacks. </p><h2>Boot sequence </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.mount\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.mount\">explorer.spa.ExplorerApp.mount</a>runs four synchronous setup methods then awaits data. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupCanvas\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupCanvas\">explorer.spa.ExplorerApp.setupCanvas</a>  creates the SVG layer stack and wires zoom/pan. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupTooltips\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupTooltips\">explorer.spa.ExplorerApp.setupTooltips</a>mounts hover and code\n      tooltips. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupRenderer\">explorer.spa.ExplorerApp.setupRenderer</a>constructs the node renderer with bound interaction callbacks.   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupSearch\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupSearch\">explorer.spa.ExplorerApp.setupSearch</a>wires the search input. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.loadInitialData\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.loadInitialData\">explorer.spa.ExplorerApp.loadInitialData</a>fetches   meta.json and calls store.loadMeta() , which notifies the render\n      subscriber and triggers the first <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a>. </p><h2>Render loop </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a>is a pure coordinator: it recomputes the layout when dirty, delegates all\n      application logic to <a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeRenderState\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeRenderState\">explorer.spa.computeRenderState</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.render-state\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/render-state.ts\">explorer.spa.render-state</a>, then passes the result\n      straight to the D3 rendering functions. No computation happens inside <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a>itself —\n      the boundary between logic and rendering is <a class=\"tskb-ref\" data-node-id=\"explorer.spa.render-state\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/render-state.ts\">explorer.spa.render-state</a>. </p><h2>Interaction handlers </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.onExpand\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.onExpand\">explorer.spa.ExplorerApp.onExpand</a>handles folder and module expand/collapse. For folder expand it calls   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.showNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.showNodeSpinner\">explorer.spa.showNodeSpinner</a>, fetches via the loader, calls <a class=\"tskb-ref\" data-node-id=\"explorer.spa.removeNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.removeNodeSpinner\">explorer.spa.removeNodeSpinner</a>in   finally , then updates the expanded set and calls <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a>. Collapse\n      delegates to <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.collapseDescendants\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.collapseDescendants\">explorer.spa.ExplorerApp.collapseDescendants</a>to recursively clear all descendants from the\n      expanded set. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">ExplorerApp.mount(): four setup phases then meta fetch that triggers the first render</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp\">explorer.spa.ExplorerApp</a> — new ExplorerApp().mount() called on page load</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupCanvas\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupCanvas\">explorer.spa.ExplorerApp.setupCanvas</a> — Appends zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupTooltips\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupTooltips\">explorer.spa.ExplorerApp.setupTooltips</a> — mountNodeTooltip() and mountCodeTooltip() attach DOM tooltip elements anchored to the SVG</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupRenderer\">explorer.spa.ExplorerApp.setupRenderer</a> — createNodeRenderer() wires onExpand / onSelect / onTraceLinks / hasChildren / code preview callbacks to ExplorerApp instance methods</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.setupSearch\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.setupSearch\">explorer.spa.ExplorerApp.setupSearch</a> — Search input 'input' event updates searchQuery and calls render()</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.loadInitialData\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.loadInitialData\">explorer.spa.ExplorerApp.loadInitialData</a> — loader.load('meta') fetches /chunks/meta.json; global spinner shown while pending</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.store\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/store/graph-store.ts\">explorer.spa.store</a> — store.loadMeta() stores the chunk and notifies the render subscriber</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.lane-engine\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/layout/lane-engine.ts\">explorer.spa.lane-engine</a> — First render(): computeLayout positions top-folder nodes across the Structure lane</li></ol></div><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">A store update or interaction calls ExplorerApp.render(): layout, edges, D3 join, search dim</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a> — triggered by store subscription or a direct call from an interaction handler</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeLayout\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeLayout\">explorer.spa.computeLayout</a> — computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set.</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeRenderState\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeRenderState\">explorer.spa.computeRenderState</a> — computeRenderState(store, layout, searchQuery): derives allNodes, canvasW, structureLinks, relationLinks, matchIds. Pure — no D3.</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.edge-renderer\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts\">explorer.spa.edge-renderer</a> — renderLaneBands(): draws labeled background bands for Structure and Externals lanes</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.buildStructureLinks\" data-node-type=\"export\" data-node-display=\"explorer.spa.buildStructureLinks\">explorer.spa.buildStructureLinks</a> — buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderStructureEdges\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderStructureEdges\">explorer.spa.renderStructureEdges</a> — renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a> — D3 enter/update/exit: new node cards appended, merged nodes repositioned, removed nodes fade out; search dim sets 0.15 on non-matching nodes</li></ol></div><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">ExplorerApp.onExpand(): fetch chunk if needed, update expanded set, re-render</p><ol><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a> — User clicks + button; BaseNodeRenderer fires the onExpand callback</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.onExpand\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.onExpand\">explorer.spa.ExplorerApp.onExpand</a> — If already expanded: collapseDescendants() clears the subtree, calls render()</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.showNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.showNodeSpinner\">explorer.spa.showNodeSpinner</a> — If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.loader\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/graph/loader.ts\">explorer.spa.loader</a> — loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.removeNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.removeNodeSpinner\">explorer.spa.removeNodeSpinner</a> — removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.store\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/store/graph-store.ts\">explorer.spa.store</a> — store.loadFolderChunk() stores chunk and notifies subscribers</li><li><a class=\"tskb-ref\" data-node-id=\"explorer.spa.ExplorerApp.render\" data-node-type=\"export\" data-node-display=\"explorer.spa.ExplorerApp.render\">explorer.spa.ExplorerApp.render</a> — render() called after expanded set update — new nodes enter, layout recomputed</li></ol></div>",
         "format": "tsx",
         "edgeCount": 15
       },
@@ -5923,7 +5903,7 @@
         "explains": "How does tskb extract Folders, Modules, Exports, and Terms from the TypeScript AST?",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/core/registry-extraction.tskb.tsx",
-        "content": "<h1>Registry Extraction </h1><p><a class=\"tskb-ref\" data-node-id=\"extractRegistry\" data-node-type=\"export\" data-node-display=\"extractRegistry\">extractRegistry</a>walks the TypeScript AST for registry declarations, then enriches each\n      module with its public API shape via <a class=\"tskb-ref\" data-node-id=\"extraction.module-morphology\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/module-morphology.ts\">extraction.module-morphology</a>. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs</p><ol><li><a class=\"tskb-ref\" data-node-id=\"extractRegistry\" data-node-type=\"export\" data-node-display=\"extractRegistry\">extractRegistry</a> — collects Module declarations from tskb namespace</li><li><a class=\"tskb-ref\" data-node-id=\"extractModuleMorphology\" data-node-type=\"export\" data-node-display=\"extractModuleMorphology\">extractModuleMorphology</a> — resolves source file, classifies exports, renders code stubs</li><li><a class=\"tskb-ref\" data-node-id=\"extractModuleImports\" data-node-type=\"export\" data-node-display=\"extractModuleImports\">extractModuleImports</a> — walks import declarations for symbols and paths</li><li><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a> — assembles enriched ModuleNode with edges</li></ol></div>",
+        "content": "<h1>Registry Extraction </h1><p><a class=\"tskb-ref\" data-node-id=\"extractRegistry\" data-node-type=\"export\" data-node-display=\"extractRegistry\">extractRegistry</a>walks the TypeScript AST for registry declarations, then enriches each\n      module with its public API shape via <a class=\"tskb-ref\" data-node-id=\"extraction.module-morphology\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/module-morphology.ts\">extraction.module-morphology</a>. </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">During `tskb build`, extractRegistry enriches every Module declaration with its public API: exports, imports, and type stubs</p><ol><li><a class=\"tskb-ref\" data-node-id=\"extractRegistry\" data-node-type=\"export\" data-node-display=\"extractRegistry\">extractRegistry</a> — collects Module declarations from tskb namespace</li><li><a class=\"tskb-ref\" data-node-id=\"extractModuleMorphology\" data-node-type=\"export\" data-node-display=\"extractModuleMorphology\">extractModuleMorphology</a> — resolves source file, classifies exports, renders code stubs</li><li><a class=\"tskb-ref\" data-node-id=\"extractModuleImports\" data-node-type=\"export\" data-node-display=\"extractModuleImports\">extractModuleImports</a> — walks import declarations for symbols and paths</li><li><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a> — assembles enriched ModuleNode with edges</li></ol></div>",
         "format": "tsx",
         "edgeCount": 2
       },
@@ -5984,37 +5964,37 @@
       "from": "e2e-test-execution",
       "to": "vitest.config",
       "type": "flow-step",
-      "label": "Discovers test files, registers global setup"
+      "label": "discovers test files, registers global setup"
     },
     {
       "from": "e2e-test-execution",
       "to": "tests.global-setup",
       "type": "flow-step",
-      "label": "Builds fixture graph once via tskb build"
+      "label": "builds fixture graph once via tskb build"
     },
     {
       "from": "e2e-test-execution",
       "to": "tests.helpers",
       "type": "flow-step",
-      "label": "Provides CLI runners and graph loader to all test files"
+      "label": "provides CLI runners and graph loader to all test files"
+    },
+    {
+      "from": "init-scaffolding-test",
+      "to": "tests.init",
+      "type": "flow-step",
+      "label": "orchestrates the test: arranges temp dir, runs init, asserts output"
     },
     {
       "from": "init-scaffolding-test",
       "to": "tests.helpers",
       "type": "flow-step",
-      "label": "Copies fixture src/ into a temp directory"
+      "label": "copies fixture src/ into the temp directory"
     },
     {
       "from": "init-scaffolding-test",
       "to": "cli.build",
       "type": "flow-step",
-      "label": "Runs tskb init --yes in the temp directory"
-    },
-    {
-      "from": "init-scaffolding-test",
-      "to": "tests.e2e",
-      "type": "flow-step",
-      "label": "Asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs"
+      "label": "runs tskb init --yes in the temp directory"
     },
     {
       "from": "build-pipeline",
@@ -6072,21 +6052,15 @@
     },
     {
       "from": "graph-to-chunks-transform",
-      "to": "cli.commands.explore",
+      "to": "explorer.transformGraph",
       "type": "flow-step",
-      "label": "Reads graph.json from disk into KnowledgeGraph"
+      "label": "entry point: instantiates the transformer, indexes edges by source and target, then runs the phases below"
     },
     {
       "from": "graph-to-chunks-transform",
       "to": "explorer.transform",
       "type": "flow-step",
-      "label": "groupEdgesByKey() builds edgesBySource + edgesByTarget indexes from all graph edges"
-    },
-    {
-      "from": "graph-to-chunks-transform",
-      "to": "explorer.transformGraph",
-      "type": "flow-step",
-      "label": "Assembles MetaChunk: root node, topFolders, docs, flows, terms, externals, cross-lane reference edges"
+      "label": "builds the meta chunk: root folder, top folders, docs, flows, terms, externals, and cross-lane edges"
     },
     {
       "from": "explorer-expand-flow",
@@ -6134,31 +6108,31 @@
       "from": "explorer-serve-flow",
       "to": "explorer.explore",
       "type": "flow-step",
-      "label": "Reads graph.json, branches on --export flag"
+      "label": "loads the graph file and routes to the serve path"
     },
     {
       "from": "explorer-serve-flow",
       "to": "explorer.transformGraph",
       "type": "flow-step",
-      "label": "Converts KnowledgeGraph into MetaChunk + FolderChunks, serializes all to JSON strings"
+      "label": "converts the KnowledgeGraph into a MetaChunk and one FolderChunk per folder, held in memory"
     },
     {
       "from": "explorer-serve-flow",
       "to": "explorer.serveExplorer",
       "type": "flow-step",
-      "label": "Starts http server: /chunks/*.json reads from in-memory cache; /* serves SPA assets"
+      "label": "starts the HTTP server: chunk routes serve the in-memory chunks as JSON; everything else serves the SPA assets"
     },
     {
       "from": "explorer-serve-flow",
       "to": "explorer.spa.main",
       "type": "flow-step",
-      "label": "ExplorerApp.mount(): setupCanvas (D3 SVG + zoom/pan), setupRenderer, setupSearch, then loadInitialData fetches meta.json"
+      "label": "ExplorerApp mounts on page load: sets up canvas, renderer, and search, then fetches the meta chunk"
     },
     {
       "from": "explorer-serve-flow",
       "to": "explorer.spa.lane-engine",
       "type": "flow-step",
-      "label": "computeLayout() positions all visible nodes across three lanes"
+      "label": "positions all visible nodes across the three lanes"
     },
     {
       "from": "explorer-serve-flow",
@@ -6170,19 +6144,19 @@
       "from": "explorer-export-flow",
       "to": "explorer.explore",
       "type": "flow-step",
-      "label": "reads .tskb/graph.json; resolves output directory from --export flag (default: .tskb/explorer/)"
+      "label": "reads the graph file and resolves the output directory from the export flag"
     },
     {
       "from": "explorer-export-flow",
       "to": "explorer.transformGraph",
       "type": "flow-step",
-      "label": "converts KnowledgeGraph → MetaChunk + one FolderChunk per folder, held in memory"
+      "label": "converts KnowledgeGraph into a MetaChunk plus one FolderChunk per folder, held in memory"
     },
     {
       "from": "explorer-export-flow",
       "to": "explorer.exportExplorer",
       "type": "flow-step",
-      "label": "copyDir: recursively copies dist/explorer/ (pre-built SPA inside the tskb package) into outputDir/ — produces outputDir/index.html and outputDir/assets/"
+      "label": "copies the pre-built SPA into the output directory and writes all chunk JSON files alongside it"
     },
     {
       "from": "explorer-app-boot",
@@ -6236,7 +6210,7 @@
       "from": "explorer-app-render",
       "to": "explorer.spa.ExplorerApp.render",
       "type": "flow-step",
-      "label": "Triggered by store subscription or direct call from interaction handler"
+      "label": "triggered by store subscription or a direct call from an interaction handler"
     },
     {
       "from": "explorer-app-render",
@@ -6272,7 +6246,7 @@
       "from": "explorer-app-render",
       "to": "explorer.spa.node-base",
       "type": "flow-step",
-      "label": "D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble"
+      "label": "D3 enter/update/exit: new node cards appended, merged nodes repositioned, removed nodes fade out; search dim sets 0.15 on non-matching nodes"
     },
     {
       "from": "explorer-app-expand",
@@ -8498,7 +8472,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-05-03T08:04:07.761Z",
+    "generatedAt": "2026-05-03T12:33:19.904Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
@@ -8510,7 +8484,7 @@
       "externalCount": 5,
       "flowCount": 13,
       "docCount": 19,
-      "edgeCount": 485
+      "edgeCount": 484
     }
   }
 }

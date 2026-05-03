@@ -88,20 +88,16 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 
 ## Flows
 
-- **e2e-test-execution** [essential] — Full E2E run: global setup builds fixture graph, test files exercise every CLI command, teardown cleans output
-  vitest.config → tests.global-setup → tests.helpers → tests.global-setup
 - **build-pipeline** [essential] — The tskb build process: source files through extraction to knowledge graph outputs
   cli.build → extractRegistry → extractDocs → buildGraph → generateDot
-- **static-analysis** [essential] — TypeScript Program creation through extraction to graph
+- **static-analysis** [essential] — `tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly
   ts.createProgram → extraction.registry → extraction.documentation → graph.builder
-- **explorer-serve-flow** [essential] — tskb explore: CLI finds graph, transforms chunks, starts HTTP server, browser loads SPA and fetches chunks on demand
+- **explorer-serve-flow** [essential] — Developer runs `tskb explore`: the CLI loads the graph, transforms it into chunks, starts an HTTP server, and the browser loads the SPA and fetches chunks on demand
   explorer.explore → explorer.transformGraph → explorer.serveExplorer → explorer.spa.main → explorer.spa.lane-engine → explorer.spa.node-base
-- **explorer-export-flow** [essential] — tskb explore --export: reads graph.json, transforms chunks in memory, copies pre-built SPA from dist/explorer/ and writes chunk JSON files into the output directory (default: .tskb/explorer/)
-  explorer.explore → explorer.transformGraph → explorer.exportExplorer → explorer.exportExplorer
-- **module-morphology-extraction** [essential] — How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs
-  extractRegistry → extractModuleMorphology → extractModuleImports → graph.builder
+- **explorer-export-flow** [essential] — Developer runs the explorer export command: the graph file is read, chunks are transformed in memory, then the pre-built SPA and chunk files are written to the output directory
+  explorer.explore → explorer.transformGraph → explorer.exportExplorer
 
-_Plus 7 supplementary flows available via `npx --no -- tskb flows --plain`._
+_Plus 9 supplementary flows available via `npx --no -- tskb flows --plain`._
 
 ## Documentation
 

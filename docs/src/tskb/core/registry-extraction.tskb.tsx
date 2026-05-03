@@ -79,8 +79,7 @@ export default (
 
     <Flow
       name="module-morphology-extraction"
-      desc="How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs"
-      priority="essential"
+      desc="During `tskb build`, extractRegistry enriches every Module declaration with its public API: exports, imports, and type stubs"
     >
       <Step node={ExtractRegistryExport} label="collects Module declarations from tskb namespace" />
       <Step

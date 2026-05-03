@@ -113,24 +113,27 @@ export default (
 
     <Flow
       name="e2e-test-execution"
-      priority="essential"
-      desc="Full E2E run: global setup builds fixture graph, test files exercise every CLI command, teardown cleans output"
+      desc="Developer runs `npm test`: Vitest loads config, global setup builds the fixture graph, test files exercise every CLI command, teardown cleans output"
     >
-      <Step node={VitestConfig} label="Discovers test files, registers global setup" />
-      <Step node={GlobalSetup} label="Builds fixture graph once via tskb build" />
-      <Step node={Helpers} label="Provides CLI runners and graph loader to all test files" />
-      <Step node={GlobalSetup} label="Teardown cleans .tskb/ output directory" />
+      <Step node={VitestConfig} label="discovers test files, registers global setup" />
+      <Step node={GlobalSetup} label="builds fixture graph once via tskb build" />
+      <Step node={Helpers} label="provides CLI runners and graph loader to all test files" />
+      <Step node={GlobalSetup} label="teardown cleans .tskb/ output directory" />
     </Flow>
 
     <Flow
       name="init-scaffolding-test"
-      desc="How the init command is tested: copies fixture to temp dir, runs init, asserts generated files"
+      desc="`init.test.ts` runs: copies fixture to a temp dir, invokes `tskb init`, asserts the generated files"
     >
-      <Step node={Helpers} label="Copies fixture src/ into a temp directory" />
-      <Step node={CliBuild} label="Runs tskb init --yes in the temp directory" />
       <Step
-        node={E2eFolder}
-        label="Asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs"
+        node={InitTest}
+        label="orchestrates the test: arranges temp dir, runs init, asserts output"
+      />
+      <Step node={Helpers} label="copies fixture src/ into the temp directory" />
+      <Step node={CliBuild} label="runs tskb init --yes in the temp directory" />
+      <Step
+        node={InitTest}
+        label="asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs"
       />
     </Flow>
 

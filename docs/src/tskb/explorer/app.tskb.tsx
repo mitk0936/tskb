@@ -188,11 +188,11 @@ export default (
 
     <Flow
       name="explorer-app-render"
-      desc="ExplorerApp.render(): layout → edges → D3 enter/update/exit → search dim"
+      desc="A store update or interaction calls ExplorerApp.render(): layout, edges, D3 join, search dim"
     >
       <Step
         node={RenderExport}
-        label="Triggered by store subscription or direct call from interaction handler"
+        label="triggered by store subscription or a direct call from an interaction handler"
       />
       <Step
         node={ComputeLayoutExport}
@@ -216,15 +216,7 @@ export default (
       />
       <Step
         node={NodeBaseModule}
-        label="D3 enter: new <g.node> elements appended; renderer.enter() initialises rect, icon, label, badge, expand bubble"
-      />
-      <Step
-        node={NodeBaseModule}
-        label="D3 update: renderer.update() repositions and reskins all merged nodes"
-      />
-      <Step
-        node={NodeBaseModule}
-        label="D3 exit: removed nodes fade opacity→0 and translate +8px before removal; search dim sets 0.15 on non-matching nodes"
+        label="D3 enter/update/exit: new node cards appended, merged nodes repositioned, removed nodes fade out; search dim sets 0.15 on non-matching nodes"
       />
     </Flow>
 
