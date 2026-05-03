@@ -6,14 +6,14 @@ declare global {
   namespace tskb {
     interface Modules {
       "explorer.export": Module<{
-        desc: "Copies pre-built SPA assets to an output directory and writes all chunk JSON files alongside them, producing a fully self-contained static explorer that works offline via file://";
+        desc: "Writes the explorer as a self-contained static folder.";
         type: typeof import("packages/tskb/src/core/explorer/export.js");
       }>;
     }
 
     interface Exports {
       "explorer.exportExplorer": Export<{
-        desc: "Copies SPA assets and writes chunk JSON files to an output directory. The SPA fetches chunks via relative ./chunks/*.json paths so it works under file://.";
+        desc: "Exports the explorer to a folder that opens from the file system.";
         type: typeof import("packages/tskb/src/core/explorer/export.js").exportExplorer;
       }>;
     }
@@ -32,7 +32,7 @@ const ChunkTerm = ref as tskb.Terms["knowledgeChunk"];
 // ─── Documentation ────────────────────────────────────────────────────────────
 
 export default (
-  <Doc explains="Explorer static export: chunk file layout, SPA asset copy, file:// compatibility">
+  <Doc explains="How does the explorer export to a static directory that opens from file://?">
     <H1>Explorer Static Export</H1>
     <P>
       {ExportExplorerExport} in {ExportModule} produces a {StaticExportTerm}: a directory containing

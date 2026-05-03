@@ -25,8 +25,8 @@ describe("build output", () => {
     // Folders: api, services, models, utils + auto-inferred root + src
     expect(Object.keys(graph.nodes.folders).length).toBeGreaterThanOrEqual(4);
 
-    // Modules: 6 declared (including utils barrel that shares ID with utils folder)
-    expect(Object.keys(graph.nodes.modules).length).toBe(6);
+    // Modules: 7 declared (including utils barrel that shares ID with utils folder)
+    expect(Object.keys(graph.nodes.modules).length).toBe(7);
 
     // Exports: 4 declared (AuthService, TaskService, ProjectService, createLogger)
     expect(Object.keys(graph.nodes.exports).length).toBeGreaterThanOrEqual(4);

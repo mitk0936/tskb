@@ -2,6 +2,7 @@ import {
   type Module,
   type Export,
   type External,
+  type Term,
   Doc,
   H1,
   ref,
@@ -17,12 +18,12 @@ declare global {
   namespace tskb {
     interface Modules {
       "typescript.program": Module<{
-        desc: "Creates TypeScript Program from files and tsconfig for static analysis";
+        desc: "Builds the TypeScript Program tskb reads from.";
         type: typeof import("packages/tskb/src/typescript/program.js");
       }>;
 
       "typescript.index": Module<{
-        desc: "TypeScript module exports";
+        desc: "Public entry for the TypeScript area.";
         type: typeof import("packages/tskb/src/typescript/index.js");
       }>;
     }
@@ -37,9 +38,13 @@ declare global {
 
     interface Exports {
       "ts.createProgram": Export<{
-        desc: "Creates a TypeScript Program for analyzing code structure, types, and symbols without emitting output";
+        desc: "Builds a TypeScript Program for static analysis. Does not emit output.";
         type: typeof import("packages/tskb/src/typescript/program.js").createProgram;
       }>;
+    }
+
+    interface Terms {
+      tsProgram: Term<"A TypeScript compiler `Program` built from source files and a tsconfig. tskb uses it to read the AST, types, and symbols of your code — without emitting JavaScript.">;
     }
   }
 }
@@ -55,7 +60,7 @@ const GraphBuilderModule = ref as tskb.Modules["graph.builder"];
 
 export default (
   <Doc
-    explains="TypeScript Program creation for static analysis without compilation"
+    explains="How does tskb create a TypeScript Program for static analysis without compiling?"
     priority="essential"
   >
     <H1>TypeScript Program</H1>

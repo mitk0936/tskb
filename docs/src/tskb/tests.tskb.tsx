@@ -18,32 +18,32 @@ declare global {
   namespace tskb {
     interface Folders {
       tests: Folder<{
-        desc: "End-to-end test suite for the tskb CLI, using Vitest";
+        desc: "End-to-end tests for the tskb CLI.";
         path: "tests";
         boundary: "E2E tests";
       }>;
       "tests.e2e": Folder<{
-        desc: "E2E tests that exercise the full tskb pipeline: init scaffolding, build, and every query command";
+        desc: "E2E test files that run the CLI and check its output.";
         path: "tests/e2e";
       }>;
       "tests.e2e.fixture": Folder<{
-        desc: "A small task-management TypeScript app used as the test subject. Has its own src/, docs/, and package.json, simulating a real user project adopting tskb";
+        desc: "A small sample project used as the test subject — like a real repo that adopted tskb.";
         path: "tests/e2e/fixture";
         boundary: "test-fixtures";
       }>;
       "tests.e2e.fixture.src": Folder<{
-        desc: "Fixture source code: models (User, Task, Project), services (Auth, Task, Project), API routes, and a logger utility";
+        desc: "Fixture source code (models, services, routes).";
         path: "tests/e2e/fixture/src";
       }>;
       "tests.e2e.fixture.docs": Folder<{
-        desc: "Fixture tskb docs: vocabulary, architecture, auth, tasks, and a service-isolation constraint. Covers all doc priorities";
+        desc: "Fixture .tskb.tsx docs covering all doc priorities.";
         path: "tests/e2e/fixture/docs";
       }>;
     }
 
     interface Externals {
       vitest: External<{
-        desc: "Test runner used for both E2E and unit tests. Global setup builds the fixture graph once; individual test files run CLI subprocesses via execFileSync and assert against graph.json output.";
+        desc: "The test runner.";
         url: "https://vitest.dev";
         kind: "npm-package";
       }>;
@@ -51,35 +51,35 @@ declare global {
 
     interface Files {
       "vitest.config": File<{
-        desc: "Vitest configuration — includes tests/**/*.test.ts with a 60s timeout for CLI subprocess tests, registers global setup";
+        desc: "Vitest configuration.";
         path: "vitest.config.ts";
       }>;
       "tests.global-setup": File<{
-        desc: "Vitest global setup — builds the fixture graph once before all tests, cleans .tskb/ on teardown";
+        desc: "Builds the fixture graph once before tests run; cleans up after.";
         path: "tests/e2e/global-setup.ts";
       }>;
       "tests.helpers": File<{
-        desc: "Shared test utilities — CLI runners (tskb, tskbIn), graph loader, path constants, and copyDir helper";
+        desc: "Shared helpers used by every test file.";
         path: "tests/e2e/helpers.ts";
       }>;
       "tests.init": File<{
-        desc: "Scaffolding tests — copies fixture to temp dir, runs init --yes, asserts generated files and idempotency";
+        desc: "Tests for `tskb init`.";
         path: "tests/e2e/init.test.ts";
       }>;
       "tests.build": File<{
-        desc: "Build output tests — asserts graph.json/dot exist, verifies node counts, doc priorities, and relation edges";
+        desc: "Tests for `tskb build` output.";
         path: "tests/e2e/build.test.ts";
       }>;
       "tests.commands": File<{
-        desc: "Command tests — exercises every query command (ls, search, pick, docs, flows, context) in plain and JSON modes";
+        desc: "Tests for every query command.";
         path: "tests/e2e/commands.test.ts";
       }>;
       "tests.disambiguation": File<{
-        desc: "Disambiguation tests — ambiguous ID resolution across search, pick, and context commands";
+        desc: "Tests for resolving identifiers that match more than one node.";
         path: "tests/e2e/disambiguation.test.ts";
       }>;
       "tests.graph-integrity": File<{
-        desc: "Graph integrity tests — validates edge consistency, type signatures, external metadata, and all edge targets resolve";
+        desc: "Tests that the built graph is internally consistent.";
         path: "tests/e2e/graph-integrity.test.ts";
       }>;
     }
@@ -101,10 +101,7 @@ const GraphIntegrityTest = ref as tskb.Files["tests.graph-integrity"];
 const CliBuild = ref as tskb.Exports["cli.build"];
 
 export default (
-  <Doc
-    explains="E2E test infrastructure: Vitest suite, fixture project, and CLI validation strategy"
-    priority="supplementary"
-  >
+  <Doc explains="How is the tskb CLI validated end-to-end?" priority="supplementary">
     <H1>E2E Test Infrastructure</H1>
     <P>
       The test suite ({TestsFolder}) validates the entire tskb CLI by running it as a subprocess

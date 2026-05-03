@@ -1,23 +1,65 @@
+import fs from "node:fs";
+import path from "node:path";
 import type { KnowledgeGraph } from "../../core/graph/types.js";
 
 /**
- * Build the query/explore body used by the tskb skill and query instructions.
+ * Detect the npm script that rebuilds the tskb graph by walking up from `cwd`
+ * looking for a `package.json` whose `scripts` invokes `tskb` against `.tskb.tsx`
+ * sources. Falls back to a raw `npx --no -- tskb` invocation when nothing matches.
  *
- * Contains: graph concepts, commands, response shapes, folder structure, docs, constraints, and workflow.
+ * Used to bake the correct rebuild command into generated skill / instructions
+ * files instead of hardcoding a script name that may not exist in the consumer's
+ * project.
  */
-export function buildQueryBody(graph: KnowledgeGraph): string {
+export function detectBuildScript(cwd: string = process.cwd()): string {
+  const fallback = 'npx --no -- tskb "./docs/**/*.tskb.tsx"';
+  let dir = path.resolve(cwd);
+  const root = path.parse(dir).root;
+
+  while (true) {
+    const pkgPath = path.join(dir, "package.json");
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as {
+          scripts?: Record<string, string>;
+        };
+        const scripts = pkg.scripts ?? {};
+        const entry = Object.entries(scripts).find(
+          ([, cmd]) => /\btskb\b/.test(cmd) && /\.tskb\.tsx/.test(cmd)
+        );
+        if (entry) return `npm run ${entry[0]}`;
+      } catch {
+        // ignore malformed package.json and keep walking up
+      }
+    }
+    if (dir === root) return fallback;
+    const parent = path.dirname(dir);
+    if (parent === dir) return fallback;
+    dir = parent;
+  }
+}
+
+/**
+ * Build the CLI/orientation body for the `tskb` skill.
+ *
+ * Contains: when to use, commands, response shapes, the folder tree (cheap orientation),
+ * and the constraint-docs list (load-bearing — must not be gated behind a second skill).
+ * Repo-specific deep index (boundaries, externals, flows, full docs list) lives in
+ * `buildTocBody` and is loaded on demand via the `tskb-toc` skill.
+ */
+export function buildCliBody(
+  graph: KnowledgeGraph,
+  buildScript: string = detectBuildScript()
+): string {
   const folderTree = buildFolderTree(graph, 2);
-  const docSummaries = buildDocSummaries(graph, true);
-  const boundariesSummary = buildBoundariesSummary(graph);
-  const externalsSummary = buildExternalsSummary(graph);
-  const flowsSummary = buildFlowsSummary(graph);
+  const constraintDocs = buildConstraintDocsSummary(graph);
 
   return `## When to Use
 
 Use tskb **first** — before grepping or reading files. It tells you where things are and how they relate, so you don't waste time exploring blind. Think of it as asking a teammate "where does X live?" instead of searching every folder yourself.
 
 - **Know a node ID or path** — \`context\` gets the full picture in one call: children, modules, exports, all referencing docs and constraints. Pass a node ID or a repo path.
-- **Don't know where to start** — \`search\` for keywords to find relevant node IDs, then use \`context\` or \`pick\`.
+- **Don't know where to start** — \`search\` for keywords to find relevant node IDs, then use \`context\` or \`pick\`. For a curated index of boundaries, externals, flows, and docs, load the **\`tskb-toc\`** skill.
 - **Check rules** — Constraint docs define rules you must follow. They show up in \`pick\` results automatically.
 - **Skip it** — If you already know exactly which file to edit and the change is self-contained.
 
@@ -60,9 +102,32 @@ All paths are relative to project root and can be used directly to read files.
 
 ${folderTree}
 
-_Snapshot from last \`npm run docs\` build._
+_Snapshot from last \`${buildScript}\` build._
 
-${boundariesSummary}
+## Constraint Docs
+
+${constraintDocs}
+
+Constraint docs define architectural rules that **MUST** be followed when working on related code. Load \`tskb-toc\` for the full index of essential docs, flows, boundaries, and externals.`;
+}
+
+/**
+ * Build the table-of-contents body for the `tskb-toc` skill.
+ *
+ * Repo-specific deep index: boundaries, externals, flows, and the full doc list.
+ * Loaded on demand when an agent is orienting in an unfamiliar area; cheap calls
+ * (already know the node) skip it.
+ */
+export function buildTocBody(
+  graph: KnowledgeGraph,
+  buildScript: string = detectBuildScript()
+): string {
+  const docSummaries = buildDocSummaries(graph, true);
+  const boundariesSummary = buildBoundariesSummary(graph);
+  const externalsSummary = buildExternalsSummary(graph);
+  const flowsSummary = buildFlowsSummary(graph);
+
+  return `${boundariesSummary}
 
 ${externalsSummary}
 
@@ -72,7 +137,20 @@ ${flowsSummary}
 
 ${docSummaries}
 
-Constraint docs define architectural rules that **MUST** be followed when working on related code.`;
+_Snapshot from last \`${buildScript}\` build._`;
+}
+
+/**
+ * Build the merged query body — used by Copilot instructions where there is no
+ * on-demand skill loading and everything must live in one file.
+ */
+export function buildQueryBody(
+  graph: KnowledgeGraph,
+  buildScript: string = detectBuildScript()
+): string {
+  return `${buildCliBody(graph, buildScript)}
+
+${buildTocBody(graph, buildScript)}`;
 }
 
 /**
@@ -80,42 +158,210 @@ Constraint docs define architectural rules that **MUST** be followed when workin
  *
  * Contains: when to trigger updates, syntax reference, registry primitives, JSX components, good practices.
  */
-export function buildUpdateBody(graph: KnowledgeGraph): string {
+export function buildUpdateBody(
+  graph: KnowledgeGraph,
+  buildScript: string = detectBuildScript()
+): string {
   const docsFolder = Object.values(graph.nodes.folders).find((f) => f.id === "docs");
   const docsPath = docsFolder?.path ?? "docs";
 
-  return `## When to Update — Session Triggers
+  return `## When to Update
 
-**Trigger an update during a session when:**
-- You discover a folder, module, or export that plays a structural role but isn't in the graph
-- A new feature area is being built (declare it before or alongside implementation)
-- An architectural decision is being made that should be recorded (use \`<Adr>\`)
-- A constraint is identified that future changes must respect (use \`priority="constraint"\`)
-- An important process or sequence spans multiple modules — capture it as a \`<Flow>\`
-- The developer explicitly asks to update the map
+Update the docs when:
+- A new feature area is being built — declare it before or alongside the code.
+- You spot a folder, module, or export that matters but isn't in the graph.
+- An architectural decision needs to be recorded (use \`<Adr>\`).
+- A rule must be followed for the system to keep working (use \`priority="constraint"\`).
+- A multi-step process spans several modules — capture it as a \`<Flow>\`, not prose.
+- The dev asks for it.
 
-**Don't update for:** routine bug fixes, refactoring internals, temporary code, or anything that doesn't change the architecture.
+Don't update for routine bug fixes, internal refactors, or temporary code.
 
-**Prefer flows for processes.** When you encounter an important multi-step process (authentication, build pipelines, request handling, data sync, deployment), document it as a \`<Flow>\` rather than describing steps in prose. Flows become first-class graph nodes — searchable, visualized, and included in generated skill files when marked \`priority="essential"\`.
+## Documentation Workflow
 
-**Before writing docs for an area, check what's already there:**
+When asked to document something, follow these steps. Don't skip ahead to writing.
+
+### 1. Look first
+
+See what's already there:
 
 \`\`\`bash
-npx --no -- tskb context "<nodeId|path>" --plain  # Full picture: children, modules, docs for this node
-npx --no -- tskb ls --plain                       # See what folders are mapped
-npx --no -- tskb search "<keywords>" --plain      # Check if something already exists
+npx --no -- tskb context "<nodeId|path>" --plain   # docs and modules in this area
+npx --no -- tskb ls --plain                        # which folders are mapped
+npx --no -- tskb search "<keywords>" --plain       # is this already written?
 \`\`\`
+
+If a doc already covers the topic, update it. Don't write a second one.
+
+### 2. Find the questions
+
+A good doc answers ONE question about the system. Your job is to find the right questions.
+
+**Try the dev first.** Ask:
+- What's hard about this area for someone new?
+- What rules must always hold?
+- What would surprise someone reading the code?
+- What bug would happen if someone got this wrong?
+
+**If the dev doesn't know yet** (often true — the area may be new to them too), do this instead:
+- Read the code yourself.
+- Look for tricky logic, error handling, "why" comments, recent bug fixes.
+- Write down the questions the code answers.
+- Bring the list back to the dev: "Here are the questions I think this area answers. Which are real? Which are wrong? What did I miss?"
+- **Pause here.** Don't write any docs until the dev has reviewed the list.
+
+It's much easier for a dev to react to a list than to think one up cold.
+
+If you can't get an answer from the dev or the code, stop. Missing docs are better than wrong docs.
+
+### 3. Ask if anything is unclear
+
+If a question survives Step 2 but the answer is ambiguous, ask the dev before writing. Don't guess.
+
+### 4. Frame each doc as a question
+
+Every \`<Doc explains="...">\` answers one question. Write the question in plain language and end it with a question mark.
+
+\`\`\`tsx
+// GOOD — one specific question
+<Doc explains="How does login issue JWTs?">
+<Doc explains="Why does the worker pool re-queue on partial failure?">
+<Doc explains="What ordering does the dispatch queue guarantee?" priority="constraint">
+
+// BAD — topic, not a question
+<Doc explains="Authentication">
+
+// BAD — feature list, not a question
+<Doc explains="CLI logging: stderr-only output, --verbose flag">
+
+// BAD — two questions in one
+<Doc explains="How does login work and how do sessions expire?">
+// → split into two docs
+\`\`\`
+
+This rule applies to **new docs**. Older statement-form docs are fine where they are — only update them if you're already touching the file for another reason.
+
+### 5. Place it
+
+Each architectural area has a \`main.tskb.tsx\`. Declare any new modules, exports, and terms there. If the new doc is small or specialized, you can also put it in its own file next to \`main.tskb.tsx\`. See "Folder Structure" below.
+
+### 6. Write
+
+- A few sentences plus references is usually enough.
+- Use \`{NodeRef}\` to link to other things instead of restating them.
+- For multi-step processes, use \`<Flow>\` instead of prose.
+- For code examples, use \`<Snippet>\` — they're type-checked.
+
+For full syntax (registry primitives, JSX components, snippets, class methods), load the **\`tskb-update-syntax\`** skill.
+
+### 7. Rebuild
+
+Run the project's tskb build script (\`${buildScript}\`). Fix any errors before committing.
 
 ## Key Rules
 
-- **Structural maps, not implementation manuals.** Describe *what* exists, *where* it lives, *why* it matters. Never *how* it works internally.
-- **Verify through types, not strings.** Prefer \`Module<{ type: typeof import("...") }>\` and \`Export<{ type: typeof import("...").Name }>\` over plain descriptions. Infer types from actual project imports — the compiler catches drift. Only use \`Term\` and \`File\` (string-only primitives) for things that genuinely have no importable type.
-- **Import, don't hardcode.** If a type/class/value exists in the codebase, import it. Imports create physical binds the compiler validates.
-- **Rebuild after editing.** Check the root \`package.json\` for the project's tskb build script and run it. The build throws if any path or reference doesn't resolve.
+- **Map the structure, don't explain the code.** Describe *what* exists, *where* it lives, *why* it matters. Never *how* it works internally.
+- **Use types, not strings.** Prefer \`Module<{ type: typeof import("...") }>\` and \`Export<{ type: typeof import("...").Name }>\` over plain descriptions. The compiler catches drift. Only use \`Term\` and \`File\` (string-only primitives) for things that have no importable type.
+- **Import, don't hardcode.** If a type or class exists in the codebase, import it. Imports are validated by the compiler.
+- **Rebuild after editing.** The build throws if any path or reference doesn't resolve.
+- **Write in plain English.** Docs are read by people from many backgrounds, including non-native English speakers. Use short sentences, common words, and skip jargon. If a fancy word and a plain word mean the same thing, use the plain one. Examples: "uses" not "leverages", "starts" not "initiates", "make" not "facilitate", "call" not "invoke", "needs" not "requires".
+- **Primitive \`name\` and \`desc\` are durable.** A registry key (the \`name\`) and its \`desc\` say what the thing is and why it matters — no implementation details that change as the code evolves. Skip algorithm names ("uses Fuse.js"), internal mechanics ("renders as ellipses"), tool calls ("via execSync"), and step-by-step lists. If the implementation is rewritten next month, the \`desc\` should still be true. Implementation details belong inside \`<Doc>\` prose, not in registry metadata. Examples: "Searches the graph and returns ranked matches" beats "Fuzzy searches the graph using Fuse.js across IDs, descriptions, and paths"; "DOT generator for the graph" beats "DOT file generator - renders folders as nested subgraphs, modules as ellipses, terms as diamonds".
 
-## File Structure
+## Folder Structure & Naming
 
-Docs live in \`${docsPath}/\` as \`.tskb.tsx\` files. Each has two parts:
+### One main.tskb.tsx per area
+
+Every important area has a file called \`main.tskb.tsx\`. An "area" is:
+- a repo (tskb can document several at once)
+- a package in a monorepo
+- a subsystem inside a package
+- a major sub-area inside a subsystem
+
+The \`main.tskb.tsx\` file holds:
+1. The area's main registry — folders, modules, exports, **and Terms** for the things that matter.
+2. Reference aliases (\`const X = ref as tskb.Modules["..."]\`).
+3. A short \`<Doc>\` that gives a quick overview of the area.
+
+**Terms belong in the area's \`main.tskb.tsx\`.** A Term is the area's vocabulary — names like \`SessionToken\`, \`Repository\`, or \`DispatchQueue\` that several Docs in the area refer to. Declaring them with the area registry keeps the vocabulary in one place. Use simple, plain-English names; the Term's body is the short definition, so write it the way you would explain it to a teammate seeing the code for the first time.
+
+Don't mirror every nested folder. Only create a \`main.tskb.tsx\` for areas that are themselves architectural — places a new dev would need to understand on their own.
+
+### Other files next to main.tskb.tsx
+
+You can put other \`.tskb.tsx\` files alongside \`main.tskb.tsx\` in the same folder. Use them for specific docs that don't belong in the overview — one question per file is fine.
+
+The main registry still lives in \`main.tskb.tsx\`. **Registry declarations across all \`.tskb.tsx\` files merge into one global registry**, so a sibling file can reference anything declared anywhere else.
+
+### Top-level files in \`${docsPath}/\`
+
+- \`architecture.tskb.tsx\` — overview of the whole repo: main areas and how they fit.
+- \`vocabulary.tskb.tsx\` — only for \`Terms\` and \`Externals\` shared across many areas (e.g., a domain concept used by both client and server). Area-specific Terms belong in that area's \`main.tskb.tsx\`.
+- \`adr/\` — Architecture Decision Records, one file per decision.
+- \`constraints/\` — docs with \`priority="constraint"\`, one rule per file.
+
+### Naming registry keys
+
+Keys should hint at where the thing lives, but stay short. The goal: a reader sees the key and knows what it refers to.
+
+Both styles are fine — pick what reads better:
+- Dot-separated lowercase: \`auth.service.login\`
+- PascalCase: \`AuthService\`, \`LoginEndpoint\`
+
+Keep keys meaningful, not exhaustive:
+
+\`\`\`
+GOOD: ServerUtils
+BAD:  MicroservicesServerUtils    // too much path baked in
+\`\`\`
+
+Class methods follow the parent: \`pkg.MyClass.mount\`.
+
+**Keys are global.** The same key can't appear twice across all files.
+
+### When to split a file
+
+Split when:
+- The registry block has more than ~15–20 declarations.
+- The file mixes unrelated areas (e.g., auth and payments).
+- One \`<Doc>\` is growing into a wall of prose — turn it into several smaller question-shaped docs, possibly in separate files.
+
+## After Editing
+
+Always rebuild to validate references and update the graph:
+
+\`\`\`bash
+${buildScript}
+\`\`\`
+
+The build fails if any import path, export name, or folder path doesn't resolve. Fix the error before committing.
+
+## Troubleshooting
+
+If the build fails with a TypeScript error, check:
+- \`${docsPath}/tsconfig.json\` has \`"jsxImportSource": "tskb"\`
+- \`baseUrl\` and \`rootDir\` point to the repo root (e.g., \`"../"\`)
+- Import paths in \`.tskb.tsx\` files end with \`.js\` (NodeNext module resolution)
+
+**Monorepo tips:**
+- Place \`${docsPath}/\` at the workspace root.
+- Set \`baseUrl\` and \`rootDir\` to \`"../"\` from the docs folder (or adjust for your layout).
+- Add \`paths\` entries for workspace packages if needed.`;
+}
+
+/**
+ * Build the syntax-reference body for the \`tskb-update-syntax\` skill.
+ *
+ * Heavy reference content used when actually editing a .tskb.tsx file:
+ * file anatomy, registry primitives, boundary prop, class methods,
+ * referencing nodes, JSX components, snippets, writing-style rules.
+ *
+ * Loaded on demand — \`tskb-update\` covers when/where/how-to-think;
+ * this skill covers what-to-type.
+ */
+export function buildUpdateSyntaxBody(_graph: KnowledgeGraph): string {
+  return `## File Anatomy
+
+A \`.tskb.tsx\` file has two parts.
 
 **1. Registry block** — declares structural elements:
 
@@ -149,7 +395,7 @@ declare global {
 }
 \`\`\`
 
-**2. JSX content** — references nodes and explains relationships:
+**2. JSX content** — the default-exported \`<Doc>\` plus its references:
 
 \`\`\`tsx
 import { Doc, H1, P, ref } from "tskb";
@@ -159,8 +405,8 @@ const AuthService = ref as tskb.Modules["auth.service"];
 const SessionToken = ref as tskb.Terms["session-token"];
 
 export default (
-  <Doc explains="Authentication: login flow, JWT tokens, session management" priority="essential">
-    <H1>Authentication</H1>
+  <Doc explains="How does login issue and validate JWTs?" priority="essential">
+    <H1>Login</H1>
     <P>{AuthService} lives in {AuthFolder} and issues {SessionToken} on login.</P>
   </Doc>
 );
@@ -171,30 +417,50 @@ export default (
 | Primitive | When to use |
 |-----------|-------------|
 | \`Folder<{ desc; path; boundary? }>\` | A logical area of the codebase. Add \`boundary\` only on the top-level folder of a distinct runtime — see below. |
-| \`Module<{ desc; type: typeof import("...") }>\` | A source file — import path validates it exists |
-| \`Export<{ desc; type: typeof import("...").Name }>\` | A named export — compiler validates it exists |
-| \`File<{ desc; path }>\` | Non-TS files: configs, READMEs, specs |
-| \`External<{ desc; [key]: string }>\` | npm packages, APIs, services outside the repo |
-| \`Term<"...">\` | Domain concepts not tied to a specific file |
+| \`Module<{ desc; type: typeof import("...") }>\` | A source file — import path validates it exists. |
+| \`Export<{ desc; type: typeof import("...").Name }>\` | A named export — compiler validates it exists. |
+| \`File<{ desc; path }>\` | Non-TS/JS files: configs, READMEs, specs. |
+| \`External<{ desc; [key]: string }>\` | npm packages, APIs, services outside the repo. |
+| \`Term<"...">\` | A name from the area's vocabulary (e.g., \`SessionToken\`, \`DispatchQueue\`). Declared in the area's \`main.tskb.tsx\` and used across that area's docs. |
 
 **Import paths must resolve.** Use \`.js\` extensions with NodeNext module resolution.
 
+**Import source files, not build output.** Always point \`typeof import()\` at \`src/\`, never at \`dist/\` or \`build/\`. The compiler resolves source — built files may not exist at doc-build time and their types can differ.
+
+**Keep \`name\` and \`desc\` durable.** The registry key and its \`desc\` answer "what is this and why does it matter?" — nothing else. No algorithm names, no internal mechanics, no tool calls, no step-by-step lists. If the implementation gets rewritten, the \`desc\` should still be true.
+
+\`\`\`tsx
+// GOOD — what + why, durable
+"cli.search": Export<{
+  desc: "Searches the graph and returns ranked matches.";
+  type: typeof import("...").search;
+}>;
+
+// BAD — names the algorithm and the fields it scans; rots when the search is rewritten
+"cli.search": Export<{
+  desc: "Fuzzy searches via Fuse.js across IDs, descriptions, and paths, returning top 10 results with score 0–1.";
+  type: typeof import("...").search;
+}>;
+\`\`\`
+
+Implementation details belong inside \`<Doc>\` prose, not in registry metadata.
+
 ### The boundary prop
 
-\`boundary\` marks a folder as the root of a distinct runtime or deployment unit — a process, app, or package that runs or deploys independently. Add it only to the **top-level folder** that IS that boundary; never repeat it on sub-folders inside.
+\`boundary\` marks a folder as the root of a distinct runtime or deployment unit — a process, app, or package that runs or deploys on its own. Add it only to the **top-level folder** that IS that boundary; never repeat it on sub-folders inside.
 
-Use these boundary names and no others unless the project introduces a genuinely new runtime:
+Use these names and no others unless the project has a genuinely new runtime:
 
 | Value | When to use |
 |-------|-------------|
 | \`"[NAME] repository"\` | A distinct git repo |
 | \`"[NAME] package"\` | An npm package root with its own \`package.json\`, published or consumed as a library |
-| \`"[NAME] SPA"\` | A browser single-page application (Vite, CRA, Next.js client bundle). Runs in the browser. |
+| \`"[NAME] SPA"\` | A browser single-page application (Vite, CRA, Next.js client bundle) |
 | \`"[NAME] client"\` | Frontend app in a project that also has a server. Pair with \`"server"\`. |
 | \`"[NAME] server"\` | Node.js (or similar) backend process. Pair with \`"client"\` when both exist. |
 | \`"[TYPE] tests"\` | Test suite root — the test runner is a distinct process from production code |
 
-**Do NOT add boundary to** architectural layers (core, cli, utils, shared types), sub-folders already inside a bounded area, or organizational groupings that have no independent runtime. If in doubt, leave it off — boundary should be rare and meaningful.
+**Don't** add boundary to architectural layers (core, cli, utils, shared types), sub-folders already inside a bounded area, or organizational groupings with no independent runtime. If in doubt, leave it off.
 
 ### Documenting class methods
 
@@ -223,11 +489,11 @@ interface Exports {
 }
 \`\`\`
 
-\`InstanceType<MyClass>["methodName"]\` resolves to the actual method signature — the compiler validates the name exists and catches renames. This pattern works for **both public and private** TypeScript members.
+\`InstanceType<MyClass>["methodName"]\` resolves to the actual method signature. The compiler validates the name exists and catches renames. Works for **both public and private** TypeScript members.
 
 ## Referencing Nodes
 
-Declare a constant with a type assertion, then use inline:
+Declare a constant with a type assertion, then use it inline:
 
 \`\`\`tsx
 const MyModule = ref as tskb.Modules["my.module"];   // reference a module
@@ -236,29 +502,44 @@ const MyTerm   = ref as tskb.Terms["my-concept"];    // reference a term
 <P>{MyModule} uses {MyTerm}.</P>
 \`\`\`
 
-The \`ref\` value is a placeholder — only the type matters. The compiler validates the key exists in the registry.
+The \`ref\` value is a placeholder — only the type matters. The compiler validates that the key exists in the registry.
 
 ## JSX Components
 
-- **\`<Doc explains="..." priority?>\`** — Root component. Every file exports one default Doc.
+- **\`<Doc explains="..." priority?>\`** — Root component. Every file exports one default Doc. The \`explains\` string must be a real question (see below).
   - \`priority="essential"\` — shown in \`tskb ls\`. Use sparingly for orientation docs.
   - \`priority="constraint"\` — architectural rules. Must be followed. Shown in \`pick\` results.
   - \`priority="supplementary"\` (default) — additional context.
 - **\`<P>\`**, **\`<H1>\`**, **\`<H2>\`**, **\`<H3>\`**, **\`<List>\`/\`<Li>\`** — Content structure.
 - **\`<Snippet code={() => { ... }} />\`** — Type-checked code example. Real imports, not strings.
-- **\`<Relation from={NodeA} to={NodeB} label?="..." />\`** — Explicit semantic relationship edge.
+- **\`<Relation from={NodeA} to={NodeB} label?="..." />\`** — Explicit semantic edge between two nodes.
 - **\`<Adr id="..." title="..." status="accepted|proposed|deprecated|superseded">\`** — Architecture Decision Record.
 - **\`<Flow name="..." desc="..." priority?>\`** — Named, ordered sequence of steps through the system. Becomes a first-class graph node. Only \`<Step>\` children allowed.
-  - \`priority="essential"\` — included in generated skill/instructions files and \`tskb flows\` output.
+  - \`priority="essential"\` — included in generated skills and \`tskb flows\` output.
   - \`priority="supplementary"\` (default) — graph-only, queryable via \`tskb flows\`.
 - **\`<Step node={NodeRef} label?="..." />\`** — A single participant in a Flow. References any registered node.
 
 ## Type-Checked Snippets
 
-Snippets are **not string literals** — they are real TypeScript checked at build time:
+Snippets show **TypeScript or JavaScript code** — usually a small example of how a class or function from the codebase is used. They are **not string literals**. The \`code\` prop is a real arrow function that the TypeScript compiler reads at build time.
+
+### What snippets are for
+
+- Showing how a class, function, or API is called.
+- Giving a runnable-looking example for someone reading a doc.
+- Pinning the example to the real types — if the API changes, the build fails.
+
+### Rules
+
+1. **JS/TS only.** The body of \`code={() => { ... }}\` must be valid JavaScript or TypeScript. No raw JSON, no shell, no SQL, no YAML.
+2. **Import the real modules.** Pull the types and values you reference from the actual source files — same rules as the registry (use \`.js\` extensions, point at \`src/\` not \`dist/\`).
+3. **The compiler validates the body.** If a method is renamed or removed, the snippet fails to compile and the doc build fails. That's the point.
+4. **Snippets are never executed.** They're parsed, type-checked, and stringified at build time. Side-effects, network calls, and \`process.exit()\` in the body don't matter — nothing runs.
+
+### Basic example
 
 \`\`\`tsx
-import type { UserRepository } from "../src/db/user.repository.js";
+import { UserRepository } from "../src/db/user.repository.js";
 
 <Snippet
   code={async () => {
@@ -269,79 +550,95 @@ import type { UserRepository } from "../src/db/user.repository.js";
 />
 \`\`\`
 
-If the API changes and \`findByEmail\` is removed, the build fails. That's the point.
+If \`findByEmail\` is renamed, the build fails — the doc can't drift.
 
-Snippets are **never executed** — they are parsed, type-checked, and stringified at build time. To support all the types your snippets need, extend the docs \`tsconfig.json\` — add \`lib\` entries (e.g., \`"DOM"\`, \`"ES2022"\`), \`paths\` aliases, or \`types\` for ambient declarations. The docs tsconfig is independent from the project's build config, so you can tailor it for documentation without affecting production builds.
+### Showing non-JS content
+
+Sometimes the example you want to show is JSON, a shell command, a SQL query, or a config blob. The body still has to be valid JS, so wrap the content in a JS expression:
+
+**JSON output** — use \`JSON.stringify\`:
+
+\`\`\`tsx
+import { buildConfig } from "../src/config.js";
+
+<Snippet
+  code={() => {
+    const config = buildConfig({ env: "prod" });
+    return JSON.stringify(config, null, 2);
+  }}
+/>
+\`\`\`
+
+**Shell command** — use \`execSync\` (the call is type-checked, the command isn't run at doc-build time):
+
+\`\`\`tsx
+import { execSync } from "node:child_process";
+
+<Snippet
+  code={() => execSync("npx --no -- tskb search 'auth' --plain")}
+/>
+\`\`\`
+
+**SQL or other strings** — use a tagged template or plain string literal:
+
+\`\`\`tsx
+<Snippet
+  code={() => \`
+    SELECT id, email FROM users WHERE active = true;
+  \`}
+/>
+\`\`\`
+
+The point of the wrapper is the same: the body stays valid JS, and TypeScript still validates any imports or function calls inside it.
+
+### What goes in tsconfig
+
+To support the types your snippets need, extend the docs \`tsconfig.json\`:
+- Add \`lib\` entries (\`"DOM"\`, \`"ES2022"\`) for browser or modern-runtime APIs.
+- Add \`paths\` aliases if your project uses them.
+- Add \`types\` for ambient declarations.
+
+The docs \`tsconfig.json\` is independent from the project's build config — tailor it for documentation without affecting production builds.
 
 ## Writing Style
 
 **Do:**
-- Write a few sentences per \`<Doc>\` — enough to orient someone unfamiliar with the area. Use \`<H2>\` sections to organize within a doc.
-- Let node references (\`{AuthService}\`, \`{DataLayer}\`) carry meaning — they link to full details in the graph.
-- Describe *what* exists, *where* it lives, *why* it matters.
-- Use \`priority="constraint"\` for rules that must not be violated.
+- Make every \`<Doc explains="...">\` a real question, ending with "?".
+- One question per doc. Many small docs beat one big doc.
+- Keep prose short — a few sentences plus references.
+- Let \`{NodeRef}\` carry meaning. Links beat repeating.
+- Use \`<Flow>\` for multi-step processes.
+- Use \`priority="constraint"\` for rules that must not be broken.
+- **Write in plain English.** Short sentences, common words, no jargon. Docs are read by people from many backgrounds, including non-native English speakers. If a plain word fits, use it.
 
 **Don't:**
-- Narrate algorithms or control flow — that's what code is for.
-- Duplicate what type signatures already say.
-- Write implementation-level prose — focus on structural relationships and intent.
+- Write a doc on a topic you can't explain yet — ask the dev first.
+- Use vague \`explains\` strings like \`"Authentication"\` or \`"Data layer"\`.
+- Use feature-list \`explains\` strings like \`"X: A, B, C"\` — name the question instead.
+- Cram multiple unrelated topics into one Doc.
+- Narrate code line by line. The code is right there.
+- Repeat what type signatures already say.
+- Use fancy words when a plain one works. Prefer "uses" over "leverages", "starts" over "initiates", "call" over "invoke", "needs" over "requires", "make" over "facilitate", "show" over "surface", "build" over "construct".
 
 \`\`\`tsx
-// GOOD — use <Flow> for multi-step processes
+// GOOD — Flow for a multi-step process
 <Flow name="task-dispatch" desc="Task scheduling through queue and workers" priority="essential">
   <Step node={TaskQueue} />
   <Step node={WorkerPool} label="picks and executes" />
   <Step node={ResultCollector} label="reports back" />
 </Flow>
 
-// GOOD — use prose for static relationships
-<Doc explains="Task scheduling: queue, workers, retry policy">
-  <P>{TaskQueue} dispatches jobs to {WorkerPool}.</P>
+// GOOD — short doc framed as a question
+<Doc explains="How does the dispatch queue route tasks to workers?">
+  <P>{TaskQueue} hands jobs to {WorkerPool}.</P>
 </Doc>
 
-// BAD — describing a process in prose instead of a Flow
+// BAD — process described in prose instead of a Flow
 <Doc explains="Task scheduling system">
   <P>The system works by accepting tasks into a prioritized queue. Workers pick
   tasks using round-robin, process them, and report results back to the coordinator...</P>
 </Doc>
-\`\`\`
-
-## File Organization
-
-- **Organize \`${docsPath}/\` by architectural boundaries, not 1:1 with the filesystem.** Create folders for packages, feature areas, and important layers — but don't replicate every directory. The goal is to map what matters structurally.
-- **Keep each file focused on one area.** A file should only declare things directly related to its concern. Don't put the auth service module and the payment gateway external in the same file just because they're both "backend." If a file grows beyond ~15-20 registry declarations, split it.
-- **Leverage the global registry.** All \`declare global { namespace tskb { ... } }\` declarations merge across files — that's distributed authorship. Declare a Term in \`vocabulary.tskb.tsx\`, declare a Module in \`auth/auth.tskb.tsx\`, and reference both from a third file. No single file needs to contain everything.
-- **Typical layout:**
-  - \`architecture.tskb.tsx\` — top-level overview: main Folders, high-level relationships (\`essential\`)
-  - \`vocabulary.tskb.tsx\` — shared Terms and Externals used across multiple docs
-  - \`auth/auth.tskb.tsx\` — Modules, Exports, and doc scoped to the auth area
-  - \`data/data.tskb.tsx\` — data layer: repositories, database connections
-  - \`adr/\` subfolder — Architecture Decision Records
-  - \`constraints/\` — constraint docs with \`priority="constraint"\`
-- **Import source files, not build output.** Always point \`typeof import()\` at the source (\`src/\`), never at \`dist/\`, \`build/\`, or compiled output. The compiler resolves source — built files may not exist at doc-build time and their types can differ.
-- **Use \`.js\` extensions in import paths.** TypeScript's NodeNext module resolution requires \`.js\` even when the source file is \`.ts\`. Write \`typeof import("../src/auth/service.js")\`, not \`typeof import("../src/auth/service")\` or \`typeof import("../src/auth/service.ts")\`.
-
-## After Editing
-
-Always rebuild to validate references and update the graph:
-
-\`\`\`bash
-npm run docs
-\`\`\`
-
-The build fails if any import path, export name, or folder path doesn't resolve. Fix the error before committing.
-
-## Troubleshooting
-
-If the build fails with a TypeScript error, check:
-- \`${docsPath}/tsconfig.json\` has \`"jsxImportSource": "tskb"\`
-- \`baseUrl\` and \`rootDir\` point to the repo root (e.g., \`"../"\`)
-- Import paths in \`.tskb.tsx\` files end with \`.js\` (NodeNext module resolution)
-
-**Monorepo tips:**
-- Place \`${docsPath}/\` at the workspace root
-- Set \`baseUrl\` and \`rootDir\` to \`"../"\` from the docs folder (or adjust for your layout)
-- Add \`paths\` entries for workspace packages if needed`;
+\`\`\``;
 }
 
 /**
@@ -369,6 +666,27 @@ function buildFolderTree(graph: KnowledgeGraph, maxDepth: number = -1): string {
       const summary = f.structureSummary ? ` [${f.structureSummary}]` : "";
       return `${indent}- **${f.id}** (\`${f.path}\`) — ${f.desc}${summary}`;
     })
+    .join("\n");
+}
+
+/**
+ * Build a markdown list of constraint-priority docs from the knowledge graph.
+ *
+ * Constraint docs are load-bearing — they declare architectural rules that
+ * must be followed. They live in the always-loaded `tskb` skill rather than
+ * the on-demand `tskb-toc` so an agent never misses them.
+ */
+function buildConstraintDocsSummary(graph: KnowledgeGraph): string {
+  const docs = Object.values(graph.nodes.docs)
+    .filter((d) => d.priority === "constraint")
+    .sort((a, b) => a.filePath.localeCompare(b.filePath));
+
+  if (docs.length === 0) {
+    return '_No constraint docs declared. Add `priority="constraint"` to architectural-rule `<Doc>` tags._';
+  }
+
+  return docs
+    .map((d) => `- \`${d.filePath}\` — ${d.explains || "_no explains provided_"}`)
     .join("\n");
 }
 

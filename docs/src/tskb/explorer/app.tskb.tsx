@@ -8,76 +8,76 @@ declare global {
   namespace tskb {
     interface Modules {
       "explorer.spa.render-state": Module<{
-        desc: "Pure render state — coordinator-facing boundary between application logic and D3 rendering";
+        desc: "Pure render state. The boundary between app logic and D3 rendering.";
         type: typeof import("packages/tskb/explorer-app/src/render-state.js");
       }>;
     }
 
     interface Exports {
       "explorer.spa.ExplorerApp": Export<{
-        desc: "Top-level SPA controller class. The only public entry point is mount() — everything else is private. Owns the D3 canvas layers, UI state, and the render loop.";
+        desc: "Top-level controller for the explorer SPA.";
         type: ExplorerApp;
       }>;
 
       // ── mount phase ────────────────────────────────────────────────────────
 
       "explorer.spa.ExplorerApp.mount": Export<{
-        desc: "Public entry point. Calls the four setup methods in order (setupCanvas, setupTooltips, setupRenderer, setupSearch), subscribes to store changes, then awaits loadInitialData.";
+        desc: "Boots the SPA. Call once on startup.";
         type: InstanceType<ExplorerApp>["mount"];
       }>;
 
       "explorer.spa.ExplorerApp.setupCanvas": Export<{
-        desc: "Creates the D3 SVG layer stack (zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer), configures zoom/pan with tooltip transform propagation.";
+        desc: "Creates the SVG layers and wires zoom and pan.";
         type: InstanceType<ExplorerApp>["setupCanvas"];
       }>;
 
       "explorer.spa.ExplorerApp.setupTooltips": Export<{
-        desc: "Mounts the node hover tooltip and the code preview popup into the DOM, both anchored to the SVG element.";
+        desc: "Sets up the hover tooltip and the code preview popup.";
         type: InstanceType<ExplorerApp>["setupTooltips"];
       }>;
 
       "explorer.spa.ExplorerApp.setupRenderer": Export<{
-        desc: "Calls createNodeRenderer with all bound interaction callbacks (onExpand, onSelect, onTraceLinks, hasChildren, isExpanded, onCodePreview, onChipClick, getReferencingDocs, getReferencingFlows) and stores the result as this.renderer.";
+        desc: "Builds the node renderer with its interaction callbacks.";
         type: InstanceType<ExplorerApp>["setupRenderer"];
       }>;
 
       "explorer.spa.ExplorerApp.setupSearch": Export<{
-        desc: "Wires the search input 'input' event to update searchQuery and call render().";
+        desc: "Wires the search input to the render loop.";
         type: InstanceType<ExplorerApp>["setupSearch"];
       }>;
 
       "explorer.spa.ExplorerApp.loadInitialData": Export<{
-        desc: "Shows global spinner, fetches meta.json via loader.load('meta'), calls store.loadMeta() on success. On failure, replaces the spinner with an error message.";
+        desc: "Loads the meta chunk and shows or hides the global spinner.";
         type: InstanceType<ExplorerApp>["loadInitialData"];
       }>;
 
       "explorer.spa.ExplorerApp.render": Export<{
-        desc: "Coordinator: calls computeLayout if the layout is dirty, delegates all pure computation to computeRenderState, then calls the D3 rendering functions in order. Contains no application logic — only orchestration.";
+        desc: "Re-runs the render loop. Computes state, then draws.";
         type: InstanceType<ExplorerApp>["render"];
       }>;
 
       "explorer.spa.computeRenderState": Export<{
-        desc: "Pure render state computation — derives allNodes, canvasW, structureLinks, relationLinks, and matchIds from the store, layout, and search query. No D3 or DOM access. The boundary between coordinator logic and D3 rendering.";
+        desc: "Pure function that produces the render state from store, layout, and search query.";
         type: typeof import("packages/tskb/explorer-app/src/render-state.js").computeRenderState;
       }>;
 
       "explorer.spa.ExplorerApp.onExpand": Export<{
-        desc: "Handles folder expand/collapse and module expand/collapse. For folder expand: shows node spinner, fetches chunk if not cached, removes spinner in finally, adds id to expanded set, calls render(). For folder collapse: removes id and all descendants from expanded set via collapseDescendants.";
+        desc: "Handles expand and collapse for folders and modules.";
         type: InstanceType<ExplorerApp>["onExpand"];
       }>;
 
       "explorer.spa.ExplorerApp.onTraceLinks": Export<{
-        desc: "MVP stub: logs the node id and edge count. Intended for an animated edge tracer in a future iteration.";
+        desc: "Hook for tracing edges from a node. Stub today.";
         type: InstanceType<ExplorerApp>["onTraceLinks"];
       }>;
 
       "explorer.spa.ExplorerApp.collapseDescendants": Export<{
-        desc: "Recursively removes all sub-folders and modules of a given folder from the expanded set. Called by onExpand on collapse before render().";
+        desc: "Collapses a folder and everything inside it.";
         type: InstanceType<ExplorerApp>["collapseDescendants"];
       }>;
 
       "explorer.spa.ExplorerApp.prefetchNodeChunk": Export<{
-        desc: "Silently loads the folder chunks needed to resolve a node by id. Walks meta.parentOf up the ancestor chain and fetches any unloaded folder chunks directly into store.folderChunks — without adding to the expanded set or triggering a canvas re-render. Called by DocPanel on ref link hover so tooltips can update with description and color once data arrives.";
+        desc: "Loads the chunks needed to resolve a node, without expanding it on the canvas.";
         type: InstanceType<ExplorerApp>["prefetchNodeChunk"];
       }>;
     }
@@ -116,7 +116,7 @@ const RemoveNodeSpinnerExport = ref as tskb.Exports["explorer.spa.removeNodeSpin
 // ─── Documentation ────────────────────────────────────────────────────────────
 
 export default (
-  <Doc explains="ExplorerApp class: boot sequence, render loop, and interaction handlers">
+  <Doc explains="How does the ExplorerApp class boot, render, and respond to interaction?">
     <H1>ExplorerApp</H1>
     <P>
       {ExplorerAppExport} in {MainModule} is the single top-level controller for the explorer SPA.

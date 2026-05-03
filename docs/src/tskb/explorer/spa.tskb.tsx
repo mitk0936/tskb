@@ -19,129 +19,129 @@ declare global {
   namespace tskb {
     interface Modules {
       "explorer.spa.main": Module<{
-        desc: "ExplorerApp class — top-level SPA controller. mount() orchestrates four setup methods (setupCanvas, setupTooltips, setupRenderer, setupSearch) then loads meta.json via loadInitialData(). The render() method drives the full D3 enter/update/exit cycle on every store change or UI interaction. Interaction handlers (onExpand, onSelect, onTraceLinks) are private methods passed as callbacks to the renderer. UI state (expanded set, selected node, search query) lives on the class instance; graph data lives in GraphStore.";
+        desc: "Entry point of the explorer SPA.";
         type: typeof import("packages/tskb/explorer-app/src/main.js");
       }>;
 
       "explorer.spa.chunk-types": Module<{
-        desc: "Discriminated union types for all chunk shapes (MetaChunk, FolderChunk) plus the ChunkRegistry map and a typed URL builder. Extend ChunkRegistry here to add new chunk kinds.";
+        desc: "Type definitions for the chunks the SPA loads.";
         type: typeof import("packages/tskb/explorer-app/src/graph/chunk-types.js");
       }>;
 
       "explorer.spa.loader": Module<{
-        desc: "ChunkLoader: type-safe generic fetch keyed by ChunkKind, LRU-bounded in-memory cache (50 chunks), deduplication of in-flight requests";
+        desc: "Loads chunks. Caches recent ones; de-duplicates parallel requests.";
         type: typeof import("packages/tskb/explorer-app/src/graph/loader.js");
       }>;
 
       "explorer.spa.store": Module<{
-        desc: "GraphStore: pure data store holding meta chunk and folder chunks. UI state (expanded set, selected node, search query) lives outside in main.ts";
+        desc: "Holds the loaded graph data for the SPA.";
         type: typeof import("packages/tskb/explorer-app/src/store/graph-store.js");
       }>;
 
       "explorer.spa.lane-engine": Module<{
-        desc: "computeLayout(): builds a d3.hierarchy from visible structure nodes, runs d3.tree for left-to-right positioning, then lays docs and other nodes as horizontal lists below. Collapsed folders with _childCount > 0 inject up to 4 ghost placeholder nodes so the tree reserves space for their children.";
+        desc: "Lays out visible nodes on the canvas.";
         type: typeof import("packages/tskb/explorer-app/src/layout/lane-engine.js");
       }>;
 
       "explorer.spa.node-base": Module<{
-        desc: "NodeComponent interface (enter, update, anchor, getSize) and BaseNodeRenderer: renders any node type as a rounded-rect card with a <> code preview bubble (top-center) and a + expand bubble (right edge). Ghost nodes (detail._ghost = 'true') render as dashed transparent cards showing only their filename label. Tooltip anchor is the node's right-center SVG position.";
+        desc: "Default node renderer for the canvas.";
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/base.js");
       }>;
 
       "explorer.spa.node-index": Module<{
-        desc: "Node renderer factory module. createNodeRenderer() is the single dispatch point: currently always returns BaseNodeRenderer; add a type-specific case here when a node type needs a custom renderer.";
+        desc: "Picks the right node renderer for a given node type.";
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/index.js");
       }>;
 
       "explorer.spa.edge-renderer": Module<{
-        desc: "buildStructureLinks() derives parent→child links from parentId, marking ghost links via detail._ghost; renderStructureEdges() draws cubic-bezier SVG paths (dashed + lower opacity for ghost links); renderLaneBands() renders lane background bands with labels; buildRelationLinks() shows cross-edges (imports / related-to) only when both endpoints are directly visible; renderRelationEdges() draws tapered filled band shapes between them";
+        desc: "Draws the edges between nodes on the canvas.";
         type: typeof import("packages/tskb/explorer-app/src/components/edges/EdgeRenderer.js");
       }>;
 
       "explorer.spa.boundary-renderer": Module<{
-        desc: "renderBoundaryGroups() draws a freeform dashed hull outline around all visible nodes that belong to the same architectural boundary. Hierarchy resolution: only the top-level folder carries detail.boundary; all descendants are resolved by walking parentOf. Hull is computed via d3.polygonHull, perturbed with seeded pseudo-random wobble for a stable hand-drawn look, and smoothed with curveBasisClosed.";
+        desc: "Draws an outline around nodes that share a boundary.";
         type: typeof import("packages/tskb/explorer-app/src/components/BoundaryRenderer.js");
       }>;
 
       "explorer.spa.spinner": Module<{
-        desc: "Global and per-node spinner helpers: showGlobalSpinner/hideGlobalSpinner overlay a full-screen loader; showNodeSpinner/removeNodeSpinner attach a small SVG spinner next to a node while its chunk is loading";
+        desc: "Global and per-node loading spinners.";
         type: typeof import("packages/tskb/explorer-app/src/ui/Spinner.js");
       }>;
 
       "explorer.spa.node-tooltip": Module<{
-        desc: "Hover tooltip anchored to the node's right-center SVG position. Shows a coloured dot, node name, monospace path, and description. Receives updateNodeTooltipTransform() calls from main.ts on every zoom event so it repositions to track the node. Uses mouseover/mouseout bubbling with relatedTarget boundary guards to avoid flicker on child SVG elements.";
+        desc: "Hover tooltip for canvas nodes.";
         type: typeof import("packages/tskb/explorer-app/src/ui/NodeTooltip.js");
       }>;
 
       "explorer.spa.code-tooltip": Module<{
-        desc: "Toggle-based code preview popup for module nodes. Click the <> bubble to show/hide; clicking the same node again dismisses it; clicking outside also dismisses. Renders morphology lines with an inline TypeScript tokenizer (no runtime deps) for syntax highlighting, prepended by import lines with a blank-line separator.";
+        desc: "Code preview popup shown for module nodes.";
         type: typeof import("packages/tskb/explorer-app/src/ui/CodeTooltip.js");
       }>;
 
       "explorer.spa.doc-panel": Module<{
-        desc: "Side panel that slides in from the right when a node is selected or a chip is clicked. show(node) renders the node's HTML content or a structured key-value fallback. showRefs(node, kind, items) renders a docs or flows accordion. wireRefLinks() post-processes every tskb-ref anchor: resolves display text, wires hover to DomTooltip, and triggers setOnNodePrefetch to background-load the containing folder chunk on hover so the tooltip updates with description and correct color once the chunk arrives. Styled by doc-panel.css.";
+        desc: "Side panel that shows the selected node's doc content.";
         type: typeof import("packages/tskb/explorer-app/src/ui/DocPanel.js");
       }>;
 
       "explorer.spa.dom-tooltip": Module<{
-        desc: "Lightweight DOM-anchored tooltip used by DocPanel ref links. Positioned above the hovered anchor element (no SVG coordinate math). Separate from NodeTooltip which is SVG-anchored and zoom-aware. mountDomTooltip() appends the element once; showDomTooltip() builds content and repositions; hideDomTooltip() fades out.";
+        desc: "Tooltip anchored to a DOM element, used by the doc panel.";
         type: typeof import("packages/tskb/explorer-app/src/ui/DomTooltip.js");
       }>;
     }
 
     interface Exports {
       "explorer.spa.ChunkLoader": Export<{
-        desc: "Type-safe chunk fetcher with LRU cache and in-flight deduplication. load(kind, ...args) return type is inferred from ChunkRegistry[K].";
+        desc: "Loads chunks for the SPA.";
         type: typeof import("packages/tskb/explorer-app/src/graph/loader.js").ChunkLoader;
       }>;
 
       "explorer.spa.GraphStore": Export<{
-        desc: "Pure data store holding meta chunk and folder chunks. Exposes subscribe(listener) for reactive re-render; UI state lives outside in main.ts.";
+        desc: "Holds loaded graph data and notifies subscribers when it changes.";
         type: typeof import("packages/tskb/explorer-app/src/store/graph-store.js").GraphStore;
       }>;
 
       "explorer.spa.computeLayout": Export<{
-        desc: "Computes SVG positions for all visible nodes across three lanes (Structure, Docs, Terms/Flows). Called on every expand/collapse; returns a LaneLayout consumed by node and edge renderers.";
+        desc: "Computes positions for all visible nodes.";
         type: typeof import("packages/tskb/explorer-app/src/layout/lane-engine.js").computeLayout;
       }>;
 
       "explorer.spa.buildStructureLinks": Export<{
-        desc: "Derives parent→child StructureLink pairs from the parentId field of every positioned node. Ghost links are flagged for dashed rendering.";
+        desc: "Derives parent–child links from the visible nodes.";
         type: typeof import("packages/tskb/explorer-app/src/components/edges/EdgeRenderer.js").buildStructureLinks;
       }>;
 
       "explorer.spa.renderStructureEdges": Export<{
-        desc: "Draws parent→child cubic-bezier SVG paths from a StructureLink list. Ghost links render with dashed stroke and reduced opacity.";
+        desc: "Draws parent–child edges on the canvas.";
         type: typeof import("packages/tskb/explorer-app/src/components/edges/EdgeRenderer.js").renderStructureEdges;
       }>;
 
       "explorer.spa.BaseNodeRenderer": Export<{
-        desc: "Default NodeComponent implementation: renders any node type as a rounded-rect card with type icon, label, description, edge-count badge, code preview bubble, and expand bubble.";
+        desc: "Default node component. Draws any node as a card.";
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/base.js").BaseNodeRenderer;
       }>;
 
       "explorer.spa.createNodeRenderer": Export<{
-        desc: "Factory that constructs a NodeComponent from the full set of interaction callbacks (onExpand, onSelect, onTraceLinks, hasChildren, isExpanded, onCodePreview, onChipClick, getReferencingDocs, getReferencingFlows). Currently always returns BaseNodeRenderer. Add a type-dispatch switch here when a node type needs its own renderer.";
+        desc: "Builds a node renderer wired with the SPA's interaction callbacks.";
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/index.js").createNodeRenderer;
       }>;
 
       "explorer.spa.renderBoundaryGroups": Export<{
-        desc: "Renders one <g.boundary-group> per boundary into the provided SVG layer. Boundary membership is resolved by walking parentOf from each visible node upward until a node with detail.boundary is found. Uses d3.polygonHull with seeded wobble perturbation and curveBasisClosed for a stable freeform outline. pointer-events: none on all elements.";
+        desc: "Draws an outline around the nodes that belong to each boundary.";
         type: typeof import("packages/tskb/explorer-app/src/components/BoundaryRenderer.js").renderBoundaryGroups;
       }>;
 
       "explorer.spa.showNodeSpinner": Export<{
-        desc: "Appends a small animated SVG ring at a given (x, y) position inside the node canvas layer. Returns the SVG group element so the caller can remove it via removeNodeSpinner.";
+        desc: "Shows a small spinner next to a node.";
         type: typeof import("packages/tskb/explorer-app/src/ui/Spinner.js").showNodeSpinner;
       }>;
 
       "explorer.spa.removeNodeSpinner": Export<{
-        desc: "Removes the SVG group returned by showNodeSpinner from the DOM. Called in the finally block of ExplorerApp.onExpand() after the chunk fetch resolves or rejects.";
+        desc: "Removes a spinner shown by `showNodeSpinner`.";
         type: typeof import("packages/tskb/explorer-app/src/ui/Spinner.js").removeNodeSpinner;
       }>;
 
       "explorer.spa.DocPanel": Export<{
-        desc: "Class managing the detail side panel. show(node) opens with node HTML or key-value fallback; showRefs() opens a docs/flows accordion; hide() closes. Four callbacks wired by ExplorerApp: setOnNodeRef (click-through navigation), setGetNode (live node lookup), setOnNodeHighlight (canvas glow), setOnNodePrefetch (background chunk load on ref link hover).";
+        desc: "Side panel that shows the selected node's content.";
         type: typeof import("packages/tskb/explorer-app/src/ui/DocPanel.js").DocPanel;
       }>;
     }
@@ -185,7 +185,7 @@ const GhostNodeTerm = ref as tskb.Terms["ghostNode"];
 // ─── Documentation ────────────────────────────────────────────────────────────
 
 export default (
-  <Doc explains="Explorer SPA architecture: D3 canvas, chunk loading, three-lane layout, node components, UI shell">
+  <Doc explains="How is the explorer SPA structured and how do its layers fit together?">
     <H1>Explorer SPA</H1>
     <P>
       The SPA is built with Vite (D3 in a separate vendor chunk) and lives in the{" "}

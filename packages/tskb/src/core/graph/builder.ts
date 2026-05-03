@@ -715,22 +715,39 @@ function buildExportMembership(graph: KnowledgeGraph, registry: ExtractedRegistr
   const folders = Object.values(graph.nodes.folders);
 
   for (const exp of exports) {
-    // InstanceType<X>["method"] membership: link to the class export whose typeSignature === ownerAlias.
-    // Must run for all exports (including those without a resolvedPath).
+    // InstanceType<X>["method"] membership: store ownerExportId on the node (no belongs-to edge).
+    // All exports belong directly to their parent module; the ownerExportId is used only for
+    // deriving compound labels like "ClassName.methodName" in the explorer.
     const regEntry = registry.exports.get(exp.id);
     if (regEntry?.ownerAlias) {
       for (const [candidateId, candidateNode] of Object.entries(graph.nodes.exports)) {
         const sig = candidateNode.typeSignature;
         const ownerMatches =
-          sig?.endsWith(`.${regEntry.ownerAlias}`) || sig === regEntry.ownerAlias; // e.g. typeof import("...").AuthService // e.g. local alias `type ExplorerApp = ...`
+          sig?.endsWith(`.${regEntry.ownerAlias}`) || sig === regEntry.ownerAlias;
         if (candidateId !== exp.id && ownerMatches) {
-          graph.edges.push({ from: exp.id, to: candidateId, type: "belongs-to" });
+          exp.ownerExportId = candidateId;
           break;
         }
       }
     }
 
+    // Class method exports (ownerExportId set) typically have no resolvedPath.
+    // Inherit the parent module from the owner's belongs-to edge.
+    if (exp.ownerExportId && !exp.resolvedPath) {
+      const ownerEdge = graph.edges.find(
+        (e) => e.from === exp.ownerExportId && e.type === "belongs-to"
+      );
+      if (ownerEdge) {
+        graph.edges.push({ from: exp.id, to: ownerEdge.to, type: "belongs-to" });
+      }
+      continue;
+    }
+
     if (!exp.resolvedPath) continue;
+
+    // When an export shares its ID with a module, the module's own folder membership
+    // (from buildModuleFolderMembership) already covers this node — skip entirely.
+    if (graph.nodes.modules[exp.id]) continue;
 
     // Normalize path for comparison
     const exportPath = exp.resolvedPath.replace(/\\/g, "/");
@@ -780,8 +797,8 @@ function buildExportMembership(graph: KnowledgeGraph, registry: ExtractedRegistr
         }
       }
 
-      // Create edge from export to folder
-      if (bestFolder) {
+      // Create edge from export to folder (skip if IDs collide — would be a self-loop)
+      if (bestFolder && bestFolder.id !== exp.id) {
         graph.edges.push({
           from: exp.id,
           to: bestFolder.id,

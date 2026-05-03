@@ -339,35 +339,43 @@ class GraphToExplorerTransformer {
   }
 
   private buildExportNodes(moduleId: string): ExplorerNode[] {
-    const results: ExplorerNode[] = [];
-    const visited = new Set<string>();
-    const queue: Array<{ ownerId: string; parentId: string }> = [
-      { ownerId: moduleId, parentId: moduleId },
-    ];
-    while (queue.length > 0) {
-      const { ownerId, parentId } = queue.shift()!;
-      if (visited.has(ownerId)) continue;
-      visited.add(ownerId);
-      for (const e of this.edgesByTarget.get(ownerId) ?? []) {
-        if (e.type !== "belongs-to" || !this.graph.nodes.exports[e.from]) continue;
-        const exportNode = this.graph.nodes.exports[e.from]!;
-        results.push(
-          toExplorerNode(exportNode.id, "export", exportNode.desc, {
-            path: exportNode.resolvedPath,
-            parentId,
-            edgeCount: exportNode.edgeCount ?? 0,
-            detail: {
-              ...(exportNode.typeSignature ? { signature: exportNode.typeSignature } : {}),
-              ...(exportNode.morphologySummary ? { morphology: exportNode.morphologySummary } : {}),
-              ...(exportNode.morphology?.length ? { code: exportNode.morphology } : {}),
-            },
-          })
-        );
-        // Collect members of this export (e.g. class methods)
-        queue.push({ ownerId: exportNode.id, parentId: exportNode.id });
-      }
-    }
-    return results;
+    // Flat: all exports that belong-to the module are direct children.
+    // Class method exports get a compound label like "ClassName.methodName".
+    const exportEdges = (this.edgesByTarget.get(moduleId) ?? []).filter(
+      (e) => e.type === "belongs-to" && this.graph.nodes.exports[e.from]
+    );
+
+    return exportEdges.map((e) => {
+      const exportNode = this.graph.nodes.exports[e.from]!;
+      const label = this.deriveExportLabel(exportNode);
+      return toExplorerNode(exportNode.id, "export", exportNode.desc, {
+        path: exportNode.resolvedPath,
+        parentId: moduleId,
+        edgeCount: exportNode.edgeCount ?? 0,
+        label,
+        detail: {
+          ...(exportNode.typeSignature ? { signature: exportNode.typeSignature } : {}),
+          ...(exportNode.morphologySummary ? { morphology: exportNode.morphologySummary } : {}),
+          ...(exportNode.morphology?.length ? { code: exportNode.morphology } : {}),
+        },
+      });
+    });
+  }
+
+  /** Derive a display label for an export. Class method exports get "ClassName.method". */
+  private deriveExportLabel(
+    exportNode: import("../graph/types.js").ExportNode
+  ): string | undefined {
+    if (!exportNode.ownerExportId) return undefined; // use default label logic
+    const owner = this.graph.nodes.exports[exportNode.ownerExportId];
+    if (!owner) return undefined;
+    // Owner label: last segment of dotted id (e.g. "explorer.spa.ExplorerApp" → "ExplorerApp")
+    const ownerLabel = owner.id.includes(".") ? owner.id.split(".").pop()! : owner.id;
+    // Method label: last segment of this export's id
+    const methodLabel = exportNode.id.includes(".")
+      ? exportNode.id.split(".").pop()!
+      : exportNode.id;
+    return `${ownerLabel}.${methodLabel}`;
   }
 
   private buildImportEdges(moduleIdSet: Set<string>): {
@@ -739,25 +747,9 @@ class GraphToExplorerTransformer {
     return map;
   }
 
-  /**
-   * Returns all exports from `candidates` that transitively belong to `moduleId`.
-   * Includes direct module exports (parentId === moduleId) AND nested exports
-   * (e.g. class methods whose parentId is a class export that itself belongs to the module).
-   */
+  /** Returns all exports from `candidates` that belong to `moduleId` (flat — parentId === moduleId). */
   private getModuleExports(moduleId: string, candidates: ExplorerNode[]): ExplorerNode[] {
-    const owned = new Set<string>([moduleId]);
-    // BFS: keep expanding owned set with exports whose parentId is already owned
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (const e of candidates) {
-        if (!owned.has(e.id) && e.parentId && owned.has(e.parentId)) {
-          owned.add(e.id);
-          changed = true;
-        }
-      }
-    }
-    return candidates.filter((e) => e.parentId && owned.has(e.parentId));
+    return candidates.filter((e) => e.parentId === moduleId);
   }
 
   // ── Edge/node query helpers ────────────────────────────────────────────────

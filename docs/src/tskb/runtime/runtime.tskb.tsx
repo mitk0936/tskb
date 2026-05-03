@@ -4,71 +4,71 @@ declare global {
   namespace tskb {
     interface Modules {
       "runtime.jsx": Module<{
-        desc: "JSX runtime primitives - Doc, H1-H3, P, List, Li, Snippet components and ref helper";
+        desc: "All JSX tags users can write inside .tskb.tsx files.";
         type: typeof import("packages/tskb/src/runtime/jsx.js");
       }>;
 
       "runtime.registry": Module<{
-        desc: "Registry type definitions - Folder, Module, Export, Term interfaces for global namespace augmentation";
+        desc: "Type definitions for the registry primitives (Folder, Module, Export, Term, File, External).";
         type: typeof import("packages/tskb/src/runtime/registry.js");
       }>;
     }
 
     interface Exports {
       "jsx.Doc": Export<{
-        desc: "Documentation container component. Requires an 'explains' prop that describes what the doc covers - used as the doc's description in search results and referencing doc lists";
+        desc: "The root tag of a doc file. Answers one question via its `explains` prop.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").Doc;
       }>;
       "jsx.H1": Export<{
-        desc: "Heading level 1";
+        desc: "Heading level 1.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").H1;
       }>;
       "jsx.H2": Export<{
-        desc: "Heading level 2";
+        desc: "Heading level 2.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").H2;
       }>;
       "jsx.H3": Export<{
-        desc: "Heading level 3";
+        desc: "Heading level 3.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").H3;
       }>;
       "jsx.P": Export<{
-        desc: "Paragraph";
+        desc: "Paragraph.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").P;
       }>;
       "jsx.List": Export<{
-        desc: "List container";
+        desc: "List container.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").List;
       }>;
       "jsx.Li": Export<{
-        desc: "List item";
+        desc: "List item.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").Li;
       }>;
       "jsx.Snippet": Export<{
-        desc: "Code snippet component";
+        desc: "A type-checked code example.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").Snippet;
       }>;
       "jsx.Adr": Export<{
-        desc: "Architecture Decision Record component with id, title, status, date, and deciders metadata";
+        desc: "An Architecture Decision Record.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").Adr;
       }>;
       "jsx.ref": Export<{
-        desc: "Reference placeholder for type assertions to registry items";
+        desc: "Placeholder for declaring a typed reference to a registered node.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").ref;
       }>;
       "jsx.Relation": Export<{
-        desc: "Semantic relation component. Creates a labeled or unlabeled related-to edge between two registry nodes in the knowledge graph. Props: from, to (node constants), optional label (string). Visible in CLI output.";
+        desc: "A labeled edge between two registered nodes.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").Relation;
       }>;
       DocPriority: Export<{
-        desc: "Type for doc importance level: 'essential' (included in generated skill/instructions), 'constraint' (architectural rules for related areas), or 'supplementary' (graph-only, default)";
+        desc: "How important a doc is: `essential`, `constraint`, or `supplementary`.";
         type: import("packages/tskb/src/runtime/jsx.js").DocPriority;
       }>;
       "jsx.Flow": Export<{
-        desc: "Flow component — defines a named, ordered sequence of steps through the system. Becomes a first-class graph node. Props: name, desc, optional priority. Only <Step> children allowed (validated at build time).";
+        desc: "A named, ordered sequence of steps through the system.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").Flow;
       }>;
       "jsx.Step": Export<{
-        desc: "Step component — a single participant in a Flow. The node prop references a registry node, optional label describes its role in the flow.";
+        desc: "One step inside a Flow, pointing at a registered node.";
         type: typeof import("packages/tskb/src/runtime/jsx.js").Step;
       }>;
     }
@@ -88,7 +88,7 @@ const ExampleTerm = ref as tskb.Terms["graph"];
 
 export default (
   <Doc
-    explains="Runtime module structure: JSX primitives and registry type definitions"
+    explains="What does the runtime module provide and what does it not do?"
     priority="essential"
   >
     <H1>Runtime</H1>

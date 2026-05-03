@@ -10,10 +10,7 @@ const SkillGenModule = ref as tskb.Modules["cli.utils.skill-generator"];
 const CopilotGenModule = ref as tskb.Modules["cli.utils.copilot-instructions"];
 
 export default (
-  <Doc
-    explains="Constraint: README.md must be updated when the public API or structural behavior changes"
-    priority="constraint"
-  >
+  <Doc explains="When must the npm README.md be updated?" priority="constraint">
     <P>
       The package in {PackageRoot} is published to npm. {NpmReadme} is the primary documentation
       users see on the registry. When structural changes are made to the consumer-facing surface —

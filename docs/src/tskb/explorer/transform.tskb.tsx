@@ -6,19 +6,19 @@ declare global {
   namespace tskb {
     interface Modules {
       "explorer.transform": Module<{
-        desc: "Converts KnowledgeGraph into ExplorerChunks: a MetaChunk (root, topFolders, docs, flows, terms, externals) plus one FolderChunk per folder that has modules or sub-folders. Two ghost injection passes: buildGhostIntermediaryChains() synthesizes FolderChunks for every filesystem directory that lies between a declared folder's path and its owned modules/subfolders; injectGhostNodes() adds ghost ExplorerNodes for any .ts/.tsx files recorded in folder.children.files that are not declared as modules.";
+        desc: "Turns the graph into chunks the SPA can load.";
         type: typeof import("packages/tskb/src/core/explorer/transform.js");
       }>;
     }
 
     interface Exports {
       "explorer.transformGraph": Export<{
-        desc: "Entry point: builds edge lookup indexes, assembles MetaChunk, recurses into all folders to build FolderChunks, synthesizes ghost intermediary chunks for path-gap directories, injects ghost nodes from scanner data, then patches _hasChildren / _childCount on every folder node.";
+        desc: "Builds the explorer chunks from the graph.";
         type: typeof import("packages/tskb/src/core/explorer/transform.js").transformGraph;
       }>;
 
       "explorer.sanitizeFolderId": Export<{
-        desc: "Converts an arbitrary folder id into a filename-safe string (replaces non-alphanumeric chars with underscores). Used by both server and export to derive chunk file names.";
+        desc: "Turns a folder id into a safe chunk file name.";
         type: typeof import("packages/tskb/src/core/explorer/transform.js").sanitizeFolderId;
       }>;
     }
@@ -36,7 +36,7 @@ const ExploreCommandModule = ref as tskb.Modules["cli.commands.explore"];
 // ─── Documentation ────────────────────────────────────────────────────────────
 
 export default (
-  <Doc explains="Transform: how KnowledgeGraph becomes ExplorerChunks — edge indexing, meta assembly, recursive folder chunking, ghost injection">
+  <Doc explains="How does the KnowledgeGraph become the chunks the explorer SPA loads?">
     <H1>Graph Transform</H1>
     <P>
       {TransformModule} is the single step between the raw knowledge graph and what the browser

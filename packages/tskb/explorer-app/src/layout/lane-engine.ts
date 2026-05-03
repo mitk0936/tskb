@@ -44,14 +44,11 @@ function buildStructureTree(store: GraphStore, expanded: ReadonlySet<string>): T
   };
 }
 
-/** Recursively build a tree of export nodes, preserving class→method hierarchy. */
+/** Build flat list of export nodes belonging to parentId. */
 function buildExportTree(parentId: string, allExports: ExplorerNode[]): TreeData[] {
   return allExports
-    .filter((e) => e.parentId === parentId)
-    .map((e) => {
-      const children = buildExportTree(e.id, allExports);
-      return children.length > 0 ? { ...e, treeChildren: children } : { ...e };
-    });
+    .filter((e) => e.parentId === parentId && e.id !== parentId)
+    .map((e) => ({ ...e }));
 }
 
 function makeGhostNodes(parentId: string, count: number, type: NodeType = "module"): TreeData[] {
@@ -151,11 +148,13 @@ export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>):
       if (n.x < minX) minX = n.x;
     });
 
+    // Skip the TSKB root node (depth 0) and shift children left by one column
     root.each((n) => {
+      if (n.depth === 0) return; // skip root
       structureNodes.push({
         ...n.data,
         // left-to-right: n.y = depth-based horizontal, n.x = vertical spread
-        x: LANE_PADDING + n.y,
+        x: LANE_PADDING + n.y - colWidth,
         y: LANE_HEADER_H + LANE_PADDING + n.x - minX,
       });
     });

@@ -6,24 +6,24 @@ declare global {
   namespace tskb {
     interface Modules {
       "explorer.server": Module<{
-        desc: "Node built-in HTTP server that serves the pre-built SPA assets and generates chunk JSON responses on demand. Reads graph.json once, transforms it, and caches all chunk JSON strings in memory for the lifetime of the process.";
+        desc: "HTTP server for the explorer. Serves the SPA and the chunk API.";
         type: typeof import("packages/tskb/src/core/explorer/server.js");
       }>;
 
       "cli.commands.explore": Module<{
-        desc: "Entry point for `tskb explore`: loads graph.json, then either serves locally or exports static files depending on --export flag";
+        desc: "The `tskb explore` command.";
         type: typeof import("packages/tskb/src/cli/commands/explore.js");
       }>;
     }
 
     interface Exports {
       "explorer.serveExplorer": Export<{
-        desc: "Starts a Node http server that serves the pre-built SPA + chunk API. Resolves SPA assets via import.meta.url so it works after npm pack. Optionally auto-opens the browser.";
+        desc: "Starts the explorer HTTP server.";
         type: typeof import("packages/tskb/src/core/explorer/server.js").serveExplorer;
       }>;
 
       "explorer.explore": Export<{
-        desc: "CLI command handler: finds graph.json via graph-finder, branches to serveExplorer or exportExplorer based on --export flag";
+        desc: "Runs the `tskb explore` command — serves the SPA, or exports it as static files with `--export`.";
         type: typeof import("packages/tskb/src/cli/commands/explore.js").explore;
       }>;
     }
@@ -46,7 +46,7 @@ const ChunkTerm = ref as tskb.Terms["knowledgeChunk"];
 // ─── Documentation ────────────────────────────────────────────────────────────
 
 export default (
-  <Doc explains="Explorer HTTP server: chunk API, in-memory cache, SPA asset serving, auto-open browser">
+  <Doc explains="How does the explorer HTTP server serve chunks and SPA assets?">
     <H1>Explorer Server</H1>
     <P>
       {ServeExplorerExport} in {ServerModule} starts a Node built-in <code>http</code> server — no

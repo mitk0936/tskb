@@ -1,6 +1,8 @@
 import type { Folder, Module, Export, External, Term } from "tskb";
 
 type AuthServiceClass = typeof import("../src/services/auth.service.js").AuthService;
+type NotificationServiceClass =
+  typeof import("../src/services/notification.service.js").NotificationService;
 
 declare global {
   namespace tskb {
@@ -31,6 +33,10 @@ declare global {
       "utils.logger": Module<{
         desc: "Structured logging utility";
         type: typeof import("../src/utils/logger.js");
+      }>;
+      "services.notification": Module<{
+        desc: "Notification delivery service (email + push)";
+        type: typeof import("../src/services/notification.service.js");
       }>;
       /** Barrel module — intentionally shares ID with the utils Folder */
       utils: Module<{
@@ -71,6 +77,15 @@ declare global {
       createLogger: Export<{
         desc: "Factory for structured loggers";
         type: typeof import("../src/utils/logger.js").createLogger;
+      }>;
+      /** Method exports WITHOUT a class export — tests InstanceType path resolution fallback */
+      "NotificationService.sendEmail": Export<{
+        desc: "Sends an email notification";
+        type: InstanceType<NotificationServiceClass>["sendEmail"];
+      }>;
+      "NotificationService.sendPush": Export<{
+        desc: "Sends a push notification";
+        type: InstanceType<NotificationServiceClass>["sendPush"];
       }>;
     }
 

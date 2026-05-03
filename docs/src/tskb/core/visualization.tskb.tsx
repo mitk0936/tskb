@@ -1,19 +1,23 @@
-import { type Folder, type Module, Doc, H1, P, ref, Relation } from "tskb";
+import { type Folder, type Module, type Term, Doc, H1, P, ref, Relation } from "tskb";
 
 declare global {
   namespace tskb {
     interface Folders {
       "core.visualization": Folder<{
-        desc: "Graphviz DOT visualization generator - transforms the knowledge graph into a hierarchical diagram";
+        desc: "Turns the graph into a Graphviz DOT diagram.";
         path: "packages/tskb/src/core/visualization";
       }>;
     }
 
     interface Modules {
       "visualization.dot-generator": Module<{
-        desc: "DOT file generator - renders folders as nested subgraphs, modules as ellipses, terms as diamonds, docs as notes, with colored edges for relationship types";
+        desc: "DOT generator for the graph.";
         type: typeof import("packages/tskb/src/core/visualization/dot-generator.js");
       }>;
+    }
+
+    interface Terms {
+      dotFile: Term<"A Graphviz DOT file. Plain text describing nodes and edges. Used to draw the graph as a diagram with `dot -Tpng`.">;
     }
   }
 }
@@ -24,7 +28,7 @@ const GenerateDotExport = ref as tskb.Exports["generateDot"];
 const GraphBuilder = ref as tskb.Modules["graph.builder"];
 
 export default (
-  <Doc explains="Visualization module: DOT graph generation from the knowledge graph">
+  <Doc explains="How is the knowledge graph rendered into a Graphviz DOT file?">
     <H1>Visualization</H1>
     <P>
       Located in {VisFolder}. Contains {DotGenModule} which provides {GenerateDotExport}. Transforms

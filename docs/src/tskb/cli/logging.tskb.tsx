@@ -6,7 +6,7 @@ const BuildModule = ref as tskb.Modules["cli.commands.build"];
 
 export default (
   <Doc
-    explains="CLI logging: stderr-only output, --verbose flag, timing support"
+    explains="How does the CLI route log output and what controls verbosity?"
     priority="essential"
   >
     <H1>CLI Logger</H1>

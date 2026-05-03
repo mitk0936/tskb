@@ -8,39 +8,39 @@ declare global {
 
     interface Folders {
       "tskb.explorer.core": Folder<{
-        desc: "CLI-side explorer layer: graph→chunk transform, HTTP server, and static export";
+        desc: "Server side of the explorer: turns the graph into chunks and serves them.";
         path: "packages/tskb/src/core/explorer";
         boundary: "TSKB Explorer server";
       }>;
 
       "tskb.explorer.app": Folder<{
-        desc: "Vite SPA source for the interactive explorer UI. Built separately from the library (npm run build:explorer) and shipped in dist/explorer/";
+        desc: "The browser app shown by the explorer.";
         path: "packages/tskb/explorer-app";
         boundary: "TSKB Explorer SPA";
       }>;
 
       "tskb.explorer.app.components": Folder<{
-        desc: "Node and edge rendering components for the D3 canvas. Each node type implements NodeComponent; edges are drawn by EdgeRenderer";
+        desc: "Node and edge components drawn on the canvas.";
         path: "packages/tskb/explorer-app/src/components";
       }>;
 
       "tskb.explorer.app.graph": Folder<{
-        desc: "SPA data layer: chunk type registry, type-safe loader with LRU cache";
+        desc: "Data layer for the SPA. Loads and caches chunks.";
         path: "packages/tskb/explorer-app/src/graph";
       }>;
 
       "tskb.explorer.app.layout": Folder<{
-        desc: "Lane layout engine: computes SVG positions for structure (d3.tree), docs, and other lanes";
+        desc: "Layout engine that positions nodes on the canvas.";
         path: "packages/tskb/explorer-app/src/layout";
       }>;
 
       "tskb.explorer.app.store": Folder<{
-        desc: "Pure graph data store (loaded chunks only). UI state lives outside the store in main.ts";
+        desc: "Holds the loaded graph data for the SPA.";
         path: "packages/tskb/explorer-app/src/store";
       }>;
 
       "tskb.explorer.app.ui": Folder<{
-        desc: "UI shell components: global spinner, per-node spinner, node hover tooltip, and code preview popup";
+        desc: "UI bits around the canvas: spinners, tooltips, popups.";
         path: "packages/tskb/explorer-app/src/ui";
       }>;
     }
@@ -49,12 +49,12 @@ declare global {
 
     interface Externals {
       d3: External<{
-        desc: "D3 data-visualisation library. Used for tree layout (d3.hierarchy, d3.tree), zoom/pan (d3.zoom), SVG path curves (curveBasisClosed), and polygon hull computation (d3.polygonHull).";
+        desc: "Data-visualisation library used for layout, zoom, and SVG drawing.";
         url: "https://d3js.org";
         kind: "npm-package";
       }>;
       vite: External<{
-        desc: "Frontend build tool that bundles the explorer SPA. Configured in packages/tskb/explorer-app/vite.config.ts; outputs to dist/explorer/.";
+        desc: "Build tool that bundles the explorer SPA.";
         url: "https://vitejs.dev";
         kind: "npm-package";
       }>;
@@ -63,12 +63,12 @@ declare global {
     // ── Terms ──────────────────────────────────────────────────────────────
 
     interface Terms {
-      knowledgeChunk: Term<"An on-demand JSON fragment of the knowledge graph. meta.json contains root folder, top-level folder summaries, docs, flows, and terms. folder-{id}.json contains modules, exports, sub-folders, and import edges for one folder.">;
-      explorerLane: Term<"A horizontal section of the explorer SVG canvas. Three lanes stack vertically: Structure (code hierarchy, d3.tree), Each lane has a labeled background band.">;
-      nodeComponent: Term<"Interface for rendering a node type in the D3 canvas: enter() appends SVG elements, update() repositions them, anchor() returns edge connection points, getSize() returns bounding box. Implemented by BaseNodeRenderer; override per type.">;
-      lruChunkCache: Term<"Bounded LRU cache inside ChunkLoader (max 50 entries). Map insertion order is used for O(1) LRU: on get, entry is deleted and re-inserted; on set overflow, oldest key is evicted. Chunks are immutable so no invalidation is needed.">;
-      explorerStaticExport: Term<"Self-contained static export produced by `tskb explore --export`. Contains the pre-built SPA (index.html + hashed JS chunks) and all graph chunk JSON files. Works offline via file:// because the SPA uses relative fetch paths.">;
-      ghostNode: Term<"A placeholder ExplorerNode with detail._ghost = 'true'. Ghost nodes represent filesystem directories or files visible in the tree that are not declared in the knowledge graph. Two sources: (1) buildGhostIntermediaryChains() in transform.ts synthesizes ghost FolderChunks for every intermediate filesystem directory between a declared folder's path and its owned modules; (2) injectGhostNodes() in transform.ts adds ghost module/folder nodes from folder.children scanner data. Lane-engine also injects transient ghost placeholders for collapsed folders with _childCount > 0 to pre-reserve tree space. All ghost nodes render as dashed transparent cards with only a filename label.">;
+      knowledgeChunk: Term<"A JSON piece of the graph the SPA loads on demand. The meta chunk holds top-level info; one folder chunk per folder holds its contents.">;
+      explorerLane: Term<"A horizontal band on the explorer canvas. Lanes group different kinds of nodes side by side.">;
+      nodeComponent: Term<"The interface a node type implements to render itself on the canvas.">;
+      lruChunkCache: Term<"A bounded cache inside the SPA. Keeps recently loaded chunks; drops the oldest when full.">;
+      explorerStaticExport: Term<"A self-contained explorer folder that opens directly from the file system, no server needed.">;
+      ghostNode: Term<"A placeholder node for a folder or file that exists on disk but isn't declared in the graph. Drawn as a faded card.">;
     }
   }
 }
@@ -92,7 +92,7 @@ const ExportExplorerExport = ref as tskb.Exports["explorer.exportExplorer"];
 
 export default (
   <Doc
-    explains="tskb Explorer: interactive visual graph browser opened via `tskb explore`. Architecture, data flow, SPA layout, and extension points."
+    explains="What is the tskb explorer and how does its data flow from CLI to browser?"
     priority="essential"
   >
     <H1>Explorer</H1>

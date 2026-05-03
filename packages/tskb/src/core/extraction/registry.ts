@@ -946,12 +946,17 @@ function extractExportType(
       // Detect InstanceType<X>["method"] — class member export.
       // Resolve the alias (e.g. `AuthServiceClass`) to the actual class name (e.g. `AuthService`)
       // so buildExportMembership can match against typeSignature via `.endsWith('.AuthService')`.
+      // Also populate importPath when missing so exports get a resolvedPath even when
+      // the owner class is not itself registered as an export.
       const rawAlias = extractInstanceTypeOwner(propType);
       if (rawAlias && ts.isIndexedAccessTypeNode(propType)) {
         const aliasArg = (propType.objectType as ts.TypeReferenceNode).typeArguments?.[0];
         if (aliasArg && ts.isTypeReferenceNode(aliasArg)) {
           const resolved = resolveTypeAliasImport(aliasArg, checker);
           ownerAlias = resolved?.memberName ?? rawAlias;
+          if (!importPath && resolved?.importPath) {
+            importPath = resolved.importPath;
+          }
         } else {
           ownerAlias = rawAlias;
         }

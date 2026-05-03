@@ -9,6 +9,7 @@ import { describe, it, expect } from "vitest";
 import {
   buildQueryBody,
   buildUpdateBody,
+  buildUpdateSyntaxBody,
 } from "../../packages/tskb/src/cli/utils/content-builder.js";
 import type { KnowledgeGraph } from "../../packages/tskb/src/core/graph/types.js";
 
@@ -234,11 +235,12 @@ describe("buildUpdateBody", () => {
     expect(body).toContain("Key Rules");
   });
 
-  it("includes JSX component reference", () => {
+  it("references the high-level JSX tags users reach for", () => {
     const body = buildUpdateBody(emptyGraph());
     expect(body).toContain("<Doc");
     expect(body).toContain("<Flow");
-    expect(body).toContain("<Step");
+    expect(body).toContain("<Adr");
+    expect(body).toContain("<Snippet");
   });
 
   it("uses docs folder path from graph when available", () => {
@@ -261,8 +263,50 @@ describe("buildUpdateBody", () => {
     expect(body).toContain("tskb context");
   });
 
-  it("includes rebuild instruction", () => {
-    const body = buildUpdateBody(emptyGraph());
-    expect(body).toContain("npm run docs");
+  it("includes a rebuild instruction with the detected build command", () => {
+    // Pass an explicit build script so the test does not depend on the
+    // surrounding workspace's package.json.
+    const body = buildUpdateBody(emptyGraph(), "npm run my-docs");
+    expect(body).toContain("## After Editing");
+    expect(body).toContain("npm run my-docs");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildUpdateSyntaxBody
+// ---------------------------------------------------------------------------
+
+describe("buildUpdateSyntaxBody", () => {
+  it("includes the file anatomy and registry primitive table", () => {
+    const body = buildUpdateSyntaxBody(emptyGraph());
+    expect(body).toContain("File Anatomy");
+    expect(body).toContain("Registry Primitives");
+    expect(body).toContain("Folder<");
+    expect(body).toContain("Module<");
+    expect(body).toContain("Export<");
+    expect(body).toContain("Term<");
+  });
+
+  it("references every JSX component including Step", () => {
+    const body = buildUpdateSyntaxBody(emptyGraph());
+    expect(body).toContain("<Doc");
+    expect(body).toContain("<Flow");
+    expect(body).toContain("<Step");
+    expect(body).toContain("<Snippet");
+    expect(body).toContain("<Relation");
+    expect(body).toContain("<Adr");
+  });
+
+  it("documents the boundary prop and class-method pattern", () => {
+    const body = buildUpdateSyntaxBody(emptyGraph());
+    expect(body).toContain("boundary prop");
+    expect(body).toContain("InstanceType");
+  });
+
+  it("documents type-checked snippets", () => {
+    const body = buildUpdateSyntaxBody(emptyGraph());
+    expect(body).toContain("Type-Checked Snippets");
+    expect(body).toContain("JSON.stringify");
+    expect(body).toContain("execSync");
   });
 });

@@ -134,16 +134,32 @@ describe("InstanceType method export extraction", () => {
     }
   });
 
-  it("creates belongs-to edges from method exports to the class export", () => {
+  it("creates belongs-to edges from method exports to the parent module", () => {
     const graph = loadGraph();
+    // Method exports belong to the same module as their class export (services.auth)
     const belongsToEdges = graph.edges.filter(
-      (e: { type: string; to: string }) => e.type === "belongs-to" && e.to === "AuthService"
+      (e: { type: string; to: string }) => e.type === "belongs-to" && e.to === "services.auth"
     );
-    const methodIds = belongsToEdges.map((e: { from: string }) => e.from);
-    expect(methodIds).toContain("AuthService.login");
-    expect(methodIds).toContain("AuthService.register");
-    expect(methodIds).toContain("AuthService.refreshToken");
-    expect(methodIds).toContain("AuthService.logout");
+    const memberIds = belongsToEdges.map((e: { from: string }) => e.from);
+    expect(memberIds).toContain("AuthService.login");
+    expect(memberIds).toContain("AuthService.register");
+    expect(memberIds).toContain("AuthService.refreshToken");
+    expect(memberIds).toContain("AuthService.logout");
+  });
+
+  it("sets ownerExportId on method exports pointing to the class export", () => {
+    const graph = loadGraph();
+    const methods = [
+      "AuthService.login",
+      "AuthService.register",
+      "AuthService.refreshToken",
+      "AuthService.logout",
+    ];
+    for (const id of methods) {
+      expect(graph.nodes.exports[id].ownerExportId, `${id} should have ownerExportId`).toBe(
+        "AuthService"
+      );
+    }
   });
 
   it("method exports have a resolved type signature from the InstanceType pattern", () => {
@@ -152,5 +168,30 @@ describe("InstanceType method export extraction", () => {
     // Should have a type signature derived from the actual method type
     expect(loginExport.typeSignature).toBeDefined();
     expect(loginExport.typeSignature.length).toBeGreaterThan(0);
+  });
+
+  it("method exports without a class export still get belongs-to edges to the parent module", () => {
+    const graph = loadGraph();
+    // NotificationService has method exports but NO class export registered
+    const sendEmail = graph.nodes.exports["NotificationService.sendEmail"];
+    const sendPush = graph.nodes.exports["NotificationService.sendPush"];
+    expect(sendEmail, "NotificationService.sendEmail should exist").toBeDefined();
+    expect(sendPush, "NotificationService.sendPush should exist").toBeDefined();
+
+    // They should belong to the services.notification module via path-based matching
+    const belongsToEdges = graph.edges.filter(
+      (e: { type: string; to: string }) =>
+        e.type === "belongs-to" && e.to === "services.notification"
+    );
+    const memberIds = belongsToEdges.map((e: { from: string }) => e.from);
+    expect(memberIds).toContain("NotificationService.sendEmail");
+    expect(memberIds).toContain("NotificationService.sendPush");
+  });
+
+  it("method exports without a class export have resolvedPath set", () => {
+    const graph = loadGraph();
+    const sendEmail = graph.nodes.exports["NotificationService.sendEmail"];
+    expect(sendEmail.resolvedPath).toBeDefined();
+    expect(sendEmail.resolvedPath).toContain("notification.service");
   });
 });

@@ -6,55 +6,55 @@ declare global {
   namespace tskb {
     interface Modules {
       "extraction.documentation": Module<{
-        desc: "Documentation extraction module that parses JSX trees to extract content and references from .tskb.tsx files";
+        desc: "Reads `.tskb.tsx` files and extracts their content, references, relations, and flows.";
         type: typeof import("packages/tskb/src/core/extraction/documentation/index.js");
       }>;
     }
 
     interface Exports {
       extractDocs: Export<{
-        desc: "Entry point: iterates source files matched by the glob, calls extractFromTsxFile on each .tskb.tsx file, returns ExtractedDoc[]. Accepts an optional ExtractedRegistry used to pre-compute display attributes in the HTML output.";
+        desc: "Extracts every `.tskb.tsx` file matched by the glob.";
         type: typeof import("packages/tskb/src/core/extraction/documentation/index.js").extractDocs;
       }>;
 
       ExtractedDoc: Export<{
-        desc: "Shape of one extracted doc: filePath, format, explains, priority, HTML content string, reference arrays (modules/terms/folders/exports/files/externals), semantic relations, and extracted flows.";
+        desc: "The data extracted from one doc file.";
         type: import("packages/tskb/src/core/extraction/documentation/index.js").ExtractedDoc;
       }>;
 
       extractFromTsxFile: Export<{
-        desc: "Processes a single .tskb.tsx source file: builds the constant ref map, finds the default export, creates a JsxExtractor, returns an ExtractedDoc or null.";
+        desc: "Extracts one `.tskb.tsx` file.";
         type: typeof import("packages/tskb/src/core/extraction/documentation/index.js").extractFromTsxFile;
       }>;
 
       buildRefMap: Export<{
-        desc: "First pass over the source file: walks all variable declarations and maps const names to {category, name} by parsing 'ref as tskb.X[\"y\"]' type assertions. Result is passed into JsxExtractor so inline {MyConst} expressions resolve without re-parsing.";
+        desc: "Maps each `const` in a doc file to the registry node it points to.";
         type: typeof import("packages/tskb/src/core/extraction/documentation/index.js").buildRefMap;
       }>;
 
       JsxExtractor: Export<{
-        desc: "Stateful JSX tree walker. Created once per file by extractFromTsxFile. Accumulates HTML, references, relations, and flows via visit() dispatch. Component handlers (handleDoc, handleFlow, handleRelation, handleRefTag, handleWrapped, etc.) each own one JSX element type. Call extract() once with the default-export node.";
+        desc: "Walks the JSX tree of a doc file and collects content, refs, relations, and flows.";
         type: typeof import("packages/tskb/src/core/extraction/documentation/index.js").JsxExtractor;
       }>;
 
       buildRefLink: Export<{
-        desc: "Produces the <a class=tskb-ref> anchor for a single registry reference. Embeds data-node-id, data-node-type, and data-node-display attributes pre-computed from the registry so the explorer doc panel can show tooltips before the chunk is loaded. Pushes the id into the appropriate refs sub-array.";
+        desc: "Builds the HTML anchor for one inline reference.";
         type: typeof import("packages/tskb/src/core/extraction/documentation/index.js").buildRefLink;
       }>;
 
       resolveNodeMeta: Export<{
-        desc: "Looks up a nodeId across all registry maps (modules, folders, exports, terms, files, externals) and returns {nodeType, display}. Used by JsxExtractor for flow step links so each step anchor carries the same pre-computed attributes as regular refs.";
+        desc: "Looks up a node id in the registry and returns its type and display name.";
         type: typeof import("packages/tskb/src/core/extraction/documentation/index.js").resolveNodeMeta;
       }>;
     }
 
     interface Terms {
-      jsxElement: Term<"A JSX syntax node in the TypeScript AST representing an element like <Doc> or <P>, containing opening tag, children, and closing tag">;
-      jsxExpression: Term<"A TypeScript AST node representing an embedded expression in JSX curly braces like {ref as tskb.Folders['Auth']}">;
-      typeAssertion: Term<"TypeScript 'as' syntax that casts a value to a specific type, used in tskb to reference vocabulary items: {ref as tskb.Modules['X']}">;
-      depthFirstTraversal: Term<"Tree traversal algorithm that explores as far as possible along each branch before backtracking, used to visit all JSX nodes in order">;
-      constantReferencesMap: Term<"A Map built at parse time that resolves local const names (e.g. AuthModule) to their registry key and category by reading the 'ref as tskb.X[\"y\"]' type assertion on each declaration. Lets the traversal resolve {AuthModule} inline expressions.">;
-      refCategoryMap: Term<"A dispatch table in JsxExtractor.visitElement mapping JSX tag names (ModuleRef, TermRef, FolderRef, ExportRef, FileRef, ExternalRef) to their registry category string. All XxxRef elements route through the same buildRefLink helper.">;
+      jsxElement: Term<"A JSX node in the source tree, like `<Doc>` or `<P>`.">;
+      jsxExpression: Term<"A `{ ... }` expression embedded inside JSX.">;
+      typeAssertion: Term<"TypeScript's `as` syntax. tskb uses it to point a `ref` at a registry entry: `ref as tskb.Modules['X']`.">;
+      depthFirstTraversal: Term<"Tree traversal that follows each branch to its end before moving to the next. Used to walk JSX in order.">;
+      constantReferencesMap: Term<"A lookup from each `const` in a doc file to the registry node it points to.">;
+      refCategoryMap: Term<"A lookup from a JSX tag name to the registry category it belongs to.">;
     }
   }
 }
@@ -84,7 +84,7 @@ const DepthFirstTraversalTerm = ref as tskb.Terms["depthFirstTraversal"];
 // ─── Documentation ────────────────────────────────────────────────────────────
 
 export default (
-  <Doc explains="Documentation extraction: JSX AST traversal, reference collection, and HTML content generation">
+  <Doc explains="How does tskb turn .tskb.tsx files into HTML, references, and graph edges?">
     <H1>Documentation Extraction</H1>
     <P>
       {DocModuleRef} is the second extraction pass in the build pipeline. {ExtractDocsExport}{" "}

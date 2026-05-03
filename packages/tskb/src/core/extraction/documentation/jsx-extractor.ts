@@ -115,6 +115,15 @@ export class JsxExtractor {
   private visitExpression(expr: ts.Expression): void {
     if (ts.isStringLiteral(expr)) {
       this.html += expr.text + " ";
+    } else if (ts.isNoSubstitutionTemplateLiteral(expr)) {
+      this.html += `<em>${escapeHtml(expr.text)}</em> `;
+    } else if (ts.isTemplateExpression(expr)) {
+      let text = expr.head.text;
+      for (const span of expr.templateSpans) {
+        text += span.expression.getText();
+        text += span.literal.text;
+      }
+      this.html += `<em>${escapeHtml(text)}</em> `;
     } else if (ts.isIdentifier(expr)) {
       const meta = this.constantRefs.get(expr.text);
       if (meta) {
@@ -273,7 +282,7 @@ export class JsxExtractor {
 
   /** Resolves a JSX expression to its string value — used for Relation and Step attribute extraction. */
   private resolveExprToString(expr: ts.Expression): string | undefined {
-    if (ts.isStringLiteral(expr)) return expr.text;
+    if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) return expr.text;
     if (ts.isIdentifier(expr)) {
       return this.constantRefs.get(expr.text)?.name ?? expr.text;
     }

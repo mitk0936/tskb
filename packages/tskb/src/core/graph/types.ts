@@ -101,6 +101,11 @@ export interface ExportNode extends GraphNode {
    * Code stub lines showing the export's API shape (signature, class members, interface fields, etc.)
    */
   morphology?: string[];
+  /**
+   * ID of the class export this method belongs to (set for InstanceType<X>["method"] patterns).
+   * Used to derive compound labels like "ClassName.methodName" in the explorer.
+   */
+  ownerExportId?: string;
 }
 
 export interface FileNode extends GraphNode {
