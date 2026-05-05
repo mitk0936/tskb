@@ -657,25 +657,25 @@ function buildModuleFolderMembership(graph: KnowledgeGraph): void {
 
     // Find the most specific folder (longest matching path)
     let bestFolder: FolderNode | null = null;
-    let bestFolderPathLength = 0;
+    let bestFolderPathLength = -1;
 
     for (const folder of folders) {
       if (!folder.path) continue;
 
-      // Both paths are already relative to baseDir, just check prefix
-      // Normalize to forward slashes for consistent comparison
+      // Both paths are relative to baseDir; use path.posix.relative so the
+      // root folder (path === ".") matches every descendant correctly.
       const folderPath = folder.path.replace(/\\/g, "/");
       const modulePath = module.resolvedPath.replace(/\\/g, "/");
-
-      // Check if module path starts with folder path
-      const isModuleInFolder =
-        modulePath.startsWith(folderPath + "/") || modulePath.startsWith(folderPath);
+      const rel = path.posix.relative(folderPath, modulePath);
+      const isModuleInFolder = rel !== "" && rel !== "." && !rel.startsWith("..");
 
       if (isModuleInFolder) {
-        // Use the longest matching folder (most specific)
-        if (folderPath.length > bestFolderPathLength) {
+        // Use the longest matching folder (most specific). Treat "." as
+        // length 0 so any other folder wins over the root.
+        const effectiveLength = folderPath === "." ? 0 : folderPath.length;
+        if (effectiveLength > bestFolderPathLength) {
           bestFolder = folder;
-          bestFolderPathLength = folderPath.length;
+          bestFolderPathLength = effectiveLength;
         }
       }
     }
@@ -822,21 +822,21 @@ function buildFileFolderMembership(graph: KnowledgeGraph): void {
     if (!file.path) continue;
 
     let bestFolder: FolderNode | null = null;
-    let bestFolderPathLength = 0;
+    let bestFolderPathLength = -1;
 
     for (const folder of folders) {
       if (!folder.path) continue;
 
       const folderPath = folder.path.replace(/\\/g, "/");
       const filePath = file.path.replace(/\\/g, "/");
-
-      const isFileInFolder =
-        filePath.startsWith(folderPath + "/") || filePath.startsWith(folderPath);
+      const rel = path.posix.relative(folderPath, filePath);
+      const isFileInFolder = rel !== "" && rel !== "." && !rel.startsWith("..");
 
       if (isFileInFolder) {
-        if (folderPath.length > bestFolderPathLength) {
+        const effectiveLength = folderPath === "." ? 0 : folderPath.length;
+        if (effectiveLength > bestFolderPathLength) {
           bestFolder = folder;
-          bestFolderPathLength = folderPath.length;
+          bestFolderPathLength = effectiveLength;
         }
       }
     }

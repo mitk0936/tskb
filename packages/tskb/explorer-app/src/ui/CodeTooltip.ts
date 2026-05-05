@@ -3,6 +3,8 @@
 // Closed by × button, clicking the bubble again, or clicking outside.
 // Repositions itself on zoom/pan so it tracks the anchor node.
 
+import { createHeaderButton, copyToClipboard } from "./HeaderActions";
+
 let el: HTMLDivElement | null = null;
 let activeNodeId: string | null = null;
 let outsideHandler: ((e: MouseEvent) => void) | null = null;
@@ -80,22 +82,21 @@ export function toggleCodeTooltip(
 
   if (!el) return;
   el.innerHTML =
-    `<div style="` +
-    `padding:5px 8px 5px 14px;` +
+    `<div class="code-tooltip-header" style="` +
+    `padding:5px 6px 5px 14px;` +
     `background:#f8fafc;` +
     `border-bottom:1px solid #e2e8f0;` +
-    `display:flex;align-items:center;gap:8px;` +
+    `display:flex;align-items:center;gap:4px;` +
     `">` +
     `<span style="` +
-    `flex:1;min-width:0;` +
+    `min-width:0;` +
     `font-size:12px;color:#94a3b8;` +
     `font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;` +
     `letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;` +
     `">${escHtml(path)}</span>` +
-    `<button id="code-tooltip-close" style="` +
-    `flex-shrink:0;border:none;background:none;cursor:pointer;` +
-    `color:#94a3b8;font-size:14px;line-height:1;padding:2px 4px;border-radius:4px;` +
-    `" title="Close">×</button>` +
+    `<div class="header-actions" data-slot="path"></div>` +
+    `<div style="flex:1"></div>` +
+    `<div class="header-actions" data-slot="end"></div>` +
     `</div>` +
     `<pre style="` +
     `margin:0;` +
@@ -110,10 +111,20 @@ export function toggleCodeTooltip(
     `user-select:text;` +
     `"><code>${highlight(codeContent)}</code></pre>`;
 
+  const pathSlot = el.querySelector<HTMLDivElement>('.header-actions[data-slot="path"]')!;
+  pathSlot.appendChild(
+    createHeaderButton("copy", {
+      title: `Copy ${path}`,
+      onClick: () => copyToClipboard(path),
+    })
+  );
+  const endSlot = el.querySelector<HTMLDivElement>('.header-actions[data-slot="end"]')!;
+  endSlot.appendChild(
+    createHeaderButton("close", { title: "Close", onClick: () => hideCodeTooltip() })
+  );
+
   el.style.display = "flex";
   positionFromSvg();
-  const closeBtn = el.querySelector<HTMLButtonElement>("#code-tooltip-close");
-  if (closeBtn) closeBtn.onclick = () => hideCodeTooltip();
   requestAnimationFrame(() => {
     if (el) {
       el.style.opacity = "1";

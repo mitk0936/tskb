@@ -38,6 +38,10 @@ export interface MetaChunk {
   metadata: KnowledgeGraph["metadata"];
   root: ExplorerNode;
   topFolders: ExplorerNode[];
+  /** Direct module children of root (e.g. root-level vite/vitest configs). */
+  topModules: ExplorerNode[];
+  /** Direct file children of root (e.g. root-level config files). */
+  topFiles: ExplorerNode[];
   docs: ExplorerNode[];
   flows: ExplorerNode[];
   terms: ExplorerNode[];
@@ -107,6 +111,12 @@ class GraphToExplorerTransformer {
   transform(): ExplorerChunks {
     const root = this.buildRootNode();
     const topFolders = this.buildTopFolderNodes();
+    const topModules = this.getDirectModuleIds(ROOT_FOLDER_NAME).map((id) =>
+      this.buildModuleNode(id, ROOT_FOLDER_NAME)
+    );
+    const topFiles = this.getDirectFileIds(ROOT_FOLDER_NAME).map((id) =>
+      this.buildFileNodeForChunk(id, ROOT_FOLDER_NAME)
+    );
     const docs = this.buildDocNodes();
     const flows = this.buildFlowNodes();
     const terms = this.buildTermNodes();
@@ -120,6 +130,8 @@ class GraphToExplorerTransformer {
     this.patchFolderChildCounts(topFolders);
     this.sortAllChunks();
     topFolders.sort((a, b) => a.label.localeCompare(b.label));
+    topModules.sort((a, b) => a.label.localeCompare(b.label));
+    topFiles.sort((a, b) => a.label.localeCompare(b.label));
 
     const parentOf = this.buildParentOf();
     const folderIds = [...this.folderChunks.keys()];
@@ -130,6 +142,8 @@ class GraphToExplorerTransformer {
         metadata: this.graph.metadata,
         root,
         topFolders,
+        topModules,
+        topFiles,
         docs,
         flows,
         terms,

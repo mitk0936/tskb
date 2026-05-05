@@ -38,9 +38,17 @@ interface TreeData extends ExplorerNode {
 
 function buildStructureTree(store: GraphStore, expanded: ReadonlySet<string>): TreeData | null {
   if (!store.meta) return null;
+  const folderChildren = buildFolderChildren(store.meta.topFolders, store, expanded);
+  const moduleChildren = (store.meta.topModules ?? []).map((mod) => {
+    if (!expanded.has(mod.id) && hasChildren(mod)) {
+      return { ...mod, treeChildren: makeGhostNodes(mod.id, 1, "export") };
+    }
+    return { ...mod };
+  });
+  const fileChildren = (store.meta.topFiles ?? []).map((file) => ({ ...file }));
   return {
     ...store.meta.root,
-    treeChildren: buildFolderChildren(store.meta.topFolders, store, expanded),
+    treeChildren: [...folderChildren, ...moduleChildren, ...fileChildren],
   };
 }
 

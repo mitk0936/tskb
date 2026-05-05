@@ -128,7 +128,7 @@ declare global {
       }>;
       generateDot: Export<{
         desc: "Renders the graph as a Graphviz DOT file.";
-        type: typeof import("packages/tskb/src/core/visualization/index.js").generateDot;
+        type: typeof import("packages/tskb/src/core/visualization/dot-generator.js").generateDot;
       }>;
     }
   }

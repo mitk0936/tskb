@@ -17,7 +17,7 @@ Update the docs when:
 - A multi-step process spans several modules — capture it as a `<Flow>`, not prose.
 - The dev asks for it.
 
-Don't update for routine bug fixes, internal refactors, or temporary code.
+Don't update for fixes that don't change structure (renames inside a function, off-by-one fixes, log tweaks), purely internal refactors, or temporary code. **Do** update if a fix reveals a missing constraint or surfaces an undocumented invariant — that's not "routine".
 
 ## Documentation Workflow
 
@@ -50,7 +50,7 @@ A good doc answers ONE question about the system. Your job is to find the right 
 - Look for tricky logic, error handling, "why" comments, recent bug fixes.
 - Write down the questions the code answers.
 - Bring the list back to the dev: "Here are the questions I think this area answers. Which are real? Which are wrong? What did I miss?"
-- **Pause here.** Don't write any docs until the dev has reviewed the list.
+- **Pause here** unless the dev has explicitly told you to just write it. Don't write docs cold off your own list.
 
 It's much easier for a dev to react to a list than to think one up cold.
 
@@ -167,6 +167,14 @@ Split when:
 - The file mixes unrelated areas (e.g., auth and payments).
 - One `<Doc>` is growing into a wall of prose — turn it into several smaller question-shaped docs, possibly in separate files.
 
+## Removing or Moving an Area
+
+Deleting a Folder, Module, or Export breaks every `<Doc>`, `<Flow>`, or `<Relation>` that references it — the build fails on the missing key. Recovery:
+
+1. `npx --no -- tskb search "<oldKey>" --plain` and `tskb context "<oldKey>" --plain` — find every dependent.
+2. Update or delete the referencing docs **as part of the same change**. Don't leave stale references; don't comment out — delete.
+3. Rebuild to confirm the graph still resolves.
+
 ## After Editing
 
 Always rebuild to validate references and update the graph:
@@ -259,29 +267,13 @@ export default (
 
 **Import source files, not build output.** Always point `typeof import()` at `src/`, never at `dist/` or `build/`. The compiler resolves source — built files may not exist at doc-build time and their types can differ.
 
-**Keep `name` and `desc` durable.** The registry key and its `desc` answer "what is this and why does it matter?" — nothing else. No algorithm names, no internal mechanics, no tool calls, no step-by-step lists. If the implementation gets rewritten, the `desc` should still be true.
-
-```tsx
-// GOOD — what + why, durable
-"cli.search": Export<{
-  desc: "Searches the graph and returns ranked matches.";
-  type: typeof import("...").search;
-}>;
-
-// BAD — names the algorithm and the fields it scans; rots when the search is rewritten
-"cli.search": Export<{
-  desc: "Fuzzy searches via Fuse.js across IDs, descriptions, and paths, returning top 10 results with score 0–1.";
-  type: typeof import("...").search;
-}>;
-```
-
-Implementation details belong inside `<Doc>` prose, not in registry metadata.
+> The "keep `name` and `desc` durable" rule (with examples) lives in the **`tskb-update`** skill's Key Rules. Implementation details belong in `<Doc>` prose, not registry metadata.
 
 ### The boundary prop
 
 `boundary` marks a folder as the root of a distinct runtime or deployment unit — a process, app, or package that runs or deploys on its own. Add it only to the **top-level folder** that IS that boundary; never repeat it on sub-folders inside.
 
-Use these names and no others unless the project has a genuinely new runtime:
+Prefer one of these. Add a new value only if your runtime genuinely doesn't fit:
 
 | Value | When to use |
 |-------|-------------|
@@ -290,6 +282,12 @@ Use these names and no others unless the project has a genuinely new runtime:
 | `"[NAME] SPA"` | A browser single-page application (Vite, CRA, Next.js client bundle) |
 | `"[NAME] client"` | Frontend app in a project that also has a server. Pair with `"server"`. |
 | `"[NAME] server"` | Node.js (or similar) backend process. Pair with `"client"` when both exist. |
+| `"[NAME] CLI"` | A command-line binary published or invoked as its own process |
+| `"[NAME] worker"` | Background or queue worker — long-running process, distinct from request handlers |
+| `"[NAME] function"` | Serverless function / Lambda / Cloud Function — each deployable unit is its own boundary |
+| `"[NAME] mobile app"` | iOS or Android app target |
+| `"[NAME] extension"` | Browser or IDE extension package with its own runtime host |
+| `"[NAME] daemon"` | OS-level daemon or background service |
 | `"[TYPE] tests"` | Test suite root — the test runner is a distinct process from production code |
 
 **Don't** add boundary to architectural layers (core, cli, utils, shared types), sub-folders already inside a bounded area, or organizational groupings with no independent runtime. If in doubt, leave it off.
@@ -451,7 +449,7 @@ If the only thing you can say about the edge is the name of a function call, you
 
 ### Direction matters
 
-`from` is the dependent or initiator; `to` is the thing being depended on or used. Read the label as a verb phrase from `from` to `to`: `<Relation from={AuthService} to={Postgres} label="persists sessions to" />` reads as "AuthService persists sessions to Postgres".
+Read the label as a verb phrase from `from` to `to`. Pick `from`/`to` so the sentence scans naturally: `<Relation from={AuthService} to={Postgres} label="persists sessions to" />` reads "AuthService persists sessions to Postgres".
 
 ## Flows
 
@@ -498,6 +496,8 @@ Reserve for flows the system can't run without — the core paths a new dev need
 
 ## Writing Style
 
+> Plain-English and durable-`desc` rules live in the **`tskb-update`** skill's Key Rules. The points below are syntax-shaped guidance only.
+
 **Do:**
 - Make every `<Doc explains="...">` a real question, ending with "?".
 - One question per doc. Many small docs beat one big doc.
@@ -506,7 +506,6 @@ Reserve for flows the system can't run without — the core paths a new dev need
 - Use `<Flow>` for multi-step processes — anchor the trigger in a real use case, lean on registered nodes for steps, and don't branch.
 - Use `<Relation>` to surface non-obvious links — labels describe the functional role one node plays for the other, not the function name being called.
 - Use `priority="constraint"` for rules that must not be broken.
-- **Write in plain English.** Short sentences, common words, no jargon. Docs are read by people from many backgrounds, including non-native English speakers. If a plain word fits, use it.
 
 **Don't:**
 - Write a doc on a topic you can't explain yet — ask the dev first.
@@ -515,7 +514,6 @@ Reserve for flows the system can't run without — the core paths a new dev need
 - Cram multiple unrelated topics into one Doc.
 - Narrate code line by line. The code is right there.
 - Repeat what type signatures already say.
-- Use fancy words when a plain one works. Prefer "uses" over "leverages", "starts" over "initiates", "call" over "invoke", "needs" over "requires", "make" over "facilitate", "show" over "surface", "build" over "construct".
 
 ```tsx
 // GOOD — Flow for a multi-step process

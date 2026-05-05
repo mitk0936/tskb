@@ -103,7 +103,7 @@ function buildUpdateSkillContent(graph: KnowledgeGraph, buildScript: string): st
   return `---
 name: tskb-update
 description: "Write, update, and maintain .tskb.tsx documentation files — covers the workflow for finding the right questions to answer, folder structure and naming conventions, and key authoring rules. Use when the developer asks to document something or when you spot something structural that isn't in the map. For full syntax (registry primitives, JSX components, snippets), load the tskb-update-syntax skill."
-allowed-tools: Bash(npx --no -- tskb *), Read, Write, Edit, Glob
+allowed-tools: Bash(npx --no -- tskb *), Bash(${buildScript}:*), Read, Write, Edit, Glob, Grep
 ---
 
 # TSKB — Write & Update Documentation
@@ -120,7 +120,7 @@ function buildUpdateSyntaxSkillContent(graph: KnowledgeGraph): string {
   return `---
 name: tskb-update-syntax
 description: "Syntax reference for writing .tskb.tsx files: file anatomy, registry primitives, JSX components, type-checked snippets, the boundary prop, and class-method patterns. Load when actually editing or creating a .tskb.tsx file. For the workflow (when to update, where to put things, how to find questions to answer), see the tskb-update skill."
-allowed-tools: Read, Write, Edit, Glob
+allowed-tools: Bash(npx --no -- tskb *), Read, Write, Edit, Glob, Grep
 ---
 
 # TSKB — Authoring Syntax

@@ -1,7 +1,7 @@
 ---
 name: tskb-update
 description: "Write, update, and maintain .tskb.tsx documentation files — covers the workflow for finding the right questions to answer, folder structure and naming conventions, and key authoring rules. Use when the developer asks to document something or when you spot something structural that isn't in the map. For full syntax (registry primitives, JSX components, snippets), load the tskb-update-syntax skill."
-allowed-tools: Bash(npx --no -- tskb *), Read, Write, Edit, Glob
+allowed-tools: Bash(npx --no -- tskb *), Bash(npm run build:docs:*), Read, Write, Edit, Glob, Grep
 ---
 
 # TSKB — Write & Update Documentation
@@ -20,7 +20,7 @@ Update the docs when:
 - A multi-step process spans several modules — capture it as a `<Flow>`, not prose.
 - The dev asks for it.
 
-Don't update for routine bug fixes, internal refactors, or temporary code.
+Don't update for fixes that don't change structure (renames inside a function, off-by-one fixes, log tweaks), purely internal refactors, or temporary code. **Do** update if a fix reveals a missing constraint or surfaces an undocumented invariant — that's not "routine".
 
 ## Documentation Workflow
 
@@ -53,7 +53,7 @@ A good doc answers ONE question about the system. Your job is to find the right 
 - Look for tricky logic, error handling, "why" comments, recent bug fixes.
 - Write down the questions the code answers.
 - Bring the list back to the dev: "Here are the questions I think this area answers. Which are real? Which are wrong? What did I miss?"
-- **Pause here.** Don't write any docs until the dev has reviewed the list.
+- **Pause here** unless the dev has explicitly told you to just write it. Don't write docs cold off your own list.
 
 It's much easier for a dev to react to a list than to think one up cold.
 
@@ -169,6 +169,14 @@ Split when:
 - The registry block has more than ~15–20 declarations.
 - The file mixes unrelated areas (e.g., auth and payments).
 - One `<Doc>` is growing into a wall of prose — turn it into several smaller question-shaped docs, possibly in separate files.
+
+## Removing or Moving an Area
+
+Deleting a Folder, Module, or Export breaks every `<Doc>`, `<Flow>`, or `<Relation>` that references it — the build fails on the missing key. Recovery:
+
+1. `npx --no -- tskb search "<oldKey>" --plain` and `tskb context "<oldKey>" --plain` — find every dependent.
+2. Update or delete the referencing docs **as part of the same change**. Don't leave stale references; don't comment out — delete.
+3. Rebuild to confirm the graph still resolves.
 
 ## After Editing
 

@@ -13,7 +13,7 @@
 }
 
 #doc-panel.open {
-  width: 456px;
+  width: 460px;
   border-left: 1px solid #e2e8f0;
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.06);
 }
@@ -22,48 +22,43 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 10px 12px 10px 16px;
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
   min-width: 380px; /* prevents reflow while container animates */
+  background: #ffffff;
 }
 
 #doc-panel-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  color: #64748b;
+  color: #475569;
   font-family: "SF Mono", "Fira Code", monospace;
   letter-spacing: 0;
   flex: 1;
-  margin-right: 8px;
-  cursor: pointer;
+  min-width: 0;
   user-select: text;
   word-break: break-all;
-}
-
-#doc-panel-title:hover {
-  color: #334155;
+  line-height: 1.45;
 }
 
 #doc-panel-title[data-refs] {
   display: flex;
-  align-items: flex-start;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
   font-family: inherit;
   cursor: default;
-}
-
-#doc-panel-title[data-refs]:hover {
-  color: #64748b;
+  flex-wrap: wrap;
 }
 
 .title-kind-chip {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 10px;
+  padding: 2px 8px;
+  border-radius: 999px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   flex-shrink: 0;
   font-family: inherit;
 }
@@ -79,35 +74,35 @@
 
 .title-refs-target {
   font-size: 12px;
-  font-weight: 400;
-  color: #64748b;
+  font-weight: 500;
+  color: #475569;
   font-family: "SF Mono", "Fira Code", monospace;
   word-break: break-all;
+  line-height: 1.45;
 }
 
-#doc-panel-close {
-  background: none;
-  border: none;
+.title-refs-target-link {
+  color: #2563eb;
+  text-decoration: none;
+  background: #eff6ff;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 12px;
+  font-family: "SF Mono", "Fira Code", monospace;
   cursor: pointer;
-  color: #94a3b8;
-  font-size: 16px;
-  line-height: 1;
-  padding: 2px 4px;
-  border-radius: 4px;
-  flex-shrink: 0;
 }
 
-#doc-panel-close:hover {
-  color: #475569;
-  background: #f1f5f9;
+.title-refs-target-link:hover {
+  background: #dbeafe;
+  text-decoration: underline;
 }
 
 #doc-panel-body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 16px 18px 24px;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: #334155;
   user-select: text;
   min-width: 380px; /* prevents reflow while container animates */
@@ -120,13 +115,14 @@
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 10px;
+  letter-spacing: -0.01em;
 }
 
 #doc-panel-body h2 {
   font-size: 14px;
   font-weight: 600;
   color: #1e293b;
-  margin: 14px 0 6px;
+  margin: 16px 0 6px;
 }
 
 #doc-panel-body h3 {
@@ -148,6 +144,32 @@
 
 #doc-panel-body li {
   margin: 2px 0;
+}
+
+#doc-panel-body .detail-lead {
+  font-size: 13px;
+  color: #475569;
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+
+#doc-panel-body .detail-table {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+
+#doc-panel-body .detail-table td {
+  padding: 4px 8px;
+  border-top: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+#doc-panel-body .detail-table td.dk {
+  color: #64748b;
+  font-family: "SF Mono", "Fira Code", monospace;
+  width: 30%;
+  white-space: nowrap;
 }
 
 /* ── Code snippets ────────────────────────────────────────────────────────── */
@@ -192,21 +214,25 @@
   display: none;
 }
 
-/* ── Flow blocks ──────────────────────────────────────────────────────────── */
+/* ── Flow blocks (inside doc HTML) ───────────────────────────────────────── */
 
 #doc-panel-body .tskb-flow {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 10px 12px;
-  margin: 8px 0 12px;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 10px 0 14px;
 }
 
 #doc-panel-body .tskb-flow-desc {
   font-size: 12px;
-  color: #64748b;
-  font-style: italic;
-  margin: 0 0 8px;
+  color: #475569;
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+#doc-panel-body .tskb-flow .flow-steps {
+  margin-top: 0;
 }
 
 /* ── ADR blocks ───────────────────────────────────────────────────────────── */
@@ -224,9 +250,19 @@
 .accordion-item {
   position: relative;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  margin-bottom: 6px;
+  border-radius: 8px;
+  margin-bottom: 8px;
   overflow: visible;
+  background: #ffffff;
+  transition: border-color 0.15s ease;
+}
+
+.accordion-item:hover {
+  border-color: #cbd5e1;
+}
+
+.accordion-item[open] {
+  border-color: #cbd5e1;
 }
 
 .accordion-item[open] > .accordion-summary {
@@ -237,14 +273,18 @@
 .accordion-summary {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 10px;
+  gap: 8px;
+  padding: 9px 12px;
   cursor: pointer;
   list-style: none;
   user-select: none;
   font-size: 12px;
-  font-weight: 600;
   color: #334155;
+  transition: background-color 0.12s ease;
+}
+
+.accordion-summary:hover {
+  background: #f8fafc;
 }
 
 .accordion-summary::-webkit-details-marker {
@@ -252,42 +292,83 @@
 }
 
 .accordion-summary::before {
-  content: "▶";
-  font-size: 8px;
-  color: #94a3b8;
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 5px solid #94a3b8;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
   transition: transform 0.15s ease;
   flex-shrink: 0;
+  margin-right: 2px;
 }
 
 .accordion-item[open] > .accordion-summary::before {
   transform: rotate(90deg);
 }
 
-.accordion-label {
+.accordion-headline {
   flex: 1;
+  min-width: 0;
   user-select: text;
   word-break: break-word;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  line-height: 1.45;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.accordion-path {
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+#doc-panel-body a.tskb-ref.accordion-path-ref {
+  font-size: 11px;
+  color: #64748b;
+  background: transparent;
+  padding: 0;
+}
+
+#doc-panel-body a.tskb-ref.accordion-path-ref:hover {
+  color: #2563eb;
+  background: transparent;
+  text-decoration: underline;
 }
 
 .accordion-body {
-  padding: 10px 12px;
+  padding: 12px 14px 14px;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.65;
   color: #334155;
 }
 
-/* ── Priority badge ───────────────────────────────────────────────────────── */
+.accordion-body > :first-child {
+  margin-top: 0;
+}
+
+.accordion-body > :last-child {
+  margin-bottom: 0;
+}
+
+/* ── Priority badge (corner pin on accordion item) ──────────────────────── */
 
 .priority-badge {
   position: absolute;
   top: -7px;
-  right: 8px;
+  right: 10px;
+  z-index: 2;
   font-size: 9px;
   font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 10px;
+  padding: 1px 6px;
+  border-radius: 999px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px #ffffff;
 }
 
 .priority-essential {
@@ -301,6 +382,71 @@
 .priority-supplementary {
   background: #f1f5f9;
   color: #64748b;
+}
+
+/* ── Flow steps (numbered timeline) ──────────────────────────────────────── */
+
+.flow-steps {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  position: relative;
+}
+
+.flow-steps::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 14px;
+  bottom: 14px;
+  width: 1px;
+  background: #e2e8f0;
+}
+
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 0 0 10px;
+  position: relative;
+  margin: 0;
+}
+
+.flow-step:last-child {
+  padding-bottom: 0;
+}
+
+.flow-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.flow-step-content {
+  flex: 1;
+  min-width: 0;
+  padding-top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.flow-step-label {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 /* ── Empty state ──────────────────────────────────────────────────────────── */

@@ -9,315 +9,269 @@ Let your **AI assistant document your codebase** as it works. Architecture knowl
 
 ---
 
-## ⚠️ Status
+## See it work
 
-**Experimental / early concept**.
+```bash
+npm install --save-dev tskb
+npx tskb init
+npm run docs
+npx tskb explore
+```
 
-- APIs and output may evolve
-- Not production-ready
-- Best viewed as a proof-of-concept and research tool
+That's the setup — an empty graph, an interactive D3 explorer in the browser, and AI skills wired into Claude Code and GitHub Copilot. The actual codebase map fills in as you (and your AI) write `.tskb.tsx` docs over time; the skills walk the assistant through what to capture and how.
+
+<!-- TODO: explorer demo gif -->
+
+---
+
+## Status
+
+**Beta** — `0.6.x`. The surface below is stable enough to build on:
+
+- **Stable:** CLI commands (`init`, `build`, `ls`, `pick`, `search`, `docs`, `flows`, `context`, `explore`), JSX components, registry primitives, graph schema, generated skill/instruction files.
+- **May still evolve:** internal extraction APIs, explorer chunk format, additional node types.
+
+Production-grade for documentation use. Pin a minor version if you script against the JSON output.
 
 ---
 
 ## What is tskb?
 
-**tskb** is a TypeScript-native DSL for expressing **architectural intent** as code.
+A TypeScript-native DSL for expressing **architectural intent** as code.
 
 Your AI assistant writes and maintains documentation in `.tskb.tsx` files that:
 
 - are **type-checked by the TypeScript compiler**
-- reference **real folders, files, and exports**
+- reference **real folders, files, and exports** via `typeof import()`
 - fail the build when documentation and code drift apart
 
-The result is a **structured knowledge graph** you can:
+The result is a **structured knowledge graph** you can query with the CLI, browse in the explorer, or feed to your AI assistant — all derived from the same source of truth.
 
-- query with natural language through your AI assistant
-- navigate programmatically via the CLI
-- visualize (Graphviz, diagrams)
-
-> Refactor your code → stale documentation breaks at compile time. The AI fixes it.
+> Refactor your code → stale docs break at compile time. The AI fixes them.
 
 ---
 
-## Why tskb exists
+## Why it exists
 
-Large TypeScript codebases eventually suffer from:
+Large TypeScript codebases drift in predictable ways:
 
-- **Tribal knowledge** - architecture lives in senior developers’ heads
-- **Compound complexity** - the mental model becomes fragile and expensive to communicate
-- **Documentation decay** - Markdown and diagrams drift silently
+- **Tribal knowledge** — architecture lives in senior engineers' heads
+- **Documentation decay** — Markdown and diagrams silently fall out of sync
+- **Compound complexity** — onboarding cost grows faster than the codebase
 
-tskb addresses this by making architecture documentation:
-
-- **typed**
-- **validated**
-- **enforced at build time**
+tskb makes architecture documentation **typed, validated, and enforced at build time** — so it can't quietly rot.
 
 ---
 
-## Core features
+## Core concepts
 
-- **AI-maintained docs** — generated skills let your AI assistant write, update, and validate docs during development sessions
-- Architecture as code using TSX
-- Compiler-verified references via `typeof import()`
-- **Type-checked code snippets** (not copied text)
-- **Doc priority** (`essential`, `constraint`, `supplementary`) to control AI guidance and enforce architectural rules
-- **Flows** — named, ordered sequences through the system (`<Flow>` + `<Step>`), surfaced in queries and AI skill files
-- Native IDE support (autocomplete, refactoring, go-to-definition)
-- Zero runtime impact (pure build-time tooling)
-- **CLI for querying** (`ls`, `pick`, `search`, `docs`, `flows`, `context` commands)
-- JSON knowledge graph output
-- Graphviz visualization
-- Monorepo-friendly by design
-- Optimized for AI assistants & programmatic consumption
+### Vocabulary
 
----
+Declare structural elements once, in the global `tskb` namespace. Everything else references them. Six primitives cover the surface:
 
-## Quick start (recommended setup)
-
-### 0) Install and setup
-
-**Install tskb:**
-
-```bash
-npm install --save-dev tskb
-```
-
-**Run the interactive scaffolder:**
-
-```bash
-npx tskb init
-```
-
-This will ask you:
-
-1. Where to put the docs folder (default: `docs/`)
-2. The glob pattern and tsconfig path
-3. Whether to enable **Claude Code** (`.claude/skills/`) and/or **GitHub Copilot** (`.github/instructions/`) integrations
-
-It creates everything you need:
-
-```
-your-repo/
-├── docs/
-│   ├── tsconfig.json          # TypeScript config for docs (jsxImportSource: "tskb")
-│   └── architecture.tskb.tsx  # Starter doc — edit this first
-├── package.json               # "docs" script added automatically
-├── .claude/skills/            # Created if Claude Code was selected
-└── .github/                   # Created if Copilot was selected
-```
-
-**Build the knowledge graph:**
-
-```bash
-npm run docs
-```
-
-**Verify:**
-
-```bash
-npx tskb ls --plain       # Should show your folder structure
-npx tskb docs --plain     # Should list your starter doc
-```
-
-> For monorepos: create `docs/` at workspace root, and ensure `tsconfig.json` can resolve all packages you want to document.
-
----
-
-## Define your vocabulary
-
-Declare architecture primitives using TypeScript declaration merging. All primitives are declared inside the global `tskb` namespace.
+| Primitive  | What it represents                                | Validation                  |
+| ---------- | ------------------------------------------------- | --------------------------- |
+| `Folder`   | A logical area (feature, layer, package)          | `path` must exist on disk   |
+| `Module`   | A source file, with type-safe access to its shape | `typeof import("…")`        |
+| `Export`   | A named export from a module (class, fn, const)   | `typeof import("…").Symbol` |
+| `File`     | A non-TS/JS file (README, config, spec)           | `path` must exist on disk   |
+| `Term`     | A domain concept not tied to a specific file      | string literal type         |
+| `External` | A third-party service or package (with metadata)  | free-form key-value props   |
 
 ```tsx
 // docs/vocabulary.tskb.tsx
-import type { Folder, File, Export, Term } from "tskb";
+import type { Folder, Module, Export, File, Term, External } from "tskb";
 
 declare global {
   namespace tskb {
     interface Folders {
-      DataLayer: Folder<{
-        desc: "Data access layer with repositories and database logic";
-        path: "src/server/database";
-      }>;
-      ServiceLayer: Folder<{
-        desc: "Business logic and application services";
-        path: "src/server/services";
-      }>;
-      APILayer: Folder<{
-        desc: "HTTP controllers and route handlers";
-        path: "src/server/controllers";
-      }>;
+      ServiceLayer: Folder<{ desc: "Business logic"; path: "src/services" }>;
     }
-
     interface Modules {
       AuthServiceModule: Module<{
-        desc: "Authentication service module";
-        type: typeof import("../src/server/services/auth.service.js");
+        desc: "Authentication service";
+        type: typeof import("../src/services/auth.service.js");
       }>;
     }
-
     interface Exports {
-      UserRepository: Export<{
-        desc: "User data access using repository pattern";
-        type: typeof import("../src/server/database/repositories/user.repository.js").UserRepository;
-      }>;
       AuthService: Export<{
-        desc: "Authentication and authorization business logic";
-        type: typeof import("../src/server/services/auth.service.js").AuthService;
+        desc: "Authentication and authorization";
+        type: typeof import("../src/services/auth.service.js").AuthService;
       }>;
     }
-
     interface Files {
-      "api-spec": File<{
-        desc: "OpenAPI specification for the REST API";
-        path: "docs/openapi.yml";
-      }>;
+      "openapi-spec": File<{ desc: "REST API spec"; path: "docs/openapi.yml" }>;
     }
-
     interface Terms {
-      "repository-pattern": Term<"Repository Pattern for data access abstraction">;
       jwt: Term<"JSON Web Tokens for stateless authentication">;
-      "layered-architecture": Term<"Layered architecture pattern (API → Service → Data)">;
     }
-
     interface Externals {
       postgres: External<{
         desc: "Primary relational database";
         kind: "database";
         url: "https://www.postgresql.org";
       }>;
-      redis: External<{
-        desc: "Session cache and pub/sub messaging";
-        kind: "cache";
-        url: "https://redis.io";
-      }>;
     }
   }
 }
 ```
 
----
+`typeof import()` means the compiler validates every reference. Rename `AuthService` → the doc build breaks.
 
-## Documentation format
+### Documents
 
-This is the format your AI assistant writes into. Multiple docs across multiple teams share the same global vocabulary — the AI navigates and extends it as the codebase evolves.
+`.tskb.tsx` files reference the vocabulary and add prose, snippets, flows, relations, and architectural decisions.
+
+JSX components available: `<Doc>`, `<H1>` / `<H2>` / `<H3>`, `<P>`, `<List>` / `<Li>`, `<Snippet>`, `<Flow>` / `<Step>`, `<Relation>`, `<Adr>`.
 
 ```tsx
 // docs/authentication.tskb.tsx
-import { Doc, H1, H2, P, Snippet, ref } from "tskb";
-import type { AuthService } from "../src/server/services/auth.service.js";
-import type { UserRepository } from "../src/server/database/repositories/user.repository.js";
-import type { LoginCredentials, AuthResponse } from "../src/shared/types/auth.types.js";
+import { Doc, H1, P, Snippet, ref } from "tskb";
+import type { AuthService } from "../src/services/auth.service.js";
 
-// Reference the global vocabulary
-const ServiceLayer = ref as tskb.Folders["ServiceLayer"];
-const DataLayer = ref as tskb.Folders["DataLayer"];
-const AuthServiceExport = ref as tskb.Exports["AuthService"];
-const UserRepositoryExport = ref as tskb.Exports["UserRepository"];
+const Service = ref as tskb.Exports["AuthService"];
 const Jwt = ref as tskb.Terms["jwt"];
-const RepositoryPattern = ref as tskb.Terms["repository-pattern"];
 
 export default (
-  <Doc
-    explains="Authentication architecture: login flow, JWT tokens, and service-repository interaction"
-    priority="essential"
-  >
-    <H1>Authentication Architecture</H1>
-
+  <Doc explains="Login flow and JWT issuance" priority="essential">
+    <H1>Authentication</H1>
     <P>
-      The {AuthServiceExport} in the {ServiceLayer} handles authentication using {Jwt}. It depends
-      on {UserRepositoryExport} in the {DataLayer} following the {RepositoryPattern}.
+      {Service} issues {Jwt} after validating credentials.
     </P>
 
-    <H2>Example: Login Flow</H2>
-
     <Snippet
       code={async () => {
-        const authService: AuthService = new AuthService();
-        const credentials: LoginCredentials = {
-          email: "user@example.com",
-          password: "hashedPassword",
-        };
-        const response: AuthResponse = await authService.login(credentials);
-        return response.tokens.accessToken;
+        const auth: AuthService = new AuthService();
+        return auth.login({ email, password });
       }}
     />
   </Doc>
 );
 ```
 
----
+`<Snippet>` is **not** a string literal — its body is fully type-checked. If `login()` changes signature, the doc build fails.
 
-## Snippet type checking
+### Flows
 
-`<Snippet>` is **not** a string literal.
-
-- Snippet bodies are fully type-checked
-- Real types and APIs can be imported
-- Broken examples fail the documentation build
+Named, ordered sequences through the system — login pipelines, build steps, request paths. They become first-class graph nodes.
 
 ```tsx
-// docs/repository-pattern.tskb.tsx
-import { Doc, H1, P, Snippet } from "tskb";
-import type { UserRepository } from "../src/server/database/repositories/user.repository.js";
-import type { User } from "../src/shared/types/user.types.js";
-import type { Database } from "../src/server/database/connection.js";
-
-export default (
-  <Doc explains="Repository pattern implementation for data access abstraction">
-    <H1>Repository Pattern Example</H1>
-
-    <P>The UserRepository demonstrates the repository pattern for data access abstraction.</P>
-
-    <Snippet
-      code={async () => {
-        const db: Database = new Database(config);
-        const userRepository: UserRepository = new UserRepository(db);
-        const user: User | null = await userRepository.findByEmail("test@example.com");
-        return user?.id;
-      }}
-    />
-  </Doc>
-);
+<Flow name="login" desc="HTTP request to session token" priority="essential">
+  <Step node={AuthMiddleware} label="Validates request" />
+  <Step node={AuthService} label="Issues JWT" />
+  <Step node={UserRepository} label="Loads user" />
+</Flow>
 ```
 
-If the API changes:
+### Relations and ADRs
 
-```text
-❌ Property 'findByEmail' does not exist on type 'UserRepository'.
+Express explicit semantic edges between any two nodes, and capture the _why_ behind decisions:
+
+```tsx
+<Relation from={AuthService} to={Postgres} label="reads user records from" />
+
+<Adr
+  title="Use JWT instead of session cookies"
+  status="accepted"
+  date="2025-09-12"
+>
+  <P>Stateless tokens let us scale the auth tier horizontally without sticky sessions.</P>
+</Adr>
 ```
 
-The snippet is never executed - it is parsed, validated, and stringified.
+`<Relation>` adds a `related-to` edge to the graph; `<Adr>` records an architectural decision as a queryable node so the rationale travels with the code.
+
+### Priority
+
+Three levels control what the AI sees first:
+
+- `essential` — surfaced in generated AI skills and `ls` output
+- `constraint` — architectural rules; surface in `pick`/`search` so they can't be missed before changes
+- `supplementary` — graph-only, queryable on demand
 
 ---
 
-## What tskb produces: a semantic architecture graph
+## How the graph is built
 
-tskb builds a **typed, semantic knowledge graph** describing your system.
+Edges come from two sources:
 
-The graph captures:
+**Authored intent** — every JSX reference creates a typed edge. `<P>{AuthService} uses {UserRepository}</P>` records `Doc → AuthService` and `Doc → UserRepository`. `<Relation from={A} to={B} label="depends on" />` adds explicit `related-to` edges.
 
-- **Nodes** - folders, modules, exports, files, terms, docs
-- **Edges** - explicit and inferred relationships
-- **Hierarchy** - nested architectural contexts
-- **Semantics** - intent expressed through JSX
+**Inferred structure** — folder hierarchy, module imports, export ownership, and file containment are read directly from the filesystem and TypeScript AST.
 
-This graph is the primary output. Everything else (diagrams, markdown, AI context) is derived from it.
+The result combines what you _meant_ with what's _actually there_.
 
 ---
 
-## Output schema (high level)
+## CLI
+
+The build command runs the pipeline; the others query the graph. All commands accept `--plain` (~30% fewer tokens for AI consumption) and `--optimized` (compact JSON).
+
+```bash
+npx tskb init                            # Interactive scaffolder
+npm run docs                             # Build the graph (added by init)
+
+npx tskb ls --depth 4                    # Folder tree + essential docs
+npx tskb pick "AuthService"              # Full detail for one node
+npx tskb search "auth"                   # Fuzzy search across the graph
+npx tskb context "ServiceLayer"          # Node + neighborhood + docs (one call)
+npx tskb docs "auth"                     # Search documentation
+npx tskb flows                           # List flows by priority
+
+npx tskb explore                         # Open the interactive explorer
+npx tskb explore --export ./public       # Bake static site
+```
+
+`context` is the single most efficient call — it returns the target node, its neighborhood, and all referencing docs (deduplicated, sorted by priority, with constraint docs surfaced) in one shot.
+
+---
+
+## Explorer
+
+`tskb explore` serves a D3-powered SPA that renders the graph as an interactive diagram — folders nest, modules expand, edges trace references and imports. The SPA ships pre-built; no extra install. `--export` writes a self-contained static folder you can drop on any host.
+
+---
+
+## AI assistant integration
+
+The build emits skills/instructions for two assistants. Content is regenerated from the graph on every build — never edit the files manually. Claude Code gets four split skills (load only what's needed); Copilot gets two consolidated instruction files.
+
+| Skill                  | Purpose                                                                                        | Generated files                                                                             |
+| ---------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **tskb**               | Codebase map and CLI orientation. Always-on entry point.                                       | `.claude/skills/tskb/SKILL.md`<br>`.github/instructions/tskb.instructions.md`               |
+| **tskb-toc**           | Repo table of contents: boundaries, externals, flows, essential-docs index. Loaded on demand.  | `.claude/skills/tskb-toc/SKILL.md`                                                          |
+| **tskb-update**        | When and where to write `.tskb.tsx` docs — workflow, folder structure, authoring rules.        | `.claude/skills/tskb-update/SKILL.md`<br>`.github/instructions/tskb-update.instructions.md` |
+| **tskb-update-syntax** | Full authoring syntax reference: registry primitives, JSX components, snippets, class methods. | `.claude/skills/tskb-update-syntax/SKILL.md`                                                |
+
+Enable them during `npx tskb init` or create `.claude/skills/` and `.github/` before the next build.
+
+The loop: at the start of a session the assistant already has the folder tree and essential docs; for anything deeper it runs `search`, `context`, or `pick` itself. Less exploration, more accuracy.
+
+### Building docs iteratively
+
+The skills are designed to compound — each session adds to the graph, and the next session sees what's already there. A typical loop:
+
+> **You:** "I'm adding JWT auth in `src/services/auth.service.ts`. Document it."
+>
+> **AI** (via `tskb-update`):
+>
+> 1. Runs `tskb search "auth"` and `tskb context "src/services"` — checks what's already mapped, avoids duplicating.
+> 2. Reads the new code and proposes the questions worth answering: _"How does login issue a JWT?"_, _"What guarantees token expiry?"_, _"Why is `bcrypt.compare` constant-time-required here?"_
+> 3. You pick which questions are real. The AI declares any new vocabulary (`AuthService`, `jwt`) in the registry, then writes one `.tskb.tsx` per question.
+> 4. Runs `npm run docs`. The TypeScript compiler validates every `typeof import()` reference and every `<Snippet>`.
+>
+> **Next session, in a different feature:** the AI runs `tskb search` first, finds the auth doc, and references `AuthService` directly — no re-reading the code, no contradictory descriptions.
+
+Each iteration adds nodes, flows, and constraints. The graph gets denser over time, and the AI's answers get sharper because it's reading curated map fragments instead of grep results.
+
+---
+
+## Output schema
 
 ```ts
 {
   nodes: {
-    folders: Record<string, FolderNode>;   // id, desc, path
-    modules: Record<string, ModuleNode>;   // id, desc, resolvedPath, typeSignature, imports
-    exports: Record<string, ExportNode>;   // id, desc, resolvedPath, typeSignature
-    files:   Record<string, FileNode>;     // id, desc, path
-    terms:   Record<string, TermNode>;     // id, desc
-    flows:   Record<string, FlowNode>;     // id, desc, priority, steps[]
-    docs:    Record<string, DocNode>;       // id, explains, priority, filePath, content
+    folders, modules, exports, files, terms, flows, docs   // typed records
   },
   edges: Array<{
     from: string;
@@ -325,316 +279,49 @@ This graph is the primary output. Everything else (diagrams, markdown, AI contex
     type: "references" | "contains" | "belongs-to" | "imports" | "related-to" | "flow-step";
     label?: string;
   }>,
-  metadata: {
-    generatedAt: string;
-    version: string;
-    stats: { folderCount, moduleCount, exportCount, fileCount, termCount, flowCount, docCount, edgeCount };
-  }
+  metadata: { generatedAt, version, stats }
 }
 ```
 
-**DocNode.priority** controls visibility:
-
-- `"essential"` — included in generated skill/instructions files and `ls` output
-- `"constraint"` — architectural rule shown in `pick` and `search` results, must be followed when working on referenced areas
-- `"supplementary"` — graph-only (default), queryable via `search`/`pick`
-
-The schema is intentionally **graph-first** and machine-oriented.
+The graph is the primary output. The explorer, Graphviz DOT (`.tskb/graph.dot`), and AI skill files are all derived from it.
 
 ---
 
-## Nested contexts
+## CI / pre-commit
 
-Folders define **architectural contexts**, not just paths.
-
-From folder paths, tskb infers:
-
-- hierarchical containment (`contains`)
-- ownership of modules and exports (`belongs-to`)
-- the most specific enclosing context
-
-Your architecture becomes a **tree of nested contexts**, not a flat list.
-
----
-
-## Relations
-
-Relations in the graph come from two sources:
-
-### Explicit intent
-
-When you reference entities in JSX:
-
-```tsx
-<P>Authentication is handled by {AuthService}.</P>
-```
-
-tskb records a semantic edge:
-
-```
-Doc → AuthService (references)
-```
-
-#### Semantic Relations with `<Relation />`
-
-To express a semantic relationship between two nodes, use the `<Relation />` JSX tag:
-
-```tsx
-<Relation from={AuthService} to={UserRepository} label="depends on" />
-```
-
-This creates a `related-to` edge in the graph, optionally labeled for richer semantics:
-
-```
-AuthService → UserRepository (related-to, label: "depends on")
-```
-
-- `from` and `to` must be node constants (extracted from the registry)
-- `label` is optional and can be any string describing the relationship
-
-These relations are visible in CLI output (e.g., `pick`), and the label is included if present.
-
-### Inferred structure
-
-From filesystem paths and imports:
-
-- Folder → Folder (`contains`)
-- Module → Folder (`belongs-to`)
-- Module → Module (`imports`) — from resolved import statements
-- Export → Module (`belongs-to`)
-- File → Folder (`belongs-to`)
-
-The graph combines **authored intent** with **structural truth**.
-
----
-
-## Flows
-
-Flows model **named, ordered sequences** through the system — login pipelines, build processes, request handling chains.
-
-```tsx
-import { Doc, H1, Flow, Step, ref } from "tskb";
-
-const AuthMiddleware = ref as tskb.Exports["AuthMiddleware"];
-const AuthService = ref as tskb.Modules["AuthServiceModule"];
-const UserRepository = ref as tskb.Exports["UserRepository"];
-
-export default (
-  <Doc explains="Authentication flows">
-    <H1>Auth Flows</H1>
-
-    <Flow name="login" desc="User login from HTTP request to session token" priority="essential">
-      <Step node={AuthMiddleware} label="Validates request format" />
-      <Step node={AuthService} label="Checks credentials, generates JWT" />
-      <Step node={UserRepository} label="Queries user record" />
-    </Flow>
-  </Doc>
-);
-```
-
-Each `<Flow>` becomes a first-class node in the graph with `flow-step` edges connecting it to its participants. Only `<Step>` children are allowed (validated at build time).
-
-**Priority** controls visibility:
-
-- `priority="essential"` — included in generated skill/instructions files and `tskb flows` output
-- `priority="supplementary"` (default) — graph-only, queryable via `tskb flows` and `search`
-
----
-
-## Why JSX: semantics, not rendering
-
-JSX in tskb is **not about UI**.
-
-It is a **semantic DSL** that allows you to declare meaning in a structured, type-safe way.
-Each JSX element becomes semantic data — not HTML.
-
-JSX provides composability, static analysis, and extensibility without inventing a new syntax.
-
----
-
-## Querying the graph
-
-These commands are embedded in the generated skill files — AI assistants use them automatically during sessions to orient themselves and look things up. You can also run them directly:
-
-### List folder structure
+Treat the doc build like a type check — if it fails, code and docs have drifted.
 
 ```bash
-npx tskb ls              # List top-level folders (depth=1)
-npx tskb ls --depth 4    # List folders up to depth 4
-npx tskb ls --depth -1   # List all folders (unlimited depth)
+# .husky/pre-commit
+npm run docs
 ```
-
-Returns essential docs first, then folders ordered by depth.
-
-### Pick a node
-
-```bash
-npx tskb pick "ServiceLayer"              # Pick a folder by ID
-npx tskb pick "src/server/services"       # Pick by filesystem path
-npx tskb pick "auth.AuthService"          # Pick a module by ID
-```
-
-Returns type-specific data: parent, children, modules, exports, files, and referencing docs with their `priority`. When picking a doc node, the full content is included inline. Constraint docs in the results indicate rules that must be followed.
-
-### Search the graph
-
-```bash
-npx tskb search "auth"                    # Single keyword
-npx tskb search "build command"           # Multi-word fuzzy search
-```
-
-Returns ranked results with scores across all node types. Doc results include `priority` so constraint and essential docs are immediately visible.
-
-### List and search docs
-
-```bash
-npx tskb docs                            # List all docs sorted by priority
-npx tskb docs "auth"                     # Search docs by query (matches explains, content, filePath)
-```
-
-Lists all docs sorted by priority (constraints first, then essential, then supplementary). With a query, returns fuzzy-matched results with scores, filtered to relevant matches. Use `pick` on a doc `nodeId` to get its full content.
-
-### List and search flows
-
-```bash
-npx tskb flows                           # List all flows sorted by priority
-npx tskb flows "build"                   # Search flows by query
-```
-
-Lists all flows sorted by priority. Essential flows are shown first. Use `pick` on a flow `nodeId` to see its steps and referenced nodes.
-
-### Get full context for an area
-
-```bash
-npx tskb context "ServiceLayer"          # Depth 1 (default): node + immediate children + docs
-npx tskb context "ServiceLayer" --depth 2 # Deeper: includes grandchildren and their docs
-npx tskb context "src/server/services"   # Also works with filesystem paths
-```
-
-Returns the target node, all neighborhood nodes (child folders, modules, exports) up to the specified depth, and all referencing docs — deduplicated and sorted by priority. Constraint doc IDs are surfaced at the top level so they can't be missed.
-
-All commands output JSON by default. Use `--plain` for structured plain text optimized for AI assistants (fewer tokens, no JSON overhead), or `--optimized` for compact JSON.
-
----
-
-## Visualize
-
-The `build` command automatically generates a Graphviz DOT file in `.tskb/graph.dot`.
-
-To render it as an image:
-
-```bash
-dot -Tpng .tskb/graph.dot -o .tskb/graph.png
-```
-
-Or view it interactively:
-
-```bash
-xdot .tskb/graph.dot
-```
-
----
-
-## Workflow integration
-
-### Pre-commit hook
-
-Validate docs on every commit:
-
-```bash
-npm install --save-dev husky
-npx husky init
-echo "npm run docs" > .husky/pre-commit
-```
-
-### CI/CD (GitHub Actions)
 
 ```yaml
-- name: Validate architecture docs
-  run: npm run docs
-
-- name: Upload graph artifact
-  uses: actions/upload-artifact@v3
-  with:
-    name: architecture-graph
-    path: .tskb/
+# GitHub Actions
+- run: npm run docs
+- uses: actions/upload-artifact@v3
+  with: { name: architecture-graph, path: .tskb/ }
 ```
 
-This ensures documentation stays synchronized with code changes.
-
 ---
 
-## AI assistant integration
+## How it differs
 
-TSKB closes a loop: **your AI assistant writes the docs, then reads them** — so architectural knowledge accumulates and carries forward across sessions. You navigate the graph, ask questions about your system, interrupt when something is wrong, and steer what gets documented.
+**vs Markdown / ADRs** — type-checked against real code, not free text that drifts.
 
-- **Auto-generated integrations**: Build produces a Claude Code skill (`.claude/skills/tskb/SKILL.md`) and Copilot instructions (`.github/instructions/tskb.instructions.md`) with folder tree, essential doc summaries, command response shapes, and workflow guidance baked in
-- **Doc priority**: Controls what AI assistants see — `essential` docs appear in generated files and `ls` output, `constraint` docs surface in `pick`/`search` with their priority visible, `supplementary` docs are graph-only
-- **Constraint docs**: Mark docs with `priority="constraint"` to define architectural rules. When an AI picks a node, constraint docs referencing that area appear in the results — signaling rules that must be followed before making changes
-- **Docs command**: `docs` lists or searches all documentation, with fuzzy matching across explains, content, and file paths — essential docs are boosted in search results
-- **Context command**: `context` returns a node's full neighborhood (children, modules, exports) with referencing docs — replacing multi-step `pick` → read → `pick` workflows with a single call
-- **Plain text mode**: `--plain` outputs structured text instead of JSON — ~30% fewer tokens for AI consumption while preserving all semantic content
-- **Flows command**: `flows` lists or searches named sequences through the system — essential flows are included in generated skill/instructions files
-- **Structured queries**: AI can use `ls`, `pick`, `search`, `docs`, `flows`, and `context` to navigate architecture — all return JSON (or plain text with `--plain`) with priority metadata on doc results
+**vs Structurizr / C4 / PlantUML** — native TypeScript instead of a custom DSL; produces a queryable graph, not just static diagrams.
 
-The AI assistant both writes and reads the graph. During development it documents what it builds; at the start of a session it consults what was documented before. You can query it at any point.
+**vs TypeDoc** — documents _architecture and intent_ (why things exist, how they relate), not API surfaces.
 
-**How it works in practice:** The generated skill files embed the CLI commands and teach assistants when and how to use them — no manual instruction needed. At the start of a session the assistant already knows the folder tree and essential docs; when it needs more detail it runs `search`, `context`, or `pick` on its own:
-
-1. Folder tree and essential doc summaries are baked into the skill — loaded before the first message
-2. `search` finds relevant nodes for a task
-3. `docs` filters documentation by topic
-4. `context` gets the full neighborhood — nodes, docs, and constraints in one call
-5. `pick` reads a single node or full doc content
-6. Only the files that matter get read
-
-This dramatically reduces tokens spent on exploration and increases accuracy.
-
-### Generated skills
-
-The build produces two skills for each integration (Claude Code and GitHub Copilot):
-
-| Skill           | Purpose                                                                                                                                                                        | Generated files                                                                             |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
-| **tskb**        | Codebase map — folder tree, essential doc summaries, CLI commands. Loaded on every prompt.                                                                                     | `.claude/skills/tskb/SKILL.md`<br>`.github/instructions/tskb.instructions.md`               |
-| **tskb-update** | How the AI writes and maintains `.tskb.tsx` files — JSX syntax, registry primitives, when to trigger an update, best practices. Activates when working with `.tskb.tsx` files. | `.claude/skills/tskb-update/SKILL.md`<br>`.github/instructions/tskb-update.instructions.md` |
-
-**How they work:**
-
-- **Claude Code**: Skills in `.claude/skills/` are loaded automatically based on context. The main `tskb` skill is always available; `tskb-update` activates when working with `.tskb.tsx` files.
-- **GitHub Copilot**: Instructions in `.github/instructions/` use `applyTo` frontmatter patterns. `tskb.instructions.md` applies to all files (`**`), `tskb-update.instructions.md` applies to `**/*.tskb.tsx`.
-- **Content is auto-generated**: Every `npm run docs` build regenerates these files from the current graph. Don't edit them manually — they'll be overwritten.
-
-To enable these integrations, select them during `npx tskb init` or create the directories manually (`.claude/skills/` and/or `.github/`). The build detects their presence and writes the corresponding files.
-
----
-
-## How is this different?
-
-**vs ADRs / Markdown docs:** Type-checked and validated against real code, not just text files that drift.
-
-**vs Structurizr / C4 / PlantUML:** Native TypeScript (not a custom DSL), produces a queryable knowledge graph (not just static diagrams).
-
-**vs TypeDoc:** Documents _architecture and intent_ (why components exist, how they relate), not just API surfaces (what methods exist).
-
-**Unique to tskb:**
-
-- Type-checks architecture docs at compile time
-- Validates against actual code via `typeof import()`
-- CLI for querying the graph (no file scanning needed)
-- Documents whole systems (multiple packages, monorepos)
-- Type-checked code snippets (not string literals)
-- First-class flows — named, ordered sequences as graph nodes
-- Doc priority system (essential, constraint, supplementary) for AI guidance
-- Optimized for AI assistants with structured queries and constraint enforcement
+Unique to tskb: compiler-validated references via `typeof import()`, type-checked code snippets, first-class flows, doc priority, an interactive explorer, and AI skills generated from the graph.
 
 ---
 
 ## Roadmap
 
-- Architectural constraints validation
-- Interactive visualization (beyond Graphviz)
-- Plugin system for custom node types
+- Architectural constraint validation (beyond `priority="constraint"` surfacing)
+- **First-class JSX for common architecture patterns** — purpose-built components for `<Layered>` (with typed `<Layer>` children and one-way dependency rules), `<Hexagonal>` (`<Domain>`, `<Port>`, `<Adapter>` with direction enforcement), `<EventDriven>` (`<Producer>`, `<Consumer>`, `<Topic>`, `<EventSchema>`), `<Cqrs>` (`<Command>`, `<Query>`, `<Aggregate>`, `<Projection>`), `<StateMachine>` (`<State>`, `<Transition>`), `<DDD>` (`<BoundedContext>`, `<Aggregate>`, `<ValueObject>`), and pipeline / saga / pub-sub variants. Each emits typed graph nodes and edges, surfaces violations at build time, and renders distinctly in the explorer.
+- More AI assistant integrations
 
 ---
 

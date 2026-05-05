@@ -1,5 +1,12 @@
 {
   "permissions": {
-    "allow": ["Skill(tskb)", "Skill(tskb:*)"]
+    "allow": [
+      "Skill(tskb)",
+      "Skill(tskb:*)",
+      "Bash(npx --no -- tskb pick \"tskb.cli.commands\" --plain)",
+      "Bash(npx --no -- tskb pick \"cli.commands.explore\" --plain)",
+      "Bash(npx --no -- tskb pick \"docs/src/tskb/usage.tskb.tsx\" --plain)",
+      "Bash(npx --no -- tskb pick \"cli.commands.init\" --plain)"
+    ]
   }
 }

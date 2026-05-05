@@ -144,9 +144,7 @@ digraph KnowledgeGraph {
 
             // Modules in core.visualization
             "visualization.dot-generator" [label="Module\<\"visualization.dot-generator\"\>\nDOT generator for the graph.\n📁 packages/tskb/src/core/visualization/dot-generator.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
-
-            // Exports in core.visualization
-            "generateDot" [label="Export\<\"generateDot\"\>\nRenders the graph as a Graphviz DOT file.\n📁 packages/tskb/src/core/visualization/index.ts", shape=component, fillcolor="#C5E1A5", style=filled];
+              "generateDot" [label="Export\<\"generateDot\"\>\nRenders the graph as a Graphviz DOT file.\n📁 packages/tskb/src/core/visualization/dot-generator.ts", shape=component, fillcolor="#C5E1A5", style=filled];
 
           }
 

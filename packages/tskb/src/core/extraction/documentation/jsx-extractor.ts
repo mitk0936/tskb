@@ -252,16 +252,27 @@ export class JsxExtractor {
     this.flows.push({ name: flowName, desc: flowDesc, priority, steps });
 
     const stepItems = steps
-      .map((s) => {
-        const labelSuffix = s.label ? ` — ${escapeHtml(s.label)}` : "";
+      .map((s, i) => {
         const { nodeType, display } = this.registry
           ? resolveNodeMeta(s.nodeId, this.registry)
           : { nodeType: "", display: s.nodeId };
         const typeAttr = nodeType ? ` data-node-type="${escapeAttr(nodeType)}"` : "";
-        return `<li><a class="tskb-ref" data-node-id="${escapeAttr(s.nodeId)}"${typeAttr} data-node-display="${escapeAttr(display)}">${escapeHtml(s.nodeId)}</a>${labelSuffix}</li>`;
+        const labelHtml = s.label
+          ? `<span class="flow-step-label">${escapeHtml(s.label)}</span>`
+          : "";
+        return (
+          `<li class="flow-step">` +
+          `<span class="flow-step-num">${i + 1}</span>` +
+          `<div class="flow-step-content">` +
+          `<a class="tskb-ref" data-node-id="${escapeAttr(s.nodeId)}"${typeAttr} data-node-display="${escapeAttr(display)}">${escapeHtml(s.nodeId)}</a>` +
+          labelHtml +
+          `</div>` +
+          `</li>`
+        );
       })
       .join("");
-    this.html += `<div class="tskb-flow"><p class="tskb-flow-desc">${escapeHtml(flowDesc)}</p><ol>${stepItems}</ol></div>`;
+    const descHtml = flowDesc ? `<p class="tskb-flow-desc">${escapeHtml(flowDesc)}</p>` : "";
+    this.html += `<div class="tskb-flow">${descHtml}<ol class="flow-steps">${stepItems}</ol></div>`;
   }
 
   private handleAdr(node: ts.JsxElement | ts.JsxSelfClosingElement, attrs: ts.JsxAttributes): void {

@@ -14,6 +14,10 @@ export interface MetaChunk {
   root: ExplorerNode;
   /** Direct children of root (top-level folders) */
   topFolders: ExplorerNode[];
+  /** Direct module children of root (e.g. root-level vite/vitest configs). */
+  topModules: ExplorerNode[];
+  /** Direct file children of root (e.g. root-level config files). */
+  topFiles: ExplorerNode[];
   docs: ExplorerNode[];
   flows: ExplorerNode[];
   terms: ExplorerNode[];
