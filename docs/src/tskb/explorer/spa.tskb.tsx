@@ -79,13 +79,43 @@ declare global {
       }>;
 
       "explorer.spa.doc-panel": Module<{
-        desc: "Side panel that shows the selected node's doc content.";
+        desc: "Slide-in side panel host. Owns the chrome and renders whichever view the panel router has on top.";
         type: typeof import("packages/tskb/explorer-app/src/ui/DocPanel.js");
       }>;
 
       "explorer.spa.dom-tooltip": Module<{
         desc: "Tooltip anchored to a DOM element, used by the doc panel.";
         type: typeof import("packages/tskb/explorer-app/src/ui/DomTooltip.js");
+      }>;
+
+      "explorer.spa.router": Module<{
+        desc: "Panel router. Owns a stack of views and syncs the top of the stack to location.hash.";
+        type: typeof import("packages/tskb/explorer-app/src/router/Router.js");
+      }>;
+
+      "explorer.spa.router-types": Module<{
+        desc: "Shared types for panel views and router dependencies.";
+        type: typeof import("packages/tskb/explorer-app/src/router/types.js");
+      }>;
+
+      "explorer.spa.router-index": Module<{
+        desc: "Public re-exports of the panel router module.";
+        type: typeof import("packages/tskb/explorer-app/src/router/index.js");
+      }>;
+
+      "explorer.spa.refs-view": Module<{
+        desc: "Panel view listing every doc or flow that references a given node.";
+        type: typeof import("packages/tskb/explorer-app/src/router/views/RefsView.js");
+      }>;
+
+      "explorer.spa.accordion": Module<{
+        desc: "HTML builder for the docs/flows accordion shared across panel views.";
+        type: typeof import("packages/tskb/explorer-app/src/router/components/Accordion.js");
+      }>;
+
+      "explorer.spa.ref-links": Module<{
+        desc: "Wires hover, click and prefetch behavior on a.tskb-ref anchors inside the panel.";
+        type: typeof import("packages/tskb/explorer-app/src/router/components/RefLinks.js");
       }>;
     }
 
@@ -144,6 +174,31 @@ declare global {
         desc: "Side panel that shows the selected node's content.";
         type: typeof import("packages/tskb/explorer-app/src/ui/DocPanel.js").DocPanel;
       }>;
+
+      "explorer.spa.Router": Export<{
+        desc: "Panel router class. Manages a view stack and (optional) location.hash sync.";
+        type: typeof import("packages/tskb/explorer-app/src/router/Router.js").Router;
+      }>;
+
+      "explorer.spa.panelRouter": Export<{
+        desc: "Default Router instance shared across the SPA.";
+        type: typeof import("packages/tskb/explorer-app/src/router/Router.js").panelRouter;
+      }>;
+
+      "explorer.spa.RefsView": Export<{
+        desc: "View class that lists docs or flows referencing a given node.";
+        type: typeof import("packages/tskb/explorer-app/src/router/views/RefsView.js").RefsView;
+      }>;
+
+      "explorer.spa.renderAccordion": Export<{
+        desc: "Builds the docs/flows accordion HTML.";
+        type: typeof import("packages/tskb/explorer-app/src/router/components/Accordion.js").renderAccordion;
+      }>;
+
+      "explorer.spa.wireRefs": Export<{
+        desc: "Attaches hover, click and prefetch handlers to every a.tskb-ref under a root element.";
+        type: typeof import("packages/tskb/explorer-app/src/router/components/RefLinks.js").wireRefs;
+      }>;
     }
   }
 }
@@ -167,6 +222,16 @@ const CodeTooltipModule = ref as tskb.Modules["explorer.spa.code-tooltip"];
 const DocPanelModule = ref as tskb.Modules["explorer.spa.doc-panel"];
 const DocPanelExport = ref as tskb.Exports["explorer.spa.DocPanel"];
 const DomTooltipModule = ref as tskb.Modules["explorer.spa.dom-tooltip"];
+const RouterModule = ref as tskb.Modules["explorer.spa.router"];
+const RouterTypesModule = ref as tskb.Modules["explorer.spa.router-types"];
+const RefsViewModule = ref as tskb.Modules["explorer.spa.refs-view"];
+const AccordionModule = ref as tskb.Modules["explorer.spa.accordion"];
+const RefLinksModule = ref as tskb.Modules["explorer.spa.ref-links"];
+const RouterExport = ref as tskb.Exports["explorer.spa.Router"];
+const PanelRouterExport = ref as tskb.Exports["explorer.spa.panelRouter"];
+const RefsViewExport = ref as tskb.Exports["explorer.spa.RefsView"];
+const RenderAccordionExport = ref as tskb.Exports["explorer.spa.renderAccordion"];
+const WireRefsExport = ref as tskb.Exports["explorer.spa.wireRefs"];
 
 const ChunkLoaderExport = ref as tskb.Exports["explorer.spa.ChunkLoader"];
 const GraphStoreExport = ref as tskb.Exports["explorer.spa.GraphStore"];
@@ -302,16 +367,41 @@ export default (
       D3 zoom event so they reposition to track their anchor nodes as the canvas pans and zooms.
     </P>
     <P>
-      {DocPanelExport} in {DocPanelModule} is the detail side panel. Clicking a node calls{" "}
-      <code>show(node)</code>, which renders the node's HTML content or a key-value fallback for
-      non-doc nodes. Clicking a docs or flows chip calls <code>showRefs(node, kind, items)</code>,
-      which renders an accordion. The panel header shows the node's relative path in monospace. Ref
-      link anchors (<code>a.tskb-ref</code>) inside the body are post-processed by{" "}
-      <code>wireRefLinks()</code>: hover shows a {DomTooltipModule} with the node's path, type
-      color, and description; if the node's chunk isn't loaded yet, a background prefetch fires via
-      the <code>setOnNodePrefetch</code> callback — the tooltip updates in place when data arrives.
-      Click-through navigation is handled via <code>setOnNodeRef</code>.
+      {DocPanelExport} in {DocPanelModule} is the detail side panel. It owns no view-specific markup
+      — instead it subscribes to {PanelRouterExport} and renders whichever <code>View</code> sits on
+      top of the stack into its header and body. Concrete views live under {RouterModule}: today{" "}
+      {RefsViewExport} ("Docs/Flows related to a node") is the only view, but the contract permits
+      any panel state.
     </P>
+    <P>
+      {RouterExport} maintains a stack of views and (when{" "}
+      <code>init(deps, {"{ syncHash: true }"})</code> is called) mirrors the top-of-stack view to{" "}
+      <code>location.hash</code>. View classes register themselves via <code>registerView()</code>{" "}
+      with a static <code>prefix</code> + <code>parse()</code> so the router can rebuild the active
+      view from a hash on browser back/forward or a deep link.
+    </P>
+    <P>
+      Reusable rendering bits live in {AccordionModule} and {RefLinksModule}.{" "}
+      {RenderAccordionExport} produces the <code>{"<details>"}</code> markup shared across views;{" "}
+      {WireRefsExport} attaches the hover/click/prefetch behavior to every <code>a.tskb-ref</code>{" "}
+      under a root element. {DocPanelModule} calls {WireRefsExport} after each render so views stay
+      output-only — they never bind their own listeners. Hover shows a {DomTooltipModule} with the
+      node's path, type color, and description; if the node's chunk isn't loaded yet, a background
+      prefetch fires via the injected <code>onNodePrefetch</code> dep — the tooltip updates in place
+      when data arrives.
+    </P>
+    <P>
+      Shared types — <code>View</code>, <code>RouterDeps</code>, <code>ViewContext</code> — live in{" "}
+      {RouterTypesModule}. Views must look up live graph data through the injected deps at render
+      time rather than snapshotting it, so a hash-restored view paints correctly even before the
+      relevant chunks have loaded.
+    </P>
+
+    <Relation from={DocPanelModule} to={RouterModule} label="subscribes to" />
+    <Relation from={RouterModule} to={RouterTypesModule} label="implements types from" />
+    <Relation from={RefsViewModule} to={AccordionModule} label="renders body via" />
+    <Relation from={DocPanelModule} to={RefLinksModule} label="wires panel anchors via" />
+    <Relation from={MainModule} to={RouterModule} label="initializes deps and registers views" />
 
     <Flow
       name="explorer-expand-flow"

@@ -22,6 +22,7 @@ import { mountNodeTooltip, updateNodeTooltipTransform } from "./ui/NodeTooltip";
 import { mountDomTooltip } from "./ui/DomTooltip";
 import { showToast } from "./ui/Toast";
 import { DocPanel } from "./ui/DocPanel";
+import { panelRouter, RefsView } from "./router";
 import type { PositionedNode, ExplorerNode } from "./types";
 import { hasChildren } from "./types";
 import type { NodeComponent } from "./components/nodes/base";
@@ -29,6 +30,11 @@ import { renderBoundaryGroups, applyBoundaryLabelTransforms } from "./components
 import type { LaneLayout } from "./layout/lane-engine";
 
 type Layer = d3.Selection<SVGGElement, unknown, null, undefined>;
+
+/** Below this zoom level, panel-link navigation zooms in so the target is legible. */
+const READABLE_ZOOM_THRESHOLD = 0.6;
+/** Zoom level applied when panel-link navigation triggers a zoom-up. */
+const READABLE_ZOOM = 0.85;
 
 /**
  * Top-level SPA controller. Owns the D3 canvas, UI state, and the render loop.
@@ -38,7 +44,7 @@ export class ExplorerApp {
   private readonly loader = new ChunkLoader();
   private readonly store = new GraphStore();
 
-  private readonly docPanel = new DocPanel();
+  private readonly router = panelRouter;
 
   // Reverse-lookup maps: nodeId → ids of docs/flows that reference it (built from crossEdges)
   private docsOf = new Map<string, string[]>();
@@ -70,10 +76,20 @@ export class ExplorerApp {
     this.setupCanvas();
     this.setupTooltips();
     this.setupRenderer();
-    this.docPanel.setOnNodeRef((nodeId) => this.navigateToNode(nodeId));
-    this.docPanel.setGetNode((nodeId) => this.findNode(nodeId));
-    this.docPanel.setOnNodeHighlight((nodeId) => this.onNodeHighlight(nodeId));
-    this.docPanel.setOnNodePrefetch((nodeId) => this.prefetchNodeChunk(nodeId));
+    // The DocPanel registers itself as a Router listener on construction; the
+    // listener closure keeps the instance alive for the SPA's lifetime.
+    new DocPanel(this.router);
+    this.router.registerView(RefsView);
+    this.router.init(
+      {
+        getNode: (nodeId) => this.findNode(nodeId),
+        getRefsFor: (nodeId, kind) => this.getRefsFor(nodeId, kind),
+        onNodeRef: (nodeId) => this.navigateToNode(nodeId),
+        onNodeHighlight: (nodeId) => this.onNodeHighlight(nodeId),
+        onNodePrefetch: (nodeId) => this.prefetchNodeChunk(nodeId),
+      },
+      { syncHash: true }
+    );
     this.setupSearch();
     this.store.subscribe(() => {
       this.layoutDirty = true;
@@ -179,16 +195,13 @@ export class ExplorerApp {
       const meta = await this.loader.load("meta");
       this.buildRefMaps(meta); // populate maps before render() fires
       this.store.loadMeta(meta);
+      // If the page loaded with a deep-link hash, the active view first
+      // rendered with placeholder data — refresh now that meta is loaded.
+      this.router.refresh();
     } catch (e) {
       console.error("Failed to load meta chunk:", e);
-      const spinner = document.getElementById("global-spinner");
-      if (spinner) {
-        spinner.innerHTML = `
-          <div style="color:#ef4444;font-size:13px;text-align:center;padding:20px">
-            Failed to load graph.<br/>
-            <code style="font-size:11px;color:#64748b">./chunks/meta.json</code>
-          </div>`;
-      }
+      hideGlobalSpinner();
+      showToast("⚠ Failed to load graph (meta.json)", "error");
       return;
     }
     hideGlobalSpinner();
@@ -218,10 +231,23 @@ export class ExplorerApp {
       `[render] computeRenderState — ${allNodes.length} nodes, ${structureLinks.length} struct, ${relationLinks.length} relation (${(performance.now() - t).toFixed(1)}ms)`
     );
 
-    // Stats bar
-    const { folderCount, moduleCount, exportCount } = this.store.meta.metadata.stats;
-    document.getElementById("stats")!.textContent =
-      `${folderCount ?? 0} folders · ${moduleCount ?? 0} modules · ${exportCount ?? 0} exports`;
+    // Stats bar — show every node type that has at least one entry
+    const stats = this.store.meta.metadata.stats;
+    const STAT_LABELS: Array<[string, string, string]> = [
+      ["folderCount", "folder", "folders"],
+      ["moduleCount", "module", "modules"],
+      ["fileCount", "file", "files"],
+      ["exportCount", "export", "exports"],
+      ["termCount", "term", "terms"],
+      ["externalCount", "external", "externals"],
+      ["flowCount", "flow", "flows"],
+      ["docCount", "doc", "docs"],
+      ["edgeCount", "edge", "edges"],
+    ];
+    document.getElementById("stats")!.textContent = STAT_LABELS.map(([key, sing, plur]) => {
+      const n = stats[key] ?? 0;
+      return `${n} ${n === 1 ? sing : plur}`;
+    }).join(" · ");
 
     t = performance.now();
     renderLaneBands(this.laneBgLayer, this.cachedLayout, canvasW);
@@ -320,6 +346,8 @@ export class ExplorerApp {
             this.store.loadFolderChunk(chunk); // triggers subscriber → layoutDirty + render
           } catch (e) {
             console.error("Failed to load chunk for", node.id, e);
+            showToast(`⚠ Failed to load ${node.label}`, "error");
+            return;
           } finally {
             removeNodeSpinner(spinnerEl);
           }
@@ -351,9 +379,11 @@ export class ExplorerApp {
     const folderSet = new Set(folderIds);
 
     const toExpand = new Set<string>();
+    const visited = new Set<string>();
     for (const nodeId of nodeIds) {
       let current = parentOf[nodeId];
-      while (current && !toExpand.has(current)) {
+      while (current && !visited.has(current)) {
+        visited.add(current);
         toExpand.add(current);
         current = parentOf[current];
       }
@@ -367,7 +397,7 @@ export class ExplorerApp {
     this.render();
 
     if (anchorId) {
-      this.scrollToNode(anchorId);
+      this.scrollToNode(anchorId, true);
     }
   }
 
@@ -381,8 +411,10 @@ export class ExplorerApp {
     const { parentOf, folderIds } = this.store.meta;
     const folderSet = new Set(folderIds);
     const toLoad = new Set<string>();
+    const visited = new Set<string>();
     let current: string | undefined = parentOf[nodeId];
-    while (current) {
+    while (current && !visited.has(current)) {
+      visited.add(current);
       if (folderSet.has(current) && !this.store.folderChunks.has(current)) toLoad.add(current);
       current = parentOf[current];
     }
@@ -391,6 +423,10 @@ export class ExplorerApp {
       [...toLoad].map((id) => this.loader.load("folder", id).catch(() => null))
     );
     const chunks = results.filter((c) => c !== null);
+    const failed = results.length - chunks.length;
+    if (failed > 0) {
+      showToast(`⚠ Failed to prefetch ${failed} folder chunk${failed === 1 ? "" : "s"}`, "error");
+    }
     // Write directly to avoid triggering a canvas re-render
     for (const chunk of chunks) this.store.folderChunks.set(chunk.folderId, chunk);
   }
@@ -410,11 +446,15 @@ export class ExplorerApp {
       })
     );
     const chunks = results.filter((c) => c !== null);
+    const failed = results.length - chunks.length;
+    if (failed > 0) {
+      showToast(`⚠ Failed to load ${failed} folder chunk${failed === 1 ? "" : "s"}`, "error");
+    }
     if (chunks.length) this.store.loadFolderChunks(chunks);
   }
 
   /** Pans the viewport so the node with the given id is centered on screen. */
-  private scrollToNode(nodeId: string): void {
+  private scrollToNode(nodeId: string, ensureZoom = false): void {
     const group = this.nodeLayer
       .selectAll<SVGGElement, PositionedNode>("g.node")
       .filter((d) => d.id === nodeId);
@@ -424,6 +464,16 @@ export class ExplorerApp {
     const cx = d.x + w / 2;
     const cy = d.y + h / 2;
     const rect = this.svgEl.getBoundingClientRect();
+
+    if (ensureZoom && this.zoomK < READABLE_ZOOM_THRESHOLD) {
+      const transform = d3.zoomIdentity
+        .translate(rect.width / 2, rect.height / 2)
+        .scale(READABLE_ZOOM)
+        .translate(-cx, -cy);
+      this.svg.transition().duration(400).call(this.zoom.transform, transform);
+      return;
+    }
+
     this.svg
       .transition()
       .duration(300)
@@ -470,7 +520,7 @@ export class ExplorerApp {
       // Re-apply highlight: newly entered D3 nodes don't carry over the filter
       this.onNodeHighlight(nodeId);
     } else {
-      this.scrollToNode(nodeId);
+      this.scrollToNode(nodeId, true);
     }
 
     if (target) this.onSelect(target);
@@ -522,22 +572,17 @@ export class ExplorerApp {
   }
 
   private onChipClick(node: PositionedNode, chip: "docs" | "flows"): void {
-    const meta = this.store.meta;
-    if (!meta) return;
+    if (!this.store.meta) return;
+    this.router.push(new RefsView(node.id, chip, this.router.getDepsForHost()));
+  }
 
-    if (chip === "docs") {
-      const docIds = this.docsOf.get(node.id) ?? [];
-      const docs = docIds
-        .map((id) => meta.docs.find((d) => d.id === id))
-        .filter(Boolean) as ExplorerNode[];
-      this.docPanel.showRefs(node, "docs", docs);
-    } else {
-      const flowIds = this.flowsOf.get(node.id) ?? [];
-      const flows = flowIds
-        .map((id) => meta.flows.find((f) => f.id === id))
-        .filter(Boolean) as ExplorerNode[];
-      this.docPanel.showRefs(node, "flows", flows);
-    }
+  /** Resolves the docs or flows that reference a given node id from the meta chunk. */
+  private getRefsFor(nodeId: string, kind: "docs" | "flows"): ExplorerNode[] {
+    const meta = this.store.meta;
+    if (!meta) return [];
+    const ids = (kind === "docs" ? this.docsOf : this.flowsOf).get(nodeId) ?? [];
+    const pool = kind === "docs" ? meta.docs : meta.flows;
+    return ids.map((id) => pool.find((n) => n.id === id)).filter(Boolean) as ExplorerNode[];
   }
 
   private onTraceLinks(node: PositionedNode): void {

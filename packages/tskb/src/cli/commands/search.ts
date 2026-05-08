@@ -256,10 +256,15 @@ function getContent(node: AnyNode): string {
     const parts: string[] = [];
     if (node.morphology) parts.push(node.morphology.join(" "));
     if (node.imports) parts.push(node.imports.join(" "));
+    if (node.morphologySummary) parts.push(node.morphologySummary);
+    if (node.importsSummary) parts.push(node.importsSummary);
     return parts.join(" ");
   }
-  if (node.type === "export" && node.morphology) {
-    return node.morphology.join(" ");
+  if (node.type === "export") {
+    const parts: string[] = [];
+    if (node.morphology) parts.push(node.morphology.join(" "));
+    if (node.morphologySummary) parts.push(node.morphologySummary);
+    return parts.join(" ");
   }
   if (node.type === "external" && node.metadata) {
     return Object.entries(node.metadata)

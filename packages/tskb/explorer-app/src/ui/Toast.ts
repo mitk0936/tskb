@@ -1,10 +1,19 @@
 // ─── Toast ────────────────────────────────────────────────────────────────────
-// Lightweight copy-confirmation toast. Bottom-center, auto-dismisses after 2s.
+// Lightweight toast. Bottom-center, auto-dismisses. Supports info (default) and
+// error variants. Used for copy confirmations and chunk-load failures.
+
+type ToastVariant = "info" | "error";
+
+const VARIANT_STYLE: Record<ToastVariant, { background: string; color: string; duration: number }> =
+  {
+    info: { background: "rgba(15,23,42,0.90)", color: "#f1f5f9", duration: 2000 },
+    error: { background: "rgba(127,29,29,0.95)", color: "#fee2e2", duration: 4000 },
+  };
 
 let el: HTMLDivElement | null = null;
 let hideTimer = 0;
 
-export function showToast(message: string): void {
+export function showToast(message: string, variant: ToastVariant = "info"): void {
   if (!el) {
     el = document.createElement("div");
     el.id = "copy-toast";
@@ -13,8 +22,6 @@ export function showToast(message: string): void {
       bottom: "24px",
       left: "50%",
       transform: "translateX(-50%) translateY(8px)",
-      background: "rgba(15,23,42,0.90)",
-      color: "#f1f5f9",
       borderRadius: "8px",
       padding: "7px 14px",
       fontSize: "12px",
@@ -30,8 +37,11 @@ export function showToast(message: string): void {
     document.body.appendChild(el);
   }
 
+  const style = VARIANT_STYLE[variant];
   clearTimeout(hideTimer);
   el.textContent = message;
+  el.style.background = style.background;
+  el.style.color = style.color;
   el.style.opacity = "1";
   el.style.transform = "translateX(-50%) translateY(0)";
 
@@ -40,5 +50,5 @@ export function showToast(message: string): void {
       el.style.opacity = "0";
       el.style.transform = "translateX(-50%) translateY(8px)";
     }
-  }, 2000);
+  }, style.duration);
 }

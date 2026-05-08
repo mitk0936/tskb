@@ -80,14 +80,19 @@ describe("generateSkillFiles", () => {
     expect(fs.existsSync(syntaxPath)).toBe(true);
   });
 
-  it("returns paths to all four written files", () => {
+  it("returns paths to all four SKILL.md files plus reference files", () => {
     const paths = generateSkillFiles(emptyGraph());
 
-    expect(paths).toHaveLength(4);
-    expect(paths[0]).toMatch(/tskb[/\\]SKILL\.md$/);
-    expect(paths[1]).toMatch(/tskb-toc[/\\]SKILL\.md$/);
-    expect(paths[2]).toMatch(/tskb-update[/\\]SKILL\.md$/);
-    expect(paths[3]).toMatch(/tskb-update-syntax[/\\]SKILL\.md$/);
+    const skillFiles = paths.filter((p) => /SKILL\.md$/.test(p));
+    expect(skillFiles).toHaveLength(4);
+    expect(skillFiles[0]).toMatch(/tskb[/\\]SKILL\.md$/);
+    expect(skillFiles[1]).toMatch(/tskb-toc[/\\]SKILL\.md$/);
+    expect(skillFiles[2]).toMatch(/tskb-update[/\\]SKILL\.md$/);
+    expect(skillFiles[3]).toMatch(/tskb-update-syntax[/\\]SKILL\.md$/);
+
+    // Reference files for tskb-update and tskb-update-syntax are also written.
+    const referenceFiles = paths.filter((p) => /references[/\\][^/\\]+\.md$/.test(p));
+    expect(referenceFiles.length).toBeGreaterThan(0);
   });
 
   it("tskb skill has correct frontmatter", () => {
@@ -149,7 +154,7 @@ describe("generateSkillFiles", () => {
     );
     // No package.json in the tmpdir, so detectBuildScript falls back to the
     // raw `npx --no -- tskb` invocation.
-    expect(content).toContain("After Editing");
+    expect(content).toContain("Rebuild");
     expect(content).toContain("npx --no -- tskb");
   });
 
@@ -173,19 +178,13 @@ describe("generateSkillFiles", () => {
 
     generateSkillFiles(graph);
 
-    // Folder tree lives in the always-on tskb skill.
-    const cliContent = fs.readFileSync(
-      path.join(tmpDir, ".claude", "skills", "tskb", "SKILL.md"),
-      "utf-8"
-    );
-    expect(cliContent).toContain("**core**");
-    expect(cliContent).toContain("Core business logic");
-
-    // Essential docs index lives in the on-demand tskb-toc skill.
+    // Folder tree and essential docs both live in the always-loaded tskb-toc skill.
     const tocContent = fs.readFileSync(
       path.join(tmpDir, ".claude", "skills", "tskb-toc", "SKILL.md"),
       "utf-8"
     );
+    expect(tocContent).toContain("**core**");
+    expect(tocContent).toContain("Core business logic");
     expect(tocContent).toContain("docs/arch.tskb.tsx");
     expect(tocContent).toContain("Top-level architecture overview");
   });
@@ -203,8 +202,9 @@ describe("generateSkillFiles", () => {
 
     generateSkillFiles(graph);
 
+    // The folder tree lives in the tskb-toc skill, so re-runs must overwrite that file.
     const content = fs.readFileSync(
-      path.join(tmpDir, ".claude", "skills", "tskb", "SKILL.md"),
+      path.join(tmpDir, ".claude", "skills", "tskb-toc", "SKILL.md"),
       "utf-8"
     );
     expect(content).toContain("new-area");

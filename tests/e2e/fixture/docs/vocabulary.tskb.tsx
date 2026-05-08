@@ -94,6 +94,10 @@ declare global {
         desc: "Primary relational database";
         kind: "database";
       }>;
+      mailgun: External<{
+        desc: "Outbound transactional email provider";
+        kind: "email-service";
+      }>;
     }
 
     interface Terms {

@@ -91,14 +91,14 @@
           ],
           "files": []
         },
-        "edgeCount": 4
+        "edgeCount": 5
       },
       "tests.e2e": {
         "id": "tests.e2e",
         "type": "folder",
         "desc": "E2E test files that run the CLI and check its output.",
         "path": "tests/e2e",
-        "structureSummary": "1 folder, 7 files",
+        "structureSummary": "1 folder, 8 files",
         "children": {
           "folders": [
             {
@@ -116,6 +116,9 @@
             },
             {
               "name": "disambiguation.test.ts"
+            },
+            {
+              "name": "explorer-export.test.ts"
             },
             {
               "name": "global-setup.ts"
@@ -163,7 +166,7 @@
           ]
         },
         "packageName": "tskb-e2e-fixture",
-        "edgeCount": 4
+        "edgeCount": 5
       },
       "tests.e2e.fixture.src": {
         "id": "tests.e2e.fixture.src",
@@ -260,7 +263,7 @@
           ]
         },
         "packageName": "tskb",
-        "edgeCount": 12
+        "edgeCount": 11
       },
       "tskb.cli": {
         "id": "tskb.cli",
@@ -296,7 +299,7 @@
         "type": "folder",
         "desc": "Core build logic: registry extraction, doc extraction, graph assembly.",
         "path": "packages/tskb/src/core",
-        "structureSummary": "4 folders, 1 file",
+        "structureSummary": "5 folders, 1 file",
         "children": {
           "folders": [
             {
@@ -315,6 +318,9 @@
               "desc": "Builds the knowledge graph from extracted registry and docs."
             },
             {
+              "name": "typescript"
+            },
+            {
               "name": "visualization",
               "nodeId": "core.visualization",
               "desc": "Turns the graph into a Graphviz DOT diagram."
@@ -326,7 +332,7 @@
             }
           ]
         },
-        "edgeCount": 5
+        "edgeCount": 8
       },
       "tskb.runtime": {
         "id": "tskb.runtime",
@@ -350,29 +356,6 @@
           ]
         },
         "edgeCount": 6
-      },
-      "tskb.typescript": {
-        "id": "tskb.typescript",
-        "type": "folder",
-        "desc": "Wraps the TypeScript compiler so tskb can read source code without compiling it.",
-        "path": "packages/tskb/src/typescript",
-        "structureSummary": "2 files",
-        "children": {
-          "folders": [],
-          "files": [
-            {
-              "name": "index.ts",
-              "nodeId": "typescript.index",
-              "desc": "Public entry for the TypeScript area."
-            },
-            {
-              "name": "program.ts",
-              "nodeId": "typescript.program",
-              "desc": "Builds the TypeScript Program tskb reads from."
-            }
-          ]
-        },
-        "edgeCount": 5
       },
       "tskb.explorer.core": {
         "id": "tskb.explorer.core",
@@ -434,7 +417,7 @@
             }
           ]
         },
-        "edgeCount": 10
+        "edgeCount": 16
       },
       "tskb.explorer.app.components": {
         "id": "tskb.explorer.app.components",
@@ -540,7 +523,7 @@
             {
               "name": "DocPanel.ts",
               "nodeId": "explorer.spa.doc-panel",
-              "desc": "Side panel that shows the selected node's doc content."
+              "desc": "Slide-in side panel host. Owns the chrome and renders whichever view the panel router has on top."
             },
             {
               "name": "DomTooltip.ts",
@@ -658,7 +641,7 @@
         "type": "folder",
         "desc": "One file per CLI command.",
         "path": "packages/tskb/src/cli/commands",
-        "structureSummary": "9 files",
+        "structureSummary": "10 files",
         "children": {
           "folders": [],
           "files": [
@@ -697,6 +680,9 @@
               "name": "pick.ts",
               "nodeId": "cli.commands.pick",
               "desc": "The `tskb pick` command."
+            },
+            {
+              "name": "registry.ts"
             },
             {
               "name": "search.ts",
@@ -874,47 +860,6 @@
         "resolvedPath": "docs/tsconfig.json",
         "edgeCount": 2
       },
-      "typescript.program": {
-        "id": "typescript.program",
-        "type": "module",
-        "desc": "Builds the TypeScript Program tskb reads from.",
-        "typeSignature": "typeof import(\"packages/tskb/src/typescript/program.js\")",
-        "resolvedPath": "packages/tskb/src/typescript/program.ts",
-        "morphologySummary": "1 function",
-        "morphology": [
-          "export function createProgram(files: string[], tsconfigPath: string): Program {} // :34-97"
-        ],
-        "importsSummary": "2 imports from 2 paths",
-        "imports": [
-          "ts from \"typescript\"",
-          "path from \"node:path\""
-        ],
-        "importEntries": [
-          {
-            "symbol": "ts",
-            "path": "typescript",
-            "typeOnly": false
-          },
-          {
-            "symbol": "path",
-            "path": "node:path",
-            "typeOnly": false
-          }
-        ],
-        "edgeCount": 3
-      },
-      "typescript.index": {
-        "id": "typescript.index",
-        "type": "module",
-        "desc": "Public entry for the TypeScript area.",
-        "typeSignature": "typeof import(\"packages/tskb/src/typescript/index.js\")",
-        "resolvedPath": "packages/tskb/src/typescript/index.ts",
-        "morphologySummary": "1 function",
-        "morphology": [
-          "export function createProgram(files: string[], tsconfigPath: string): Program {}"
-        ],
-        "edgeCount": 2
-      },
       "runtime.jsx": {
         "id": "runtime.jsx",
         "type": "module",
@@ -1051,7 +996,7 @@
         "morphologySummary": "1 class, 5 functions, 7 interfaces, 1 type",
         "morphology": [
           "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :91-93",
-          "export function sanitizeFolderId(id: string): string {} // :869-871",
+          "export function sanitizeFolderId(id: string): string {} // :871-873",
           "export type NodeType = | \"folder\"\n  | \"module\"\n  | \"export\"\n  | \"doc\"\n  | \"flow\"\n  | \"term\"\n  | \"external\"\n  | \"file\" // :7-15",
           "export interface ExplorerNode { // :17-27",
           "  id: string // :18",
@@ -1109,7 +1054,7 @@
           "  subfolders: ExplorerNode[] // :86",
           "  childGhostPaths: string[] // :88",
           "}",
-          "class GraphToExplorerTransformer { // :97-805",
+          "class GraphToExplorerTransformer { // :97-807",
           "  private readonly graph: KnowledgeGraph // :98",
           "  private readonly edgesBySource: Map<string, GraphEdge[]> // :100",
           "  private readonly edgesByTarget: Map<string, GraphEdge[]> // :102",
@@ -1121,46 +1066,46 @@
           "  private buildDocNodes(): ExplorerNode[] {} // :198-214",
           "  private buildFlowNodes(): ExplorerNode[] {} // :216-227",
           "  private buildTermNodes(): ExplorerNode[] {} // :229-233",
-          "  private buildExternalNodes(): ExplorerNode[] {} // :235-242",
-          "  private buildFileNodes(): ExplorerNode[] {} // :244-247",
-          "  private buildCrossEdges(): ExplorerLink[] {} // :249-265",
-          "  private buildAllFolderChunksRecursively(parentId: string): void {} // :274-315",
-          "  private buildSubfolderNode(subfolderId: string, parentFolderId: string): ExplorerNode {} // :317-333",
-          "  private buildModuleNode(moduleId: string, parentFolderId: string): ExplorerNode {} // :335-353",
-          "  private buildExportNodes(moduleId: string): ExplorerNode[] {} // :355-377",
-          "  private deriveExportLabel(exportNode: ExportNode): string | undefined {} // :380-393",
-          "  private buildImportEdges(moduleIdSet: Set<string>): { internalEdges: ExplorerLink[]; externalEdges: ExplorerLink[]; } {} // :395-412",
-          "  private injectGhostNodes(): void {} // :420-460",
-          "  private buildGhostModuleNodes(childFiles: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined): ExplorerNode[] {} // :462-486",
-          "  private buildGhostSubfolderNodes(childFolders: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined, folderPathToId: Map<string, string>): ExplorerNode[] {} // :488-525",
-          "  private buildFolderPathIndex(): Map<string, string> {} // :527-533",
-          "  private computeGhostChain(folderPath: string, itemDirPath: string): string[] {} // :540-546",
-          "  private ensureGhostChain(chain: string[], folderPath: string, ghostLevels: Map<string, GhostLevelBuilder>): void {} // :552-577",
-          "  private buildGhostFolderNode(ghostPath: string, parentId: string): ExplorerNode {} // :580-596",
-          "  private buildGhostIntermediaryChains(): void {} // :604-709",
-          "  private sortAllChunks(): void {} // :712-719",
-          "  private patchFolderChildCounts(topFolders: ExplorerNode[]): void {} // :727-742",
-          "  private patchFolderNodeDetail(node: ExplorerNode): void {} // :744-750",
-          "  private buildParentOf(): Record<string, string> {} // :753-762",
-          "  private getModuleExports(moduleId: string, candidates: ExplorerNode[]): ExplorerNode[] {} // :765-767",
-          "  private getDirectModuleIds(folderId: string): string[] {} // :771-775",
-          "  private getDirectFileIds(folderId: string): string[] {} // :777-781",
-          "  private buildFileNodeForChunk(fileId: string, parentFolderId: string): ExplorerNode {} // :783-790",
-          "  private getDirectSubfolderIds(folderId: string): string[] {} // :792-796",
-          "  private countDirectModules(folderId: string): number {} // :798-800",
-          "  private countDirectSubfolders(folderId: string): number {} // :802-804",
+          "  private buildExternalNodes(): ExplorerNode[] {} // :235-244",
+          "  private buildFileNodes(): ExplorerNode[] {} // :246-249",
+          "  private buildCrossEdges(): ExplorerLink[] {} // :251-267",
+          "  private buildAllFolderChunksRecursively(parentId: string): void {} // :276-317",
+          "  private buildSubfolderNode(subfolderId: string, parentFolderId: string): ExplorerNode {} // :319-335",
+          "  private buildModuleNode(moduleId: string, parentFolderId: string): ExplorerNode {} // :337-355",
+          "  private buildExportNodes(moduleId: string): ExplorerNode[] {} // :357-379",
+          "  private deriveExportLabel(exportNode: ExportNode): string | undefined {} // :382-395",
+          "  private buildImportEdges(moduleIdSet: Set<string>): { internalEdges: ExplorerLink[]; externalEdges: ExplorerLink[]; } {} // :397-414",
+          "  private injectGhostNodes(): void {} // :422-462",
+          "  private buildGhostModuleNodes(childFiles: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined): ExplorerNode[] {} // :464-488",
+          "  private buildGhostSubfolderNodes(childFolders: { name: string; }[], folderPath: string, parentFolderId: string, chunk: FolderChunk | undefined, folderPathToId: Map<string, string>): ExplorerNode[] {} // :490-527",
+          "  private buildFolderPathIndex(): Map<string, string> {} // :529-535",
+          "  private computeGhostChain(folderPath: string, itemDirPath: string): string[] {} // :542-548",
+          "  private ensureGhostChain(chain: string[], folderPath: string, ghostLevels: Map<string, GhostLevelBuilder>): void {} // :554-579",
+          "  private buildGhostFolderNode(ghostPath: string, parentId: string): ExplorerNode {} // :582-598",
+          "  private buildGhostIntermediaryChains(): void {} // :606-711",
+          "  private sortAllChunks(): void {} // :714-721",
+          "  private patchFolderChildCounts(topFolders: ExplorerNode[]): void {} // :729-744",
+          "  private patchFolderNodeDetail(node: ExplorerNode): void {} // :746-752",
+          "  private buildParentOf(): Record<string, string> {} // :755-764",
+          "  private getModuleExports(moduleId: string, candidates: ExplorerNode[]): ExplorerNode[] {} // :767-769",
+          "  private getDirectModuleIds(folderId: string): string[] {} // :773-777",
+          "  private getDirectFileIds(folderId: string): string[] {} // :779-783",
+          "  private buildFileNodeForChunk(fileId: string, parentFolderId: string): ExplorerNode {} // :785-792",
+          "  private getDirectSubfolderIds(folderId: string): string[] {} // :794-798",
+          "  private countDirectModules(folderId: string): number {} // :800-802",
+          "  private countDirectSubfolders(folderId: string): number {} // :804-806",
           "}",
-          "function groupEdgesByKey(edges: GraphEdge[], key: \"from\" | \"to\"): Map<string, GraphEdge[]> {} // :809-818",
-          "interface NodeOpts { // :820-827",
-          "  path: string | undefined // :821",
-          "  parentId: string | undefined // :822",
-          "  priority: \"essential\" | \"constraint\" | \"supplementary\" | undefined // :823",
-          "  edgeCount: number | undefined // :824",
-          "  detail: Record<string, string | string[]> | undefined // :825",
-          "  label: string | undefined // :826",
+          "function groupEdgesByKey(edges: GraphEdge[], key: \"from\" | \"to\"): Map<string, GraphEdge[]> {} // :811-820",
+          "interface NodeOpts { // :822-829",
+          "  path: string | undefined // :823",
+          "  parentId: string | undefined // :824",
+          "  priority: \"essential\" | \"constraint\" | \"supplementary\" | undefined // :825",
+          "  edgeCount: number | undefined // :826",
+          "  detail: Record<string, string | string[]> | undefined // :827",
+          "  label: string | undefined // :828",
           "}",
-          "function toExplorerNode(id: string, type: NodeType, description: string, opts?: NodeOpts): ExplorerNode {} // :829-854",
-          "function makeFallbackRoot(): ExplorerNode {} // :856-865"
+          "function toExplorerNode(id: string, type: NodeType, description: string, opts?: NodeOpts): ExplorerNode {} // :831-856",
+          "function makeFallbackRoot(): ExplorerNode {} // :858-867"
         ],
         "importsSummary": "3 imports from 2 paths",
         "imports": [
@@ -1193,55 +1138,58 @@
         "desc": "Entry point of the explorer SPA.",
         "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/main.js\")",
         "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
-        "morphologySummary": "1 class, 1 type",
+        "morphologySummary": "1 class, 1 type, 2 variables",
         "morphology": [
-          "export class ExplorerApp { // :37-547",
-          "  private readonly loader: any // :38",
-          "  private readonly store: any // :39",
-          "  private readonly docPanel: any // :41",
-          "  private docsOf: Map<string, string[]> // :44",
-          "  private flowsOf: Map<string, string[]> // :45",
-          "  private expanded: Set<string> // :48",
-          "  private selected: any // :49",
-          "  private searchQuery: string // :50",
-          "  private zoomK: number // :51",
-          "  private cachedLayout: any // :54",
-          "  private layoutDirty: boolean // :55",
-          "  private svgEl: SVGSVGElement // :58",
-          "  private svg: Selection<SVGSVGElement, unknown, null, undefined> // :59",
-          "  private zoom: ZoomBehavior<SVGSVGElement, unknown> // :60",
-          "  private laneBgLayer: Layer // :61",
-          "  private boundaryLayer: Layer // :62",
-          "  private edgeLayer: Layer // :63",
-          "  private relationEdgeLayer: Layer // :64",
-          "  private nodeLayer: Layer // :65",
-          "  private relationEndLayer: Layer // :66",
-          "  private renderer: NodeComponent // :67",
-          "  mount(): Promise<void> {} // :69-83",
-          "  private setupCanvas(): void {} // :87-121",
-          "  private setupTooltips(): void {} // :123-127",
-          "  private setupRenderer(): void {} // :129-150",
-          "  private setupSearch(): void {} // :152-158",
-          "  private buildRefMaps(meta: any): void {} // :160-174",
-          "  private loadInitialData(): Promise<void> {} // :176-195",
-          "  private render(): void {} // :199-303",
-          "  private onExpand(node: PositionedNode): Promise<void> {} // :307-342",
-          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :348-372",
-          "  private prefetchNodeChunk(nodeId: string): Promise<void> {} // :379-396",
-          "  private fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {} // :399-414",
-          "  private scrollToNode(nodeId: string): void {} // :417-431",
-          "  private collapseDescendants(folderId: string): void {} // :434-444",
-          "  private onSelect(node: PositionedNode): void {} // :446-453",
-          "  private navigateToNode(nodeId: string): Promise<void> {} // :455-477",
-          "  private findNode(nodeId: string): any {} // :480-508",
-          "  private onNodeHighlight(nodeId: string | null): void {} // :511-522",
-          "  private onChipClick(node: PositionedNode, chip: \"docs\" | \"flows\"): void {} // :524-541",
-          "  private onTraceLinks(node: PositionedNode): void {} // :543-546",
+          "export class ExplorerApp { // :43-592",
+          "  private readonly loader: any // :44",
+          "  private readonly store: any // :45",
+          "  private readonly router: any // :47",
+          "  private docsOf: Map<string, string[]> // :50",
+          "  private flowsOf: Map<string, string[]> // :51",
+          "  private expanded: Set<string> // :54",
+          "  private selected: any // :55",
+          "  private searchQuery: string // :56",
+          "  private zoomK: number // :57",
+          "  private cachedLayout: any // :60",
+          "  private layoutDirty: boolean // :61",
+          "  private svgEl: SVGSVGElement // :64",
+          "  private svg: Selection<SVGSVGElement, unknown, null, undefined> // :65",
+          "  private zoom: ZoomBehavior<SVGSVGElement, unknown> // :66",
+          "  private laneBgLayer: Layer // :67",
+          "  private boundaryLayer: Layer // :68",
+          "  private edgeLayer: Layer // :69",
+          "  private relationEdgeLayer: Layer // :70",
+          "  private nodeLayer: Layer // :71",
+          "  private relationEndLayer: Layer // :72",
+          "  private renderer: NodeComponent // :73",
+          "  mount(): Promise<void> {} // :75-99",
+          "  private setupCanvas(): void {} // :103-137",
+          "  private setupTooltips(): void {} // :139-143",
+          "  private setupRenderer(): void {} // :145-166",
+          "  private setupSearch(): void {} // :168-174",
+          "  private buildRefMaps(meta: any): void {} // :176-190",
+          "  private loadInitialData(): Promise<void> {} // :192-208",
+          "  private render(): void {} // :212-329",
+          "  private onExpand(node: PositionedNode): Promise<void> {} // :333-370",
+          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :376-402",
+          "  private prefetchNodeChunk(nodeId: string): Promise<void> {} // :409-432",
+          "  private fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {} // :435-454",
+          "  private scrollToNode(nodeId: string, ensureZoom?: boolean): void {} // :457-481",
+          "  private collapseDescendants(folderId: string): void {} // :484-494",
+          "  private onSelect(node: PositionedNode): void {} // :496-503",
+          "  private navigateToNode(nodeId: string): Promise<void> {} // :505-527",
+          "  private findNode(nodeId: string): any {} // :530-558",
+          "  private onNodeHighlight(nodeId: string | null): void {} // :561-572",
+          "  private onChipClick(node: PositionedNode, chip: \"docs\" | \"flows\"): void {} // :574-577",
+          "  private getRefsFor(nodeId: string, kind: \"docs\" | \"flows\"): ExplorerNode[] {} // :580-586",
+          "  private onTraceLinks(node: PositionedNode): void {} // :588-591",
           "}",
           "// — internal —",
-          "type Layer = d3.Selection<SVGGElement, unknown, null, undefined> // :31"
+          "type Layer = d3.Selection<SVGGElement, unknown, null, undefined> // :32",
+          "const READABLE_ZOOM_THRESHOLD: 0.6 // :35",
+          "const READABLE_ZOOM: 0.85 // :37"
         ],
-        "importsSummary": "33 imports from 16 paths",
+        "importsSummary": "35 imports from 17 paths",
         "imports": [
           "* as d3 from \"d3\"",
           "ChunkLoader from \"./graph/loader\"",
@@ -1269,6 +1217,8 @@
           "mountDomTooltip from \"./ui/DomTooltip\"",
           "showToast from \"./ui/Toast\"",
           "DocPanel from \"./ui/DocPanel\"",
+          "panelRouter from \"./router\"",
+          "RefsView from \"./router\"",
           "PositionedNode from \"./types\"",
           "ExplorerNode from \"./types\"",
           "hasChildren from \"./types\"",
@@ -1409,6 +1359,16 @@
             "typeOnly": false
           },
           {
+            "symbol": "panelRouter",
+            "path": "./router",
+            "typeOnly": false
+          },
+          {
+            "symbol": "RefsView",
+            "path": "./router",
+            "typeOnly": false
+          },
+          {
             "symbol": "PositionedNode",
             "path": "./types",
             "typeOnly": true
@@ -1444,7 +1404,7 @@
             "typeOnly": true
           }
         ],
-        "edgeCount": 38
+        "edgeCount": 39
       },
       "explorer.spa.chunk-types": {
         "id": "explorer.spa.chunk-types",
@@ -1694,7 +1654,7 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
         "morphologySummary": "1 class, 2 functions, 1 interface, 8 types, 2 variables",
         "morphology": [
-          "export function exportDisplayLabel(label: string, morphologySummary?: string | undefined): string {} // :438-443",
+          "export function exportDisplayLabel(label: string, morphologySummary?: string | undefined): string {} // :450-455",
           "export const NODE_COLORS: Record<NodeType, string> // :11-20",
           "export const NODE_ICON: Record<NodeType, string> // :22-31",
           "export interface NodeComponent { // :35-46",
@@ -1712,16 +1672,16 @@
           "export type CodePreviewHandler = (node: PositionedNode, clientX: number, clientY: number) => void // :56",
           "export type ChipClickHandler = (node: PositionedNode, chip: \"docs\" | \"flows\") => void // :57",
           "export type GetRefsFn = (nodeId: string) => string[] // :58",
-          "export class BaseNodeRenderer { // :72-428",
+          "export class BaseNodeRenderer { // :72-440",
           "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, onChipClick: ChipClickHandler | undefined, getReferencingDocs: GetRefsFn | undefined, getReferencingFlows: GetRefsFn | undefined) {} // :73-83",
           "  getSize(node: PositionedNode): { w: number; h: number; } {} // :85-87",
           "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :89-92",
           "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :94-97",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-247",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :249-427",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-259",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :261-439",
           "}",
           "// — internal —",
-          "function trunc(s: string, max: number): string {} // :432-435"
+          "function trunc(s: string, max: number): string {} // :444-447"
         ],
         "importsSummary": "12 imports from 6 paths",
         "imports": [
@@ -2051,10 +2011,10 @@
         "morphologySummary": "11 functions, 6 variables",
         "morphology": [
           "export function mountNodeTooltip(svgEl: SVGSVGElement): void {} // :13-31",
-          "export function showNodeTooltip(label: string, path: string | undefined, description: string, color: string, svgX: number, svgY: number): void {} // :33-48",
-          "export function showNodeTooltipAtScreen(label: string, path: string | undefined, description: string, color: string, anchorEl: HTMLElement): void {} // :51-63",
-          "export function updateNodeTooltipTransform(transform: { k: number; x: number; y: number; }, rect: DOMRect): void {} // :66-73",
-          "export function hideNodeTooltip(): void {} // :75-83",
+          "export function showNodeTooltip(label: string, path: string | undefined, description: string, color: string, svgX: number, svgY: number, metadata?: Record<string, string> | undefined): void {} // :33-49",
+          "export function showNodeTooltipAtScreen(label: string, path: string | undefined, description: string, color: string, anchorEl: HTMLElement, metadata?: Record<string, string> | undefined): void {} // :52-65",
+          "export function updateNodeTooltipTransform(transform: { k: number; x: number; y: number; }, rect: DOMRect): void {} // :68-75",
+          "export function hideNodeTooltip(): void {} // :77-85",
           "// — internal —",
           "const el: HTMLDivElement | null // :5",
           "const raf: number // :6",
@@ -2062,12 +2022,12 @@
           "const anchorSvgY: number // :9",
           "const currentTransform: { k: number; x: number; y: number; } // :10",
           "const svgRect: DOMRect | null // :11",
-          "function buildContent(label: string, path: string | undefined, description: string, color: string): void {} // :87-109",
-          "function animateIn(): void {} // :111-119",
-          "function positionFromSvg(): void {} // :121-126",
-          "function positionFromElement(anchorEl: HTMLElement): void {} // :128-132",
-          "function placeAt(screenX: number, screenY: number): void {} // :134-143",
-          "function escHtml(s: string): string {} // :145-147"
+          "function buildContent(label: string, path: string | undefined, description: string, color: string, metadata?: Record<string, string> | undefined): void {} // :89-128",
+          "function animateIn(): void {} // :130-138",
+          "function positionFromSvg(): void {} // :140-145",
+          "function positionFromElement(anchorEl: HTMLElement): void {} // :147-151",
+          "function placeAt(screenX: number, screenY: number): void {} // :153-162",
+          "function escHtml(s: string): string {} // :164-166"
         ],
         "edgeCount": 6
       },
@@ -2121,53 +2081,32 @@
       "explorer.spa.doc-panel": {
         "id": "explorer.spa.doc-panel",
         "type": "module",
-        "desc": "Side panel that shows the selected node's doc content.",
+        "desc": "Slide-in side panel host. Owns the chrome and renders whichever view the panel router has on top.",
         "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/ui/DocPanel.js\")",
         "resolvedPath": "packages/tskb/explorer-app/src/ui/DocPanel.ts",
-        "morphologySummary": "1 class, 4 types, 2 variables",
+        "morphologySummary": "1 class",
         "morphology": [
-          "export type OnNodeRefClick = (nodeId: string) => void // :7",
-          "export type GetNodeFn = (nodeId: string) => ExplorerNode | undefined // :8",
-          "export type OnNodeHighlightFn = (nodeId: string | null) => void // :9",
-          "export type OnNodePrefetchFn = (nodeId: string) => Promise<void> // :10",
-          "export class DocPanel { // :25-325",
-          "  private readonly panel: HTMLElement // :26",
-          "  private readonly title: HTMLElement // :27",
-          "  private readonly body: HTMLElement // :28",
-          "  private onNodeRef: OnNodeRefClick | null // :29",
-          "  private getNode: GetNodeFn | null // :30",
-          "  private onNodeHighlight: OnNodeHighlightFn | null // :31",
-          "  private onNodePrefetch: OnNodePrefetchFn | null // :32",
-          "  constructor() {} // :34-53",
-          "  setOnNodeRef(cb: OnNodeRefClick): void {} // :55-57",
-          "  setGetNode(fn: GetNodeFn): void {} // :58-60",
-          "  setOnNodeHighlight(fn: OnNodeHighlightFn): void {} // :61-63",
-          "  setOnNodePrefetch(fn: OnNodePrefetchFn): void {} // :64-66",
-          "  show(node: PositionedNode): void {} // :68-82",
-          "  hide(): void {} // :84-86",
-          "  get isOpen(): boolean {} // :88-90",
-          "  showRefs(node: PositionedNode, kind: \"docs\" | \"flows\", items: ExplorerNode[]): void {} // :93-109",
-          "  private wireRefLinks(): void {} // :118-173",
-          "  private wireTitleRef(): void {} // :179-213",
-          "  private renderAccordion(items: ExplorerNode[], kind: \"docs\" | \"flows\"): string {} // :215-263",
-          "  private renderFlowSteps(item: ExplorerNode): string {} // :265-294",
-          "  private showRefTooltip(liveNode: any, anchor: HTMLAnchorElement, nodeId: string): void {} // :296-308",
-          "  private renderDetail(node: PositionedNode): string {} // :310-324",
-          "}",
-          "// — internal —",
-          "const PRIORITY_RANK: Record<string, number> // :12-16",
-          "const escapeHtml: (s: string) => string // :18-19"
+          "export class DocPanel { // :15-84",
+          "  private readonly panel: HTMLElement // :16",
+          "  private readonly title: HTMLElement // :17",
+          "  private readonly body: HTMLElement // :18",
+          "  private readonly backSlot: HTMLElement // :19",
+          "  private readonly backButton: HTMLButtonElement // :20",
+          "  private unsubscribe: (() => void) | null // :21",
+          "  constructor(router: Router) {} // :23-44",
+          "  destroy(): void {} // :46-49",
+          "  get isOpen(): boolean {} // :51-53",
+          "  private onViewChange(view: any, canGoBack: boolean): void {} // :55-74",
+          "  private resetTitle(): void {} // :76-83",
+          "}"
         ],
-        "importsSummary": "8 imports from 5 paths",
+        "importsSummary": "5 imports from 3 paths",
         "imports": [
           "* from \"./doc-panel.css\"",
-          "PositionedNode from \"../types\"",
-          "ExplorerNode from \"../types\"",
-          "showDomTooltip from \"./DomTooltip\"",
-          "hideDomTooltip from \"./DomTooltip\"",
-          "NODE_COLORS from \"../components/nodes/base\"",
-          "exportDisplayLabel from \"../components/nodes/base\"",
-          "createHeaderButton from \"./HeaderActions\""
+          "createHeaderButton from \"./HeaderActions\"",
+          "Router from \"../router\"",
+          "View from \"../router\"",
+          "wireRefs from \"../router\""
         ],
         "importEntries": [
           {
@@ -2176,42 +2115,27 @@
             "typeOnly": false
           },
           {
-            "symbol": "PositionedNode",
-            "path": "../types",
-            "typeOnly": true
-          },
-          {
-            "symbol": "ExplorerNode",
-            "path": "../types",
-            "typeOnly": true
-          },
-          {
-            "symbol": "showDomTooltip",
-            "path": "./DomTooltip",
-            "typeOnly": false
-          },
-          {
-            "symbol": "hideDomTooltip",
-            "path": "./DomTooltip",
-            "typeOnly": false
-          },
-          {
-            "symbol": "NODE_COLORS",
-            "path": "../components/nodes/base",
-            "typeOnly": false
-          },
-          {
-            "symbol": "exportDisplayLabel",
-            "path": "../components/nodes/base",
-            "typeOnly": false
-          },
-          {
             "symbol": "createHeaderButton",
             "path": "./HeaderActions",
             "typeOnly": false
+          },
+          {
+            "symbol": "Router",
+            "path": "../router",
+            "typeOnly": true
+          },
+          {
+            "symbol": "View",
+            "path": "../router",
+            "typeOnly": true
+          },
+          {
+            "symbol": "wireRefs",
+            "path": "../router",
+            "typeOnly": false
           }
         ],
-        "edgeCount": 8
+        "edgeCount": 9
       },
       "explorer.spa.dom-tooltip": {
         "id": "explorer.spa.dom-tooltip",
@@ -2232,6 +2156,625 @@
           "function escHtml(s: string): string {} // :94-96"
         ],
         "edgeCount": 5
+      },
+      "explorer.spa.router": {
+        "id": "explorer.spa.router",
+        "type": "module",
+        "desc": "Panel router. Owns a stack of views and syncs the top of the stack to location.hash.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/Router.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/Router.ts",
+        "morphologySummary": "1 class, 1 type, 1 variable",
+        "morphology": [
+          "export class Router { // :21-176",
+          "  private stack: View[] // :22",
+          "  private listeners: Set<Listener> // :23",
+          "  private viewCtors: Map<string, ViewCtor> // :24",
+          "  private deps: any // :25",
+          "  private syncHash: boolean // :26",
+          "  private writingHash: boolean // :27",
+          "  registerView(ctor: ViewCtor): void {} // :29-31",
+          "  init(deps: RouterDeps, options?: { syncHash?: boolean | undefined; }): void {} // :33-40",
+          "  refresh(): void {} // :47-49",
+          "  getDepsForHost(): RouterDeps {} // :55-58",
+          "  push(view: View): void {} // :60-68",
+          "  replace(view: View): void {} // :70-76",
+          "  back(): void {} // :78-84",
+          "  close(): void {} // :86-92",
+          "  active(): any {} // :94-96",
+          "  canGoBack(): boolean {} // :98-100",
+          "  context(): ViewContext {} // :102-108",
+          "  subscribe(listener: Listener) => (): void {} // :110-115",
+          "  private notify(): void {} // :117-121",
+          "  private writeHash(): void {} // :125-144",
+          "  private onHashChange: () => void // :146-149",
+          "  private restoreFromHash(): void {} // :151-165",
+          "  private parseRoute(route: string): any {} // :167-175",
+          "}",
+          "export const panelRouter: Router // :182",
+          "// — internal —",
+          "type Listener = (view: View | null, canGoBack: boolean) => void // :3"
+        ],
+        "importsSummary": "4 imports from 1 path",
+        "imports": [
+          "RouterDeps from \"./types\"",
+          "View from \"./types\"",
+          "ViewContext from \"./types\"",
+          "ViewCtor from \"./types\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "RouterDeps",
+            "path": "./types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "View",
+            "path": "./types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "ViewContext",
+            "path": "./types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "ViewCtor",
+            "path": "./types",
+            "typeOnly": true
+          }
+        ],
+        "edgeCount": 9
+      },
+      "explorer.spa.router-types": {
+        "id": "explorer.spa.router-types",
+        "type": "module",
+        "desc": "Shared types for panel views and router dependencies.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/types.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/types.ts",
+        "morphologySummary": "4 interfaces, 5 types",
+        "morphology": [
+          "export type OnNodeRefClick = (nodeId: string) => void // :3",
+          "export type GetNodeFn = (nodeId: string) => ExplorerNode | undefined // :4",
+          "export type OnNodeHighlightFn = (nodeId: string | null) => void // :5",
+          "export type OnNodePrefetchFn = (nodeId: string) => Promise<void> // :6",
+          "export type GetRefsForFn = (nodeId: string, kind: \"docs\" | \"flows\") => ExplorerNode[] // :7",
+          "export interface RouterDeps { // :13-19",
+          "  getNode(nodeId: string): any // :14",
+          "  getRefsFor(nodeId: string, kind: \"docs\" | \"flows\"): ExplorerNode[] // :15",
+          "  onNodeRef(nodeId: string): void // :16",
+          "  onNodeHighlight(nodeId: string | null): void // :17",
+          "  onNodePrefetch(nodeId: string): Promise<void> // :18",
+          "}",
+          "export interface ViewContext { // :22-26",
+          "  canGoBack: boolean // :23",
+          "  back(): void // :24",
+          "  close(): void // :25",
+          "}",
+          "export interface View { // :32-39",
+          "  route(): string // :34",
+          "  renderHeader(headerEl: HTMLElement, ctx: ViewContext): void // :35",
+          "  renderBody(bodyEl: HTMLElement): void // :36",
+          "  onLeave: (() => void) | undefined // :38",
+          "}",
+          "export interface ViewCtor { // :45-48",
+          "  prefix: string // :46",
+          "  parse(rest: string, deps: RouterDeps): View | null // :47",
+          "}"
+        ],
+        "importsSummary": "1 import from 1 path",
+        "imports": [
+          "ExplorerNode from \"../types\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "ExplorerNode",
+            "path": "../types",
+            "typeOnly": true
+          }
+        ],
+        "edgeCount": 8
+      },
+      "explorer.spa.router-index": {
+        "id": "explorer.spa.router-index",
+        "type": "module",
+        "desc": "Public re-exports of the panel router module.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/index.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/index.ts",
+        "edgeCount": 1
+      },
+      "explorer.spa.refs-view": {
+        "id": "explorer.spa.refs-view",
+        "type": "module",
+        "desc": "Panel view listing every doc or flow that references a given node.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/views/RefsView.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/views/RefsView.ts",
+        "morphologySummary": "1 class, 1 type, 1 variable",
+        "morphology": [
+          "export type RefsKind = \"docs\" | \"flows\" // :7",
+          "export class RefsView { // :16-63",
+          "  static readonly prefix: \"refs\" // :17",
+          "  static parse(rest: string, deps: RouterDeps): RefsView | null {} // :19-33",
+          "  constructor(nodeId: string, kind: RefsKind, deps: RouterDeps) {} // :35-39",
+          "  route(): string {} // :41-43",
+          "  renderHeader(headerEl: HTMLElement, _ctx: ViewContext): void {} // :45-57",
+          "  renderBody(bodyEl: HTMLElement): void {} // :59-62",
+          "}",
+          "// — internal —",
+          "const escapeHtml: (s: string) => string // :4-5"
+        ],
+        "importsSummary": "4 imports from 2 paths",
+        "imports": [
+          "View from \"../types\"",
+          "ViewContext from \"../types\"",
+          "RouterDeps from \"../types\"",
+          "renderAccordion from \"../components/Accordion\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "View",
+            "path": "../types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "ViewContext",
+            "path": "../types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "RouterDeps",
+            "path": "../types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "renderAccordion",
+            "path": "../components/Accordion",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 5
+      },
+      "explorer.spa.accordion": {
+        "id": "explorer.spa.accordion",
+        "type": "module",
+        "desc": "HTML builder for the docs/flows accordion shared across panel views.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/components/Accordion.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/components/Accordion.ts",
+        "morphologySummary": "2 functions, 1 interface, 2 variables",
+        "morphology": [
+          "export function renderAccordion(items: ExplorerNode[], kind: \"docs\" | \"flows\", deps: AccordionDeps): string {} // :22-71",
+          "// — internal —",
+          "const PRIORITY_RANK: Record<string, number> // :4-8",
+          "const escapeHtml: (s: string) => string // :10-11",
+          "interface AccordionDeps { // :13-15",
+          "  getNode: GetNodeFn // :14",
+          "}",
+          "function renderFlowSteps(item: ExplorerNode, deps: AccordionDeps): string {} // :73-102"
+        ],
+        "importsSummary": "2 imports from 2 paths",
+        "imports": [
+          "ExplorerNode from \"../../types\"",
+          "GetNodeFn from \"../types\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "ExplorerNode",
+            "path": "../../types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "GetNodeFn",
+            "path": "../types",
+            "typeOnly": true
+          }
+        ],
+        "edgeCount": 7
+      },
+      "explorer.spa.ref-links": {
+        "id": "explorer.spa.ref-links",
+        "type": "module",
+        "desc": "Wires hover, click and prefetch behavior on a.tskb-ref anchors inside the panel.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/components/RefLinks.js\")",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/components/RefLinks.ts",
+        "morphologySummary": "3 functions, 2 interfaces, 1 variable",
+        "morphology": [
+          "export function wireRefs(rootEl: HTMLElement, deps: RefLinksDeps): void {} // :27-79",
+          "// — internal —",
+          "interface RefLinksDeps { // :6-11",
+          "  getNode: GetNodeFn // :7",
+          "  onNodeRef: OnNodeRefClick // :8",
+          "  onNodeHighlight: OnNodeHighlightFn // :9",
+          "  onNodePrefetch: OnNodePrefetchFn // :10",
+          "}",
+          "const HANDLER_KEY: \"__tskbRefClickHandler\" // :13",
+          "interface RootWithHandler { // :15-17",
+          "  __tskbRefClickHandler: ((e: MouseEvent) => void) | undefined // :16",
+          "  accessKey: string",
+          "  accessKeyLabel: string",
+          "  autocapitalize: string",
+          "  autocorrect: boolean",
+          "  dir: string",
+          "  draggable: boolean",
+          "  hidden: boolean",
+          "  inert: boolean",
+          "  innerText: string",
+          "  lang: string",
+          "  offsetHeight: number",
+          "  offsetLeft: number",
+          "  offsetParent: Element | null",
+          "  offsetTop: number",
+          "  offsetWidth: number",
+          "  outerText: string",
+          "  popover: string | null",
+          "  spellcheck: boolean",
+          "  title: string",
+          "  translate: boolean",
+          "  writingSuggestions: string",
+          "  attachInternals(): ElementInternals",
+          "  click(): void",
+          "  hidePopover(): void",
+          "  showPopover(): void",
+          "  togglePopover(options?: boolean | undefined): boolean",
+          "  addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions | undefined): void",
+          "  removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions | undefined): void",
+          "  attributes: NamedNodeMap",
+          "  classList: DOMTokenList",
+          "  className: string",
+          "  clientHeight: number",
+          "  clientLeft: number",
+          "  clientTop: number",
+          "  clientWidth: number",
+          "  currentCSSZoom: number",
+          "  id: string",
+          "  innerHTML: string",
+          "  localName: string",
+          "  namespaceURI: string | null",
+          "  onfullscreenchange: ((this: Element, ev: Event) => any) | null",
+          "  onfullscreenerror: ((this: Element, ev: Event) => any) | null",
+          "  outerHTML: string",
+          "  ownerDocument: Document",
+          "  part: DOMTokenList",
+          "  prefix: string | null",
+          "  scrollHeight: number",
+          "  scrollLeft: number",
+          "  scrollTop: number",
+          "  scrollWidth: number",
+          "  shadowRoot: ShadowRoot | null",
+          "  slot: string",
+          "  tagName: string",
+          "  attachShadow(init: ShadowRootInit): ShadowRoot",
+          "  checkVisibility(options?: CheckVisibilityOptions | undefined): boolean",
+          "  closest<K extends keyof HTMLElementTagNameMap>(selector: K): HTMLElementTagNameMap[K] | null",
+          "  computedStyleMap(): StylePropertyMapReadOnly",
+          "  getAttribute(qualifiedName: string): string | null",
+          "  getAttributeNS(namespace: string | null, localName: string): string | null",
+          "  getAttributeNames(): string[]",
+          "  getAttributeNode(qualifiedName: string): Attr | null",
+          "  getAttributeNodeNS(namespace: string | null, localName: string): Attr | null",
+          "  getBoundingClientRect(): DOMRect",
+          "  getClientRects(): DOMRectList",
+          "  getElementsByClassName(classNames: string): HTMLCollectionOf<Element>",
+          "  getElementsByTagName<K extends keyof HTMLElementTagNameMap>(qualifiedName: K): HTMLCollectionOf<HTMLElementTagNameMap[K]>",
+          "  getElementsByTagNameNS(namespaceURI: \"http://www.w3.org/1999/xhtml\", localName: string): HTMLCollectionOf<HTMLElement>",
+          "  getHTML(options?: GetHTMLOptions | undefined): string",
+          "  hasAttribute(qualifiedName: string): boolean",
+          "  hasAttributeNS(namespace: string | null, localName: string): boolean",
+          "  hasAttributes(): boolean",
+          "  hasPointerCapture(pointerId: number): boolean",
+          "  insertAdjacentElement(where: InsertPosition, element: Element): Element | null",
+          "  insertAdjacentHTML(position: InsertPosition, string: string): void",
+          "  insertAdjacentText(where: InsertPosition, data: string): void",
+          "  matches(selectors: string): boolean",
+          "  releasePointerCapture(pointerId: number): void",
+          "  removeAttribute(qualifiedName: string): void",
+          "  removeAttributeNS(namespace: string | null, localName: string): void",
+          "  removeAttributeNode(attr: Attr): Attr",
+          "  requestFullscreen(options?: FullscreenOptions | undefined): Promise<void>",
+          "  requestPointerLock(options?: PointerLockOptions | undefined): Promise<void>",
+          "  scroll(options?: ScrollToOptions | undefined): void",
+          "  scrollBy(options?: ScrollToOptions | undefined): void",
+          "  scrollIntoView(arg?: boolean | ScrollIntoViewOptions | undefined): void",
+          "  scrollTo(options?: ScrollToOptions | undefined): void",
+          "  setAttribute(qualifiedName: string, value: string): void",
+          "  setAttributeNS(namespace: string | null, qualifiedName: string, value: string): void",
+          "  setAttributeNode(attr: Attr): Attr | null",
+          "  setAttributeNodeNS(attr: Attr): Attr | null",
+          "  setHTMLUnsafe(html: string): void",
+          "  setPointerCapture(pointerId: number): void",
+          "  toggleAttribute(qualifiedName: string, force?: boolean | undefined): boolean",
+          "  webkitMatchesSelector(selectors: string): boolean",
+          "  textContent: string",
+          "  baseURI: string",
+          "  childNodes: NodeListOf<ChildNode>",
+          "  firstChild: ChildNode | null",
+          "  isConnected: boolean",
+          "  lastChild: ChildNode | null",
+          "  nextSibling: ChildNode | null",
+          "  nodeName: string",
+          "  nodeType: number",
+          "  nodeValue: string | null",
+          "  parentElement: HTMLElement | null",
+          "  parentNode: ParentNode | null",
+          "  previousSibling: ChildNode | null",
+          "  appendChild<T extends Node>(node: T): T",
+          "  cloneNode(subtree?: boolean | undefined): Node",
+          "  compareDocumentPosition(other: Node): number",
+          "  contains(other: Node | null): boolean",
+          "  getRootNode(options?: GetRootNodeOptions | undefined): Node",
+          "  hasChildNodes(): boolean",
+          "  insertBefore<T extends Node>(node: T, child: Node | null): T",
+          "  isDefaultNamespace(namespace: string | null): boolean",
+          "  isEqualNode(otherNode: Node | null): boolean",
+          "  isSameNode(otherNode: Node | null): boolean",
+          "  lookupNamespaceURI(prefix: string | null): string | null",
+          "  lookupPrefix(namespace: string | null): string | null",
+          "  normalize(): void",
+          "  removeChild<T extends Node>(child: T): T",
+          "  replaceChild<T extends Node>(node: Node, child: T): T",
+          "  ELEMENT_NODE: 1",
+          "  ATTRIBUTE_NODE: 2",
+          "  TEXT_NODE: 3",
+          "  CDATA_SECTION_NODE: 4",
+          "  ENTITY_REFERENCE_NODE: 5",
+          "  ENTITY_NODE: 6",
+          "  PROCESSING_INSTRUCTION_NODE: 7",
+          "  COMMENT_NODE: 8",
+          "  DOCUMENT_NODE: 9",
+          "  DOCUMENT_TYPE_NODE: 10",
+          "  DOCUMENT_FRAGMENT_NODE: 11",
+          "  NOTATION_NODE: 12",
+          "  DOCUMENT_POSITION_DISCONNECTED: 1",
+          "  DOCUMENT_POSITION_PRECEDING: 2",
+          "  DOCUMENT_POSITION_FOLLOWING: 4",
+          "  DOCUMENT_POSITION_CONTAINS: 8",
+          "  DOCUMENT_POSITION_CONTAINED_BY: 16",
+          "  DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC: 32",
+          "  dispatchEvent(event: Event): boolean",
+          "  ariaActiveDescendantElement: Element | null",
+          "  ariaAtomic: string | null",
+          "  ariaAutoComplete: string | null",
+          "  ariaBrailleLabel: string | null",
+          "  ariaBrailleRoleDescription: string | null",
+          "  ariaBusy: string | null",
+          "  ariaChecked: string | null",
+          "  ariaColCount: string | null",
+          "  ariaColIndex: string | null",
+          "  ariaColIndexText: string | null",
+          "  ariaColSpan: string | null",
+          "  ariaControlsElements: readonly Element[] | null",
+          "  ariaCurrent: string | null",
+          "  ariaDescribedByElements: readonly Element[] | null",
+          "  ariaDescription: string | null",
+          "  ariaDetailsElements: readonly Element[] | null",
+          "  ariaDisabled: string | null",
+          "  ariaErrorMessageElements: readonly Element[] | null",
+          "  ariaExpanded: string | null",
+          "  ariaFlowToElements: readonly Element[] | null",
+          "  ariaHasPopup: string | null",
+          "  ariaHidden: string | null",
+          "  ariaInvalid: string | null",
+          "  ariaKeyShortcuts: string | null",
+          "  ariaLabel: string | null",
+          "  ariaLabelledByElements: readonly Element[] | null",
+          "  ariaLevel: string | null",
+          "  ariaLive: string | null",
+          "  ariaModal: string | null",
+          "  ariaMultiLine: string | null",
+          "  ariaMultiSelectable: string | null",
+          "  ariaOrientation: string | null",
+          "  ariaOwnsElements: readonly Element[] | null",
+          "  ariaPlaceholder: string | null",
+          "  ariaPosInSet: string | null",
+          "  ariaPressed: string | null",
+          "  ariaReadOnly: string | null",
+          "  ariaRelevant: string | null",
+          "  ariaRequired: string | null",
+          "  ariaRoleDescription: string | null",
+          "  ariaRowCount: string | null",
+          "  ariaRowIndex: string | null",
+          "  ariaRowIndexText: string | null",
+          "  ariaRowSpan: string | null",
+          "  ariaSelected: string | null",
+          "  ariaSetSize: string | null",
+          "  ariaSort: string | null",
+          "  ariaValueMax: string | null",
+          "  ariaValueMin: string | null",
+          "  ariaValueNow: string | null",
+          "  ariaValueText: string | null",
+          "  role: string | null",
+          "  animate(keyframes: Keyframe[] | PropertyIndexedKeyframes | null, options?: number | KeyframeAnimationOptions | undefined): Animation",
+          "  getAnimations(options?: GetAnimationsOptions | undefined): Animation[]",
+          "  after(...nodes: (string | Node)[]): void",
+          "  before(...nodes: (string | Node)[]): void",
+          "  remove(): void",
+          "  replaceWith(...nodes: (string | Node)[]): void",
+          "  nextElementSibling: Element | null",
+          "  previousElementSibling: Element | null",
+          "  childElementCount: number",
+          "  children: HTMLCollection",
+          "  firstElementChild: Element | null",
+          "  lastElementChild: Element | null",
+          "  append(...nodes: (string | Node)[]): void",
+          "  prepend(...nodes: (string | Node)[]): void",
+          "  querySelector<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null",
+          "  querySelectorAll<K extends keyof HTMLElementTagNameMap>(selectors: K): NodeListOf<HTMLElementTagNameMap[K]>",
+          "  replaceChildren(...nodes: (string | Node)[]): void",
+          "  assignedSlot: HTMLSlotElement | null",
+          "  attributeStyleMap: StylePropertyMap",
+          "  style: CSSStyleDeclaration",
+          "  contentEditable: string",
+          "  enterKeyHint: string",
+          "  inputMode: string",
+          "  isContentEditable: boolean",
+          "  onabort: ((this: GlobalEventHandlers, ev: UIEvent) => any) | null",
+          "  onanimationcancel: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null",
+          "  onanimationend: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null",
+          "  onanimationiteration: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null",
+          "  onanimationstart: ((this: GlobalEventHandlers, ev: AnimationEvent) => any) | null",
+          "  onauxclick: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onbeforeinput: ((this: GlobalEventHandlers, ev: InputEvent) => any) | null",
+          "  onbeforematch: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onbeforetoggle: ((this: GlobalEventHandlers, ev: ToggleEvent) => any) | null",
+          "  onblur: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null",
+          "  oncancel: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  oncanplay: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  oncanplaythrough: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onchange: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onclick: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onclose: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  oncontextlost: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  oncontextmenu: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  oncontextrestored: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  oncopy: ((this: GlobalEventHandlers, ev: ClipboardEvent) => any) | null",
+          "  oncuechange: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  oncut: ((this: GlobalEventHandlers, ev: ClipboardEvent) => any) | null",
+          "  ondblclick: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null",
+          "  ondrag: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null",
+          "  ondragend: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null",
+          "  ondragenter: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null",
+          "  ondragleave: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null",
+          "  ondragover: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null",
+          "  ondragstart: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null",
+          "  ondrop: ((this: GlobalEventHandlers, ev: DragEvent) => any) | null",
+          "  ondurationchange: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onemptied: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onended: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onerror: OnErrorEventHandler",
+          "  onfocus: ((this: GlobalEventHandlers, ev: FocusEvent) => any) | null",
+          "  onformdata: ((this: GlobalEventHandlers, ev: FormDataEvent) => any) | null",
+          "  ongotpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  oninput: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  oninvalid: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onkeydown: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any) | null",
+          "  onkeypress: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any) | null",
+          "  onkeyup: ((this: GlobalEventHandlers, ev: KeyboardEvent) => any) | null",
+          "  onload: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onloadeddata: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onloadedmetadata: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onloadstart: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onlostpointercapture: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onmousedown: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null",
+          "  onmouseenter: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null",
+          "  onmouseleave: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null",
+          "  onmousemove: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null",
+          "  onmouseout: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null",
+          "  onmouseover: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null",
+          "  onmouseup: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null",
+          "  onpaste: ((this: GlobalEventHandlers, ev: ClipboardEvent) => any) | null",
+          "  onpause: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onplay: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onplaying: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onpointercancel: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onpointerdown: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onpointerenter: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onpointerleave: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onpointermove: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onpointerout: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onpointerover: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onpointerrawupdate: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onpointerup: ((this: GlobalEventHandlers, ev: PointerEvent) => any) | null",
+          "  onprogress: ((this: GlobalEventHandlers, ev: ProgressEvent<EventTarget>) => any) | null",
+          "  onratechange: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onreset: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onresize: ((this: GlobalEventHandlers, ev: UIEvent) => any) | null",
+          "  onscroll: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onscrollend: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onsecuritypolicyviolation: ((this: GlobalEventHandlers, ev: SecurityPolicyViolationEvent) => any) | null",
+          "  onseeked: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onseeking: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onselect: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onselectionchange: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onselectstart: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onslotchange: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onstalled: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onsubmit: ((this: GlobalEventHandlers, ev: SubmitEvent) => any) | null",
+          "  onsuspend: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  ontimeupdate: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  ontoggle: ((this: GlobalEventHandlers, ev: ToggleEvent) => any) | null",
+          "  ontouchcancel: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null | undefined",
+          "  ontouchend: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null | undefined",
+          "  ontouchmove: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null | undefined",
+          "  ontouchstart: ((this: GlobalEventHandlers, ev: TouchEvent) => any) | null | undefined",
+          "  ontransitioncancel: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null",
+          "  ontransitionend: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null",
+          "  ontransitionrun: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null",
+          "  ontransitionstart: ((this: GlobalEventHandlers, ev: TransitionEvent) => any) | null",
+          "  onvolumechange: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onwaiting: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onwebkitanimationend: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onwebkitanimationiteration: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onwebkitanimationstart: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onwebkittransitionend: ((this: GlobalEventHandlers, ev: Event) => any) | null",
+          "  onwheel: ((this: GlobalEventHandlers, ev: WheelEvent) => any) | null",
+          "  autofocus: boolean",
+          "  dataset: DOMStringMap",
+          "  nonce: string | undefined",
+          "  tabIndex: number",
+          "  blur(): void",
+          "  focus(options?: FocusOptions | undefined): void",
+          "}",
+          "function displayFor(node: any, anchor: HTMLAnchorElement, nodeId: string): string {} // :81-96",
+          "function showRefTooltip(liveNode: any, anchor: HTMLAnchorElement, nodeId: string): void {} // :98-110"
+        ],
+        "importsSummary": "9 imports from 4 paths",
+        "imports": [
+          "showDomTooltip from \"../../ui/DomTooltip\"",
+          "hideDomTooltip from \"../../ui/DomTooltip\"",
+          "NODE_COLORS from \"../../components/nodes/base\"",
+          "exportDisplayLabel from \"../../components/nodes/base\"",
+          "ExplorerNode from \"../../types\"",
+          "GetNodeFn from \"../types\"",
+          "OnNodeHighlightFn from \"../types\"",
+          "OnNodePrefetchFn from \"../types\"",
+          "OnNodeRefClick from \"../types\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "showDomTooltip",
+            "path": "../../ui/DomTooltip",
+            "typeOnly": false
+          },
+          {
+            "symbol": "hideDomTooltip",
+            "path": "../../ui/DomTooltip",
+            "typeOnly": false
+          },
+          {
+            "symbol": "NODE_COLORS",
+            "path": "../../components/nodes/base",
+            "typeOnly": false
+          },
+          {
+            "symbol": "exportDisplayLabel",
+            "path": "../../components/nodes/base",
+            "typeOnly": false
+          },
+          {
+            "symbol": "ExplorerNode",
+            "path": "../../types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "GetNodeFn",
+            "path": "../types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "OnNodeHighlightFn",
+            "path": "../types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "OnNodePrefetchFn",
+            "path": "../types",
+            "typeOnly": true
+          },
+          {
+            "symbol": "OnNodeRefClick",
+            "path": "../types",
+            "typeOnly": true
+          }
+        ],
+        "edgeCount": 8
       },
       "explorer.server": {
         "id": "explorer.server",
@@ -2513,6 +3056,47 @@
           }
         ],
         "edgeCount": 7
+      },
+      "typescript.program": {
+        "id": "typescript.program",
+        "type": "module",
+        "desc": "Builds the TypeScript Program tskb reads from.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/typescript/program.js\")",
+        "resolvedPath": "packages/tskb/src/core/typescript/program.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function createProgram(files: string[], tsconfigPath: string): Program {} // :34-97"
+        ],
+        "importsSummary": "2 imports from 2 paths",
+        "imports": [
+          "ts from \"typescript\"",
+          "path from \"node:path\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "ts",
+            "path": "typescript",
+            "typeOnly": false
+          },
+          {
+            "symbol": "path",
+            "path": "node:path",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 4
+      },
+      "typescript.index": {
+        "id": "typescript.index",
+        "type": "module",
+        "desc": "Public entry for the TypeScript area.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/typescript/index.js\")",
+        "resolvedPath": "packages/tskb/src/core/typescript/index.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function createProgram(files: string[], tsconfigPath: string): Program {}"
+        ],
+        "edgeCount": 2
       },
       "extraction.registry": {
         "id": "extraction.registry",
@@ -3108,7 +3692,7 @@
           "globSync from \"glob\"",
           "fs from \"node:fs\"",
           "path from \"node:path\"",
-          "createProgram from \"../../typescript/index.js\"",
+          "createProgram from \"../../core/typescript/index.js\"",
           "extractRegistry from \"../../core/extraction/index.js\"",
           "extractDocs from \"../../core/extraction/index.js\"",
           "buildGraph from \"../../core/graph/index.js\"",
@@ -3135,7 +3719,7 @@
           },
           {
             "symbol": "createProgram",
-            "path": "../../typescript/index.js",
+            "path": "../../core/typescript/index.js",
             "typeOnly": false
           },
           {
@@ -3206,9 +3790,9 @@
           "function buildNeighborSets(edges: GraphEdge[]): Map<string, Set<string>> {} // :40-67",
           "function buildSearchableNodes(graph: KnowledgeGraph): SearchableNode[] {} // :205-237",
           "function getDesc(node: AnyNode): string {} // :239-244",
-          "function getContent(node: AnyNode): string {} // :246-273",
-          "function getPath(node: AnyNode): string {} // :275-280",
-          "function formatSearchPlain(result: SearchResult): string {} // :282-301"
+          "function getContent(node: AnyNode): string {} // :246-278",
+          "function getPath(node: AnyNode): string {} // :280-285",
+          "function formatSearchPlain(result: SearchResult): string {} // :287-306"
         ],
         "importsSummary": "9 imports from 5 paths",
         "imports": [
@@ -3728,21 +4312,28 @@
         "desc": "Shared markdown content for the generated skill and instructions files.",
         "typeSignature": "typeof import(\"packages/tskb/src/cli/utils/content-builder.js\")",
         "resolvedPath": "packages/tskb/src/cli/utils/content-builder.ts",
-        "morphologySummary": "12 functions",
+        "morphologySummary": "14 functions, 1 interface",
         "morphology": [
           "export function detectBuildScript(cwd?: string): string {} // :14-40",
-          "export function buildCliBody(graph: KnowledgeGraph, buildScript?: string): string {} // :50-112",
-          "export function buildTocBody(graph: KnowledgeGraph, buildScript?: string): string {} // :121-141",
-          "export function buildQueryBody(graph: KnowledgeGraph, buildScript?: string): string {} // :147-154",
-          "export function buildUpdateBody(graph: KnowledgeGraph, buildScript?: string): string {} // :161-357",
-          "export function buildUpdateSyntaxBody(_graph: KnowledgeGraph): string {} // :369-705",
+          "export function buildCliBody(_graph: KnowledgeGraph, _buildScript?: string): string {} // :50-99",
+          "export function buildTocBody(graph: KnowledgeGraph, buildScript?: string): string {} // :108-140",
+          "export function buildQueryBody(graph: KnowledgeGraph, buildScript?: string): string {} // :146-153",
+          "export function buildUpdateReferences(graph: KnowledgeGraph): SkillReference[] {} // :159-235",
+          "export function buildUpdateBody(graph: KnowledgeGraph, buildScript?: string): string {} // :244-377",
+          "export function buildUpdateSyntaxReferences(): SkillReference[] {} // :395-537",
+          "export function buildUpdateSyntaxBody(_graph: KnowledgeGraph): string {} // :547-695",
+          "export interface SkillReference { // :385-389",
+          "  filename: string // :386",
+          "  hook: string // :387",
+          "  body: string // :388",
+          "}",
           "// — internal —",
-          "function buildFolderTree(graph: KnowledgeGraph, maxDepth?: number): string {} // :713-733",
-          "function buildConstraintDocsSummary(graph: KnowledgeGraph): string {} // :742-754",
-          "function buildDocSummaries(graph: KnowledgeGraph, essentialOnly: boolean): string {} // :760-784",
-          "function buildFlowsSummary(graph: KnowledgeGraph): string {} // :789-814",
-          "function buildBoundariesSummary(graph: KnowledgeGraph): string {} // :819-831",
-          "function buildExternalsSummary(graph: KnowledgeGraph): string {} // :833-850"
+          "function buildFolderTree(graph: KnowledgeGraph, maxDepth?: number): string {} // :703-723",
+          "function buildConstraintDocsSummary(graph: KnowledgeGraph): string {} // :732-744",
+          "function buildDocSummaries(graph: KnowledgeGraph, essentialOnly: boolean): string {} // :750-774",
+          "function buildFlowsSummary(graph: KnowledgeGraph): string {} // :779-804",
+          "function buildBoundariesSummary(graph: KnowledgeGraph): string {} // :809-821",
+          "function buildExternalsSummary(graph: KnowledgeGraph): string {} // :823-842"
         ],
         "importsSummary": "3 imports from 3 paths",
         "imports": [
@@ -3767,7 +4358,7 @@
             "typeOnly": true
           }
         ],
-        "edgeCount": 5
+        "edgeCount": 6
       },
       "cli.utils.skill-generator": {
         "id": "cli.utils.skill-generator",
@@ -3777,14 +4368,14 @@
         "resolvedPath": "packages/tskb/src/cli/utils/skill-generator.ts",
         "morphologySummary": "5 functions",
         "morphology": [
-          "export function generateSkillFiles(graph: KnowledgeGraph): string[] {} // :26-65",
+          "export function generateSkillFiles(graph: KnowledgeGraph): string[] {} // :28-83",
           "// — internal —",
-          "function buildCliSkillContent(graph: KnowledgeGraph, buildScript: string): string {} // :67-85",
-          "function buildTocSkillContent(graph: KnowledgeGraph, buildScript: string): string {} // :87-100",
-          "function buildUpdateSkillContent(graph: KnowledgeGraph, buildScript: string): string {} // :102-117",
-          "function buildUpdateSyntaxSkillContent(graph: KnowledgeGraph): string {} // :119-132"
+          "function buildCliSkillContent(graph: KnowledgeGraph, buildScript: string): string {} // :85-99",
+          "function buildTocSkillContent(graph: KnowledgeGraph, buildScript: string): string {} // :101-114",
+          "function buildUpdateSkillContent(graph: KnowledgeGraph, buildScript: string): string {} // :116-131",
+          "function buildUpdateSyntaxSkillContent(graph: KnowledgeGraph): string {} // :133-146"
         ],
-        "importsSummary": "8 imports from 4 paths",
+        "importsSummary": "10 imports from 4 paths",
         "imports": [
           "fs from \"node:fs\"",
           "path from \"node:path\"",
@@ -3792,7 +4383,9 @@
           "buildCliBody from \"./content-builder.js\"",
           "buildTocBody from \"./content-builder.js\"",
           "buildUpdateBody from \"./content-builder.js\"",
+          "buildUpdateReferences from \"./content-builder.js\"",
           "buildUpdateSyntaxBody from \"./content-builder.js\"",
+          "buildUpdateSyntaxReferences from \"./content-builder.js\"",
           "detectBuildScript from \"./content-builder.js\""
         ],
         "importEntries": [
@@ -3827,7 +4420,17 @@
             "typeOnly": false
           },
           {
+            "symbol": "buildUpdateReferences",
+            "path": "./content-builder.js",
+            "typeOnly": false
+          },
+          {
             "symbol": "buildUpdateSyntaxBody",
+            "path": "./content-builder.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "buildUpdateSyntaxReferences",
             "path": "./content-builder.js",
             "typeOnly": false
           },
@@ -3837,7 +4440,7 @@
             "typeOnly": false
           }
         ],
-        "edgeCount": 5
+        "edgeCount": 6
       },
       "cli.utils.copilot-instructions": {
         "id": "cli.utils.copilot-instructions",
@@ -4057,12 +4660,6 @@
         "desc": "The JSON output of the build: every node (folder, module, export, term, doc, flow) and the edges between them. Saved to `.tskb/graph.json`.",
         "edgeCount": 1
       },
-      "tsProgram": {
-        "id": "tsProgram",
-        "type": "term",
-        "desc": "A TypeScript compiler `Program` built from source files and a tsconfig. tskb uses it to read the AST, types, and symbols of your code — without emitting JavaScript.",
-        "edgeCount": 1
-      },
       "knowledgeChunk": {
         "id": "knowledgeChunk",
         "type": "term",
@@ -4103,6 +4700,12 @@
         "id": "dotFile",
         "type": "term",
         "desc": "A Graphviz DOT file. Plain text describing nodes and edges. Used to draw the graph as a diagram with `dot -Tpng`."
+      },
+      "tsProgram": {
+        "id": "tsProgram",
+        "type": "term",
+        "desc": "A TypeScript compiler `Program` built from source files and a tsconfig. tskb uses it to read the AST, types, and symbols of your code — without emitting JavaScript.",
+        "edgeCount": 1
       },
       "ast": {
         "id": "ast",
@@ -4312,18 +4915,6 @@
         ],
         "edgeCount": 4
       },
-      "ts.createProgram": {
-        "id": "ts.createProgram",
-        "type": "export",
-        "desc": "Builds a TypeScript Program for static analysis. Does not emit output.",
-        "typeSignature": "typeof import(\"packages/tskb/src/typescript/program.js\").createProgram",
-        "resolvedPath": "packages/tskb/src/typescript/program.ts",
-        "morphologySummary": "1 function",
-        "morphology": [
-          "export function createProgram(files: string[], tsconfigPath: string): Program {} // :34-97"
-        ],
-        "edgeCount": 3
-      },
       "jsx.Doc": {
         "id": "jsx.Doc",
         "type": "export",
@@ -4512,7 +5103,7 @@
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function sanitizeFolderId(id: string): string {} // :869-871"
+          "export function sanitizeFolderId(id: string): string {} // :871-873"
         ],
         "edgeCount": 1
       },
@@ -4598,13 +5189,13 @@
         "resolvedPath": "packages/tskb/explorer-app/src/components/nodes/base.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class BaseNodeRenderer { // :72-428",
+          "export class BaseNodeRenderer { // :72-440",
           "  constructor(onExpand: ExpandHandler, onSelect: SelectHandler, onTraceLinks: TraceLinkHandler, hasChildren: HasChildrenFn, isExpanded: IsExpandedFn, onCodePreview: CodePreviewHandler | undefined, onChipClick: ChipClickHandler | undefined, getReferencingDocs: GetRefsFn | undefined, getReferencingFlows: GetRefsFn | undefined) {} // :73-83",
           "  getSize(node: PositionedNode): { w: number; h: number; } {} // :85-87",
           "  outgoing(node: PositionedNode): { x: any; y: any; } {} // :89-92",
           "  ingoing(node: PositionedNode): { x: any; y: any; } {} // :94-97",
-          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-247",
-          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :249-427",
+          "  enter(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :99-259",
+          "  update(g: Selection<SVGGElement, PositionedNode, SVGGElement, unknown>): void {} // :261-439",
           "}"
         ],
         "edgeCount": 2
@@ -4665,32 +5256,112 @@
         "resolvedPath": "packages/tskb/explorer-app/src/ui/DocPanel.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class DocPanel { // :25-325",
-          "  private readonly panel: HTMLElement // :26",
-          "  private readonly title: HTMLElement // :27",
-          "  private readonly body: HTMLElement // :28",
-          "  private onNodeRef: OnNodeRefClick | null // :29",
-          "  private getNode: GetNodeFn | null // :30",
-          "  private onNodeHighlight: OnNodeHighlightFn | null // :31",
-          "  private onNodePrefetch: OnNodePrefetchFn | null // :32",
-          "  constructor() {} // :34-53",
-          "  setOnNodeRef(cb: OnNodeRefClick): void {} // :55-57",
-          "  setGetNode(fn: GetNodeFn): void {} // :58-60",
-          "  setOnNodeHighlight(fn: OnNodeHighlightFn): void {} // :61-63",
-          "  setOnNodePrefetch(fn: OnNodePrefetchFn): void {} // :64-66",
-          "  show(node: PositionedNode): void {} // :68-82",
-          "  hide(): void {} // :84-86",
-          "  get isOpen(): boolean {} // :88-90",
-          "  showRefs(node: PositionedNode, kind: \"docs\" | \"flows\", items: ExplorerNode[]): void {} // :93-109",
-          "  private wireRefLinks(): void {} // :118-173",
-          "  private wireTitleRef(): void {} // :179-213",
-          "  private renderAccordion(items: ExplorerNode[], kind: \"docs\" | \"flows\"): string {} // :215-263",
-          "  private renderFlowSteps(item: ExplorerNode): string {} // :265-294",
-          "  private showRefTooltip(liveNode: any, anchor: HTMLAnchorElement, nodeId: string): void {} // :296-308",
-          "  private renderDetail(node: PositionedNode): string {} // :310-324",
+          "export class DocPanel { // :15-84",
+          "  private readonly panel: HTMLElement // :16",
+          "  private readonly title: HTMLElement // :17",
+          "  private readonly body: HTMLElement // :18",
+          "  private readonly backSlot: HTMLElement // :19",
+          "  private readonly backButton: HTMLButtonElement // :20",
+          "  private unsubscribe: (() => void) | null // :21",
+          "  constructor(router: Router) {} // :23-44",
+          "  destroy(): void {} // :46-49",
+          "  get isOpen(): boolean {} // :51-53",
+          "  private onViewChange(view: any, canGoBack: boolean): void {} // :55-74",
+          "  private resetTitle(): void {} // :76-83",
           "}"
         ],
         "edgeCount": 2
+      },
+      "explorer.spa.Router": {
+        "id": "explorer.spa.Router",
+        "type": "export",
+        "desc": "Panel router class. Manages a view stack and (optional) location.hash sync.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/Router.js\").Router",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/Router.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class Router { // :21-176",
+          "  private stack: View[] // :22",
+          "  private listeners: Set<Listener> // :23",
+          "  private viewCtors: Map<string, ViewCtor> // :24",
+          "  private deps: any // :25",
+          "  private syncHash: boolean // :26",
+          "  private writingHash: boolean // :27",
+          "  registerView(ctor: ViewCtor): void {} // :29-31",
+          "  init(deps: RouterDeps, options?: { syncHash?: boolean | undefined; }): void {} // :33-40",
+          "  refresh(): void {} // :47-49",
+          "  getDepsForHost(): RouterDeps {} // :55-58",
+          "  push(view: View): void {} // :60-68",
+          "  replace(view: View): void {} // :70-76",
+          "  back(): void {} // :78-84",
+          "  close(): void {} // :86-92",
+          "  active(): any {} // :94-96",
+          "  canGoBack(): boolean {} // :98-100",
+          "  context(): ViewContext {} // :102-108",
+          "  subscribe(listener: Listener) => (): void {} // :110-115",
+          "  private notify(): void {} // :117-121",
+          "  private writeHash(): void {} // :125-144",
+          "  private onHashChange: () => void // :146-149",
+          "  private restoreFromHash(): void {} // :151-165",
+          "  private parseRoute(route: string): any {} // :167-175",
+          "}"
+        ],
+        "edgeCount": 3
+      },
+      "explorer.spa.panelRouter": {
+        "id": "explorer.spa.panelRouter",
+        "type": "export",
+        "desc": "Default Router instance shared across the SPA.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/Router.js\").panelRouter",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/Router.ts",
+        "morphologySummary": "1 variable",
+        "morphology": [
+          "export const panelRouter: Router // :182"
+        ],
+        "edgeCount": 3
+      },
+      "explorer.spa.RefsView": {
+        "id": "explorer.spa.RefsView",
+        "type": "export",
+        "desc": "View class that lists docs or flows referencing a given node.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/views/RefsView.js\").RefsView",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/views/RefsView.ts",
+        "morphologySummary": "1 class",
+        "morphology": [
+          "export class RefsView { // :16-63",
+          "  static readonly prefix: \"refs\" // :17",
+          "  static parse(rest: string, deps: RouterDeps): RefsView | null {} // :19-33",
+          "  constructor(nodeId: string, kind: RefsKind, deps: RouterDeps) {} // :35-39",
+          "  route(): string {} // :41-43",
+          "  renderHeader(headerEl: HTMLElement, _ctx: ViewContext): void {} // :45-57",
+          "  renderBody(bodyEl: HTMLElement): void {} // :59-62",
+          "}"
+        ],
+        "edgeCount": 3
+      },
+      "explorer.spa.renderAccordion": {
+        "id": "explorer.spa.renderAccordion",
+        "type": "export",
+        "desc": "Builds the docs/flows accordion HTML.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/components/Accordion.js\").renderAccordion",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/components/Accordion.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function renderAccordion(items: ExplorerNode[], kind: \"docs\" | \"flows\", deps: AccordionDeps): string {} // :22-71"
+        ],
+        "edgeCount": 3
+      },
+      "explorer.spa.wireRefs": {
+        "id": "explorer.spa.wireRefs",
+        "type": "export",
+        "desc": "Attaches hover, click and prefetch handlers to every a.tskb-ref under a root element.",
+        "typeSignature": "typeof import(\"packages/tskb/explorer-app/src/router/components/RefLinks.js\").wireRefs",
+        "resolvedPath": "packages/tskb/explorer-app/src/router/components/RefLinks.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function wireRefs(rootEl: HTMLElement, deps: RefLinksDeps): void {} // :27-79"
+        ],
+        "edgeCount": 3
       },
       "explorer.serveExplorer": {
         "id": "explorer.serveExplorer",
@@ -4736,48 +5407,49 @@
         "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
         "morphologySummary": "1 class",
         "morphology": [
-          "export class ExplorerApp { // :37-547",
-          "  private readonly loader: any // :38",
-          "  private readonly store: any // :39",
-          "  private readonly docPanel: any // :41",
-          "  private docsOf: Map<string, string[]> // :44",
-          "  private flowsOf: Map<string, string[]> // :45",
-          "  private expanded: Set<string> // :48",
-          "  private selected: any // :49",
-          "  private searchQuery: string // :50",
-          "  private zoomK: number // :51",
-          "  private cachedLayout: any // :54",
-          "  private layoutDirty: boolean // :55",
-          "  private svgEl: SVGSVGElement // :58",
-          "  private svg: Selection<SVGSVGElement, unknown, null, undefined> // :59",
-          "  private zoom: ZoomBehavior<SVGSVGElement, unknown> // :60",
-          "  private laneBgLayer: Layer // :61",
-          "  private boundaryLayer: Layer // :62",
-          "  private edgeLayer: Layer // :63",
-          "  private relationEdgeLayer: Layer // :64",
-          "  private nodeLayer: Layer // :65",
-          "  private relationEndLayer: Layer // :66",
-          "  private renderer: NodeComponent // :67",
-          "  mount(): Promise<void> {} // :69-83",
-          "  private setupCanvas(): void {} // :87-121",
-          "  private setupTooltips(): void {} // :123-127",
-          "  private setupRenderer(): void {} // :129-150",
-          "  private setupSearch(): void {} // :152-158",
-          "  private buildRefMaps(meta: any): void {} // :160-174",
-          "  private loadInitialData(): Promise<void> {} // :176-195",
-          "  private render(): void {} // :199-303",
-          "  private onExpand(node: PositionedNode): Promise<void> {} // :307-342",
-          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :348-372",
-          "  private prefetchNodeChunk(nodeId: string): Promise<void> {} // :379-396",
-          "  private fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {} // :399-414",
-          "  private scrollToNode(nodeId: string): void {} // :417-431",
-          "  private collapseDescendants(folderId: string): void {} // :434-444",
-          "  private onSelect(node: PositionedNode): void {} // :446-453",
-          "  private navigateToNode(nodeId: string): Promise<void> {} // :455-477",
-          "  private findNode(nodeId: string): any {} // :480-508",
-          "  private onNodeHighlight(nodeId: string | null): void {} // :511-522",
-          "  private onChipClick(node: PositionedNode, chip: \"docs\" | \"flows\"): void {} // :524-541",
-          "  private onTraceLinks(node: PositionedNode): void {} // :543-546",
+          "export class ExplorerApp { // :43-592",
+          "  private readonly loader: any // :44",
+          "  private readonly store: any // :45",
+          "  private readonly router: any // :47",
+          "  private docsOf: Map<string, string[]> // :50",
+          "  private flowsOf: Map<string, string[]> // :51",
+          "  private expanded: Set<string> // :54",
+          "  private selected: any // :55",
+          "  private searchQuery: string // :56",
+          "  private zoomK: number // :57",
+          "  private cachedLayout: any // :60",
+          "  private layoutDirty: boolean // :61",
+          "  private svgEl: SVGSVGElement // :64",
+          "  private svg: Selection<SVGSVGElement, unknown, null, undefined> // :65",
+          "  private zoom: ZoomBehavior<SVGSVGElement, unknown> // :66",
+          "  private laneBgLayer: Layer // :67",
+          "  private boundaryLayer: Layer // :68",
+          "  private edgeLayer: Layer // :69",
+          "  private relationEdgeLayer: Layer // :70",
+          "  private nodeLayer: Layer // :71",
+          "  private relationEndLayer: Layer // :72",
+          "  private renderer: NodeComponent // :73",
+          "  mount(): Promise<void> {} // :75-99",
+          "  private setupCanvas(): void {} // :103-137",
+          "  private setupTooltips(): void {} // :139-143",
+          "  private setupRenderer(): void {} // :145-166",
+          "  private setupSearch(): void {} // :168-174",
+          "  private buildRefMaps(meta: any): void {} // :176-190",
+          "  private loadInitialData(): Promise<void> {} // :192-208",
+          "  private render(): void {} // :212-329",
+          "  private onExpand(node: PositionedNode): Promise<void> {} // :333-370",
+          "  private expandToReveal(nodeIds: string[], anchorId?: string | undefined): Promise<void> {} // :376-402",
+          "  private prefetchNodeChunk(nodeId: string): Promise<void> {} // :409-432",
+          "  private fetchAndStoreFolders(folderIds: Set<string>): Promise<void> {} // :435-454",
+          "  private scrollToNode(nodeId: string, ensureZoom?: boolean): void {} // :457-481",
+          "  private collapseDescendants(folderId: string): void {} // :484-494",
+          "  private onSelect(node: PositionedNode): void {} // :496-503",
+          "  private navigateToNode(nodeId: string): Promise<void> {} // :505-527",
+          "  private findNode(nodeId: string): any {} // :530-558",
+          "  private onNodeHighlight(nodeId: string | null): void {} // :561-572",
+          "  private onChipClick(node: PositionedNode, chip: \"docs\" | \"flows\"): void {} // :574-577",
+          "  private getRefsFor(nodeId: string, kind: \"docs\" | \"flows\"): ExplorerNode[] {} // :580-586",
+          "  private onTraceLinks(node: PositionedNode): void {} // :588-591",
           "}"
         ],
         "edgeCount": 3
@@ -4892,6 +5564,18 @@
         "resolvedPath": "packages/tskb/explorer-app/src/main.ts",
         "ownerExportId": "explorer.spa.ExplorerApp",
         "edgeCount": 1
+      },
+      "ts.createProgram": {
+        "id": "ts.createProgram",
+        "type": "export",
+        "desc": "Builds a TypeScript Program for static analysis. Does not emit output.",
+        "typeSignature": "typeof import(\"packages/tskb/src/core/typescript/program.js\").createProgram",
+        "resolvedPath": "packages/tskb/src/core/typescript/program.ts",
+        "morphologySummary": "1 function",
+        "morphology": [
+          "export function createProgram(files: string[], tsconfigPath: string): Program {} // :34-97"
+        ],
+        "edgeCount": 3
       },
       "extractRegistry": {
         "id": "extractRegistry",
@@ -5219,21 +5903,21 @@
         "type": "file",
         "desc": "Tests for `tskb init`.",
         "path": "tests/e2e/init.test.ts",
-        "edgeCount": 3
+        "edgeCount": 4
       },
       "tests.build": {
         "id": "tests.build",
         "type": "file",
         "desc": "Tests for `tskb build` output.",
         "path": "tests/e2e/build.test.ts",
-        "edgeCount": 2
+        "edgeCount": 3
       },
       "tests.commands": {
         "id": "tests.commands",
         "type": "file",
         "desc": "Tests for every query command.",
         "path": "tests/e2e/commands.test.ts",
-        "edgeCount": 2
+        "edgeCount": 3
       },
       "tests.disambiguation": {
         "id": "tests.disambiguation",
@@ -5247,7 +5931,7 @@
         "type": "file",
         "desc": "Tests that the built graph is internally consistent.",
         "path": "tests/e2e/graph-integrity.test.ts",
-        "edgeCount": 2
+        "edgeCount": 3
       },
       "npm.README.md": {
         "id": "npm.README.md",
@@ -5266,7 +5950,7 @@
           "url": "https://vitest.dev",
           "kind": "npm-package"
         },
-        "edgeCount": 1
+        "edgeCount": 2
       },
       "npm": {
         "id": "npm",
@@ -5275,16 +5959,6 @@
         "metadata": {
           "url": "https://www.npmjs.com/package/tskb",
           "kind": "package-registry"
-        },
-        "edgeCount": 1
-      },
-      "typescript": {
-        "id": "typescript",
-        "type": "external",
-        "desc": "TypeScript compiler API (the 'typescript' npm package). Provides the AST, type checker, and symbol resolution used throughout registry extraction and documentation parsing.",
-        "metadata": {
-          "url": "https://www.typescriptlang.org",
-          "kind": "npm-package"
         },
         "edgeCount": 1
       },
@@ -5304,6 +5978,16 @@
         "desc": "Build tool that bundles the explorer SPA.",
         "metadata": {
           "url": "https://vitejs.dev",
+          "kind": "npm-package"
+        },
+        "edgeCount": 1
+      },
+      "typescript": {
+        "id": "typescript",
+        "type": "external",
+        "desc": "TypeScript compiler API (the 'typescript' npm package). Provides the AST, type checker, and symbol resolution used throughout registry extraction and documentation parsing.",
+        "metadata": {
+          "url": "https://www.typescriptlang.org",
           "kind": "npm-package"
         },
         "edgeCount": 1
@@ -5401,35 +6085,6 @@
           }
         ],
         "edgeCount": 5
-      },
-      "static-analysis": {
-        "id": "static-analysis",
-        "type": "flow",
-        "desc": "`tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly",
-        "priority": "essential",
-        "steps": [
-          {
-            "nodeId": "ts.createProgram",
-            "order": 0,
-            "label": "creates Program from tsconfig + source files"
-          },
-          {
-            "nodeId": "extraction.registry",
-            "order": 1,
-            "label": "walks AST for Folders, Modules, Terms, Exports"
-          },
-          {
-            "nodeId": "extraction.documentation",
-            "order": 2,
-            "label": "parses JSX trees for content and references"
-          },
-          {
-            "nodeId": "graph.builder",
-            "order": 3,
-            "label": "assembles nodes and edges into knowledge graph"
-          }
-        ],
-        "edgeCount": 4
       },
       "graph-to-chunks-transform": {
         "id": "graph-to-chunks-transform",
@@ -5714,6 +6369,35 @@
         ],
         "edgeCount": 7
       },
+      "static-analysis": {
+        "id": "static-analysis",
+        "type": "flow",
+        "desc": "`tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly",
+        "priority": "essential",
+        "steps": [
+          {
+            "nodeId": "ts.createProgram",
+            "order": 0,
+            "label": "creates Program from tsconfig + source files"
+          },
+          {
+            "nodeId": "extraction.registry",
+            "order": 1,
+            "label": "walks AST for Folders, Modules, Terms, Exports"
+          },
+          {
+            "nodeId": "extraction.documentation",
+            "order": 2,
+            "label": "parses JSX trees for content and references"
+          },
+          {
+            "nodeId": "graph.builder",
+            "order": 3,
+            "label": "assembles nodes and edges into knowledge graph"
+          }
+        ],
+        "edgeCount": 4
+      },
       "module-morphology-extraction": {
         "id": "module-morphology-extraction",
         "type": "flow",
@@ -5839,16 +6523,6 @@
         "format": "tsx",
         "edgeCount": 7
       },
-      "docs/src/tskb/typescript/typescript.tskb.tsx": {
-        "id": "docs/src/tskb/typescript/typescript.tskb.tsx",
-        "type": "doc",
-        "explains": "How does tskb create a TypeScript Program for static analysis without compiling?",
-        "priority": "essential",
-        "filePath": "docs/src/tskb/typescript/typescript.tskb.tsx",
-        "content": "<h1>TypeScript Program </h1><p>Located in <a class=\"tskb-ref\" data-node-id=\"tskb.typescript\" data-node-type=\"folder\" data-node-display=\"packages/tskb/src/typescript/\">tskb.typescript</a>. <a class=\"tskb-ref\" data-node-id=\"typescript.program\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/typescript/program.ts\">typescript.program</a>exports <a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a>which creates a   <a class=\"tskb-ref\" data-node-id=\"tsProgram\" data-node-type=\"term\" data-node-display=\"tsProgram\">tsProgram</a>for analyzing code without compilation (noEmit=true). </p><ul><li>Reads and parses tsconfig.json for compiler options </li><li>Validates TypeScript errors in specified files </li><li>Returns Program with AST, type checker, and symbol resolution </li></ul><span class=\"tskb-relation\" data-from=\"tskb.typescript\" data-to=\"typescript\" data-label=\"wraps compiler API\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">`tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly</p><ol class=\"flow-steps\"><li class=\"flow-step\"><span class=\"flow-step-num\">1</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a><span class=\"flow-step-label\">creates Program from tsconfig + source files</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">2</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a><span class=\"flow-step-label\">walks AST for Folders, Modules, Terms, Exports</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">3</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"extraction.documentation\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/documentation/index.ts\">extraction.documentation</a><span class=\"flow-step-label\">parses JSX trees for content and references</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">4</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a><span class=\"flow-step-label\">assembles nodes and edges into knowledge graph</span></div></li></ol></div>",
-        "format": "tsx",
-        "edgeCount": 4
-      },
       "docs/src/tskb/runtime/runtime.tskb.tsx": {
         "id": "docs/src/tskb/runtime/runtime.tskb.tsx",
         "type": "doc",
@@ -5875,9 +6549,9 @@
         "explains": "How is the explorer SPA structured and how do its layers fit together?",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/explorer/spa.tskb.tsx",
-        "content": "<h1>Explorer SPA </h1><p>The SPA is built with Vite (D3 in a separate vendor chunk) and lives in the   explorer-app/ directory. It is pre-built into dist/explorer/ and\n      shipped inside the tskb npm package. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>is the entry point that bootstraps the\n      canvas, wires all interaction handlers, and drives the render loop. </p><h2>Data layer </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.chunk-types\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/graph/chunk-types.ts\">explorer.spa.chunk-types</a>defines the chunk discriminated union ( MetaChunk | FolderChunk ) and the ChunkRegistry map that keys chunk kinds to their types. Adding a new\n      chunk kind means extending this file only. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.loader\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/graph/loader.ts\">explorer.spa.loader</a>provides <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ChunkLoader\" data-node-type=\"export\" data-node-display=\"explorer.spa.ChunkLoader\">explorer.spa.ChunkLoader</a>: a generic load(kind, ...args) whose\n      return type is inferred from ChunkRegistry[K] . It deduplicates in-flight requests\n      and uses a <a class=\"tskb-ref\" data-node-id=\"lruChunkCache\" data-node-type=\"term\" data-node-display=\"lruChunkCache\">lruChunkCache</a>(max 50 entries) so folders are not re-fetched on collapse/expand\n      cycles. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.GraphStore\" data-node-type=\"export\" data-node-display=\"explorer.spa.GraphStore\">explorer.spa.GraphStore</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.store\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/store/graph-store.ts\">explorer.spa.store</a>holds only graph data (meta chunk, folder chunks map).\n      Data arrives via loadMeta() and loadFolderChunk() . UI state — the\n      expanded node set, selected node, and search query — lives as plain variables in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>  and is passed explicitly to <a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeLayout\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeLayout\">explorer.spa.computeLayout</a>, <a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderStructureEdges\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderStructureEdges\">explorer.spa.renderStructureEdges</a>, and   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.BaseNodeRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.BaseNodeRenderer\">explorer.spa.BaseNodeRenderer</a>. The store exposes subscribe(listener) for reactive\n      re-render. </p><span class=\"tskb-relation\" data-from=\"explorer.spa.store\" data-to=\"explorer.spa.chunk-types\" data-label=\"stores chunks typed by\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.loader\" data-to=\"explorer.spa.chunk-types\" data-label=\"types fetch results via\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.store\" data-label=\"subscribes to\"></span><h2>Three-lane layout </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.lane-engine\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/layout/lane-engine.ts\">explorer.spa.lane-engine</a>computes all SVG positions in a single pass. The canvas has three   <a class=\"tskb-ref\" data-node-id=\"explorerLane\" data-node-type=\"term\" data-node-display=\"explorerLane\">explorerLane</a>s stacked vertically: </p><ul><li>Structure — builds a d3.hierarchy from the visible tree (root\n        → expanded folders → modules → exports, including sub-folder nesting). Runs   d3.tree().nodeSize() for left-to-right positioning. Collapsed folders with   _childCount &gt; 0 inject ghost placeholder nodes so the tree pre-reserves\n        space for their children. </li><li>Docs — horizontal list ordered by priority (essential → constraint →\n        supplementary). </li><li>Terms / Flows — horizontal list below docs. </li></ul><p>On every expand or collapse, <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>calls <a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeLayout\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeLayout\">explorer.spa.computeLayout</a>and fully re-renders the\n      D3 selection with enter/update/exit. </p><h2>Node components </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-index\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/index.ts\">explorer.spa.node-index</a>is the extension point for node rendering: <a class=\"tskb-ref\" data-node-id=\"explorer.spa.createNodeRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.createNodeRenderer\">explorer.spa.createNodeRenderer</a>  accepts all interaction callbacks and returns a <a class=\"tskb-ref\" data-node-id=\"nodeComponent\" data-node-type=\"term\" data-node-display=\"nodeComponent\">nodeComponent</a>. Currently always\n      delegates to <a class=\"tskb-ref\" data-node-id=\"explorer.spa.BaseNodeRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.BaseNodeRenderer\">explorer.spa.BaseNodeRenderer</a>; add a type-dispatch switch here when a node type needs\n      its own renderer. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a>defines the <a class=\"tskb-ref\" data-node-id=\"nodeComponent\" data-node-type=\"term\" data-node-display=\"nodeComponent\">nodeComponent</a>interface and   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.BaseNodeRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.BaseNodeRenderer\">explorer.spa.BaseNodeRenderer</a>— the default renderer for all node types. Each node is an SVG   &lt;g&gt; containing a rounded-rect card, type icon, label, description,\n      edge-count badge, a &lt;&gt; code preview bubble (top-center), and a   + expand bubble (right edge). <a class=\"tskb-ref\" data-node-id=\"ghostNode\" data-node-type=\"term\" data-node-display=\"ghostNode\">ghostNode</a>s render as dashed transparent\n      placeholders showing only their filename. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.edge-renderer\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts\">explorer.spa.edge-renderer</a>derives parent→child links via <a class=\"tskb-ref\" data-node-id=\"explorer.spa.buildStructureLinks\" data-node-type=\"export\" data-node-display=\"explorer.spa.buildStructureLinks\">explorer.spa.buildStructureLinks</a>and draws them\n      as horizontal cubic-bezier SVG paths via <a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderStructureEdges\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderStructureEdges\">explorer.spa.renderStructureEdges</a>. Ghost links (where\n      either endpoint has detail._ghost = 'true' ) render with a dashed stroke and\n      reduced opacity. It also renders the labeled background bands for each lane. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.boundary-renderer\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/BoundaryRenderer.ts\">explorer.spa.boundary-renderer</a>draws architectural boundary outlines. When a folder node carries   detail.boundary , all visible descendants (resolved by walking   parentOf ) are grouped under that boundary name. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderBoundaryGroups\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderBoundaryGroups\">explorer.spa.renderBoundaryGroups</a>  computes a convex hull over the bounding boxes of all member nodes, perturbs the hull points\n      with a seeded pseudo-random wobble (stable across re-renders), and smooths the result with   d3.curveBasisClosed for a hand-drawn look. The outline renders as a violet dashed\n      stroke with a near-transparent fill and a pill label at the top. All elements have   pointer-events: none . </p><span class=\"tskb-relation\" data-from=\"explorer.spa.node-base\" data-to=\"explorer.spa.lane-engine\" data-label=\"reads NODE_SIZES from\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.edge-renderer\" data-to=\"explorer.spa.lane-engine\" data-label=\"reads LaneLayout from\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.lane-engine\" data-label=\"calls computeLayout on each render\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.node-base\" data-label=\"calls enter/update on node selections\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.edge-renderer\" data-label=\"calls renderStructureEdges\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.boundary-renderer\" data-label=\"calls renderBoundaryGroups\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.node-tooltip\" data-label=\"propagates zoom transform to\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.code-tooltip\" data-label=\"propagates zoom transform to\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.doc-panel\" data-label=\"opens on node select or chip click\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.doc-panel\" data-to=\"explorer.spa.dom-tooltip\" data-label=\"shows on ref link hover\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.node-base\" data-to=\"explorer.spa.node-tooltip\" data-label=\"triggers show/hide on hover\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.node-base\" data-to=\"explorer.spa.code-tooltip\" data-label=\"triggers toggle on <> click\"></span><h2>UI shell </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.spinner\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/Spinner.ts\">explorer.spa.spinner</a>provides a full-screen global spinner (shown while meta.json   loads) and a per-node inline spinner: <a class=\"tskb-ref\" data-node-id=\"explorer.spa.showNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.showNodeSpinner\">explorer.spa.showNodeSpinner</a>appends an animated SVG ring at\n      the node's canvas position; <a class=\"tskb-ref\" data-node-id=\"explorer.spa.removeNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.removeNodeSpinner\">explorer.spa.removeNodeSpinner</a>removes it in the finally   block after the chunk fetch settles. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-tooltip\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/NodeTooltip.ts\">explorer.spa.node-tooltip</a>appears on hover, anchored to the node's right-center SVG position.   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.code-tooltip\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/CodeTooltip.ts\">explorer.spa.code-tooltip</a>is a click-toggled code preview popup anchored to the node's top-center\n      SVG position. Both receive updateXxxTransform() calls from <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>on every\n      D3 zoom event so they reposition to track their anchor nodes as the canvas pans and zooms. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.DocPanel\" data-node-type=\"export\" data-node-display=\"explorer.spa.DocPanel\">explorer.spa.DocPanel</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.doc-panel\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/DocPanel.ts\">explorer.spa.doc-panel</a>is the detail side panel. Clicking a node calls   show(node) , which renders the node's HTML content or a key-value fallback for\n      non-doc nodes. Clicking a docs or flows chip calls showRefs(node, kind, items) ,\n      which renders an accordion. The panel header shows the node's relative path in monospace. Ref\n      link anchors ( a.tskb-ref ) inside the body are post-processed by   wireRefLinks() : hover shows a <a class=\"tskb-ref\" data-node-id=\"explorer.spa.dom-tooltip\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/DomTooltip.ts\">explorer.spa.dom-tooltip</a>with the node's path, type\n      color, and description; if the node's chunk isn't loaded yet, a background prefetch fires via\n      the setOnNodePrefetch callback — the tooltip updates in place when data arrives.\n      Click-through navigation is handled via setOnNodeRef . </p><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">User expands a folder node: chunk is fetched, store updated, layout recomputed, SVG re-rendered</p><ol class=\"flow-steps\"><li class=\"flow-step\"><span class=\"flow-step-num\">1</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a><span class=\"flow-step-label\">User clicks + expand button; BaseNodeRenderer fires the onExpand callback</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">2</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a><span class=\"flow-step-label\">ExplorerApp.onExpand(): calls showNodeSpinner, delegates to loader, calls removeNodeSpinner in finally; adds node id to expanded set</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">3</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.loader\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/graph/loader.ts\">explorer.spa.loader</a><span class=\"flow-step-label\">ChunkLoader.load('folder', id) — returns cached chunk or fetches /chunks/folder-{sanitizedId}.json</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">4</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.store\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/store/graph-store.ts\">explorer.spa.store</a><span class=\"flow-step-label\">store.loadFolderChunk() stores chunk; store notifies subscribers, triggering ExplorerApp.render()</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">5</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeLayout\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeLayout\">explorer.spa.computeLayout</a><span class=\"flow-step-label\">render() calls computeLayout(store, expanded) — rebuilds d3.hierarchy and recomputes all SVG positions</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">6</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.buildStructureLinks\" data-node-type=\"export\" data-node-display=\"explorer.spa.buildStructureLinks\">explorer.spa.buildStructureLinks</a><span class=\"flow-step-label\">render() calls buildStructureLinks() — derives parent→child link list from updated parentId fields</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">7</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderStructureEdges\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderStructureEdges\">explorer.spa.renderStructureEdges</a><span class=\"flow-step-label\">render() calls renderStructureEdges() — redraws cubic-bezier SVG paths; ghost links rendered dashed</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">8</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a><span class=\"flow-step-label\">render() D3 enter/update/exit — new node cards enter with fade-in, collapsed nodes exit with fade-out</span></div></li></ol></div>",
+        "content": "<h1>Explorer SPA </h1><p>The SPA is built with Vite (D3 in a separate vendor chunk) and lives in the   explorer-app/ directory. It is pre-built into dist/explorer/ and\n      shipped inside the tskb npm package. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>is the entry point that bootstraps the\n      canvas, wires all interaction handlers, and drives the render loop. </p><h2>Data layer </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.chunk-types\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/graph/chunk-types.ts\">explorer.spa.chunk-types</a>defines the chunk discriminated union ( MetaChunk | FolderChunk ) and the ChunkRegistry map that keys chunk kinds to their types. Adding a new\n      chunk kind means extending this file only. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.loader\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/graph/loader.ts\">explorer.spa.loader</a>provides <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ChunkLoader\" data-node-type=\"export\" data-node-display=\"explorer.spa.ChunkLoader\">explorer.spa.ChunkLoader</a>: a generic load(kind, ...args) whose\n      return type is inferred from ChunkRegistry[K] . It deduplicates in-flight requests\n      and uses a <a class=\"tskb-ref\" data-node-id=\"lruChunkCache\" data-node-type=\"term\" data-node-display=\"lruChunkCache\">lruChunkCache</a>(max 50 entries) so folders are not re-fetched on collapse/expand\n      cycles. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.GraphStore\" data-node-type=\"export\" data-node-display=\"explorer.spa.GraphStore\">explorer.spa.GraphStore</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.store\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/store/graph-store.ts\">explorer.spa.store</a>holds only graph data (meta chunk, folder chunks map).\n      Data arrives via loadMeta() and loadFolderChunk() . UI state — the\n      expanded node set, selected node, and search query — lives as plain variables in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>  and is passed explicitly to <a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeLayout\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeLayout\">explorer.spa.computeLayout</a>, <a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderStructureEdges\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderStructureEdges\">explorer.spa.renderStructureEdges</a>, and   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.BaseNodeRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.BaseNodeRenderer\">explorer.spa.BaseNodeRenderer</a>. The store exposes subscribe(listener) for reactive\n      re-render. </p><span class=\"tskb-relation\" data-from=\"explorer.spa.store\" data-to=\"explorer.spa.chunk-types\" data-label=\"stores chunks typed by\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.loader\" data-to=\"explorer.spa.chunk-types\" data-label=\"types fetch results via\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.store\" data-label=\"subscribes to\"></span><h2>Three-lane layout </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.lane-engine\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/layout/lane-engine.ts\">explorer.spa.lane-engine</a>computes all SVG positions in a single pass. The canvas has three   <a class=\"tskb-ref\" data-node-id=\"explorerLane\" data-node-type=\"term\" data-node-display=\"explorerLane\">explorerLane</a>s stacked vertically: </p><ul><li>Structure — builds a d3.hierarchy from the visible tree (root\n        → expanded folders → modules → exports, including sub-folder nesting). Runs   d3.tree().nodeSize() for left-to-right positioning. Collapsed folders with   _childCount &gt; 0 inject ghost placeholder nodes so the tree pre-reserves\n        space for their children. </li><li>Docs — horizontal list ordered by priority (essential → constraint →\n        supplementary). </li><li>Terms / Flows — horizontal list below docs. </li></ul><p>On every expand or collapse, <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>calls <a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeLayout\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeLayout\">explorer.spa.computeLayout</a>and fully re-renders the\n      D3 selection with enter/update/exit. </p><h2>Node components </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-index\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/index.ts\">explorer.spa.node-index</a>is the extension point for node rendering: <a class=\"tskb-ref\" data-node-id=\"explorer.spa.createNodeRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.createNodeRenderer\">explorer.spa.createNodeRenderer</a>  accepts all interaction callbacks and returns a <a class=\"tskb-ref\" data-node-id=\"nodeComponent\" data-node-type=\"term\" data-node-display=\"nodeComponent\">nodeComponent</a>. Currently always\n      delegates to <a class=\"tskb-ref\" data-node-id=\"explorer.spa.BaseNodeRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.BaseNodeRenderer\">explorer.spa.BaseNodeRenderer</a>; add a type-dispatch switch here when a node type needs\n      its own renderer. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a>defines the <a class=\"tskb-ref\" data-node-id=\"nodeComponent\" data-node-type=\"term\" data-node-display=\"nodeComponent\">nodeComponent</a>interface and   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.BaseNodeRenderer\" data-node-type=\"export\" data-node-display=\"explorer.spa.BaseNodeRenderer\">explorer.spa.BaseNodeRenderer</a>— the default renderer for all node types. Each node is an SVG   &lt;g&gt; containing a rounded-rect card, type icon, label, description,\n      edge-count badge, a &lt;&gt; code preview bubble (top-center), and a   + expand bubble (right edge). <a class=\"tskb-ref\" data-node-id=\"ghostNode\" data-node-type=\"term\" data-node-display=\"ghostNode\">ghostNode</a>s render as dashed transparent\n      placeholders showing only their filename. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.edge-renderer\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/edges/EdgeRenderer.ts\">explorer.spa.edge-renderer</a>derives parent→child links via <a class=\"tskb-ref\" data-node-id=\"explorer.spa.buildStructureLinks\" data-node-type=\"export\" data-node-display=\"explorer.spa.buildStructureLinks\">explorer.spa.buildStructureLinks</a>and draws them\n      as horizontal cubic-bezier SVG paths via <a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderStructureEdges\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderStructureEdges\">explorer.spa.renderStructureEdges</a>. Ghost links (where\n      either endpoint has detail._ghost = 'true' ) render with a dashed stroke and\n      reduced opacity. It also renders the labeled background bands for each lane. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.boundary-renderer\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/BoundaryRenderer.ts\">explorer.spa.boundary-renderer</a>draws architectural boundary outlines. When a folder node carries   detail.boundary , all visible descendants (resolved by walking   parentOf ) are grouped under that boundary name. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderBoundaryGroups\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderBoundaryGroups\">explorer.spa.renderBoundaryGroups</a>  computes a convex hull over the bounding boxes of all member nodes, perturbs the hull points\n      with a seeded pseudo-random wobble (stable across re-renders), and smooths the result with   d3.curveBasisClosed for a hand-drawn look. The outline renders as a violet dashed\n      stroke with a near-transparent fill and a pill label at the top. All elements have   pointer-events: none . </p><span class=\"tskb-relation\" data-from=\"explorer.spa.node-base\" data-to=\"explorer.spa.lane-engine\" data-label=\"reads NODE_SIZES from\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.edge-renderer\" data-to=\"explorer.spa.lane-engine\" data-label=\"reads LaneLayout from\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.lane-engine\" data-label=\"calls computeLayout on each render\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.node-base\" data-label=\"calls enter/update on node selections\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.edge-renderer\" data-label=\"calls renderStructureEdges\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.boundary-renderer\" data-label=\"calls renderBoundaryGroups\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.node-tooltip\" data-label=\"propagates zoom transform to\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.code-tooltip\" data-label=\"propagates zoom transform to\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.doc-panel\" data-label=\"opens on node select or chip click\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.doc-panel\" data-to=\"explorer.spa.dom-tooltip\" data-label=\"shows on ref link hover\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.node-base\" data-to=\"explorer.spa.node-tooltip\" data-label=\"triggers show/hide on hover\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.node-base\" data-to=\"explorer.spa.code-tooltip\" data-label=\"triggers toggle on <> click\"></span><h2>UI shell </h2><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.spinner\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/Spinner.ts\">explorer.spa.spinner</a>provides a full-screen global spinner (shown while meta.json   loads) and a per-node inline spinner: <a class=\"tskb-ref\" data-node-id=\"explorer.spa.showNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.showNodeSpinner\">explorer.spa.showNodeSpinner</a>appends an animated SVG ring at\n      the node's canvas position; <a class=\"tskb-ref\" data-node-id=\"explorer.spa.removeNodeSpinner\" data-node-type=\"export\" data-node-display=\"explorer.spa.removeNodeSpinner\">explorer.spa.removeNodeSpinner</a>removes it in the finally   block after the chunk fetch settles. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-tooltip\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/NodeTooltip.ts\">explorer.spa.node-tooltip</a>appears on hover, anchored to the node's right-center SVG position.   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.code-tooltip\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/CodeTooltip.ts\">explorer.spa.code-tooltip</a>is a click-toggled code preview popup anchored to the node's top-center\n      SVG position. Both receive updateXxxTransform() calls from <a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a>on every\n      D3 zoom event so they reposition to track their anchor nodes as the canvas pans and zooms. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.DocPanel\" data-node-type=\"export\" data-node-display=\"explorer.spa.DocPanel\">explorer.spa.DocPanel</a>in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.doc-panel\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/DocPanel.ts\">explorer.spa.doc-panel</a>is the detail side panel. It owns no view-specific markup\n      — instead it subscribes to <a class=\"tskb-ref\" data-node-id=\"explorer.spa.panelRouter\" data-node-type=\"export\" data-node-display=\"explorer.spa.panelRouter\">explorer.spa.panelRouter</a>and renders whichever View sits on\n      top of the stack into its header and body. Concrete views live under <a class=\"tskb-ref\" data-node-id=\"explorer.spa.router\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/router/Router.ts\">explorer.spa.router</a>: today   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.RefsView\" data-node-type=\"export\" data-node-display=\"explorer.spa.RefsView\">explorer.spa.RefsView</a>(\"Docs/Flows related to a node\") is the only view, but the contract permits\n      any panel state. </p><p><a class=\"tskb-ref\" data-node-id=\"explorer.spa.Router\" data-node-type=\"export\" data-node-display=\"explorer.spa.Router\">explorer.spa.Router</a>maintains a stack of views and (when   init(deps, { syncHash: true } ) is called) mirrors the top-of-stack view to   location.hash . View classes register themselves via registerView()   with a static prefix + parse() so the router can rebuild the active\n      view from a hash on browser back/forward or a deep link. </p><p>Reusable rendering bits live in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.accordion\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/router/components/Accordion.ts\">explorer.spa.accordion</a>and <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ref-links\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/router/components/RefLinks.ts\">explorer.spa.ref-links</a>.   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderAccordion\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderAccordion\">explorer.spa.renderAccordion</a>produces the <details> markup shared across views;   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.wireRefs\" data-node-type=\"export\" data-node-display=\"explorer.spa.wireRefs\">explorer.spa.wireRefs</a>attaches the hover/click/prefetch behavior to every a.tskb-ref   under a root element. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.doc-panel\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/DocPanel.ts\">explorer.spa.doc-panel</a>calls <a class=\"tskb-ref\" data-node-id=\"explorer.spa.wireRefs\" data-node-type=\"export\" data-node-display=\"explorer.spa.wireRefs\">explorer.spa.wireRefs</a>after each render so views stay\n      output-only — they never bind their own listeners. Hover shows a <a class=\"tskb-ref\" data-node-id=\"explorer.spa.dom-tooltip\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/DomTooltip.ts\">explorer.spa.dom-tooltip</a>with the\n      node's path, type color, and description; if the node's chunk isn't loaded yet, a background\n      prefetch fires via the injected onNodePrefetch dep — the tooltip updates in place\n      when data arrives. </p><p>Shared types — View , RouterDeps , ViewContext — live in   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.router-types\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/router/types.ts\">explorer.spa.router-types</a>. Views must look up live graph data through the injected deps at render\n      time rather than snapshotting it, so a hash-restored view paints correctly even before the\n      relevant chunks have loaded. </p><span class=\"tskb-relation\" data-from=\"explorer.spa.doc-panel\" data-to=\"explorer.spa.router\" data-label=\"subscribes to\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.router\" data-to=\"explorer.spa.router-types\" data-label=\"implements types from\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.refs-view\" data-to=\"explorer.spa.accordion\" data-label=\"renders body via\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.doc-panel\" data-to=\"explorer.spa.ref-links\" data-label=\"wires panel anchors via\"></span><span class=\"tskb-relation\" data-from=\"explorer.spa.main\" data-to=\"explorer.spa.router\" data-label=\"initializes deps and registers views\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">User expands a folder node: chunk is fetched, store updated, layout recomputed, SVG re-rendered</p><ol class=\"flow-steps\"><li class=\"flow-step\"><span class=\"flow-step-num\">1</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a><span class=\"flow-step-label\">User clicks + expand button; BaseNodeRenderer fires the onExpand callback</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">2</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.main\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/main.ts\">explorer.spa.main</a><span class=\"flow-step-label\">ExplorerApp.onExpand(): calls showNodeSpinner, delegates to loader, calls removeNodeSpinner in finally; adds node id to expanded set</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">3</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.loader\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/graph/loader.ts\">explorer.spa.loader</a><span class=\"flow-step-label\">ChunkLoader.load('folder', id) — returns cached chunk or fetches /chunks/folder-{sanitizedId}.json</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">4</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.store\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/store/graph-store.ts\">explorer.spa.store</a><span class=\"flow-step-label\">store.loadFolderChunk() stores chunk; store notifies subscribers, triggering ExplorerApp.render()</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">5</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.computeLayout\" data-node-type=\"export\" data-node-display=\"explorer.spa.computeLayout\">explorer.spa.computeLayout</a><span class=\"flow-step-label\">render() calls computeLayout(store, expanded) — rebuilds d3.hierarchy and recomputes all SVG positions</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">6</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.buildStructureLinks\" data-node-type=\"export\" data-node-display=\"explorer.spa.buildStructureLinks\">explorer.spa.buildStructureLinks</a><span class=\"flow-step-label\">render() calls buildStructureLinks() — derives parent→child link list from updated parentId fields</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">7</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderStructureEdges\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderStructureEdges\">explorer.spa.renderStructureEdges</a><span class=\"flow-step-label\">render() calls renderStructureEdges() — redraws cubic-bezier SVG paths; ghost links rendered dashed</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">8</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"explorer.spa.node-base\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/components/nodes/base.ts\">explorer.spa.node-base</a><span class=\"flow-step-label\">render() D3 enter/update/exit — new node cards enter with fade-in, collapsed nodes exit with fade-out</span></div></li></ol></div>",
         "format": "tsx",
-        "edgeCount": 29
+        "edgeCount": 38
       },
       "docs/src/tskb/explorer/serve.tskb.tsx": {
         "id": "docs/src/tskb/explorer/serve.tskb.tsx",
@@ -5929,6 +6603,16 @@
         "format": "tsx",
         "edgeCount": 3
       },
+      "docs/src/tskb/core/typescript.tskb.tsx": {
+        "id": "docs/src/tskb/core/typescript.tskb.tsx",
+        "type": "doc",
+        "explains": "How does tskb create a TypeScript Program for static analysis without compiling?",
+        "priority": "essential",
+        "filePath": "docs/src/tskb/core/typescript.tskb.tsx",
+        "content": "<h1>TypeScript Program </h1><p>Lives under <a class=\"tskb-ref\" data-node-id=\"tskb.core\" data-node-type=\"folder\" data-node-display=\"packages/tskb/src/core/\">tskb.core</a>as the typescript area. <a class=\"tskb-ref\" data-node-id=\"typescript.program\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/typescript/program.ts\">typescript.program</a>exports <a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a>  which creates a <a class=\"tskb-ref\" data-node-id=\"tsProgram\" data-node-type=\"term\" data-node-display=\"tsProgram\">tsProgram</a>for analyzing code without compilation (noEmit=true). </p><ul><li>Reads and parses tsconfig.json for compiler options </li><li>Validates TypeScript errors in specified files </li><li>Returns Program with AST, type checker, and symbol resolution </li></ul><span class=\"tskb-relation\" data-from=\"typescript.program\" data-to=\"typescript\" data-label=\"wraps compiler API\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">`tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly</p><ol class=\"flow-steps\"><li class=\"flow-step\"><span class=\"flow-step-num\">1</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"ts.createProgram\" data-node-type=\"export\" data-node-display=\"ts.createProgram\">ts.createProgram</a><span class=\"flow-step-label\">creates Program from tsconfig + source files</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">2</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"extraction.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/registry.ts\">extraction.registry</a><span class=\"flow-step-label\">walks AST for Folders, Modules, Terms, Exports</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">3</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"extraction.documentation\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/extraction/documentation/index.ts\">extraction.documentation</a><span class=\"flow-step-label\">parses JSX trees for content and references</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">4</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"graph.builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/core/graph/builder.ts\">graph.builder</a><span class=\"flow-step-label\">assembles nodes and edges into knowledge graph</span></div></li></ol></div>",
+        "format": "tsx",
+        "edgeCount": 4
+      },
       "docs/src/tskb/core/registry-extraction.tskb.tsx": {
         "id": "docs/src/tskb/core/registry-extraction.tskb.tsx",
         "type": "doc",
@@ -5959,6 +6643,26 @@
         "format": "tsx",
         "edgeCount": 15
       },
+      "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx": {
+        "id": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+        "type": "doc",
+        "explains": "What test coverage is required for new functionality in the tskb package?",
+        "priority": "constraint",
+        "filePath": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+        "content": "<p>Any new behaviour added to the tskb package must ship with E2E coverage in <a class=\"tskb-ref\" data-node-id=\"tests\" data-node-type=\"folder\" data-node-display=\"tests/\">tests</a>. The\n      suite runs the built CLI as a subprocess against the fixture project at <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>via   <a class=\"tskb-ref\" data-node-id=\"vitest\" data-node-type=\"external\" data-node-display=\"vitest\">vitest</a>, so changes are validated against a realistic shape rather than mocks. Tests\n      must pass before a change is merged or the package is published. </p><p>Pick the test file that owns the surface you changed: </p><ul><li>New or modified query command (search, pick, context, ls, docs, flows, registry, ...) →   <a class=\"tskb-ref\" data-node-id=\"tests.commands\" data-node-type=\"file\" data-node-display=\"tests/e2e/commands.test.ts\">tests.commands</a>. Cover both plain and JSON output, and any new flag. </li><li>Build output or graph shape (new node kind, new edge type, metadata field, summary) →   <a class=\"tskb-ref\" data-node-id=\"tests.build\" data-node-type=\"file\" data-node-display=\"tests/e2e/build.test.ts\">tests.build</a>, with structural invariants in <a class=\"tskb-ref\" data-node-id=\"tests.graph-integrity\" data-node-type=\"file\" data-node-display=\"tests/e2e/graph-integrity.test.ts\">tests.graph-integrity</a>. </li><li>Init / scaffolding flow (new generated files, prompts, defaults, idempotency) → <a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"file\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a>. </li></ul><p>If the new feature needs fixture data the existing one doesn't provide — a new registry\n      primitive, a new doc shape, a new boundary kind, a new external — extend <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>  first, then write the test. A passing test that doesn't actually exercise the new surface is\n      worse than no test. </p>",
+        "format": "tsx",
+        "edgeCount": 7
+      },
+      "docs/src/tskb/constraints/constraint-skill-generation.tskb.tsx": {
+        "id": "docs/src/tskb/constraints/constraint-skill-generation.tskb.tsx",
+        "type": "doc",
+        "explains": "How are the .claude/skills/ files maintained?",
+        "priority": "constraint",
+        "filePath": "docs/src/tskb/constraints/constraint-skill-generation.tskb.tsx",
+        "content": "<p>Every file under `.claude/skills/tskb*/` — both `SKILL.md` and any `references/*.md` — is\n      generated by the docs build. Hand edits to those files are overwritten on the next run, so\n      treat the generated tree as build output, not source. </p><p>The source of truth lives in two modules. <a class=\"tskb-ref\" data-node-id=\"cli.utils.content-builder\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/cli/utils/content-builder.ts\">cli.utils.content-builder</a>owns the markdown bodies:\n      skill prose, the reference-file contents, and the Copilot instructions. <a class=\"tskb-ref\" data-node-id=\"cli.utils.skill-generator\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/cli/utils/skill-generator.ts\">cli.utils.skill-generator</a>writes those bodies to disk, including the frontmatter (name, description, allowed-tools) and\n      the per-skill `references/` directory. To change a skill's content, frontmatter, or its set of\n      references, edit one of those two modules and rebuild — never the generated Markdown. </p>",
+        "format": "tsx",
+        "edgeCount": 2
+      },
       "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx": {
         "id": "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx",
         "type": "doc",
@@ -5968,6 +6672,16 @@
         "content": "<p>The package in <a class=\"tskb-ref\" data-node-id=\"TSKB.Package.Root\" data-node-type=\"folder\" data-node-display=\"packages/tskb/\">TSKB.Package.Root</a>is published to npm. <a class=\"tskb-ref\" data-node-id=\"npm.README.md\" data-node-type=\"file\" data-node-display=\"packages/tskb/README.md\">npm.README.md</a>is the primary documentation\n      users see on the registry. When structural changes are made to the consumer-facing surface — <a class=\"tskb-ref\" data-node-id=\"tskb.cli\" data-node-type=\"folder\" data-node-display=\"packages/tskb/src/cli/\">tskb.cli</a>commands, <a class=\"tskb-ref\" data-node-id=\"runtime.jsx\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/runtime/jsx.ts\">runtime.jsx</a>components, <a class=\"tskb-ref\" data-node-id=\"runtime.registry\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/runtime/registry.ts\">runtime.registry</a>, runtime primitives - $ <a class=\"tskb-ref\" data-node-id=\"tskb.runtime\" data-node-type=\"folder\" data-node-display=\"packages/tskb/src/runtime/\">tskb.runtime</a>, type interfaces, build output format, or generated artifacts ( <a class=\"tskb-ref\" data-node-id=\"cli.utils.skill-generator\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/cli/utils/skill-generator.ts\">cli.utils.skill-generator</a>, <a class=\"tskb-ref\" data-node-id=\"cli.utils.copilot-instructions\" data-node-type=\"module\" data-node-display=\"packages/tskb/src/cli/utils/copilot-instructions-generator.ts\">cli.utils.copilot-instructions</a>) — <a class=\"tskb-ref\" data-node-id=\"npm.README.md\" data-node-type=\"file\" data-node-display=\"packages/tskb/README.md\">npm.README.md</a>in <a class=\"tskb-ref\" data-node-id=\"TSKB.Package.Root\" data-node-type=\"folder\" data-node-display=\"packages/tskb/\">TSKB.Package.Root</a>must be updated to\n      reflect them. </p>",
         "format": "tsx",
         "edgeCount": 8
+      },
+      "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx": {
+        "id": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+        "type": "doc",
+        "explains": "How are explorer panel views structured?",
+        "priority": "constraint",
+        "filePath": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+        "content": "<p>Every panel state in the explorer SPA is a View class living under <a class=\"tskb-ref\" data-node-id=\"explorer.spa.router\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/router/Router.ts\">explorer.spa.router</a>. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.Router\" data-node-type=\"export\" data-node-display=\"explorer.spa.Router\">explorer.spa.Router</a>owns a stack of views and renders the top into <a class=\"tskb-ref\" data-node-id=\"explorer.spa.doc-panel\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/DocPanel.ts\">explorer.spa.doc-panel</a>; the panel\n      itself is a thin host shell with no view-specific markup. New panel surfaces — an \"all docs\"\n      list, a settings page, a flow inspector — must follow the same contract instead of growing new   show*() methods on the panel or the router. </p><p>A view class must: </p><ul><li>Live in explorer-app/src/router/views/ and implement the View   interface declared in <a class=\"tskb-ref\" data-node-id=\"explorer.spa.router-types\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/router/types.ts\">explorer.spa.router-types</a>( route() , renderHeader() , renderBody() ). </li><li>Expose a static prefix and parse(rest, deps) factory so   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.Router\" data-node-type=\"export\" data-node-display=\"explorer.spa.Router\">explorer.spa.Router</a>can rebuild it from location.hash on browser back/forward or a\n        deep link. <a class=\"tskb-ref\" data-node-id=\"explorer.spa.RefsView\" data-node-type=\"export\" data-node-display=\"explorer.spa.RefsView\">explorer.spa.RefsView</a>is the reference implementation. </li><li>Look up graph data through the injected RouterDeps ( getNode ,   getRefsFor , ...) at render time , never snapshot it in the\n        constructor. A hash-restored view may paint before the relevant chunk has loaded; rendering\n        against live deps lets it refresh in place when <a class=\"tskb-ref\" data-node-id=\"explorer.spa.panelRouter\" data-node-type=\"export\" data-node-display=\"explorer.spa.panelRouter\">explorer.spa.panelRouter</a>refresh()   fires after meta arrives. </li><li>Output pure HTML for a.tskb-ref anchors and let <a class=\"tskb-ref\" data-node-id=\"explorer.spa.doc-panel\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/DocPanel.ts\">explorer.spa.doc-panel</a>call   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.wireRefs\" data-node-type=\"export\" data-node-display=\"explorer.spa.wireRefs\">explorer.spa.wireRefs</a>once after the render. Views must not bind their own click or hover\n        listeners — that wiring is centralized so a single delegated handler covers header and body. </li></ul><p>Reusable UI chunks belong in explorer-app/src/router/components/ — currently   <a class=\"tskb-ref\" data-node-id=\"explorer.spa.accordion\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/router/components/Accordion.ts\">explorer.spa.accordion</a>( <a class=\"tskb-ref\" data-node-id=\"explorer.spa.renderAccordion\" data-node-type=\"export\" data-node-display=\"explorer.spa.renderAccordion\">explorer.spa.renderAccordion</a>) and <a class=\"tskb-ref\" data-node-id=\"explorer.spa.ref-links\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/router/components/RefLinks.ts\">explorer.spa.ref-links</a>. If two views start\n      duplicating markup or behavior, extract a component there rather than copying. The components\n      folder is for genuine reuse, not for any chunk of panel UI: a view is a distinct\n      URL-addressable state, a component is shared rendering or wiring. </p><p>Why this matters: the panel is the explorer's deep-link surface. If a view\n      snapshots data, hash restoration silently shows stale or empty content. If a view binds its\n      own listeners, the host can't safely re-render between view transitions. If new states are\n      added as ad-hoc methods on <a class=\"tskb-ref\" data-node-id=\"explorer.spa.doc-panel\" data-node-type=\"module\" data-node-display=\"packages/tskb/explorer-app/src/ui/DocPanel.ts\">explorer.spa.doc-panel</a>, they bypass hash sync entirely and the URL stops\n      describing what the user is looking at. </p>",
+        "format": "tsx",
+        "edgeCount": 10
       },
       "docs/src/tskb/cli/logging.tskb.tsx": {
         "id": "docs/src/tskb/cli/logging.tskb.tsx",
@@ -6057,30 +6771,6 @@
       "to": "generateDot",
       "type": "flow-step",
       "label": "Transforms the graph into DOT format for Graphviz visualization"
-    },
-    {
-      "from": "static-analysis",
-      "to": "ts.createProgram",
-      "type": "flow-step",
-      "label": "creates Program from tsconfig + source files"
-    },
-    {
-      "from": "static-analysis",
-      "to": "extraction.registry",
-      "type": "flow-step",
-      "label": "walks AST for Folders, Modules, Terms, Exports"
-    },
-    {
-      "from": "static-analysis",
-      "to": "extraction.documentation",
-      "type": "flow-step",
-      "label": "parses JSX trees for content and references"
-    },
-    {
-      "from": "static-analysis",
-      "to": "graph.builder",
-      "type": "flow-step",
-      "label": "assembles nodes and edges into knowledge graph"
     },
     {
       "from": "graph-to-chunks-transform",
@@ -6323,6 +7013,30 @@
       "label": "render() called after expanded set update — new nodes enter, layout recomputed"
     },
     {
+      "from": "static-analysis",
+      "to": "ts.createProgram",
+      "type": "flow-step",
+      "label": "creates Program from tsconfig + source files"
+    },
+    {
+      "from": "static-analysis",
+      "to": "extraction.registry",
+      "type": "flow-step",
+      "label": "walks AST for Folders, Modules, Terms, Exports"
+    },
+    {
+      "from": "static-analysis",
+      "to": "extraction.documentation",
+      "type": "flow-step",
+      "label": "parses JSX trees for content and references"
+    },
+    {
+      "from": "static-analysis",
+      "to": "graph.builder",
+      "type": "flow-step",
+      "label": "assembles nodes and edges into knowledge graph"
+    },
+    {
       "from": "module-morphology-extraction",
       "to": "extractRegistry",
       "type": "flow-step",
@@ -6553,32 +7267,6 @@
       "label": "published to"
     },
     {
-      "from": "docs/src/tskb/typescript/typescript.tskb.tsx",
-      "to": "typescript.program",
-      "type": "references"
-    },
-    {
-      "from": "docs/src/tskb/typescript/typescript.tskb.tsx",
-      "to": "tsProgram",
-      "type": "references"
-    },
-    {
-      "from": "docs/src/tskb/typescript/typescript.tskb.tsx",
-      "to": "tskb.typescript",
-      "type": "references"
-    },
-    {
-      "from": "docs/src/tskb/typescript/typescript.tskb.tsx",
-      "to": "ts.createProgram",
-      "type": "references"
-    },
-    {
-      "from": "tskb.typescript",
-      "to": "typescript",
-      "type": "related-to",
-      "label": "wraps compiler API"
-    },
-    {
       "from": "docs/src/tskb/runtime/runtime.tskb.tsx",
       "to": "runtime.jsx",
       "type": "references"
@@ -6716,7 +7404,27 @@
     },
     {
       "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.router",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.accordion",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.ref-links",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
       "to": "explorer.spa.dom-tooltip",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.router-types",
       "type": "references"
     },
     {
@@ -6792,6 +7500,31 @@
     {
       "from": "docs/src/tskb/explorer/spa.tskb.tsx",
       "to": "explorer.spa.DocPanel",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.panelRouter",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.RefsView",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.Router",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.renderAccordion",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/explorer/spa.tskb.tsx",
+      "to": "explorer.spa.wireRefs",
       "type": "references"
     },
     {
@@ -6883,6 +7616,36 @@
       "to": "explorer.spa.code-tooltip",
       "type": "related-to",
       "label": "triggers toggle on <> click"
+    },
+    {
+      "from": "explorer.spa.doc-panel",
+      "to": "explorer.spa.router",
+      "type": "related-to",
+      "label": "subscribes to"
+    },
+    {
+      "from": "explorer.spa.router",
+      "to": "explorer.spa.router-types",
+      "type": "related-to",
+      "label": "implements types from"
+    },
+    {
+      "from": "explorer.spa.refs-view",
+      "to": "explorer.spa.accordion",
+      "type": "related-to",
+      "label": "renders body via"
+    },
+    {
+      "from": "explorer.spa.doc-panel",
+      "to": "explorer.spa.ref-links",
+      "type": "related-to",
+      "label": "wires panel anchors via"
+    },
+    {
+      "from": "explorer.spa.main",
+      "to": "explorer.spa.router",
+      "type": "related-to",
+      "label": "initializes deps and registers views"
     },
     {
       "from": "docs/src/tskb/explorer/serve.tskb.tsx",
@@ -7093,6 +7856,32 @@
       "type": "related-to"
     },
     {
+      "from": "docs/src/tskb/core/typescript.tskb.tsx",
+      "to": "typescript.program",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/core/typescript.tskb.tsx",
+      "to": "tsProgram",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/core/typescript.tskb.tsx",
+      "to": "tskb.core",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/core/typescript.tskb.tsx",
+      "to": "ts.createProgram",
+      "type": "references"
+    },
+    {
+      "from": "typescript.program",
+      "to": "typescript",
+      "type": "related-to",
+      "label": "wraps compiler API"
+    },
+    {
       "from": "docs/src/tskb/core/registry-extraction.tskb.tsx",
       "to": "extraction.module-morphology",
       "type": "references"
@@ -7218,6 +8007,51 @@
       "type": "references"
     },
     {
+      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+      "to": "tests",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+      "to": "tests.e2e.fixture",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+      "to": "tests.commands",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+      "to": "tests.build",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+      "to": "tests.graph-integrity",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+      "to": "tests.init",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+      "to": "vitest",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-skill-generation.tskb.tsx",
+      "to": "cli.utils.content-builder",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-skill-generation.tskb.tsx",
+      "to": "cli.utils.skill-generator",
+      "type": "references"
+    },
+    {
       "from": "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx",
       "to": "runtime.jsx",
       "type": "references"
@@ -7255,6 +8089,56 @@
     {
       "from": "docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx",
       "to": "npm.README.md",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.router",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.doc-panel",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.router-types",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.accordion",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.ref-links",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.Router",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.RefsView",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.panelRouter",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.wireRefs",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-panel-views.tskb.tsx",
+      "to": "explorer.spa.renderAccordion",
       "type": "references"
     },
     {
@@ -7418,11 +8302,6 @@
       "type": "contains"
     },
     {
-      "from": "TSKB.Package.Root",
-      "to": "tskb.typescript",
-      "type": "contains"
-    },
-    {
       "from": "tskb.core",
       "to": "tskb.explorer.core",
       "type": "contains"
@@ -7500,16 +8379,6 @@
     {
       "from": "sample.tsconfig.json",
       "to": "docs",
-      "type": "belongs-to"
-    },
-    {
-      "from": "typescript.program",
-      "to": "tskb.typescript",
-      "type": "belongs-to"
-    },
-    {
-      "from": "typescript.index",
-      "to": "tskb.typescript",
       "type": "belongs-to"
     },
     {
@@ -7598,6 +8467,36 @@
       "type": "belongs-to"
     },
     {
+      "from": "explorer.spa.router",
+      "to": "tskb.explorer.app",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.router-types",
+      "to": "tskb.explorer.app",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.router-index",
+      "to": "tskb.explorer.app",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.refs-view",
+      "to": "tskb.explorer.app",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.accordion",
+      "to": "tskb.explorer.app",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.ref-links",
+      "to": "tskb.explorer.app",
+      "type": "belongs-to"
+    },
+    {
       "from": "explorer.server",
       "to": "tskb.explorer.core",
       "type": "belongs-to"
@@ -7620,6 +8519,16 @@
     {
       "from": "visualization.dot-generator",
       "to": "core.visualization",
+      "type": "belongs-to"
+    },
+    {
+      "from": "typescript.program",
+      "to": "tskb.core",
+      "type": "belongs-to"
+    },
+    {
+      "from": "typescript.index",
+      "to": "tskb.core",
       "type": "belongs-to"
     },
     {
@@ -7768,11 +8677,6 @@
       "type": "belongs-to"
     },
     {
-      "from": "ts.createProgram",
-      "to": "typescript.program",
-      "type": "belongs-to"
-    },
-    {
       "from": "jsx.Doc",
       "to": "Jsx.runtime.js",
       "type": "belongs-to"
@@ -7908,6 +8812,31 @@
       "type": "belongs-to"
     },
     {
+      "from": "explorer.spa.Router",
+      "to": "explorer.spa.router",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.panelRouter",
+      "to": "explorer.spa.router",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.RefsView",
+      "to": "explorer.spa.refs-view",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.renderAccordion",
+      "to": "explorer.spa.accordion",
+      "type": "belongs-to"
+    },
+    {
+      "from": "explorer.spa.wireRefs",
+      "to": "explorer.spa.ref-links",
+      "type": "belongs-to"
+    },
+    {
       "from": "explorer.serveExplorer",
       "to": "explorer.server",
       "type": "belongs-to"
@@ -7985,6 +8914,11 @@
     {
       "from": "explorer.spa.ExplorerApp.prefetchNodeChunk",
       "to": "explorer.spa.main",
+      "type": "belongs-to"
+    },
+    {
+      "from": "ts.createProgram",
+      "to": "typescript.program",
       "type": "belongs-to"
     },
     {
@@ -8263,14 +9197,39 @@
       "type": "imports"
     },
     {
-      "from": "explorer.spa.doc-panel",
+      "from": "explorer.spa.router",
+      "to": "explorer.spa.router-types",
+      "type": "imports-type"
+    },
+    {
+      "from": "explorer.spa.refs-view",
+      "to": "explorer.spa.router-types",
+      "type": "imports-type"
+    },
+    {
+      "from": "explorer.spa.refs-view",
+      "to": "explorer.spa.accordion",
+      "type": "imports"
+    },
+    {
+      "from": "explorer.spa.accordion",
+      "to": "explorer.spa.router-types",
+      "type": "imports-type"
+    },
+    {
+      "from": "explorer.spa.ref-links",
       "to": "explorer.spa.dom-tooltip",
       "type": "imports"
     },
     {
-      "from": "explorer.spa.doc-panel",
+      "from": "explorer.spa.ref-links",
       "to": "explorer.spa.node-base",
       "type": "imports"
+    },
+    {
+      "from": "explorer.spa.ref-links",
+      "to": "explorer.spa.router-types",
+      "type": "imports-type"
     },
     {
       "from": "explorer.server",
@@ -8509,19 +9468,19 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-05-05T07:11:33.947Z",
+    "generatedAt": "2026-05-08T11:24:23.750Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
-      "folderCount": 26,
-      "moduleCount": 46,
+      "folderCount": 25,
+      "moduleCount": 52,
       "termCount": 27,
-      "exportCount": 76,
+      "exportCount": 81,
       "fileCount": 9,
       "externalCount": 5,
       "flowCount": 13,
-      "docCount": 19,
-      "edgeCount": 485
+      "docCount": 22,
+      "edgeCount": 533
     }
   }
 }

@@ -103,7 +103,19 @@ export class BaseNodeRenderer implements NodeComponent {
       if (!(event.currentTarget as Element).contains(event.relatedTarget as Node)) {
         const { h } = nodeSize(d); // nodeSize handles ghost nodes (h=28) correctly
         const displayName = d.path?.split("/").pop() ?? d.label;
-        showNodeTooltip(displayName, d.path, d.description, NODE_COLORS[d.type], d.x, d.y + h / 2);
+        const metadata =
+          d.type === "external" && d.detail && typeof d.detail === "object"
+            ? (d.detail as Record<string, string>)
+            : undefined;
+        showNodeTooltip(
+          displayName,
+          d.path,
+          d.description,
+          NODE_COLORS[d.type],
+          d.x,
+          d.y + h / 2,
+          metadata
+        );
       }
     }).on("mouseout", function (event: MouseEvent) {
       if (!(event.currentTarget as Element).contains(event.relatedTarget as Node)) {

@@ -37,3 +37,12 @@
   color: #2563eb;
   background: #dbeafe;
 }
+
+.header-action-back {
+  color: #64748b;
+}
+
+.header-action-back:hover {
+  color: #1e293b;
+  background: #e2e8f0;
+}

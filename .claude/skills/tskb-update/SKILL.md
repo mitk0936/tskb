@@ -38,7 +38,20 @@ npx --no -- tskb search "<keywords>" --plain       # is this already written?
 
 If a doc already covers the topic, update it. Don't write a second one.
 
-### 2. Find the questions
+### 2. Discover what's already declared
+
+Before declaring new Terms, Externals, or Modules, see what already exists — reuse beats redeclare:
+
+```bash
+npx --no -- tskb registry --plain                          # overview: counts + samples per kind
+npx --no -- tskb registry "<concept>" --plain              # fuzzy across all registry kinds
+npx --no -- tskb registry --type=term --plain              # all Terms (the area vocabularies)
+npx --no -- tskb registry --type=external --plain          # all Externals (npm packages, services)
+```
+
+If a Term already names the concept you were about to introduce, reference it (`{ExistingTerm}`) instead of declaring a new one. Same for Externals — one declaration per external dependency, shared across all docs that touch it.
+
+### 3. Find the questions
 
 A good doc answers ONE question about the system. Your job is to find the right questions.
 
@@ -48,20 +61,14 @@ A good doc answers ONE question about the system. Your job is to find the right 
 - What would surprise someone reading the code?
 - What bug would happen if someone got this wrong?
 
-**If the dev doesn't know yet** (often true — the area may be new to them too), do this instead:
+**If the dev doesn't know yet** (often true — the area may be new to them too):
 - Read the code yourself.
 - Look for tricky logic, error handling, "why" comments, recent bug fixes.
 - Write down the questions the code answers.
 - Bring the list back to the dev: "Here are the questions I think this area answers. Which are real? Which are wrong? What did I miss?"
-- **Pause here** unless the dev has explicitly told you to just write it. Don't write docs cold off your own list.
+- **Pause here** unless the dev has explicitly told you to just write it.
 
-It's much easier for a dev to react to a list than to think one up cold.
-
-If you can't get an answer from the dev or the code, stop. Missing docs are better than wrong docs.
-
-### 3. Ask if anything is unclear
-
-If a question survives Step 2 but the answer is ambiguous, ask the dev before writing. Don't guess.
+If a question survives the conversation but its answer is ambiguous, ask before writing. Missing docs are better than wrong docs.
 
 ### 4. Frame each doc as a question
 
@@ -86,22 +93,20 @@ Every `<Doc explains="...">` answers one question. Write the question in plain l
 
 This rule applies to **new docs**. Older statement-form docs are fine where they are — only update them if you're already touching the file for another reason.
 
-### 5. Place it
+### 5. Place it & write
 
-Each architectural area has a `main.tskb.tsx`. Declare any new modules, exports, and terms there. If the new doc is small or specialized, you can also put it in its own file next to `main.tskb.tsx`. See "Folder Structure" below.
-
-### 6. Write
+Declare any new modules, exports, and Terms in the **closest** area's `main.tskb.tsx` — the one that owns the related code. The registry merges across files so any placement compiles, but locality keeps each area's entry point honest. See "Where things go" below for the rule. Small or specialized docs can live in their own file alongside `main.tskb.tsx`.
 
 - A few sentences plus references is usually enough.
 - Use `{NodeRef}` to link to other things instead of restating them.
 - For multi-step processes, use `<Flow>` instead of prose.
 - For code examples, use `<Snippet>` — they're type-checked.
 
-For full syntax (registry primitives, JSX components, snippets, class methods), load the **`tskb-update-syntax`** skill.
+For full syntax (registry primitives, JSX components, snippets), load the **`tskb-update-syntax`** skill.
 
-### 7. Rebuild
+### 6. Rebuild
 
-Run the project's tskb build script (`npm run build:docs`). Fix any errors before committing.
+Run `npm run build:docs`. The build fails if any import path, export name, or folder path doesn't resolve. Fix errors before committing.
 
 ## Key Rules
 
@@ -112,90 +117,24 @@ Run the project's tskb build script (`npm run build:docs`). Fix any errors befor
 - **Write in plain English.** Docs are read by people from many backgrounds, including non-native English speakers. Use short sentences, common words, and skip jargon. If a fancy word and a plain word mean the same thing, use the plain one. Examples: "uses" not "leverages", "starts" not "initiates", "make" not "facilitate", "call" not "invoke", "needs" not "requires".
 - **Primitive `name` and `desc` are durable.** A registry key (the `name`) and its `desc` say what the thing is and why it matters — no implementation details that change as the code evolves. Skip algorithm names ("uses Fuse.js"), internal mechanics ("renders as ellipses"), tool calls ("via execSync"), and step-by-step lists. If the implementation is rewritten next month, the `desc` should still be true. Implementation details belong inside `<Doc>` prose, not in registry metadata. Examples: "Searches the graph and returns ranked matches" beats "Fuzzy searches the graph using Fuse.js across IDs, descriptions, and paths"; "DOT generator for the graph" beats "DOT file generator - renders folders as nested subgraphs, modules as ellipses, terms as diamonds".
 
-## Folder Structure & Naming
+## Where things go
 
-### One main.tskb.tsx per area
+**Locality: register a node next to its closest neighbors.** A Module belongs in the area that owns its source file. An Export goes wherever its Module is declared. A Term lives in the area whose Docs use it (only promote to `vocabulary.tskb.tsx` when multiple distant areas share it). The compiler accepts any placement because the registry merges across files — but a node declared far from its kin makes its area's entry point misleading and forces the next reader to chase declarations across the repo.
 
-Every important area has a file called `main.tskb.tsx`. An "area" is:
-- a repo (tskb can document several at once)
-- a package in a monorepo
-- a subsystem inside a package
-- a major sub-area inside a subsystem
+Every important area has a `main.tskb.tsx` — that's the area's entry point and registry root. An "area" is a repo, a package in a monorepo, a subsystem inside a package, or a major sub-area inside a subsystem. Don't mirror every nested folder; only create a `main.tskb.tsx` for areas a new dev would need to understand on their own.
 
 The `main.tskb.tsx` file holds:
 1. The area's main registry — folders, modules, exports, **and Terms** for the things that matter.
 2. Reference aliases (`const X = ref as tskb.Modules["..."]`).
 3. A short `<Doc>` that gives a quick overview of the area.
 
-**Terms belong in the area's `main.tskb.tsx`.** A Term is the area's vocabulary — names like `SessionToken`, `Repository`, or `DispatchQueue` that several Docs in the area refer to. Declaring them with the area registry keeps the vocabulary in one place. Use simple, plain-English names; the Term's body is the short definition, so write it the way you would explain it to a teammate seeing the code for the first time.
+You can put other `.tskb.tsx` files alongside `main.tskb.tsx` for specific docs — one question per file is fine. **Registry declarations across all `.tskb.tsx` files merge into one global registry**, so a sibling file can reference anything declared anywhere else.
 
-Don't mirror every nested folder. Only create a `main.tskb.tsx` for areas that are themselves architectural — places a new dev would need to understand on their own.
+For naming registry keys, when to split a file, and the top-level layout under `docs/`, load `references/folder-layout.md`.
 
-### Other files next to main.tskb.tsx
+## References (load only when needed)
 
-You can put other `.tskb.tsx` files alongside `main.tskb.tsx` in the same folder. Use them for specific docs that don't belong in the overview — one question per file is fine.
+- `references/folder-layout.md` — top-level `docs/` files, naming registry keys, and when to split a file. Load when creating a new area or splitting up a doc.
+- `references/removing-areas.md` — recovery procedure when deleting or moving a Folder, Module, or Export breaks references. Load when the build fails after a deletion or rename.
+- `references/setup.md` — tsconfig requirements, monorepo tips, common build errors. Load when tskb is being set up in a new repo or the build is failing on config.
 
-The main registry still lives in `main.tskb.tsx`. **Registry declarations across all `.tskb.tsx` files merge into one global registry**, so a sibling file can reference anything declared anywhere else.
-
-### Top-level files in `docs/`
-
-- `architecture.tskb.tsx` — overview of the whole repo: main areas and how they fit.
-- `vocabulary.tskb.tsx` — only for `Terms` and `Externals` shared across many areas (e.g., a domain concept used by both client and server). Area-specific Terms belong in that area's `main.tskb.tsx`.
-- `adr/` — Architecture Decision Records, one file per decision.
-- `constraints/` — docs with `priority="constraint"`, one rule per file.
-
-### Naming registry keys
-
-Keys should hint at where the thing lives, but stay short. The goal: a reader sees the key and knows what it refers to.
-
-Both styles are fine — pick what reads better:
-- Dot-separated lowercase: `auth.service.login`
-- PascalCase: `AuthService`, `LoginEndpoint`
-
-Keep keys meaningful, not exhaustive:
-
-```
-GOOD: ServerUtils
-BAD:  MicroservicesServerUtils    // too much path baked in
-```
-
-Class methods follow the parent: `pkg.MyClass.mount`.
-
-**Keys are global.** The same key can't appear twice across all files.
-
-### When to split a file
-
-Split when:
-- The registry block has more than ~15–20 declarations.
-- The file mixes unrelated areas (e.g., auth and payments).
-- One `<Doc>` is growing into a wall of prose — turn it into several smaller question-shaped docs, possibly in separate files.
-
-## Removing or Moving an Area
-
-Deleting a Folder, Module, or Export breaks every `<Doc>`, `<Flow>`, or `<Relation>` that references it — the build fails on the missing key. Recovery:
-
-1. `npx --no -- tskb search "<oldKey>" --plain` and `tskb context "<oldKey>" --plain` — find every dependent.
-2. Update or delete the referencing docs **as part of the same change**. Don't leave stale references; don't comment out — delete.
-3. Rebuild to confirm the graph still resolves.
-
-## After Editing
-
-Always rebuild to validate references and update the graph:
-
-```bash
-npm run build:docs
-```
-
-The build fails if any import path, export name, or folder path doesn't resolve. Fix the error before committing.
-
-## Troubleshooting
-
-If the build fails with a TypeScript error, check:
-- `docs/tsconfig.json` has `"jsxImportSource": "tskb"`
-- `baseUrl` and `rootDir` point to the repo root (e.g., `"../"`)
-- Import paths in `.tskb.tsx` files end with `.js` (NodeNext module resolution)
-
-**Monorepo tips:**
-- Place `docs/` at the workspace root.
-- Set `baseUrl` and `rootDir` to `"../"` from the docs folder (or adjust for your layout).
-- Add `paths` entries for workspace packages if needed.

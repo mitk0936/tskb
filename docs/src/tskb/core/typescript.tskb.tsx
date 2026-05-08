@@ -19,12 +19,12 @@ declare global {
     interface Modules {
       "typescript.program": Module<{
         desc: "Builds the TypeScript Program tskb reads from.";
-        type: typeof import("packages/tskb/src/typescript/program.js");
+        type: typeof import("packages/tskb/src/core/typescript/program.js");
       }>;
 
       "typescript.index": Module<{
         desc: "Public entry for the TypeScript area.";
-        type: typeof import("packages/tskb/src/typescript/index.js");
+        type: typeof import("packages/tskb/src/core/typescript/index.js");
       }>;
     }
 
@@ -39,7 +39,7 @@ declare global {
     interface Exports {
       "ts.createProgram": Export<{
         desc: "Builds a TypeScript Program for static analysis. Does not emit output.";
-        type: typeof import("packages/tskb/src/typescript/program.js").createProgram;
+        type: typeof import("packages/tskb/src/core/typescript/program.js").createProgram;
       }>;
     }
 
@@ -50,7 +50,7 @@ declare global {
 }
 
 const TypescriptExternal = ref as tskb.Externals["typescript"];
-const TypescriptFolder = ref as tskb.Folders["tskb.typescript"];
+const CoreFolder = ref as tskb.Folders["tskb.core"];
 const ProgramModule = ref as tskb.Modules["typescript.program"];
 const CreateProgramExport = ref as tskb.Exports["ts.createProgram"];
 const TsProgramTerm = ref as tskb.Terms["tsProgram"];
@@ -65,8 +65,8 @@ export default (
   >
     <H1>TypeScript Program</H1>
     <P>
-      Located in {TypescriptFolder}. {ProgramModule} exports {CreateProgramExport} which creates a{" "}
-      {TsProgramTerm} for analyzing code without compilation (noEmit=true).
+      Lives under {CoreFolder} as the typescript area. {ProgramModule} exports {CreateProgramExport}{" "}
+      which creates a {TsProgramTerm} for analyzing code without compilation (noEmit=true).
     </P>
     <List>
       <Li>Reads and parses tsconfig.json for compiler options</Li>
@@ -74,7 +74,7 @@ export default (
       <Li>Returns Program with AST, type checker, and symbol resolution</Li>
     </List>
 
-    <Relation from={TypescriptFolder} to={TypescriptExternal} label="wraps compiler API" />
+    <Relation from={ProgramModule} to={TypescriptExternal} label="wraps compiler API" />
 
     <Flow
       name="static-analysis"

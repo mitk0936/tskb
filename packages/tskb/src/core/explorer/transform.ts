@@ -233,12 +233,14 @@ class GraphToExplorerTransformer {
   }
 
   private buildExternalNodes(): ExplorerNode[] {
-    return Object.values(this.graph.nodes.externals).map((external) =>
-      toExplorerNode(external.id, "external", external.desc, {
-        edgeCount: external.edgeCount ?? 0,
-        detail: external.metadata,
-      })
-    );
+    return Object.values(this.graph.nodes.externals)
+      .sort((a, b) => a.id.localeCompare(b.id, undefined, { sensitivity: "base" }))
+      .map((external) =>
+        toExplorerNode(external.id, "external", external.desc, {
+          edgeCount: external.edgeCount ?? 0,
+          detail: external.metadata,
+        })
+      );
   }
 
   private buildFileNodes(): ExplorerNode[] {

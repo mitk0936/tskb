@@ -5,7 +5,9 @@ import {
   buildCliBody,
   buildTocBody,
   buildUpdateBody,
+  buildUpdateReferences,
   buildUpdateSyntaxBody,
+  buildUpdateSyntaxReferences,
   detectBuildScript,
 } from "./content-builder.js";
 
@@ -53,6 +55,14 @@ export function generateSkillFiles(graph: KnowledgeGraph): string[] {
   fs.writeFileSync(updatePath, updateContent, "utf-8");
   paths.push(updatePath);
 
+  const updateRefsDir = path.join(updateDir, "references");
+  fs.mkdirSync(updateRefsDir, { recursive: true });
+  for (const ref of buildUpdateReferences(graph)) {
+    const refPath = path.join(updateRefsDir, ref.filename);
+    fs.writeFileSync(refPath, ref.body, "utf-8");
+    paths.push(refPath);
+  }
+
   // Update-syntax skill (registry primitives, JSX, snippets, class methods)
   const updateSyntaxDir = path.join(skillsDir, "tskb-update-syntax");
   fs.mkdirSync(updateSyntaxDir, { recursive: true });
@@ -61,24 +71,28 @@ export function generateSkillFiles(graph: KnowledgeGraph): string[] {
   fs.writeFileSync(updateSyntaxPath, updateSyntaxContent, "utf-8");
   paths.push(updateSyntaxPath);
 
+  const updateSyntaxRefsDir = path.join(updateSyntaxDir, "references");
+  fs.mkdirSync(updateSyntaxRefsDir, { recursive: true });
+  for (const ref of buildUpdateSyntaxReferences()) {
+    const refPath = path.join(updateSyntaxRefsDir, ref.filename);
+    fs.writeFileSync(refPath, ref.body, "utf-8");
+    paths.push(refPath);
+  }
+
   return paths;
 }
 
 function buildCliSkillContent(graph: KnowledgeGraph, buildScript: string): string {
   return `---
 name: tskb
-description: "Codebase map — check it whenever you enter unfamiliar territory. Shows where things live, how they connect, what constraints apply. Use before grepping or reading files."
+description: "CLI for exploring the codebase map — search, pick, context, ls, docs, flows. Use whenever you enter unfamiliar territory: discover the architecture around an area or concept, find what's related, inspect a module/export/folder/flow/doc, check constraints — all before grepping or reading files."
 argument-hint: [query]
 allowed-tools: Bash(npx --no -- tskb *)
 ---
 
-# TSKB — Codebase Map
+# TSKB — Codebase Map CLI
 
-A curated map of the codebase. Not every file — the parts that matter architecturally: folders, modules, exports, flows, constraints, and how they connect.
-
-Consult the map whenever you step into unfamiliar territory — not just the first question, but every time the conversation moves to a new area. A quick \`search\` or \`pick\` is cheaper than guessing from file names.
-
-For the repo's curated index of boundaries, externals, flows, and essential docs, load the \`tskb-toc\` skill.
+Commands for exploring the codebase map. Use to discover the architecture around an area or concept, find what's related to a node, trace a flow, or check rules — before you grep or open files.
 
 ${buildCliBody(graph, buildScript)}
 `;
@@ -87,13 +101,13 @@ ${buildCliBody(graph, buildScript)}
 function buildTocSkillContent(graph: KnowledgeGraph, buildScript: string): string {
   return `---
 name: tskb-toc
-description: "Table of contents for this repo's codebase map: boundaries, externals, flows, and the essential-docs index. Load when orienting in unfamiliar territory — 'where is X', 'what areas exist', 'what flows are defined' — or before exploring a new part of the codebase. Skip when you already know the node ID or path."
+description: "ALWAYS load first when working in this repo. Big-picture index — folder tree, boundaries, externals, flows, constraint rules (MUST follow), and essential docs. Tells you what areas exist, what runtimes are separate, and what rules apply before you touch anything."
 allowed-tools: Bash(npx --no -- tskb *)
 ---
 
-# TSKB — Table of Contents
+# TSKB — Repo Table of Contents
 
-Curated index of the repo's structural elements. Load this when you need to orient — what areas exist, which boundaries separate runtimes, what external services are used, what flows are documented. For the CLI itself (commands, response shapes), see the \`tskb\` skill.
+The big-picture index of this repo. Load this whenever you start a task — it tells you what areas exist, which folders are distinct runtimes, what external services are in play, what flows describe key processes, what rules MUST be followed, and which docs are essential reading.
 
 ${buildTocBody(graph, buildScript)}
 `;

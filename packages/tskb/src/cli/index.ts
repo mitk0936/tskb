@@ -30,6 +30,8 @@ async function main() {
       optimized: { type: "boolean", default: false },
       plain: { type: "boolean", default: false },
       yes: { type: "boolean", default: false, short: "y" },
+      // registry options
+      type: { type: "string" },
       // explore options
       port: { type: "string", default: "4442" },
       "no-open": { type: "boolean", default: false },
@@ -98,6 +100,11 @@ async function main() {
       case "flows": {
         const { flows } = await import("./commands/flows.js");
         await flows(positionals[1], values.optimized!, values.plain!);
+        break;
+      }
+      case "registry": {
+        const { registry } = await import("./commands/registry.js");
+        await registry(positionals[1], { type: values.type }, values.optimized!, values.plain!);
         break;
       }
       case "init": {

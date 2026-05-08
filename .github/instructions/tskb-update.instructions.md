@@ -35,7 +35,20 @@ npx --no -- tskb search "<keywords>" --plain       # is this already written?
 
 If a doc already covers the topic, update it. Don't write a second one.
 
-### 2. Find the questions
+### 2. Discover what's already declared
+
+Before declaring new Terms, Externals, or Modules, see what already exists — reuse beats redeclare:
+
+```bash
+npx --no -- tskb registry --plain                          # overview: counts + samples per kind
+npx --no -- tskb registry "<concept>" --plain              # fuzzy across all registry kinds
+npx --no -- tskb registry --type=term --plain              # all Terms (the area vocabularies)
+npx --no -- tskb registry --type=external --plain          # all Externals (npm packages, services)
+```
+
+If a Term already names the concept you were about to introduce, reference it (`{ExistingTerm}`) instead of declaring a new one. Same for Externals — one declaration per external dependency, shared across all docs that touch it.
+
+### 3. Find the questions
 
 A good doc answers ONE question about the system. Your job is to find the right questions.
 
@@ -45,20 +58,14 @@ A good doc answers ONE question about the system. Your job is to find the right 
 - What would surprise someone reading the code?
 - What bug would happen if someone got this wrong?
 
-**If the dev doesn't know yet** (often true — the area may be new to them too), do this instead:
+**If the dev doesn't know yet** (often true — the area may be new to them too):
 - Read the code yourself.
 - Look for tricky logic, error handling, "why" comments, recent bug fixes.
 - Write down the questions the code answers.
 - Bring the list back to the dev: "Here are the questions I think this area answers. Which are real? Which are wrong? What did I miss?"
-- **Pause here** unless the dev has explicitly told you to just write it. Don't write docs cold off your own list.
+- **Pause here** unless the dev has explicitly told you to just write it.
 
-It's much easier for a dev to react to a list than to think one up cold.
-
-If you can't get an answer from the dev or the code, stop. Missing docs are better than wrong docs.
-
-### 3. Ask if anything is unclear
-
-If a question survives Step 2 but the answer is ambiguous, ask the dev before writing. Don't guess.
+If a question survives the conversation but its answer is ambiguous, ask before writing. Missing docs are better than wrong docs.
 
 ### 4. Frame each doc as a question
 
@@ -83,22 +90,20 @@ Every `<Doc explains="...">` answers one question. Write the question in plain l
 
 This rule applies to **new docs**. Older statement-form docs are fine where they are — only update them if you're already touching the file for another reason.
 
-### 5. Place it
+### 5. Place it & write
 
-Each architectural area has a `main.tskb.tsx`. Declare any new modules, exports, and terms there. If the new doc is small or specialized, you can also put it in its own file next to `main.tskb.tsx`. See "Folder Structure" below.
-
-### 6. Write
+Declare any new modules, exports, and Terms in the **closest** area's `main.tskb.tsx` — the one that owns the related code. The registry merges across files so any placement compiles, but locality keeps each area's entry point honest. See "Where things go" below for the rule. Small or specialized docs can live in their own file alongside `main.tskb.tsx`.
 
 - A few sentences plus references is usually enough.
 - Use `{NodeRef}` to link to other things instead of restating them.
 - For multi-step processes, use `<Flow>` instead of prose.
 - For code examples, use `<Snippet>` — they're type-checked.
 
-For full syntax (registry primitives, JSX components, snippets, class methods), load the **`tskb-update-syntax`** skill.
+For full syntax (registry primitives, JSX components, snippets), load the **`tskb-update-syntax`** skill.
 
-### 7. Rebuild
+### 6. Rebuild
 
-Run the project's tskb build script (`npm run build:docs`). Fix any errors before committing.
+Run `npm run build:docs`. The build fails if any import path, export name, or folder path doesn't resolve. Fix errors before committing.
 
 ## Key Rules
 
@@ -109,93 +114,27 @@ Run the project's tskb build script (`npm run build:docs`). Fix any errors befor
 - **Write in plain English.** Docs are read by people from many backgrounds, including non-native English speakers. Use short sentences, common words, and skip jargon. If a fancy word and a plain word mean the same thing, use the plain one. Examples: "uses" not "leverages", "starts" not "initiates", "make" not "facilitate", "call" not "invoke", "needs" not "requires".
 - **Primitive `name` and `desc` are durable.** A registry key (the `name`) and its `desc` say what the thing is and why it matters — no implementation details that change as the code evolves. Skip algorithm names ("uses Fuse.js"), internal mechanics ("renders as ellipses"), tool calls ("via execSync"), and step-by-step lists. If the implementation is rewritten next month, the `desc` should still be true. Implementation details belong inside `<Doc>` prose, not in registry metadata. Examples: "Searches the graph and returns ranked matches" beats "Fuzzy searches the graph using Fuse.js across IDs, descriptions, and paths"; "DOT generator for the graph" beats "DOT file generator - renders folders as nested subgraphs, modules as ellipses, terms as diamonds".
 
-## Folder Structure & Naming
+## Where things go
 
-### One main.tskb.tsx per area
+**Locality: register a node next to its closest neighbors.** A Module belongs in the area that owns its source file. An Export goes wherever its Module is declared. A Term lives in the area whose Docs use it (only promote to `vocabulary.tskb.tsx` when multiple distant areas share it). The compiler accepts any placement because the registry merges across files — but a node declared far from its kin makes its area's entry point misleading and forces the next reader to chase declarations across the repo.
 
-Every important area has a file called `main.tskb.tsx`. An "area" is:
-- a repo (tskb can document several at once)
-- a package in a monorepo
-- a subsystem inside a package
-- a major sub-area inside a subsystem
+Every important area has a `main.tskb.tsx` — that's the area's entry point and registry root. An "area" is a repo, a package in a monorepo, a subsystem inside a package, or a major sub-area inside a subsystem. Don't mirror every nested folder; only create a `main.tskb.tsx` for areas a new dev would need to understand on their own.
 
 The `main.tskb.tsx` file holds:
 1. The area's main registry — folders, modules, exports, **and Terms** for the things that matter.
 2. Reference aliases (`const X = ref as tskb.Modules["..."]`).
 3. A short `<Doc>` that gives a quick overview of the area.
 
-**Terms belong in the area's `main.tskb.tsx`.** A Term is the area's vocabulary — names like `SessionToken`, `Repository`, or `DispatchQueue` that several Docs in the area refer to. Declaring them with the area registry keeps the vocabulary in one place. Use simple, plain-English names; the Term's body is the short definition, so write it the way you would explain it to a teammate seeing the code for the first time.
+You can put other `.tskb.tsx` files alongside `main.tskb.tsx` for specific docs — one question per file is fine. **Registry declarations across all `.tskb.tsx` files merge into one global registry**, so a sibling file can reference anything declared anywhere else.
 
-Don't mirror every nested folder. Only create a `main.tskb.tsx` for areas that are themselves architectural — places a new dev would need to understand on their own.
+For naming registry keys, when to split a file, and the top-level layout under `docs/`, load `references/folder-layout.md`.
 
-### Other files next to main.tskb.tsx
+## References (load only when needed)
 
-You can put other `.tskb.tsx` files alongside `main.tskb.tsx` in the same folder. Use them for specific docs that don't belong in the overview — one question per file is fine.
+- `references/folder-layout.md` — top-level `docs/` files, naming registry keys, and when to split a file. Load when creating a new area or splitting up a doc.
+- `references/removing-areas.md` — recovery procedure when deleting or moving a Folder, Module, or Export breaks references. Load when the build fails after a deletion or rename.
+- `references/setup.md` — tsconfig requirements, monorepo tips, common build errors. Load when tskb is being set up in a new repo or the build is failing on config.
 
-The main registry still lives in `main.tskb.tsx`. **Registry declarations across all `.tskb.tsx` files merge into one global registry**, so a sibling file can reference anything declared anywhere else.
-
-### Top-level files in `docs/`
-
-- `architecture.tskb.tsx` — overview of the whole repo: main areas and how they fit.
-- `vocabulary.tskb.tsx` — only for `Terms` and `Externals` shared across many areas (e.g., a domain concept used by both client and server). Area-specific Terms belong in that area's `main.tskb.tsx`.
-- `adr/` — Architecture Decision Records, one file per decision.
-- `constraints/` — docs with `priority="constraint"`, one rule per file.
-
-### Naming registry keys
-
-Keys should hint at where the thing lives, but stay short. The goal: a reader sees the key and knows what it refers to.
-
-Both styles are fine — pick what reads better:
-- Dot-separated lowercase: `auth.service.login`
-- PascalCase: `AuthService`, `LoginEndpoint`
-
-Keep keys meaningful, not exhaustive:
-
-```
-GOOD: ServerUtils
-BAD:  MicroservicesServerUtils    // too much path baked in
-```
-
-Class methods follow the parent: `pkg.MyClass.mount`.
-
-**Keys are global.** The same key can't appear twice across all files.
-
-### When to split a file
-
-Split when:
-- The registry block has more than ~15–20 declarations.
-- The file mixes unrelated areas (e.g., auth and payments).
-- One `<Doc>` is growing into a wall of prose — turn it into several smaller question-shaped docs, possibly in separate files.
-
-## Removing or Moving an Area
-
-Deleting a Folder, Module, or Export breaks every `<Doc>`, `<Flow>`, or `<Relation>` that references it — the build fails on the missing key. Recovery:
-
-1. `npx --no -- tskb search "<oldKey>" --plain` and `tskb context "<oldKey>" --plain` — find every dependent.
-2. Update or delete the referencing docs **as part of the same change**. Don't leave stale references; don't comment out — delete.
-3. Rebuild to confirm the graph still resolves.
-
-## After Editing
-
-Always rebuild to validate references and update the graph:
-
-```bash
-npm run build:docs
-```
-
-The build fails if any import path, export name, or folder path doesn't resolve. Fix the error before committing.
-
-## Troubleshooting
-
-If the build fails with a TypeScript error, check:
-- `docs/tsconfig.json` has `"jsxImportSource": "tskb"`
-- `baseUrl` and `rootDir` point to the repo root (e.g., `"../"`)
-- Import paths in `.tskb.tsx` files end with `.js` (NodeNext module resolution)
-
-**Monorepo tips:**
-- Place `docs/` at the workspace root.
-- Set `baseUrl` and `rootDir` to `"../"` from the docs folder (or adjust for your layout).
-- Add `paths` entries for workspace packages if needed.
 
 ---
 
@@ -256,9 +195,9 @@ export default (
 
 | Primitive | When to use |
 |-----------|-------------|
-| `Folder<{ desc; path; boundary? }>` | A logical area of the codebase. Add `boundary` only on the top-level folder of a distinct runtime — see below. |
+| `Folder<{ desc; path; boundary? }>` | A logical area of the codebase. Add `boundary` only on the top-level folder of a distinct runtime — see `references/boundaries.md`. |
 | `Module<{ desc; type: typeof import("...") }>` | A source file — import path validates it exists. |
-| `Export<{ desc; type: typeof import("...").Name }>` | A named export — compiler validates it exists. |
+| `Export<{ desc; type: typeof import("...").Name }>` | A named export — compiler validates it exists. For class methods, see `references/class-methods.md`. |
 | `File<{ desc; path }>` | Non-TS/JS files: configs, READMEs, specs. |
 | `External<{ desc; [key]: string }>` | npm packages, APIs, services outside the repo. |
 | `Term<"...">` | A name from the area's vocabulary (e.g., `SessionToken`, `DispatchQueue`). Declared in the area's `main.tskb.tsx` and used across that area's docs. |
@@ -268,58 +207,6 @@ export default (
 **Import source files, not build output.** Always point `typeof import()` at `src/`, never at `dist/` or `build/`. The compiler resolves source — built files may not exist at doc-build time and their types can differ.
 
 > The "keep `name` and `desc` durable" rule (with examples) lives in the **`tskb-update`** skill's Key Rules. Implementation details belong in `<Doc>` prose, not registry metadata.
-
-### The boundary prop
-
-`boundary` marks a folder as the root of a distinct runtime or deployment unit — a process, app, or package that runs or deploys on its own. Add it only to the **top-level folder** that IS that boundary; never repeat it on sub-folders inside.
-
-Prefer one of these. Add a new value only if your runtime genuinely doesn't fit:
-
-| Value | When to use |
-|-------|-------------|
-| `"[NAME] repository"` | A distinct git repo |
-| `"[NAME] package"` | An npm package root with its own `package.json`, published or consumed as a library |
-| `"[NAME] SPA"` | A browser single-page application (Vite, CRA, Next.js client bundle) |
-| `"[NAME] client"` | Frontend app in a project that also has a server. Pair with `"server"`. |
-| `"[NAME] server"` | Node.js (or similar) backend process. Pair with `"client"` when both exist. |
-| `"[NAME] CLI"` | A command-line binary published or invoked as its own process |
-| `"[NAME] worker"` | Background or queue worker — long-running process, distinct from request handlers |
-| `"[NAME] function"` | Serverless function / Lambda / Cloud Function — each deployable unit is its own boundary |
-| `"[NAME] mobile app"` | iOS or Android app target |
-| `"[NAME] extension"` | Browser or IDE extension package with its own runtime host |
-| `"[NAME] daemon"` | OS-level daemon or background service |
-| `"[TYPE] tests"` | Test suite root — the test runner is a distinct process from production code |
-
-**Don't** add boundary to architectural layers (core, cli, utils, shared types), sub-folders already inside a bounded area, or organizational groupings with no independent runtime. If in doubt, leave it off.
-
-### Documenting class methods
-
-For classes with important methods (public or private), declare one `Export` per method using a local type alias and `InstanceType`:
-
-```tsx
-// 1. Hoist the class constructor type once at the top of the file
-type MyClass = typeof import("src/my-class.js").MyClass;
-
-// 2. One Export per method — works for private methods too
-interface Exports {
-  "pkg.MyClass": Export<{
-    desc: "Top-level controller. Call mount() once on startup.";
-    type: MyClass;
-  }>;
-
-  "pkg.MyClass.mount": Export<{
-    desc: "Public entry point. Wires dependencies and loads initial data.";
-    type: InstanceType<MyClass>["mount"];
-  }>;
-
-  "pkg.MyClass.render": Export<{
-    desc: "Re-runs the full D3 enter/update/exit cycle.";
-    type: InstanceType<MyClass>["render"]; // works even if render is private
-  }>;
-}
-```
-
-`InstanceType<MyClass>["methodName"]` resolves to the actual method signature. The compiler validates the name exists and catches renames. Works for **both public and private** TypeScript members.
 
 ## Referencing Nodes
 
@@ -336,37 +223,20 @@ The `ref` value is a placeholder — only the type matters. The compiler validat
 
 ## JSX Components
 
-- **`<Doc explains="..." priority?>`** — Root component. Every file exports one default Doc. The `explains` string must be a real question (see below).
+- **`<Doc explains="..." priority?>`** — Root component. Every file exports one default Doc. The `explains` string must be a real question.
   - `priority="essential"` — shown in `tskb ls`. Use sparingly for orientation docs.
   - `priority="constraint"` — architectural rules. Must be followed. Shown in `pick` results.
   - `priority="supplementary"` (default) — additional context.
 - **`<P>`**, **`<H1>`**, **`<H2>`**, **`<H3>`**, **`<List>`/`<Li>`** — Content structure.
-- **`<Snippet code={() => { ... }} />`** — Type-checked code example. Real imports, not strings.
-- **`<Relation from={NodeA} to={NodeB} label?="..." />`** — Explicit semantic edge between two nodes.
+- **`<Snippet code={() => { ... }} />`** — Type-checked code example. See Snippets below.
+- **`<Relation from={NodeA} to={NodeB} label?="..." />`** — Explicit semantic edge between two nodes. See `references/relations.md` for label and direction guidance.
 - **`<Adr id="..." title="..." status="accepted|proposed|deprecated|superseded">`** — Architecture Decision Record.
-- **`<Flow name="..." desc="..." priority?>`** — Named, ordered sequence of steps through the system. Becomes a first-class graph node. Only `<Step>` children allowed.
-  - `priority="essential"` — included in generated skills and `tskb flows` output.
-  - `priority="supplementary"` (default) — graph-only, queryable via `tskb flows`.
+- **`<Flow name="..." desc="..." priority?>`** — Named, ordered sequence of steps through the system. Becomes a first-class graph node. Only `<Step>` children allowed. See Flows below.
 - **`<Step node={NodeRef} label?="..." />`** — A single participant in a Flow. References any registered node.
 
-## Type-Checked Snippets
+## Snippets
 
-Snippets show **TypeScript or JavaScript code** — usually a small example of how a class or function from the codebase is used. They are **not string literals**. The `code` prop is a real arrow function that the TypeScript compiler reads at build time.
-
-### What snippets are for
-
-- Showing how a class, function, or API is called.
-- Giving a runnable-looking example for someone reading a doc.
-- Pinning the example to the real types — if the API changes, the build fails.
-
-### Rules
-
-1. **JS/TS only.** The body of `code={() => { ... }}` must be valid JavaScript or TypeScript. No raw JSON, no shell, no SQL, no YAML.
-2. **Import the real modules.** Pull the types and values you reference from the actual source files — same rules as the registry (use `.js` extensions, point at `src/` not `dist/`).
-3. **The compiler validates the body.** If a method is renamed or removed, the snippet fails to compile and the doc build fails. That's the point.
-4. **Snippets are never executed.** They're parsed, type-checked, and stringified at build time. Side-effects, network calls, and `process.exit()` in the body don't matter — nothing runs.
-
-### Basic example
+The `code` prop is a real arrow function — TypeScript reads it at build time, so renames break the build. The body must be valid JS/TS (no raw JSON, shell, or SQL strings). Snippets are never executed.
 
 ```tsx
 import { UserRepository } from "../src/db/user.repository.js";
@@ -380,106 +250,20 @@ import { UserRepository } from "../src/db/user.repository.js";
 />
 ```
 
-If `findByEmail` is renamed, the build fails — the doc can't drift.
-
-### Showing non-JS content
-
-Sometimes the example you want to show is JSON, a shell command, a SQL query, or a config blob. The body still has to be valid JS, so wrap the content in a JS expression:
-
-**JSON output** — use `JSON.stringify`:
-
-```tsx
-import { buildConfig } from "../src/config.js";
-
-<Snippet
-  code={() => {
-    const config = buildConfig({ env: "prod" });
-    return JSON.stringify(config, null, 2);
-  }}
-/>
-```
-
-**Shell command** — use `execSync` (the call is type-checked, the command isn't run at doc-build time):
-
-```tsx
-import { execSync } from "node:child_process";
-
-<Snippet
-  code={() => execSync("npx --no -- tskb search 'auth' --plain")}
-/>
-```
-
-**SQL or other strings** — use a tagged template or plain string literal:
-
-```tsx
-<Snippet
-  code={() => `
-    SELECT id, email FROM users WHERE active = true;
-  `}
-/>
-```
-
-The point of the wrapper is the same: the body stays valid JS, and TypeScript still validates any imports or function calls inside it.
-
-### What goes in tsconfig
-
-To support the types your snippets need, extend the docs `tsconfig.json`:
-- Add `lib` entries (`"DOM"`, `"ES2022"`) for browser or modern-runtime APIs.
-- Add `paths` aliases if your project uses them.
-- Add `types` for ambient declarations.
-
-The docs `tsconfig.json` is independent from the project's build config — tailor it for documentation without affecting production builds.
-
-## Relations
-
-A `<Relation from={A} to={B} label="..." />` is a single semantic edge between two registered nodes. Use it for one-line "X relates to Y" facts. For anything with order or multiple participants, use a `<Flow>` instead.
-
-### What Relations are for
-
-**Pointing out non-obvious links between parts of the codebase** — connections a reader wouldn't see by following the folder tree, the imports, or the module morphology. Two distant modules that share a hidden coupling. A module that depends on an external boundary the import graph doesn't make obvious. A folder that owns a domain term defined elsewhere. If the link is already visible from the structural edges (`belongs-to`, `contains`) or the import graph, you don't need a Relation.
-
-### What labels should say
-
-Describe the **functional or architectural relationship** — the role one part plays for the other. Not how it's wired in code.
-
-- **Good:** "owns user identity", "is the source of truth for tasks", "wraps the compiler API", "depends on for auth", "renders into".
-- **Bad:** "calls login()", "imports `validateToken`", "instantiates new AuthService()". These are implementation details — the imports edge and morphology already capture them, and they break the moment a method is renamed.
-
-If the only thing you can say about the edge is the name of a function call, you don't need a Relation.
-
-### Direction matters
-
-Read the label as a verb phrase from `from` to `to`. Pick `from`/`to` so the sentence scans naturally: `<Relation from={AuthService} to={Postgres} label="persists sessions to" />` reads "AuthService persists sessions to Postgres".
+If `findByEmail` is renamed, the build fails — the doc can't drift. For wrapping JSON, shell commands, or SQL inside a snippet, see `references/snippets-advanced.md`.
 
 ## Flows
 
-A `<Flow>` describes a multi-step process through the system — how several parts work together to do one thing. Reach for a Flow when a `<Relation>` is too thin (more than two participants, or order matters) and when describing the path in prose would hide the structure.
+A `<Flow>` describes a multi-step process — how several parts work together to do one thing. Reach for it when a `<Relation>` is too thin (more than two participants, or order matters) and prose would hide the structure.
 
-### What goes in a flow
-
-- **Lean on registered nodes.** Steps should reference real anchors from the registry — usually modules and exports, with externals, terms, and folders pulled in where they help tell the story.
-- **Cover the whole path.** Include every meaningful node a request touches, not just the endpoints.
-- **The first `<Step>` is the orchestrator.** Make the thing that kicks off the flow the actual first step, not just a mention in `desc`. If the trigger is a CLI command, a test file, an HTTP route, or a cron handler, that node belongs at the top of the flow. This way the flow stays anchored to a real entry point: when that file or export is renamed, moved, or removed, the build catches it. Use the `desc` to add the real-world context around the trigger ("user submits login form", "cron tick fires", "developer runs `npm test`").
-
-### Step labels
-
-- Short, plain wording. Describe what *this node does in this flow*, not what the node is in general.
-- Keep them in the actual execution order.
-- **Avoid drift-prone details.** Don't bake hardcoded paths, filenames, default values, CLI flag spellings, or environment variables into labels or `desc`. None of that is validated — when the code changes, the flow silently lies. Stick to roles ("reads the graph file from disk", "writes chunks to the output directory") and let the registered node anchors carry the implementation. If an exact path or value is essential, put it in a `<Snippet>` where the type checker can see it.
-
-### Don't branch
-
-A flow is one path. If two branches both matter, write two flows. If only one really matters, document that one and mention the alternative in prose.
-
-### Naming
-
-Kebab-case, area-prefixed: `auth-login`, `task-dispatch`, `dashboard-load`. The prefix groups related flows in `tskb flows` output.
-
-### `priority="essential"`
-
-Reserve for flows the system can't run without — the core paths a new dev needs to see on day one. Essential flows are bundled into generated skills; supplementary flows stay queryable via `tskb flows` but don't get auto-loaded.
-
-### Example
+**Core rules:**
+- **Lean on registered nodes** — steps reference real anchors (modules, exports, externals, terms, folders). Never raw strings.
+- **The first `<Step>` is the orchestrator** — the CLI command, HTTP route, test file, or cron handler that kicks the flow off. Use `desc` for the real-world context ("user submits login form").
+- **Cover the whole path** — every meaningful node a request touches.
+- **Don't branch** — a flow is one path. Two branches that both matter → two flows.
+- **Avoid drift-prone details** — no hardcoded paths, filenames, default values, or CLI flag spellings in labels or `desc`. None of that is validated. Stick to roles ("reads the graph file from disk"); let the registered nodes carry the implementation.
+- **Naming** — kebab-case, area-prefixed (`auth-login`, `task-dispatch`). The prefix groups related flows in `tskb flows` output.
+- **`priority="essential"`** — reserve for flows the system can't run without; essential flows get bundled into generated skills.
 
 ```tsx
 <Flow
@@ -494,43 +278,10 @@ Reserve for flows the system can't run without — the core paths a new dev need
 </Flow>
 ```
 
-## Writing Style
+## References (load only when needed)
 
-> Plain-English and durable-`desc` rules live in the **`tskb-update`** skill's Key Rules. The points below are syntax-shaped guidance only.
+- `references/boundaries.md` — full table of `boundary` values + when to use each. Load when adding `boundary` to a top-level folder.
+- `references/class-methods.md` — declare one Export per method (public or private) using `InstanceType<...>`. Load when documenting a class with notable methods.
+- `references/snippets-advanced.md` — wrapping JSON, shell commands, SQL or other non-JS content inside a snippet body, plus tsconfig tweaks. Load when a basic snippet won't fit.
+- `references/relations.md` — what to put in a `<Relation>` label, when an edge is worth declaring, and which direction to pick. Load when adding a `<Relation>`.
 
-**Do:**
-- Make every `<Doc explains="...">` a real question, ending with "?".
-- One question per doc. Many small docs beat one big doc.
-- Keep prose short — a few sentences plus references.
-- Let `{NodeRef}` carry meaning. Links beat repeating.
-- Use `<Flow>` for multi-step processes — anchor the trigger in a real use case, lean on registered nodes for steps, and don't branch.
-- Use `<Relation>` to surface non-obvious links — labels describe the functional role one node plays for the other, not the function name being called.
-- Use `priority="constraint"` for rules that must not be broken.
-
-**Don't:**
-- Write a doc on a topic you can't explain yet — ask the dev first.
-- Use vague `explains` strings like `"Authentication"` or `"Data layer"`.
-- Use feature-list `explains` strings like `"X: A, B, C"` — name the question instead.
-- Cram multiple unrelated topics into one Doc.
-- Narrate code line by line. The code is right there.
-- Repeat what type signatures already say.
-
-```tsx
-// GOOD — Flow for a multi-step process
-<Flow name="task-dispatch" desc="Task scheduling through queue and workers" priority="essential">
-  <Step node={TaskQueue} />
-  <Step node={WorkerPool} label="picks and executes" />
-  <Step node={ResultCollector} label="reports back" />
-</Flow>
-
-// GOOD — short doc framed as a question
-<Doc explains="How does the dispatch queue route tasks to workers?">
-  <P>{TaskQueue} hands jobs to {WorkerPool}.</P>
-</Doc>
-
-// BAD — process described in prose instead of a Flow
-<Doc explains="Task scheduling system">
-  <P>The system works by accepting tasks into a prioritized queue. Workers pick
-  tasks using round-robin, process them, and report results back to the coordinator...</P>
-</Doc>
-```

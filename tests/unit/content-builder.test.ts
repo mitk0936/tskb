@@ -267,7 +267,7 @@ describe("buildUpdateBody", () => {
     // Pass an explicit build script so the test does not depend on the
     // surrounding workspace's package.json.
     const body = buildUpdateBody(emptyGraph(), "npm run my-docs");
-    expect(body).toContain("## After Editing");
+    expect(body).toContain("Rebuild");
     expect(body).toContain("npm run my-docs");
   });
 });
@@ -297,16 +297,20 @@ describe("buildUpdateSyntaxBody", () => {
     expect(body).toContain("<Adr");
   });
 
-  it("documents the boundary prop and class-method pattern", () => {
+  it("documents the boundary prop and class-method pattern via references", () => {
     const body = buildUpdateSyntaxBody(emptyGraph());
-    expect(body).toContain("boundary prop");
-    expect(body).toContain("InstanceType");
+    // The lean body lists references/; the boundary table and InstanceType
+    // class-method pattern live in dedicated reference files.
+    expect(body).toContain("references/boundaries.md");
+    expect(body).toContain("references/class-methods.md");
   });
 
   it("documents type-checked snippets", () => {
     const body = buildUpdateSyntaxBody(emptyGraph());
-    expect(body).toContain("Type-Checked Snippets");
-    expect(body).toContain("JSON.stringify");
-    expect(body).toContain("execSync");
+    // Body covers the basic Snippet shape; non-JS wrappers (JSON.stringify,
+    // execSync) live in references/snippets-advanced.md.
+    expect(body).toContain("Snippet");
+    expect(body).toContain("Type-checked");
+    expect(body).toContain("references/snippets-advanced.md");
   });
 });

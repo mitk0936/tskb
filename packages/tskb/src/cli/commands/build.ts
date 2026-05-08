@@ -1,7 +1,7 @@
 import { globSync } from "glob";
 import fs from "node:fs";
 import path from "node:path";
-import { createProgram } from "../../typescript/index.js";
+import { createProgram } from "../../core/typescript/index.js";
 import { extractRegistry, extractDocs } from "../../core/extraction/index.js";
 import { buildGraph } from "../../core/graph/index.js";
 import { generateDot } from "../../core/visualization/index.js";

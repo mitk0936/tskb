@@ -4,7 +4,7 @@
 import "./header-actions.css";
 import { showToast } from "./Toast";
 
-export type HeaderActionKind = "copy" | "close";
+export type HeaderActionKind = "copy" | "close" | "back";
 
 export interface HeaderButtonOptions {
   title: string;
@@ -19,7 +19,19 @@ const COPY_ICON =
   `<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>` +
   `</svg>`;
 
+const BACK_ICON =
+  `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"` +
+  ` stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">` +
+  `<path d="M15 18l-6-6 6-6"></path>` +
+  `</svg>`;
+
 const CLOSE_GLYPH = "✕";
+
+const ICONS: Record<HeaderActionKind, string> = {
+  copy: COPY_ICON,
+  close: CLOSE_GLYPH,
+  back: BACK_ICON,
+};
 
 export function createHeaderButton(
   kind: HeaderActionKind,
@@ -29,7 +41,7 @@ export function createHeaderButton(
   btn.type = "button";
   btn.className = `header-action-btn header-action-${kind}`;
   btn.title = options.title;
-  btn.innerHTML = kind === "copy" ? COPY_ICON : CLOSE_GLYPH;
+  btn.innerHTML = ICONS[kind];
   if (options.hidden) btn.hidden = true;
   btn.addEventListener("click", options.onClick);
   return btn;

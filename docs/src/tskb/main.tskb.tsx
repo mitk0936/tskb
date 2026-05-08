@@ -32,10 +32,6 @@ declare global {
         desc: "Registry types and JSX primitives. No runtime code — these are the types and tags users import.";
         path: "packages/tskb/src/runtime";
       }>;
-      "tskb.typescript": Folder<{
-        desc: "Wraps the TypeScript compiler so tskb can read source code without compiling it.";
-        path: "packages/tskb/src/typescript";
-      }>;
     }
 
     interface Modules {
