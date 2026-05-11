@@ -328,7 +328,7 @@ export class BaseNodeRenderer implements NodeComponent {
       el.select(".node-accent").attr("height", h).attr("fill", color);
 
       const hasCode =
-        (d.type === "module" || d.type === "export") &&
+        (d.type === "module" || d.type === "export" || d.type === "file") &&
         Array.isArray(d.detail.code) &&
         (d.detail.code as string[]).length > 0;
       const isPathType = d.type === "folder" || d.type === "file" || d.type === "module";

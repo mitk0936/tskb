@@ -1040,7 +1040,7 @@
         "morphologySummary": "1 class, 5 functions, 7 interfaces, 1 type",
         "morphology": [
           "export function transformGraph(graph: KnowledgeGraph): ExplorerChunks {} // :91-93",
-          "export function sanitizeFolderId(id: string): string {} // :873-875",
+          "export function sanitizeFolderId(id: string): string {} // :874-876",
           "export type NodeType = | \"folder\"\n  | \"module\"\n  | \"export\"\n  | \"doc\"\n  | \"flow\"\n  | \"term\"\n  | \"external\"\n  | \"file\" // :7-15",
           "export interface ExplorerNode { // :17-27",
           "  id: string // :18",
@@ -1098,7 +1098,7 @@
           "  subfolders: ExplorerNode[] // :86",
           "  childGhostPaths: string[] // :88",
           "}",
-          "class GraphToExplorerTransformer { // :97-809",
+          "class GraphToExplorerTransformer { // :97-810",
           "  private readonly graph: KnowledgeGraph // :98",
           "  private readonly edgesBySource: Map<string, GraphEdge[]> // :100",
           "  private readonly edgesByTarget: Map<string, GraphEdge[]> // :102",
@@ -1134,22 +1134,22 @@
           "  private getModuleExports(moduleId: string, candidates: ExplorerNode[]): ExplorerNode[] {} // :769-771",
           "  private getDirectModuleIds(folderId: string): string[] {} // :775-779",
           "  private getDirectFileIds(folderId: string): string[] {} // :781-785",
-          "  private buildFileNodeForChunk(fileId: string, parentFolderId: string): ExplorerNode {} // :787-794",
-          "  private getDirectSubfolderIds(folderId: string): string[] {} // :796-800",
-          "  private countDirectModules(folderId: string): number {} // :802-804",
-          "  private countDirectSubfolders(folderId: string): number {} // :806-808",
+          "  private buildFileNodeForChunk(fileId: string, parentFolderId: string): ExplorerNode {} // :787-795",
+          "  private getDirectSubfolderIds(folderId: string): string[] {} // :797-801",
+          "  private countDirectModules(folderId: string): number {} // :803-805",
+          "  private countDirectSubfolders(folderId: string): number {} // :807-809",
           "}",
-          "function groupEdgesByKey(edges: GraphEdge[], key: \"from\" | \"to\"): Map<string, GraphEdge[]> {} // :813-822",
-          "interface NodeOpts { // :824-831",
-          "  path: string | undefined // :825",
-          "  parentId: string | undefined // :826",
-          "  priority: \"essential\" | \"constraint\" | \"supplementary\" | undefined // :827",
-          "  edgeCount: number | undefined // :828",
-          "  detail: Record<string, string | string[]> | undefined // :829",
-          "  label: string | undefined // :830",
+          "function groupEdgesByKey(edges: GraphEdge[], key: \"from\" | \"to\"): Map<string, GraphEdge[]> {} // :814-823",
+          "interface NodeOpts { // :825-832",
+          "  path: string | undefined // :826",
+          "  parentId: string | undefined // :827",
+          "  priority: \"essential\" | \"constraint\" | \"supplementary\" | undefined // :828",
+          "  edgeCount: number | undefined // :829",
+          "  detail: Record<string, string | string[]> | undefined // :830",
+          "  label: string | undefined // :831",
           "}",
-          "function toExplorerNode(id: string, type: NodeType, description: string, opts?: NodeOpts): ExplorerNode {} // :833-858",
-          "function makeFallbackRoot(): ExplorerNode {} // :860-869"
+          "function toExplorerNode(id: string, type: NodeType, description: string, opts?: NodeOpts): ExplorerNode {} // :834-859",
+          "function makeFallbackRoot(): ExplorerNode {} // :861-870"
         ],
         "importsSummary": "3 imports from 2 paths",
         "imports": [
@@ -5177,7 +5177,7 @@
         "resolvedPath": "packages/tskb/src/core/explorer/transform.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function sanitizeFolderId(id: string): string {} // :873-875"
+          "export function sanitizeFolderId(id: string): string {} // :874-876"
         ],
         "edgeCount": 1
       },
@@ -10002,7 +10002,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-05-11T12:17:50.263Z",
+    "generatedAt": "2026-05-11T12:55:39.353Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {

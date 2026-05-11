@@ -790,6 +790,7 @@ class GraphToExplorerTransformer {
       path: file.path,
       parentId: parentFolderId,
       edgeCount: file.edgeCount ?? 0,
+      detail: file.content ? { code: file.content.split("\n"), fileType: file.fileType ?? "" } : {},
     });
   }
 
