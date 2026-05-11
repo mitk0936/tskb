@@ -1,6 +1,6 @@
 import {
   type Folder,
-  type File,
+  type Module,
   type External,
   Doc,
   H1,
@@ -49,38 +49,38 @@ declare global {
       }>;
     }
 
-    interface Files {
-      "vitest.config": File<{
+    interface Modules {
+      "vitest.config": Module<{
         desc: "Vitest configuration.";
-        path: "vitest.config.ts";
+        type: typeof import("../../../vitest.config.js");
       }>;
-      "tests.global-setup": File<{
+      "tests.global-setup": Module<{
         desc: "Builds the fixture graph once before tests run; cleans up after.";
-        path: "tests/e2e/global-setup.ts";
+        type: typeof import("tests/e2e/global-setup.js");
       }>;
-      "tests.helpers": File<{
+      "tests.helpers": Module<{
         desc: "Shared helpers used by every test file.";
-        path: "tests/e2e/helpers.ts";
+        type: typeof import("tests/e2e/helpers.js");
       }>;
-      "tests.init": File<{
+      "tests.init": Module<{
         desc: "Tests for `tskb init`.";
-        path: "tests/e2e/init.test.ts";
+        type: typeof import("tests/e2e/init.test.js");
       }>;
-      "tests.build": File<{
+      "tests.build": Module<{
         desc: "Tests for `tskb build` output.";
-        path: "tests/e2e/build.test.ts";
+        type: typeof import("tests/e2e/build.test.js");
       }>;
-      "tests.commands": File<{
+      "tests.commands": Module<{
         desc: "Tests for every query command.";
-        path: "tests/e2e/commands.test.ts";
+        type: typeof import("tests/e2e/commands.test.js");
       }>;
-      "tests.disambiguation": File<{
+      "tests.disambiguation": Module<{
         desc: "Tests for resolving identifiers that match more than one node.";
-        path: "tests/e2e/disambiguation.test.ts";
+        type: typeof import("tests/e2e/disambiguation.test.js");
       }>;
-      "tests.graph-integrity": File<{
+      "tests.graph-integrity": Module<{
         desc: "Tests that the built graph is internally consistent.";
-        path: "tests/e2e/graph-integrity.test.ts";
+        type: typeof import("tests/e2e/graph-integrity.test.js");
       }>;
     }
   }
@@ -90,14 +90,14 @@ const VitestExternal = ref as tskb.Externals["vitest"];
 const TestsFolder = ref as tskb.Folders["tests"];
 const E2eFolder = ref as tskb.Folders["tests.e2e"];
 const FixtureFolder = ref as tskb.Folders["tests.e2e.fixture"];
-const VitestConfig = ref as tskb.Files["vitest.config"];
-const GlobalSetup = ref as tskb.Files["tests.global-setup"];
-const Helpers = ref as tskb.Files["tests.helpers"];
-const InitTest = ref as tskb.Files["tests.init"];
-const BuildTest = ref as tskb.Files["tests.build"];
-const CommandsTest = ref as tskb.Files["tests.commands"];
-const DisambiguationTest = ref as tskb.Files["tests.disambiguation"];
-const GraphIntegrityTest = ref as tskb.Files["tests.graph-integrity"];
+const VitestConfig = ref as tskb.Modules["vitest.config"];
+const GlobalSetup = ref as tskb.Modules["tests.global-setup"];
+const Helpers = ref as tskb.Modules["tests.helpers"];
+const InitTest = ref as tskb.Modules["tests.init"];
+const BuildTest = ref as tskb.Modules["tests.build"];
+const CommandsTest = ref as tskb.Modules["tests.commands"];
+const DisambiguationTest = ref as tskb.Modules["tests.disambiguation"];
+const GraphIntegrityTest = ref as tskb.Modules["tests.graph-integrity"];
 const CliBuild = ref as tskb.Exports["cli.build"];
 
 export default (

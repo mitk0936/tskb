@@ -112,28 +112,42 @@
           ],
           "files": [
             {
-              "name": "build.test.ts"
+              "name": "build.test.ts",
+              "nodeId": "tests.build",
+              "desc": "Tests for `tskb build` output."
             },
             {
-              "name": "commands.test.ts"
+              "name": "commands.test.ts",
+              "nodeId": "tests.commands",
+              "desc": "Tests for every query command."
             },
             {
-              "name": "disambiguation.test.ts"
+              "name": "disambiguation.test.ts",
+              "nodeId": "tests.disambiguation",
+              "desc": "Tests for resolving identifiers that match more than one node."
             },
             {
               "name": "explorer-export.test.ts"
             },
             {
-              "name": "global-setup.ts"
+              "name": "global-setup.ts",
+              "nodeId": "tests.global-setup",
+              "desc": "Builds the fixture graph once before tests run; cleans up after."
             },
             {
-              "name": "graph-integrity.test.ts"
+              "name": "graph-integrity.test.ts",
+              "nodeId": "tests.graph-integrity",
+              "desc": "Tests that the built graph is internally consistent."
             },
             {
-              "name": "helpers.ts"
+              "name": "helpers.ts",
+              "nodeId": "tests.helpers",
+              "desc": "Shared helpers used by every test file."
             },
             {
-              "name": "init.test.ts"
+              "name": "init.test.ts",
+              "nodeId": "tests.init",
+              "desc": "Tests for `tskb init`."
             }
           ]
         },
@@ -785,6 +799,374 @@
       }
     },
     "modules": {
+      "vitest.config": {
+        "id": "vitest.config",
+        "type": "module",
+        "desc": "Vitest configuration.",
+        "typeSignature": "typeof import(\"../../../vitest.config.js\")",
+        "resolvedPath": "vitest.config.ts",
+        "importsSummary": "1 import from 1 path",
+        "imports": [
+          "defineConfig from \"vitest/config\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "defineConfig",
+            "path": "vitest/config",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 3
+      },
+      "tests.global-setup": {
+        "id": "tests.global-setup",
+        "type": "module",
+        "desc": "Builds the fixture graph once before tests run; cleans up after.",
+        "typeSignature": "typeof import(\"tests/e2e/global-setup.js\")",
+        "resolvedPath": "tests/e2e/global-setup.ts",
+        "morphologySummary": "2 functions, 2 variables",
+        "morphology": [
+          "export function setup(): void {} // :14-25",
+          "export function teardown(): void {} // :27-32",
+          "// — internal —",
+          "const FIXTURE_DIR: string // :11",
+          "const TSKB_BIN: string // :12"
+        ],
+        "importsSummary": "3 imports from 3 paths",
+        "imports": [
+          "execFileSync from \"node:child_process\"",
+          "path from \"node:path\"",
+          "fs from \"node:fs\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "execFileSync",
+            "path": "node:child_process",
+            "typeOnly": false
+          },
+          {
+            "symbol": "path",
+            "path": "node:path",
+            "typeOnly": false
+          },
+          {
+            "symbol": "fs",
+            "path": "node:fs",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 3
+      },
+      "tests.helpers": {
+        "id": "tests.helpers",
+        "type": "module",
+        "desc": "Shared helpers used by every test file.",
+        "typeSignature": "typeof import(\"tests/e2e/helpers.js\")",
+        "resolvedPath": "tests/e2e/helpers.ts",
+        "morphologySummary": "4 functions, 3 variables",
+        "morphology": [
+          "export function tskbIn(cwd: string, ...args: string[]): string {} // :15-21",
+          "export function tskb(...args: string[]): string {} // :24-26",
+          "export function loadGraph(): any {} // :29-31",
+          "export function copyDir(src: string, dest: string): void {} // :34-45",
+          "export const FIXTURE_DIR: string // :10",
+          "export const TSKB_BIN: string // :11",
+          "export const GRAPH_PATH: string // :12"
+        ],
+        "importsSummary": "3 imports from 3 paths",
+        "imports": [
+          "execFileSync from \"node:child_process\"",
+          "path from \"node:path\"",
+          "fs from \"node:fs\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "execFileSync",
+            "path": "node:child_process",
+            "typeOnly": false
+          },
+          {
+            "symbol": "path",
+            "path": "node:path",
+            "typeOnly": false
+          },
+          {
+            "symbol": "fs",
+            "path": "node:fs",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 9
+      },
+      "tests.init": {
+        "id": "tests.init",
+        "type": "module",
+        "desc": "Tests for `tskb init`.",
+        "typeSignature": "typeof import(\"tests/e2e/init.test.js\")",
+        "resolvedPath": "tests/e2e/init.test.ts",
+        "importsSummary": "12 imports from 6 paths",
+        "imports": [
+          "describe from \"vitest\"",
+          "it from \"vitest\"",
+          "expect from \"vitest\"",
+          "beforeAll from \"vitest\"",
+          "afterAll from \"vitest\"",
+          "execFileSync from \"node:child_process\"",
+          "path from \"node:path\"",
+          "fs from \"node:fs\"",
+          "os from \"node:os\"",
+          "FIXTURE_DIR from \"./helpers.js\"",
+          "TSKB_BIN from \"./helpers.js\"",
+          "copyDir from \"./helpers.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "describe",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "it",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "expect",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "beforeAll",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "afterAll",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "execFileSync",
+            "path": "node:child_process",
+            "typeOnly": false
+          },
+          {
+            "symbol": "path",
+            "path": "node:path",
+            "typeOnly": false
+          },
+          {
+            "symbol": "fs",
+            "path": "node:fs",
+            "typeOnly": false
+          },
+          {
+            "symbol": "os",
+            "path": "node:os",
+            "typeOnly": false
+          },
+          {
+            "symbol": "FIXTURE_DIR",
+            "path": "./helpers.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "TSKB_BIN",
+            "path": "./helpers.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "copyDir",
+            "path": "./helpers.js",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 5
+      },
+      "tests.build": {
+        "id": "tests.build",
+        "type": "module",
+        "desc": "Tests for `tskb build` output.",
+        "typeSignature": "typeof import(\"tests/e2e/build.test.js\")",
+        "resolvedPath": "tests/e2e/build.test.ts",
+        "importsSummary": "8 imports from 4 paths",
+        "imports": [
+          "describe from \"vitest\"",
+          "it from \"vitest\"",
+          "expect from \"vitest\"",
+          "fs from \"node:fs\"",
+          "FIXTURE_DIR from \"./helpers.js\"",
+          "GRAPH_PATH from \"./helpers.js\"",
+          "loadGraph from \"./helpers.js\"",
+          "path from \"node:path\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "describe",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "it",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "expect",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "fs",
+            "path": "node:fs",
+            "typeOnly": false
+          },
+          {
+            "symbol": "FIXTURE_DIR",
+            "path": "./helpers.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "GRAPH_PATH",
+            "path": "./helpers.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "loadGraph",
+            "path": "./helpers.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "path",
+            "path": "node:path",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 4
+      },
+      "tests.commands": {
+        "id": "tests.commands",
+        "type": "module",
+        "desc": "Tests for every query command.",
+        "typeSignature": "typeof import(\"tests/e2e/commands.test.js\")",
+        "resolvedPath": "tests/e2e/commands.test.ts",
+        "importsSummary": "5 imports from 2 paths",
+        "imports": [
+          "describe from \"vitest\"",
+          "it from \"vitest\"",
+          "expect from \"vitest\"",
+          "tskb from \"./helpers.js\"",
+          "loadGraph from \"./helpers.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "describe",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "it",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "expect",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "tskb",
+            "path": "./helpers.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "loadGraph",
+            "path": "./helpers.js",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 4
+      },
+      "tests.disambiguation": {
+        "id": "tests.disambiguation",
+        "type": "module",
+        "desc": "Tests for resolving identifiers that match more than one node.",
+        "typeSignature": "typeof import(\"tests/e2e/disambiguation.test.js\")",
+        "resolvedPath": "tests/e2e/disambiguation.test.ts",
+        "importsSummary": "5 imports from 2 paths",
+        "imports": [
+          "describe from \"vitest\"",
+          "it from \"vitest\"",
+          "expect from \"vitest\"",
+          "tskb from \"./helpers.js\"",
+          "loadGraph from \"./helpers.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "describe",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "it",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "expect",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "tskb",
+            "path": "./helpers.js",
+            "typeOnly": false
+          },
+          {
+            "symbol": "loadGraph",
+            "path": "./helpers.js",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 3
+      },
+      "tests.graph-integrity": {
+        "id": "tests.graph-integrity",
+        "type": "module",
+        "desc": "Tests that the built graph is internally consistent.",
+        "typeSignature": "typeof import(\"tests/e2e/graph-integrity.test.js\")",
+        "resolvedPath": "tests/e2e/graph-integrity.test.ts",
+        "importsSummary": "4 imports from 2 paths",
+        "imports": [
+          "describe from \"vitest\"",
+          "it from \"vitest\"",
+          "expect from \"vitest\"",
+          "loadGraph from \"./helpers.js\""
+        ],
+        "importEntries": [
+          {
+            "symbol": "describe",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "it",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "expect",
+            "path": "vitest",
+            "typeOnly": false
+          },
+          {
+            "symbol": "loadGraph",
+            "path": "./helpers.js",
+            "typeOnly": false
+          }
+        ],
+        "edgeCount": 4
+      },
       "package.json": {
         "id": "package.json",
         "type": "module",
@@ -1056,7 +1438,7 @@
           "export interface ExplorerLink { // :29-34",
           "  source: string // :30",
           "  target: string // :31",
-          "  type: \"references\" | \"imports\" | \"imports-type\" | \"related-to\" | \"flow-step\" // :32",
+          "  type: \"references\" | \"related-to\" | \"imports\" | \"flow-step\" | \"imports-type\" // :32",
           "  label: string | undefined // :33",
           "}",
           "export interface MetaChunk { // :36-55",
@@ -1139,7 +1521,7 @@
           "  private countDirectModules(folderId: string): number {} // :803-805",
           "  private countDirectSubfolders(folderId: string): number {} // :807-809",
           "}",
-          "function groupEdgesByKey(edges: GraphEdge[], key: \"from\" | \"to\"): Map<string, GraphEdge[]> {} // :814-823",
+          "function groupEdgesByKey(edges: GraphEdge[], key: \"to\" | \"from\"): Map<string, GraphEdge[]> {} // :814-823",
           "interface NodeOpts { // :825-832",
           "  path: string | undefined // :826",
           "  parentId: string | undefined // :827",
@@ -2195,7 +2577,7 @@
           "  source: PositionedNode // :173",
           "  target: PositionedNode // :174",
           "  label: string | undefined // :175",
-          "  type: \"imports\" | \"imports-type\" | \"related-to\" // :176",
+          "  type: \"related-to\" | \"imports\" | \"imports-type\" // :176",
           "}",
           "// — internal —",
           "const relTooltipEl: HTMLDivElement | null // :205",
@@ -2205,7 +2587,7 @@
           "function relImportPath(fromPath: string | undefined, toPath: string | undefined): string | null {} // :253-269",
           "function fileName(node: PositionedNode): string {} // :271-273",
           "function relationTooltipText(d: RelationLink): string {} // :275-287",
-          "function relAnchorPoints(src: PositionedNode, tgt: PositionedNode, type: \"imports\" | \"imports-type\" | \"related-to\"): { sx: number; sy: number; tx: number; ty: number; fromColor: string; toColor: string; } {} // :405-430",
+          "function relAnchorPoints(src: PositionedNode, tgt: PositionedNode, type: \"related-to\" | \"imports\" | \"imports-type\"): { sx: number; sy: number; tx: number; ty: number; fromColor: string; toColor: string; } {} // :405-430",
           "function cubicH(sx: number, sy: number, tx: number, ty: number): string {} // :435-438",
           "function bandBubble(sx: number, sy: number, tx: number, ty: number): string {} // :444-459"
         ],
@@ -3108,7 +3490,7 @@
           "export function generateDot(graph: KnowledgeGraph): string {} // :13-186",
           "// — internal —",
           "function generateFolderSubgraph(folderId: string, graph: KnowledgeGraph, folderChildren: Map<string, string[]>, modulesByFolder: Map<string, string[]>, exportsByFolder: Map<string, string[]>, exportsByModule: Map<...>, lines: string[], depth: number): void {} // :191-282",
-          "function formatLabel(id: string, desc: string, path?: string | undefined, type?: \"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | undefined): string {} // :287-305"
+          "function formatLabel(id: string, desc: string, path?: string | undefined, type?: \"folder\" | \"module\" | \"export\" | \"file\" | \"term\" | undefined): string {} // :287-305"
         ],
         "importsSummary": "1 import from 1 path",
         "imports": [
@@ -3460,7 +3842,7 @@
         "morphology": [
           "export interface GraphNode { // :13-20",
           "  id: string // :14",
-          "  type: \"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\" // :15",
+          "  type: \"folder\" | \"module\" | \"export\" | \"file\" | \"external\" | \"term\" | \"flow\" | \"doc\" // :15",
           "  edgeCount: number | undefined // :19",
           "}",
           "export interface FolderNode { // :22-45",
@@ -3844,7 +4226,7 @@
           "// — internal —",
           "interface SearchableNode { // :7-19",
           "  id: string // :8",
-          "  type: \"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\" // :9",
+          "  type: \"folder\" | \"module\" | \"export\" | \"file\" | \"external\" | \"term\" | \"flow\" | \"doc\" // :9",
           "  desc: string // :10",
           "  path: string // :11",
           "  content: string // :12",
@@ -4030,7 +4412,7 @@
           "function formatExternalPlain(result: ExternalPickResult): string[] {} // :885-900",
           "function formatFlowPlain(result: FlowPickResult): string[] {} // :902-921",
           "function formatDocPlain(result: DocPickResult): string[] {} // :923-935",
-          "function formatPickPlain(result: PickResult, ambiguousTypes?: (\"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\")[] | undefined): string {} // :937-976"
+          "function formatPickPlain(result: PickResult, ambiguousTypes?: (\"folder\" | \"module\" | \"export\" | \"file\" | \"external\" | \"term\" | \"flow\" | \"doc\")[] | undefined): string {} // :937-976"
         ],
         "importsSummary": "19 imports from 6 paths",
         "imports": [
@@ -4634,7 +5016,7 @@
         "resolvedPath": "packages/tskb/src/cli/utils/resolve-node.ts",
         "morphologySummary": "7 functions, 4 interfaces, 1 type",
         "morphology": [
-          "export function findAllNodesById(graph: KnowledgeGraph, id: string): { node: AnyNode; type: \"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\"; }[] {} // :40-55",
+          "export function findAllNodesById(graph: KnowledgeGraph, id: string): { node: AnyNode; type: \"folder\" | \"module\" | \"export\" | \"file\" | \"external\" | \"term\" | \"flow\" | \"doc\"; }[] {} // :40-55",
           "export function resolveNode(graph: KnowledgeGraph, identifier: string): ResolvedNode | null {} // :57-145",
           "export function getNodeEdges(allEdges: GraphEdge[], nodeId: string): NodeEdges {} // :149-157",
           "export function findReferencingDocs(edges: NodeEdges, graph: KnowledgeGraph): DocRef[] {} // :159-175",
@@ -4660,7 +5042,7 @@
           "  id: string // :29",
           "  node: AnyNode // :30",
           "  resolvedVia: ResolvedVia // :31",
-          "  ambiguousTypes: (\"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\")[] | undefined // :33",
+          "  ambiguousTypes: (\"folder\" | \"module\" | \"export\" | \"file\" | \"external\" | \"term\" | \"flow\" | \"doc\")[] | undefined // :33",
           "}",
           "// — internal —",
           "function normalizePath(p: string): string {} // :212-219"
@@ -6014,68 +6396,12 @@
         "resolvedPath": "packages/tskb/src/cli/utils/resolve-node.ts",
         "morphologySummary": "1 function",
         "morphology": [
-          "export function findAllNodesById(graph: KnowledgeGraph, id: string): { node: AnyNode; type: \"module\" | \"folder\" | \"export\" | \"term\" | \"file\" | \"external\" | \"doc\" | \"flow\"; }[] {} // :40-55"
+          "export function findAllNodesById(graph: KnowledgeGraph, id: string): { node: AnyNode; type: \"folder\" | \"module\" | \"export\" | \"file\" | \"external\" | \"term\" | \"flow\" | \"doc\"; }[] {} // :40-55"
         ],
         "edgeCount": 1
       }
     },
     "files": {
-      "vitest.config": {
-        "id": "vitest.config",
-        "type": "file",
-        "desc": "Vitest configuration.",
-        "path": "vitest.config.ts",
-        "edgeCount": 3
-      },
-      "tests.global-setup": {
-        "id": "tests.global-setup",
-        "type": "file",
-        "desc": "Builds the fixture graph once before tests run; cleans up after.",
-        "path": "tests/e2e/global-setup.ts",
-        "edgeCount": 3
-      },
-      "tests.helpers": {
-        "id": "tests.helpers",
-        "type": "file",
-        "desc": "Shared helpers used by every test file.",
-        "path": "tests/e2e/helpers.ts",
-        "edgeCount": 4
-      },
-      "tests.init": {
-        "id": "tests.init",
-        "type": "file",
-        "desc": "Tests for `tskb init`.",
-        "path": "tests/e2e/init.test.ts",
-        "edgeCount": 4
-      },
-      "tests.build": {
-        "id": "tests.build",
-        "type": "file",
-        "desc": "Tests for `tskb build` output.",
-        "path": "tests/e2e/build.test.ts",
-        "edgeCount": 3
-      },
-      "tests.commands": {
-        "id": "tests.commands",
-        "type": "file",
-        "desc": "Tests for every query command.",
-        "path": "tests/e2e/commands.test.ts",
-        "edgeCount": 3
-      },
-      "tests.disambiguation": {
-        "id": "tests.disambiguation",
-        "type": "file",
-        "desc": "Tests for resolving identifiers that match more than one node.",
-        "path": "tests/e2e/disambiguation.test.ts",
-        "edgeCount": 2
-      },
-      "tests.graph-integrity": {
-        "id": "tests.graph-integrity",
-        "type": "file",
-        "desc": "Tests that the built graph is internally consistent.",
-        "path": "tests/e2e/graph-integrity.test.ts",
-        "edgeCount": 3
-      },
       "npm.README.md": {
         "id": "npm.README.md",
         "type": "file",
@@ -6741,7 +7067,7 @@
         "explains": "How is the tskb CLI validated end-to-end?",
         "priority": "supplementary",
         "filePath": "docs/src/tskb/tests.tskb.tsx",
-        "content": "<h1>E2E Test Infrastructure </h1><p>The test suite ( <a class=\"tskb-ref\" data-node-id=\"tests\" data-node-type=\"folder\" data-node-display=\"tests/\">tests</a>) validates the entire tskb CLI by running it as a subprocess\n      against a realistic fixture project. Tests use Vitest and spawn the built CLI binary via\n      Node's execFileSync, asserting on stdout and generated artifacts. </p><span class=\"tskb-relation\" data-from=\"tests\" data-to=\"vitest\" data-label=\"test runner\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">Developer runs `npm test`: Vitest loads config, global setup builds the fixture graph, test files exercise every CLI command, teardown cleans output</p><ol class=\"flow-steps\"><li class=\"flow-step\"><span class=\"flow-step-num\">1</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"vitest.config\" data-node-type=\"file\" data-node-display=\"vitest.config.ts\">vitest.config</a><span class=\"flow-step-label\">discovers test files, registers global setup</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">2</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"file\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a><span class=\"flow-step-label\">builds fixture graph once via tskb build</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">3</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"file\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a><span class=\"flow-step-label\">provides CLI runners and graph loader to all test files</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">4</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"file\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a><span class=\"flow-step-label\">teardown cleans .tskb/ output directory</span></div></li></ol></div><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">`init.test.ts` runs: copies fixture to a temp dir, invokes `tskb init`, asserts the generated files</p><ol class=\"flow-steps\"><li class=\"flow-step\"><span class=\"flow-step-num\">1</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"file\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a><span class=\"flow-step-label\">orchestrates the test: arranges temp dir, runs init, asserts output</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">2</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"file\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a><span class=\"flow-step-label\">copies fixture src/ into the temp directory</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">3</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"cli.build\" data-node-type=\"export\" data-node-display=\"cli.build\">cli.build</a><span class=\"flow-step-label\">runs tskb init --yes in the temp directory</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">4</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"file\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a><span class=\"flow-step-label\">asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs</span></div></li></ol></div><h2>Fixture Project </h2><p>The fixture at <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>is a small task-management TypeScript app with models,\n      services, API routes, and utilities. It includes its own tskb docs folder with 6 doc files\n      covering all three priority levels (essential, constraint, supplementary) and all registry\n      primitives (Folder, Module, Export, Term, External, Relation, Flow). This makes it a\n      comprehensive test subject for the full build and query pipeline. </p><h2>Test Structure </h2><p>Tests are split into focused files under <a class=\"tskb-ref\" data-node-id=\"tests.e2e\" data-node-type=\"folder\" data-node-display=\"tests/e2e/\">tests.e2e</a>, sharing utilities from <a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"file\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a>. A\n      Vitest global setup ( <a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"file\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a>) builds the fixture graph once before any test runs. </p><ul><li><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"file\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a>— scaffolding tests with idempotency checks </li><li><a class=\"tskb-ref\" data-node-id=\"tests.build\" data-node-type=\"file\" data-node-display=\"tests/e2e/build.test.ts\">tests.build</a>— graph output validation: node counts, priorities, edges </li><li><a class=\"tskb-ref\" data-node-id=\"tests.commands\" data-node-type=\"file\" data-node-display=\"tests/e2e/commands.test.ts\">tests.commands</a>— exercises every query command in plain and JSON modes </li><li><a class=\"tskb-ref\" data-node-id=\"tests.disambiguation\" data-node-type=\"file\" data-node-display=\"tests/e2e/disambiguation.test.ts\">tests.disambiguation</a>— ambiguous ID resolution across commands </li><li><a class=\"tskb-ref\" data-node-id=\"tests.graph-integrity\" data-node-type=\"file\" data-node-display=\"tests/e2e/graph-integrity.test.ts\">tests.graph-integrity</a>— edge consistency, type signatures, external metadata </li></ul><h2>Running Tests </h2><p>Tests require the package to be built first (npm run build). Run with npm test (vitest run) or\n      npm run test:watch (vitest) for interactive mode. The 60-second timeout in <a class=\"tskb-ref\" data-node-id=\"vitest.config\" data-node-type=\"file\" data-node-display=\"vitest.config.ts\">vitest.config</a>accounts for CLI subprocess startup cost. </p>",
+        "content": "<h1>E2E Test Infrastructure </h1><p>The test suite ( <a class=\"tskb-ref\" data-node-id=\"tests\" data-node-type=\"folder\" data-node-display=\"tests/\">tests</a>) validates the entire tskb CLI by running it as a subprocess\n      against a realistic fixture project. Tests use Vitest and spawn the built CLI binary via\n      Node's execFileSync, asserting on stdout and generated artifacts. </p><span class=\"tskb-relation\" data-from=\"tests\" data-to=\"vitest\" data-label=\"test runner\"></span><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">Developer runs `npm test`: Vitest loads config, global setup builds the fixture graph, test files exercise every CLI command, teardown cleans output</p><ol class=\"flow-steps\"><li class=\"flow-step\"><span class=\"flow-step-num\">1</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"vitest.config\" data-node-type=\"module\" data-node-display=\"vitest.config.ts\">vitest.config</a><span class=\"flow-step-label\">discovers test files, registers global setup</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">2</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"module\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a><span class=\"flow-step-label\">builds fixture graph once via tskb build</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">3</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"module\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a><span class=\"flow-step-label\">provides CLI runners and graph loader to all test files</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">4</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"module\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a><span class=\"flow-step-label\">teardown cleans .tskb/ output directory</span></div></li></ol></div><div class=\"tskb-flow\"><p class=\"tskb-flow-desc\">`init.test.ts` runs: copies fixture to a temp dir, invokes `tskb init`, asserts the generated files</p><ol class=\"flow-steps\"><li class=\"flow-step\"><span class=\"flow-step-num\">1</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"module\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a><span class=\"flow-step-label\">orchestrates the test: arranges temp dir, runs init, asserts output</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">2</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"module\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a><span class=\"flow-step-label\">copies fixture src/ into the temp directory</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">3</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"cli.build\" data-node-type=\"export\" data-node-display=\"cli.build\">cli.build</a><span class=\"flow-step-label\">runs tskb init --yes in the temp directory</span></div></li><li class=\"flow-step\"><span class=\"flow-step-num\">4</span><div class=\"flow-step-content\"><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"module\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a><span class=\"flow-step-label\">asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs</span></div></li></ol></div><h2>Fixture Project </h2><p>The fixture at <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>is a small task-management TypeScript app with models,\n      services, API routes, and utilities. It includes its own tskb docs folder with 6 doc files\n      covering all three priority levels (essential, constraint, supplementary) and all registry\n      primitives (Folder, Module, Export, Term, External, Relation, Flow). This makes it a\n      comprehensive test subject for the full build and query pipeline. </p><h2>Test Structure </h2><p>Tests are split into focused files under <a class=\"tskb-ref\" data-node-id=\"tests.e2e\" data-node-type=\"folder\" data-node-display=\"tests/e2e/\">tests.e2e</a>, sharing utilities from <a class=\"tskb-ref\" data-node-id=\"tests.helpers\" data-node-type=\"module\" data-node-display=\"tests/e2e/helpers.ts\">tests.helpers</a>. A\n      Vitest global setup ( <a class=\"tskb-ref\" data-node-id=\"tests.global-setup\" data-node-type=\"module\" data-node-display=\"tests/e2e/global-setup.ts\">tests.global-setup</a>) builds the fixture graph once before any test runs. </p><ul><li><a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"module\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a>— scaffolding tests with idempotency checks </li><li><a class=\"tskb-ref\" data-node-id=\"tests.build\" data-node-type=\"module\" data-node-display=\"tests/e2e/build.test.ts\">tests.build</a>— graph output validation: node counts, priorities, edges </li><li><a class=\"tskb-ref\" data-node-id=\"tests.commands\" data-node-type=\"module\" data-node-display=\"tests/e2e/commands.test.ts\">tests.commands</a>— exercises every query command in plain and JSON modes </li><li><a class=\"tskb-ref\" data-node-id=\"tests.disambiguation\" data-node-type=\"module\" data-node-display=\"tests/e2e/disambiguation.test.ts\">tests.disambiguation</a>— ambiguous ID resolution across commands </li><li><a class=\"tskb-ref\" data-node-id=\"tests.graph-integrity\" data-node-type=\"module\" data-node-display=\"tests/e2e/graph-integrity.test.ts\">tests.graph-integrity</a>— edge consistency, type signatures, external metadata </li></ul><h2>Running Tests </h2><p>Tests require the package to be built first (npm run build). Run with npm test (vitest run) or\n      npm run test:watch (vitest) for interactive mode. The 60-second timeout in <a class=\"tskb-ref\" data-node-id=\"vitest.config\" data-node-type=\"module\" data-node-display=\"vitest.config.ts\">vitest.config</a>accounts for CLI subprocess startup cost. </p>",
         "format": "tsx",
         "edgeCount": 11
       },
@@ -6941,7 +7267,7 @@
         "explains": "What test coverage is required for new functionality in the tskb package?",
         "priority": "constraint",
         "filePath": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
-        "content": "<p>Any new behaviour added to the tskb package must ship with E2E coverage in <a class=\"tskb-ref\" data-node-id=\"tests\" data-node-type=\"folder\" data-node-display=\"tests/\">tests</a>. The\n      suite runs the built CLI as a subprocess against the fixture project at <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>via   <a class=\"tskb-ref\" data-node-id=\"vitest\" data-node-type=\"external\" data-node-display=\"vitest\">vitest</a>, so changes are validated against a realistic shape rather than mocks. Tests\n      must pass before a change is merged or the package is published. </p><p>Pick the test file that owns the surface you changed: </p><ul><li>New or modified query command (search, pick, context, ls, docs, flows, registry, ...) →   <a class=\"tskb-ref\" data-node-id=\"tests.commands\" data-node-type=\"file\" data-node-display=\"tests/e2e/commands.test.ts\">tests.commands</a>. Cover both plain and JSON output, and any new flag. </li><li>Build output or graph shape (new node kind, new edge type, metadata field, summary) →   <a class=\"tskb-ref\" data-node-id=\"tests.build\" data-node-type=\"file\" data-node-display=\"tests/e2e/build.test.ts\">tests.build</a>, with structural invariants in <a class=\"tskb-ref\" data-node-id=\"tests.graph-integrity\" data-node-type=\"file\" data-node-display=\"tests/e2e/graph-integrity.test.ts\">tests.graph-integrity</a>. </li><li>Init / scaffolding flow (new generated files, prompts, defaults, idempotency) → <a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"file\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a>. </li></ul><p>If the new feature needs fixture data the existing one doesn't provide — a new registry\n      primitive, a new doc shape, a new boundary kind, a new external — extend <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>  first, then write the test. A passing test that doesn't actually exercise the new surface is\n      worse than no test. </p>",
+        "content": "<p>Any new behaviour added to the tskb package must ship with E2E coverage in <a class=\"tskb-ref\" data-node-id=\"tests\" data-node-type=\"folder\" data-node-display=\"tests/\">tests</a>. The\n      suite runs the built CLI as a subprocess against the fixture project at <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>via   <a class=\"tskb-ref\" data-node-id=\"vitest\" data-node-type=\"external\" data-node-display=\"vitest\">vitest</a>, so changes are validated against a realistic shape rather than mocks. Tests\n      must pass before a change is merged or the package is published. </p><p>Pick the test file that owns the surface you changed: </p><ul><li>New or modified query command (search, pick, context, ls, docs, flows, registry, ...) →   <a class=\"tskb-ref\" data-node-id=\"tests.commands\" data-node-type=\"module\" data-node-display=\"tests/e2e/commands.test.ts\">tests.commands</a>. Cover both plain and JSON output, and any new flag. </li><li>Build output or graph shape (new node kind, new edge type, metadata field, summary) →   <a class=\"tskb-ref\" data-node-id=\"tests.build\" data-node-type=\"module\" data-node-display=\"tests/e2e/build.test.ts\">tests.build</a>, with structural invariants in <a class=\"tskb-ref\" data-node-id=\"tests.graph-integrity\" data-node-type=\"module\" data-node-display=\"tests/e2e/graph-integrity.test.ts\">tests.graph-integrity</a>. </li><li>Init / scaffolding flow (new generated files, prompts, defaults, idempotency) → <a class=\"tskb-ref\" data-node-id=\"tests.init\" data-node-type=\"module\" data-node-display=\"tests/e2e/init.test.ts\">tests.init</a>. </li></ul><p>If the new feature needs fixture data the existing one doesn't provide — a new registry\n      primitive, a new doc shape, a new boundary kind, a new external — extend <a class=\"tskb-ref\" data-node-id=\"tests.e2e.fixture\" data-node-type=\"folder\" data-node-display=\"tests/e2e/fixture/\">tests.e2e.fixture</a>  first, then write the test. A passing test that doesn't actually exercise the new surface is\n      worse than no test. </p>",
         "format": "tsx",
         "edgeCount": 7
       },
@@ -7483,21 +7809,6 @@
     },
     {
       "from": "docs/src/tskb/tests.tskb.tsx",
-      "to": "tests",
-      "type": "references"
-    },
-    {
-      "from": "docs/src/tskb/tests.tskb.tsx",
-      "to": "tests.e2e.fixture",
-      "type": "references"
-    },
-    {
-      "from": "docs/src/tskb/tests.tskb.tsx",
-      "to": "tests.e2e",
-      "type": "references"
-    },
-    {
-      "from": "docs/src/tskb/tests.tskb.tsx",
       "to": "tests.helpers",
       "type": "references"
     },
@@ -7534,6 +7845,21 @@
     {
       "from": "docs/src/tskb/tests.tskb.tsx",
       "to": "vitest.config",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.e2e.fixture",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/tests.tskb.tsx",
+      "to": "tests.e2e",
       "type": "references"
     },
     {
@@ -8425,16 +8751,6 @@
     },
     {
       "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
-      "to": "tests",
-      "type": "references"
-    },
-    {
-      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
-      "to": "tests.e2e.fixture",
-      "type": "references"
-    },
-    {
-      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
       "to": "tests.commands",
       "type": "references"
     },
@@ -8451,6 +8767,16 @@
     {
       "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
       "to": "tests.init",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+      "to": "tests",
+      "type": "references"
+    },
+    {
+      "from": "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx",
+      "to": "tests.e2e.fixture",
       "type": "references"
     },
     {
@@ -8802,6 +9128,46 @@
       "from": "tskb.cli",
       "to": "tskb.cli.utils",
       "type": "contains"
+    },
+    {
+      "from": "vitest.config",
+      "to": "__TSKB.ROOT__",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.global-setup",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.helpers",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.init",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.build",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.commands",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.disambiguation",
+      "to": "tests.e2e",
+      "type": "belongs-to"
+    },
+    {
+      "from": "tests.graph-integrity",
+      "to": "tests.e2e",
+      "type": "belongs-to"
     },
     {
       "from": "package.json",
@@ -9509,49 +9875,34 @@
       "type": "belongs-to"
     },
     {
-      "from": "vitest.config",
-      "to": "__TSKB.ROOT__",
-      "type": "belongs-to"
-    },
-    {
-      "from": "tests.global-setup",
-      "to": "tests.e2e",
-      "type": "belongs-to"
-    },
-    {
-      "from": "tests.helpers",
-      "to": "tests.e2e",
+      "from": "npm.README.md",
+      "to": "TSKB.Package.Root",
       "type": "belongs-to"
     },
     {
       "from": "tests.init",
-      "to": "tests.e2e",
-      "type": "belongs-to"
+      "to": "tests.helpers",
+      "type": "imports"
     },
     {
       "from": "tests.build",
-      "to": "tests.e2e",
-      "type": "belongs-to"
+      "to": "tests.helpers",
+      "type": "imports"
     },
     {
       "from": "tests.commands",
-      "to": "tests.e2e",
-      "type": "belongs-to"
+      "to": "tests.helpers",
+      "type": "imports"
     },
     {
       "from": "tests.disambiguation",
-      "to": "tests.e2e",
-      "type": "belongs-to"
+      "to": "tests.helpers",
+      "type": "imports"
     },
     {
       "from": "tests.graph-integrity",
-      "to": "tests.e2e",
-      "type": "belongs-to"
-    },
-    {
-      "from": "npm.README.md",
-      "to": "TSKB.Package.Root",
-      "type": "belongs-to"
+      "to": "tests.helpers",
+      "type": "imports"
     },
     {
       "from": "Jsx.runtime.js",
@@ -10000,19 +10351,19 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-05-11T13:24:36.050Z",
+    "generatedAt": "2026-05-11T14:38:18.684Z",
     "version": "1.0.0",
     "rootPath": ".",
     "stats": {
       "folderCount": 27,
-      "moduleCount": 53,
+      "moduleCount": 61,
       "termCount": 27,
       "exportCount": 88,
-      "fileCount": 9,
+      "fileCount": 1,
       "externalCount": 5,
       "flowCount": 16,
       "docCount": 27,
-      "edgeCount": 579
+      "edgeCount": 584
     }
   }
 }

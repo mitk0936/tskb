@@ -12,6 +12,9 @@ digraph KnowledgeGraph {
 
     "__TSKB.ROOT__" [label="Folder\<\"__TSKB.ROOT__\"\>\nThe root directory (automatically added by tskb)\n📁 .", shape=box, fillcolor="#BBDEFB", style=filled];
 
+    // Modules in __TSKB.ROOT__
+    "vitest.config" [label="Module\<\"vitest.config\"\>\nVitest configuration.\n📁 vitest.config.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
     subgraph "cluster_docs" {
       label="docs";
       style=filled;
@@ -417,6 +420,15 @@ digraph KnowledgeGraph {
 
         "tests.e2e" [label="Folder\<\"tests.e2e\"\>\nE2E test files that run the CLI and check its output.\n📁 tests/e2e", shape=box, fillcolor="#BBDEFB", style=filled];
 
+        // Modules in tests.e2e
+        "tests.global-setup" [label="Module\<\"tests.global-setup\"\>\nBuilds the fixture graph once before tests run; cleans up after.\n📁 tests/e2e/global-setup.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+        "tests.helpers" [label="Module\<\"tests.helpers\"\>\nShared helpers used by every test file.\n📁 tests/e2e/helpers.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+        "tests.init" [label="Module\<\"tests.init\"\>\nTests for `tskb init`.\n📁 tests/e2e/init.test.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+        "tests.build" [label="Module\<\"tests.build\"\>\nTests for `tskb build` output.\n📁 tests/e2e/build.test.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+        "tests.commands" [label="Module\<\"tests.commands\"\>\nTests for every query command.\n📁 tests/e2e/commands.test.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+        "tests.disambiguation" [label="Module\<\"tests.disambiguation\"\>\nTests for resolving identifiers that match more than one node.\n📁 tests/e2e/disambiguation.test.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+        "tests.graph-integrity" [label="Module\<\"tests.graph-integrity\"\>\nTests that the built graph is internally consistent.\n📁 tests/e2e/graph-integrity.test.ts", shape=ellipse, fillcolor="#FFF9C4", style=filled];
+
         subgraph "cluster_tests_e2e_fixture" {
           label="tests.e2e.fixture";
           style=filled;
@@ -641,9 +653,6 @@ digraph KnowledgeGraph {
   "docs/src/tskb/usage.tskb.tsx" -> "sample.tsconfig.json" [color=grey, style=dashed];
   "docs/src/tskb/usage.tskb.tsx" -> "cli" [color=grey, style=dashed];
   "docs/src/tskb/usage.tskb.tsx" -> "cli.build" [color=grey, style=dashed];
-  "docs/src/tskb/tests.tskb.tsx" -> "tests" [color=grey, style=dashed];
-  "docs/src/tskb/tests.tskb.tsx" -> "tests.e2e.fixture" [color=grey, style=dashed];
-  "docs/src/tskb/tests.tskb.tsx" -> "tests.e2e" [color=grey, style=dashed];
   "docs/src/tskb/tests.tskb.tsx" -> "tests.helpers" [color=grey, style=dashed];
   "docs/src/tskb/tests.tskb.tsx" -> "tests.global-setup" [color=grey, style=dashed];
   "docs/src/tskb/tests.tskb.tsx" -> "tests.init" [color=grey, style=dashed];
@@ -652,6 +661,9 @@ digraph KnowledgeGraph {
   "docs/src/tskb/tests.tskb.tsx" -> "tests.disambiguation" [color=grey, style=dashed];
   "docs/src/tskb/tests.tskb.tsx" -> "tests.graph-integrity" [color=grey, style=dashed];
   "docs/src/tskb/tests.tskb.tsx" -> "vitest.config" [color=grey, style=dashed];
+  "docs/src/tskb/tests.tskb.tsx" -> "tests" [color=grey, style=dashed];
+  "docs/src/tskb/tests.tskb.tsx" -> "tests.e2e.fixture" [color=grey, style=dashed];
+  "docs/src/tskb/tests.tskb.tsx" -> "tests.e2e" [color=grey, style=dashed];
   "docs/src/tskb/primitives.tskb.tsx" -> "Jsx.runtime.js" [color=grey, style=dashed];
   "docs/src/tskb/primitives.tskb.tsx" -> "Folder" [color=grey, style=dashed];
   "docs/src/tskb/primitives.tskb.tsx" -> "Module" [color=grey, style=dashed];
@@ -793,12 +805,12 @@ digraph KnowledgeGraph {
   "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "buildRefLink" [color=grey, style=dashed];
   "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "jsx.Step" [color=grey, style=dashed];
   "docs/src/tskb/core/docs-extraction.tskb.tsx" -> "resolveNodeMeta" [color=grey, style=dashed];
-  "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx" -> "tests" [color=grey, style=dashed];
-  "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx" -> "tests.e2e.fixture" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx" -> "tests.commands" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx" -> "tests.build" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx" -> "tests.graph-integrity" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx" -> "tests.init" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx" -> "tests" [color=grey, style=dashed];
+  "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx" -> "tests.e2e.fixture" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx" -> "vitest" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-skill-generation.tskb.tsx" -> "cli.utils.content-builder" [color=grey, style=dashed];
   "docs/src/tskb/constraints/constraint-skill-generation.tskb.tsx" -> "cli.utils.skill-generator" [color=grey, style=dashed];
@@ -877,43 +889,12 @@ digraph KnowledgeGraph {
   "buildGraph" -> "KnowledgeGraph" ;
   "buildGraph" -> "visualization.dot-generator" ;
 
-  // imports-type edges
-  "Jsx.runtime.js" -> "runtime.registry" ;
-  "runtime.jsx" -> "runtime.registry" ;
-  "explorer.transform" -> "graph.types" ;
-  "explorer.spa.router" -> "explorer.spa.router-types" ;
-  "explorer.spa.refs-view" -> "explorer.spa.router-types" ;
-  "explorer.spa.refs-view" -> "explorer.spa.types" ;
-  "explorer.spa.accordion" -> "explorer.spa.types" ;
-  "explorer.spa.ref-links" -> "explorer.spa.types" ;
-  "explorer.spa.node-index" -> "explorer.spa.types" ;
-  "explorer.spa.boundary-renderer" -> "explorer.spa.types" ;
-  "explorer.spa.lane-engine" -> "explorer.spa.store" ;
-  "explorer.spa.chunk-types" -> "explorer.spa.types" ;
-  "explorer.spa.store" -> "explorer.spa.chunk-types" ;
-  "explorer.server" -> "graph.types" ;
-  "cli.commands.explore" -> "graph.types" ;
-  "explorer.export" -> "graph.types" ;
-  "explorer.spa.render-state" -> "explorer.spa.types" ;
-  "explorer.spa.render-state" -> "explorer.spa.store" ;
-  "visualization.dot-generator" -> "graph.types" ;
-  "graph.builder" -> "graph.types" ;
-  "graph.builder" -> "extraction.registry" ;
-  "graph.builder" -> "extraction.documentation" ;
-  "graph.types" -> "runtime.jsx" ;
-  "graph.types" -> "extraction.module-morphology" ;
-  "extraction.documentation" -> "extraction.registry" ;
-  "extraction.documentation" -> "runtime.jsx" ;
-  "cli.commands.search" -> "graph.types" ;
-  "cli.commands.pick" -> "graph.types" ;
-  "cli.commands.ls" -> "graph.types" ;
-  "cli.commands.flows" -> "graph.types" ;
-  "cli.utils.content-builder" -> "graph.types" ;
-  "cli.utils.skill-generator" -> "graph.types" ;
-  "cli.utils.copilot-instructions" -> "graph.types" ;
-  "cli.utils.resolve-node" -> "graph.types" ;
-
   // imports edges
+  "tests.init" -> "tests.helpers" ;
+  "tests.build" -> "tests.helpers" ;
+  "tests.commands" -> "tests.helpers" ;
+  "tests.disambiguation" -> "tests.helpers" ;
+  "tests.graph-integrity" -> "tests.helpers" ;
   "explorer.spa.refs-view" -> "explorer.spa.accordion" ;
   "explorer.spa.refs-view" -> "explorer.spa.ref-links" ;
   "explorer.spa.ref-links" -> "explorer.spa.dom-tooltip" ;
@@ -969,5 +950,41 @@ digraph KnowledgeGraph {
   "cli.commands.flows" -> "cli.utils.logger" ;
   "cli.utils.skill-generator" -> "cli.utils.content-builder" ;
   "cli.utils.copilot-instructions" -> "cli.utils.content-builder" ;
+
+  // imports-type edges
+  "Jsx.runtime.js" -> "runtime.registry" ;
+  "runtime.jsx" -> "runtime.registry" ;
+  "explorer.transform" -> "graph.types" ;
+  "explorer.spa.router" -> "explorer.spa.router-types" ;
+  "explorer.spa.refs-view" -> "explorer.spa.router-types" ;
+  "explorer.spa.refs-view" -> "explorer.spa.types" ;
+  "explorer.spa.accordion" -> "explorer.spa.types" ;
+  "explorer.spa.ref-links" -> "explorer.spa.types" ;
+  "explorer.spa.node-index" -> "explorer.spa.types" ;
+  "explorer.spa.boundary-renderer" -> "explorer.spa.types" ;
+  "explorer.spa.lane-engine" -> "explorer.spa.store" ;
+  "explorer.spa.chunk-types" -> "explorer.spa.types" ;
+  "explorer.spa.store" -> "explorer.spa.chunk-types" ;
+  "explorer.server" -> "graph.types" ;
+  "cli.commands.explore" -> "graph.types" ;
+  "explorer.export" -> "graph.types" ;
+  "explorer.spa.render-state" -> "explorer.spa.types" ;
+  "explorer.spa.render-state" -> "explorer.spa.store" ;
+  "visualization.dot-generator" -> "graph.types" ;
+  "graph.builder" -> "graph.types" ;
+  "graph.builder" -> "extraction.registry" ;
+  "graph.builder" -> "extraction.documentation" ;
+  "graph.types" -> "runtime.jsx" ;
+  "graph.types" -> "extraction.module-morphology" ;
+  "extraction.documentation" -> "extraction.registry" ;
+  "extraction.documentation" -> "runtime.jsx" ;
+  "cli.commands.search" -> "graph.types" ;
+  "cli.commands.pick" -> "graph.types" ;
+  "cli.commands.ls" -> "graph.types" ;
+  "cli.commands.flows" -> "graph.types" ;
+  "cli.utils.content-builder" -> "graph.types" ;
+  "cli.utils.skill-generator" -> "graph.types" ;
+  "cli.utils.copilot-instructions" -> "graph.types" ;
+  "cli.utils.resolve-node" -> "graph.types" ;
 
 }

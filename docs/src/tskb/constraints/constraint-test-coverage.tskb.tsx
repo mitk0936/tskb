@@ -2,10 +2,10 @@ import { Doc, P, List, Li, ref } from "tskb";
 
 const TestsFolder = ref as tskb.Folders["tests"];
 const FixtureFolder = ref as tskb.Folders["tests.e2e.fixture"];
-const CommandsTest = ref as tskb.Files["tests.commands"];
-const BuildTest = ref as tskb.Files["tests.build"];
-const InitTest = ref as tskb.Files["tests.init"];
-const GraphIntegrityTest = ref as tskb.Files["tests.graph-integrity"];
+const CommandsTest = ref as tskb.Modules["tests.commands"];
+const BuildTest = ref as tskb.Modules["tests.build"];
+const InitTest = ref as tskb.Modules["tests.init"];
+const GraphIntegrityTest = ref as tskb.Modules["tests.graph-integrity"];
 const VitestExternal = ref as tskb.Externals["vitest"];
 
 export default (
