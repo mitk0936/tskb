@@ -1,5 +1,5 @@
 import type { ExplorerNode } from "../../types";
-import type { GetNodeFn } from "../types";
+import type { GetNodeFn } from "../../types";
 
 const PRIORITY_RANK: Record<string, number> = {
   essential: 0,

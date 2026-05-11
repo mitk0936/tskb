@@ -93,7 +93,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — What does the runtime module provide and what does it not do?
 - `docs/src/tskb/usage.tskb.tsx` — What's the typical workflow for setting up tskb in a repo?
 
-_Plus 15 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 20 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 ## Externals
 
@@ -107,6 +107,12 @@ _Plus 15 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 - **build-pipeline** [essential] — The tskb build process: source files through extraction to knowledge graph outputs
   cli.build → extractRegistry → extractDocs → buildGraph → generateDot
+- **router-setup** [essential] — Boot wiring: panel shell subscribes, view factory is registered for hash restore, hash sync starts
+  explorer.spa.ExplorerApp.mount → explorer.spa.DocPanel → explorer.spa.Router.registerView → explorer.spa.Router.init → explorer.spa.router → explorer.spa.DocPanel
+- **router-push** [essential] — Forward navigation: a chip click constructs a view, pushes it, the shell renders it, and the URL hash is updated
+  explorer.spa.ExplorerApp → explorer.spa.Router.push → explorer.spa.router → explorer.spa.DocPanel → explorer.spa.RefsView → explorer.spa.router
+- **router-hash-restore** [essential] — Browser back/forward or external hash change rebuilds the view from the URL
+  explorer.spa.router → explorer.spa.router → explorer.spa.router → explorer.spa.RefsView → explorer.spa.router → explorer.spa.DocPanel
 - **explorer-serve-flow** [essential] — Developer runs `tskb explore`: the CLI loads the graph, transforms it into chunks, starts an HTTP server, and the browser loads the SPA and fetches chunks on demand
   explorer.explore → explorer.transformGraph → explorer.serveExplorer → explorer.spa.main → explorer.spa.lane-engine → explorer.spa.node-base
 - **explorer-export-flow** [essential] — Developer runs the explorer export command: the graph file is read, chunks are transformed in memory, then the pre-built SPA and chunk files are written to the output directory

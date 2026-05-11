@@ -43,6 +43,16 @@ declare global {
         desc: "UI bits around the canvas: spinners, tooltips, popups.";
         path: "packages/tskb/explorer-app/src/ui";
       }>;
+
+      "tskb.explorer.app.router.views": Folder<{
+        desc: "Panel view classes — one per addressable panel state. Each implements the View interface.";
+        path: "packages/tskb/explorer-app/src/router/views";
+      }>;
+
+      "tskb.explorer.app.router.components": Folder<{
+        desc: "Reusable UI chunks shared across panel views (accordion, ref-link wiring).";
+        path: "packages/tskb/explorer-app/src/router/components";
+      }>;
     }
 
     // ── Externals ──────────────────────────────────────────────────────────

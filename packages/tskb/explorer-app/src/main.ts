@@ -23,6 +23,7 @@ import { mountDomTooltip } from "./ui/DomTooltip";
 import { showToast } from "./ui/Toast";
 import { DocPanel } from "./ui/DocPanel";
 import { panelRouter, RefsView } from "./router";
+import type { NodeRefHooks } from "./types";
 import type { PositionedNode, ExplorerNode } from "./types";
 import { hasChildren } from "./types";
 import type { NodeComponent } from "./components/nodes/base";
@@ -45,6 +46,7 @@ export class ExplorerApp {
   private readonly store = new GraphStore();
 
   private readonly router = panelRouter;
+  private nodeRefHelperHooks!: NodeRefHooks;
 
   // Reverse-lookup maps: nodeId → ids of docs/flows that reference it (built from crossEdges)
   private docsOf = new Map<string, string[]>();
@@ -76,20 +78,18 @@ export class ExplorerApp {
     this.setupCanvas();
     this.setupTooltips();
     this.setupRenderer();
+    this.nodeRefHelperHooks = {
+      getNode: (nodeId: string) => this.findNode(nodeId),
+      getRefsFor: (nodeId: string, kind: "docs" | "flows") => this.getRefsFor(nodeId, kind),
+      onNodeRef: (nodeId: string) => this.navigateToNode(nodeId),
+      onNodeHighlight: (nodeId: string | null) => this.onNodeHighlight(nodeId),
+      onNodePrefetch: (nodeId: string) => this.prefetchNodeChunk(nodeId),
+    };
     // The DocPanel registers itself as a Router listener on construction; the
     // listener closure keeps the instance alive for the SPA's lifetime.
     new DocPanel(this.router);
-    this.router.registerView(RefsView);
-    this.router.init(
-      {
-        getNode: (nodeId) => this.findNode(nodeId),
-        getRefsFor: (nodeId, kind) => this.getRefsFor(nodeId, kind),
-        onNodeRef: (nodeId) => this.navigateToNode(nodeId),
-        onNodeHighlight: (nodeId) => this.onNodeHighlight(nodeId),
-        onNodePrefetch: (nodeId) => this.prefetchNodeChunk(nodeId),
-      },
-      { syncHash: true }
-    );
+    this.router.registerView(RefsView, this.nodeRefHelperHooks);
+    this.router.init({ syncHash: true });
     this.setupSearch();
     this.store.subscribe(() => {
       this.layoutDirty = true;
@@ -573,7 +573,7 @@ export class ExplorerApp {
 
   private onChipClick(node: PositionedNode, chip: "docs" | "flows"): void {
     if (!this.store.meta) return;
-    this.router.push(new RefsView(node.id, chip, this.router.getDepsForHost()));
+    this.router.push(new RefsView(node.id, chip, this.nodeRefHelperHooks));
   }
 
   /** Resolves the docs or flows that reference a given node id from the meta chunk. */

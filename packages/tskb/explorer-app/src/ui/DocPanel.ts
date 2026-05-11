@@ -1,16 +1,12 @@
 import "./doc-panel.css";
 import { createHeaderButton } from "./HeaderActions";
 import type { Router, View } from "../router";
-import { wireRefs } from "../router";
 
 /**
  * Thin host shell for the panel. Owns the slide-in chrome (`#doc-panel`,
  * header, body, close button) and subscribes to the {@link Router} so that
- * whenever the active view changes, it re-renders the header + body and
- * wires up ref-link interactions.
- *
- * Contains no view-specific markup or state — every concrete panel state
- * (refs lists, future docs/node views) lives behind a {@link View}.
+ * whenever the active view changes, it clears the slots and asks the view
+ * to render into them. Views are responsible for their own interaction wiring.
  */
 export class DocPanel {
   private readonly panel: HTMLElement;
@@ -64,10 +60,6 @@ export class DocPanel {
     const ctx = this.router.context();
     view.renderHeader(this.title, ctx);
     view.renderBody(this.body);
-
-    const deps = this.router.getDepsForHost();
-    wireRefs(this.title, deps);
-    wireRefs(this.body, deps);
 
     this.backSlot.hidden = !canGoBack;
     this.panel.classList.add("open");

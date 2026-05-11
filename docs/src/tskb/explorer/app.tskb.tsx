@@ -7,6 +7,11 @@ type ExplorerApp = typeof import("packages/tskb/explorer-app/src/main.js").Explo
 declare global {
   namespace tskb {
     interface Modules {
+      "explorer.spa.main": Module<{
+        desc: "Entry point of the explorer SPA.";
+        type: typeof import("packages/tskb/explorer-app/src/main.js");
+      }>;
+
       "explorer.spa.render-state": Module<{
         desc: "Pure render state. The boundary between app logic and D3 rendering.";
         type: typeof import("packages/tskb/explorer-app/src/render-state.js");

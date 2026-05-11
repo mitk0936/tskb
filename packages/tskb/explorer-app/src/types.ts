@@ -42,3 +42,20 @@ export interface PositionedNode extends ExplorerNode {
   x: number;
   y: number;
 }
+
+// ── Panel view callbacks ───────────────────────────────────────────────────────
+
+export type GetNodeFn = (nodeId: string) => ExplorerNode | undefined;
+export type GetRefsForFn = (nodeId: string, kind: "docs" | "flows") => ExplorerNode[];
+export type OnNodeRefClick = (nodeId: string) => void;
+export type OnNodeHighlightFn = (nodeId: string | null) => void;
+export type OnNodePrefetchFn = (nodeId: string) => Promise<void>;
+
+/** Callbacks and lookups supplied by the host so panel views never reach into the rest of the SPA. */
+export interface NodeRefHooks {
+  getNode: GetNodeFn;
+  getRefsFor: GetRefsForFn;
+  onNodeRef: OnNodeRefClick;
+  onNodeHighlight: OnNodeHighlightFn;
+  onNodePrefetch: OnNodePrefetchFn;
+}

@@ -1,7 +1,7 @@
 import { showDomTooltip, hideDomTooltip } from "../../ui/DomTooltip";
 import { NODE_COLORS, exportDisplayLabel } from "../../components/nodes/base";
 import type { ExplorerNode } from "../../types";
-import type { GetNodeFn, OnNodeHighlightFn, OnNodePrefetchFn, OnNodeRefClick } from "../types";
+import type { GetNodeFn, OnNodeHighlightFn, OnNodePrefetchFn, OnNodeRefClick } from "../../types";
 
 interface RefLinksDeps {
   getNode: GetNodeFn;

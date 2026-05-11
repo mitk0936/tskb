@@ -1,37 +1,39 @@
-import type { RouterDeps, View, ViewContext, ViewCtor } from "./types";
+import type { View, ViewContext } from "./types";
 
 type Listener = (view: View | null, canGoBack: boolean) => void;
 
 /**
- * Panel router. Owns a stack of views and (optionally) syncs the top of the
- * stack to `location.hash`. The host (DocPanel) subscribes for render
- * notifications; views are constructed by callers and via registered ViewCtors
- * for hash-restoration.
+ * Panel router. Owns a stack of View instances and (optionally) syncs the top
+ * to `location.hash`. Views are constructed by callers and pushed directly;
+ * view factories (registered via registerView) are used only for hash restoration.
  *
  * Stack semantics:
  *   push(view)      → append + notify + write hash
  *   replace(view)   → swap top + notify + write hash
- *   back()          → pop + notify + write hash (no-op if stack empty)
+ *   back()          → pop + notify + write hash
  *   close()         → clear stack + notify + clear hash
  *
- * Hash sync is opt-in via init({ syncHash: true }). When the user navigates
- * back/forward, the stack is rebuilt from the new hash (single-entry stack —
- * we don't try to reconstruct deep history from the URL).
+ * Hash sync is opt-in via init({ syncHash: true }).
  */
 export class Router {
   private stack: View[] = [];
   private listeners = new Set<Listener>();
-  private viewCtors = new Map<string, ViewCtor>();
-  private deps: RouterDeps | null = null;
+  private viewFactories = new Map<string, (rest: string) => View | null>();
   private syncHash = false;
   private writingHash = false;
 
-  registerView(ctor: ViewCtor): void {
-    this.viewCtors.set(ctor.prefix, ctor);
+  /**
+   * Registers a factory for hash restoration. Deps are bound at registration
+   * time so the router never needs to know about them.
+   */
+  registerView<D>(
+    viewClass: { prefix: string; parse(rest: string, deps: D): View | null },
+    deps: D
+  ): void {
+    this.viewFactories.set(viewClass.prefix, (rest) => viewClass.parse(rest, deps));
   }
 
-  init(deps: RouterDeps, options: { syncHash?: boolean } = {}): void {
-    this.deps = deps;
+  init(options: { syncHash?: boolean } = {}): void {
     this.syncHash = options.syncHash ?? false;
     if (this.syncHash) {
       window.addEventListener("hashchange", this.onHashChange);
@@ -40,28 +42,16 @@ export class Router {
   }
 
   /**
-   * Re-renders the active view without changing the stack. Call this after the
-   * graph store loads new chunks so a hash-restored view (which may have shown
-   * placeholder data on first paint) refreshes with real data.
+   * Re-renders the active view without changing the stack. Call after the
+   * graph store loads new chunks so a hash-restored view refreshes with real data.
    */
   refresh(): void {
     this.notify();
   }
 
-  /**
-   * Exposes the wired deps so the host can pass them to shared helpers like
-   * `wireRefs()` after a view renders. Throws if init() hasn't run yet.
-   */
-  getDepsForHost(): RouterDeps {
-    if (!this.deps) throw new Error("Router.getDepsForHost() called before init()");
-    return this.deps;
-  }
-
   push(view: View): void {
-    // Skip identical-route pushes (e.g. clicking the same chip twice) so the
-    // back stack stays meaningful and the URL doesn't accumulate dupes.
     const top = this.active();
-    if (top && top.route() === view.route()) return;
+    if (top && top.route === view.route) return;
     this.stack.push(view);
     this.notify();
     this.writeHash();
@@ -125,7 +115,7 @@ export class Router {
   private writeHash(): void {
     if (!this.syncHash) return;
     const top = this.active();
-    const target = top ? `#/${top.route()}` : "";
+    const target = top ? `#/${top.route}` : "";
     const current = window.location.hash;
     if (current === target || (!target && current === "")) return;
     this.writingHash = true;
@@ -149,29 +139,26 @@ export class Router {
   };
 
   private restoreFromHash(): void {
-    if (!this.deps) return;
     const raw = window.location.hash.replace(/^#\/?/, "");
     if (!raw) {
-      // External navigation cleared the hash — empty the stack
       while (this.stack.length > 0) this.stack.pop()?.onLeave?.();
       this.notify();
       return;
     }
     const view = this.parseRoute(raw);
-    if (!view) return; // unknown route — leave current state alone
+    if (!view) return; // unknown or malformed route — leave current state alone
     while (this.stack.length > 0) this.stack.pop()?.onLeave?.();
     this.stack.push(view);
     this.notify();
   }
 
   private parseRoute(route: string): View | null {
-    if (!this.deps) return null;
     const slash = route.indexOf("/");
     const prefix = slash < 0 ? route : route.slice(0, slash);
     const rest = slash < 0 ? "" : route.slice(slash + 1);
-    const ctor = this.viewCtors.get(prefix);
-    if (!ctor) return null;
-    return ctor.parse(rest, this.deps);
+    const factory = this.viewFactories.get(prefix);
+    if (!factory) return null;
+    return factory(rest);
   }
 }
 
