@@ -157,7 +157,16 @@ export class ExplorerApp {
           ? (node.detail.importLines as string[])
           : undefined;
         const { w } = NODE_SIZES[node.type] ?? NODE_SIZES.module;
-        toggleCodeTooltip(node.id, code, node.path ?? node.id, node.x + w / 2, node.y, importLines);
+        const language = node.detail.fileType as string | undefined;
+        void toggleCodeTooltip(
+          node.id,
+          code,
+          node.path ?? node.id,
+          node.x + w / 2,
+          node.y,
+          importLines,
+          language
+        );
       },
       (node, chip) => this.onChipClick(node, chip),
       (nodeId) => this.docsOf.get(nodeId) ?? [],

@@ -1,5 +1,5 @@
 // ─── CodeTooltip ─────────────────────────────────────────────────────────────
-// Click-toggled code preview popup. Opened by the <> bubble on module nodes.
+// Click-toggled code preview popup. Opened by the <> bubble on module/file nodes.
 // Closed by × button, clicking the bubble again, or clicking outside.
 // Repositions itself on zoom/pan so it tracks the anchor node.
 
@@ -42,6 +42,10 @@ export function mountCodeTooltip(svgEl: SVGSVGElement): void {
     userSelect: "text",
   });
   document.body.appendChild(el);
+
+  const style = document.createElement("style");
+  style.textContent = HLJS_CSS;
+  document.head.appendChild(style);
 }
 
 /**
@@ -58,14 +62,15 @@ export function updateCodeTooltipTransform(
 }
 
 /** Toggle: same node → hide; otherwise show anchored to the node's SVG position. */
-export function toggleCodeTooltip(
+export async function toggleCodeTooltip(
   nodeId: string,
   codeLines: string[],
   path: string,
   svgX: number,
   svgY: number,
-  importLines?: string[]
-): void {
+  importLines?: string[],
+  language?: string
+): Promise<void> {
   if (activeNodeId === nodeId) {
     hideCodeTooltip();
     return;
@@ -79,6 +84,13 @@ export function toggleCodeTooltip(
     codeContent += importLines.map((l) => `import ${l}`).join("\n") + "\n\n";
   }
   codeContent += codeLines.join("\n");
+
+  const hljs = await hljsReady;
+  // Guard: tooltip may have been closed while awaiting the highlight chunk
+  if (activeNodeId !== nodeId) return;
+
+  const lang = language ?? "javascript";
+  const highlighted = hljs.highlight(codeContent, { language: lang, ignoreIllegals: true }).value;
 
   if (!el) return;
   el.innerHTML =
@@ -109,7 +121,7 @@ export function toggleCodeTooltip(
     `color:#1e293b;` +
     `flex:1;min-height:0;` +
     `user-select:text;` +
-    `"><code>${highlight(codeContent)}</code></pre>`;
+    `"><code>${highlighted}</code></pre>`;
 
   const pathSlot = el.querySelector<HTMLDivElement>('.header-actions[data-slot="path"]')!;
   pathSlot.appendChild(
@@ -180,163 +192,70 @@ function positionAt(x: number, y: number): void {
   el.style.top = `${Math.max(8, top)}px`;
 }
 
-// ─── Syntax highlighter (inline TS tokenizer) ─────────────────────────────────
+// ─── Syntax highlighter (highlight.js, lazy-loaded) ──────────────────────────
 
-const KW = new Set([
-  "export",
-  "import",
-  "from",
-  "default",
-  "class",
-  "interface",
-  "type",
-  "function",
-  "const",
-  "let",
-  "var",
-  "extends",
-  "implements",
-  "return",
-  "async",
-  "await",
-  "readonly",
-  "public",
-  "private",
-  "protected",
-  "static",
-  "new",
-  "this",
-  "void",
-  "null",
-  "undefined",
-  "true",
-  "false",
-  "as",
-  "of",
-  "in",
-  "declare",
-  "abstract",
-  "override",
-  "namespace",
-  "enum",
-  "keyof",
-  "typeof",
-  "infer",
-  "never",
-  "unknown",
-  "any",
-  "string",
-  "number",
-  "boolean",
-  "symbol",
-  "object",
-  "bigint",
-]);
+// Starts fetching the highlight chunk at SPA boot (parallel to other init).
+// By the time a user clicks <>, this promise is resolved.
+const hljsReady = (async () => {
+  const [
+    { default: hljs },
+    { default: json },
+    { default: yaml },
+    { default: sql },
+    { default: dockerfile },
+    { default: xml },
+    { default: css },
+    { default: bash },
+    { default: graphql },
+    { default: javascript },
+    { default: markdown },
+  ] = await Promise.all([
+    import("highlight.js/lib/core"),
+    import("highlight.js/lib/languages/json"),
+    import("highlight.js/lib/languages/yaml"),
+    import("highlight.js/lib/languages/sql"),
+    import("highlight.js/lib/languages/dockerfile"),
+    import("highlight.js/lib/languages/xml"),
+    import("highlight.js/lib/languages/css"),
+    import("highlight.js/lib/languages/bash"),
+    import("highlight.js/lib/languages/graphql"),
+    import("highlight.js/lib/languages/javascript"),
+    import("highlight.js/lib/languages/markdown"),
+  ]);
+  hljs.registerLanguage("json", json);
+  hljs.registerLanguage("yaml", yaml);
+  hljs.registerLanguage("sql", sql);
+  hljs.registerLanguage("dockerfile", dockerfile);
+  hljs.registerLanguage("xml", xml);
+  hljs.registerLanguage("html", xml); // html files use the xml grammar
+  hljs.registerLanguage("css", css);
+  hljs.registerLanguage("bash", bash);
+  hljs.registerLanguage("graphql", graphql);
+  hljs.registerLanguage("javascript", javascript);
+  hljs.registerLanguage("markdown", markdown);
+  return hljs;
+})();
 
-const C = {
-  kw: "color:#7c3aed",
-  type: "color:#0891b2",
-  str: "color:#16a34a",
-  cmt: "color:#94a3b8;font-style:italic",
-  num: "color:#ea580c",
-  punc: "color:#64748b",
-};
-
-function sp(style: string, text: string): string {
-  return `<span style="${style}">${text}</span>`;
-}
+// GitHub-light token colours — injected once into <head> by mountCodeTooltip.
+const HLJS_CSS = `
+.hljs-comment,.hljs-quote{color:#6a737d;font-style:italic}
+.hljs-keyword,.hljs-selector-tag,.hljs-subst{color:#d73a49}
+.hljs-number,.hljs-literal{color:#005cc5}
+.hljs-string,.hljs-regexp,.hljs-addition,.hljs-meta-string{color:#032f62}
+.hljs-doctag{color:#d73a49}
+.hljs-title,.hljs-section{color:#6f42c1}
+.hljs-built_in,.hljs-tag,.hljs-name{color:#22863a}
+.hljs-attr,.hljs-attribute,.hljs-variable,.hljs-template-variable,.hljs-type{color:#005cc5}
+.hljs-symbol,.hljs-bullet,.hljs-link{color:#0366d6}
+.hljs-deletion{color:#b31d28;background:#ffeef0}
+.hljs-emphasis{font-style:italic}
+.hljs-strong{font-weight:bold}
+`;
 
 function escHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-function highlight(code: string): string {
-  let out = "";
-  let i = 0;
-
-  while (i < code.length) {
-    const ch = code[i];
-
-    // Line comment
-    if (ch === "/" && code[i + 1] === "/") {
-      const end = code.indexOf("\n", i);
-      const val = end === -1 ? code.slice(i) : code.slice(i, end);
-      out += sp(C.cmt, escHtml(val));
-      i += val.length;
-      continue;
-    }
-
-    // Block comment
-    if (ch === "/" && code[i + 1] === "*") {
-      const end = code.indexOf("*/", i + 2);
-      const val = end === -1 ? code.slice(i) : code.slice(i, end + 2);
-      out += sp(C.cmt, escHtml(val));
-      i += val.length;
-      continue;
-    }
-
-    // String / template literals
-    if (ch === '"' || ch === "'" || ch === "`") {
-      let j = i + 1;
-      while (j < code.length) {
-        if (code[j] === "\\") {
-          j += 2;
-          continue;
-        }
-        if (code[j] === ch) {
-          j++;
-          break;
-        }
-        j++;
-      }
-      out += sp(C.str, escHtml(code.slice(i, j)));
-      i = j;
-      continue;
-    }
-
-    // Identifiers — keywords / types / plain names
-    if (/[a-zA-Z_$]/.test(ch)) {
-      let j = i + 1;
-      while (j < code.length && /[a-zA-Z0-9_$]/.test(code[j])) j++;
-      const word = code.slice(i, j);
-      if (KW.has(word)) {
-        out += sp(C.kw, escHtml(word));
-      } else if (/^[A-Z]/.test(word)) {
-        out += sp(C.type, escHtml(word));
-      } else {
-        out += escHtml(word);
-      }
-      i = j;
-      continue;
-    }
-
-    // Numeric literals
-    if (/[0-9]/.test(ch)) {
-      let j = i + 1;
-      while (j < code.length && /[0-9._xXbBoO]/.test(code[j])) j++;
-      out += sp(C.num, escHtml(code.slice(i, j)));
-      i = j;
-      continue;
-    }
-
-    // Arrow => as a single token
-    if (ch === "=" && code[i + 1] === ">") {
-      out += sp(C.punc, "=&gt;");
-      i += 2;
-      continue;
-    }
-
-    // Punctuation & operators
-    if (/[{}()[\]<>,:;|&?=!+\-*/%~^@]/.test(ch)) {
-      out += sp(C.punc, escHtml(ch));
-      i++;
-      continue;
-    }
-
-    // Whitespace and anything else
-    out += escHtml(ch);
-    i++;
-  }
-
-  return out;
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

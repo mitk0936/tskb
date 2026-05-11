@@ -46,6 +46,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ["d3"],
+          highlight: ["highlight.js"],
         },
       },
     },
