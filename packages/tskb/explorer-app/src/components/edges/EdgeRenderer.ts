@@ -275,7 +275,9 @@ function fileName(node: PositionedNode): string {
 function relationTooltipText(d: RelationLink): string {
   if (d.type === "imports" || d.type === "imports-type") {
     const typeLabel = d.type === "imports-type" ? "imports type from" : "imports from";
-    const path = relImportPath(d.source.path, d.target.path) ?? d.target.path ?? d.target.label;
+    const packageName = d.target.detail?.packageName as string | undefined;
+    const path =
+      packageName ?? relImportPath(d.source.path, d.target.path) ?? d.target.path ?? d.target.label;
     return `${fileName(d.source)} ${typeLabel} ${path}`;
   }
   const prefix = d.label;

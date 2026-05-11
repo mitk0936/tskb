@@ -189,6 +189,7 @@ class GraphToExplorerTransformer {
             _hasChildren: hasModulesAnywhere ? "true" : "false",
             _childCount: String(directModuleCount + directSubfolderCount),
             ...(folder.boundary ? { boundary: folder.boundary } : {}),
+            ...(folder.packageName ? { packageName: folder.packageName } : {}),
           },
         }),
       ];
@@ -330,6 +331,7 @@ class GraphToExplorerTransformer {
         _hasChildren: hasContent ? "true" : "false",
         _childCount: String(directModuleCount + directSubfolderCount),
         ...(subfolder.boundary ? { boundary: subfolder.boundary } : {}),
+        ...(subfolder.packageName ? { packageName: subfolder.packageName } : {}),
       },
     });
   }

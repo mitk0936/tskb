@@ -1,6 +1,6 @@
 {
   "name": "tskb",
-  "version": "0.6.3-beta.22",
+  "version": "0.6.3-beta.23",
   "description": "TS Knowledge Base. A TypeScript-native DSL for expressing architectural intent as typed declarations. Produces renderable docs/diagrams and a queryable knowledge graph, supporting type-checked snippet references, semantic relations, and constraints.",
   "type": "module",
   "bin": {
@@ -68,7 +68,8 @@
   ],
   "dependencies": {
     "fuse.js": "^7.1.0",
-    "glob": "^13.0.0"
+    "glob": "^13.0.0",
+    "highlight.js": "^11.11.1"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"

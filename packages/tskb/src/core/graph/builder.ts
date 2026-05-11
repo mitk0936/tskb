@@ -91,7 +91,7 @@ export function buildGraph(
   buildModuleNodes(registry, graph);
   buildTermNodes(registry, graph);
   buildExportNodes(registry, graph);
-  buildFileNodes(registry, graph);
+  buildFileNodes(registry, graph, baseDir);
   buildExternalNodes(registry, graph);
 
   // Enrich folder children with node IDs from registered folders/modules
@@ -228,16 +228,71 @@ function buildExportNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
   }
 }
 
+const FILE_TYPE_MAP: Record<string, string> = {
+  ".json": "json",
+  ".yaml": "yaml",
+  ".yml": "yaml",
+  ".sql": "sql",
+  ".xml": "xml",
+  ".html": "xml",
+  ".htm": "xml",
+  ".css": "css",
+  ".js": "javascript",
+  ".mjs": "javascript",
+  ".cjs": "javascript",
+  ".sh": "bash",
+  ".bash": "bash",
+  ".graphql": "graphql",
+  ".gql": "graphql",
+  ".md": "markdown",
+  ".markdown": "markdown",
+};
+
+const MAX_FILE_LINES = 1000;
+
+function detectFileType(filePath: string): string | undefined {
+  const base = path.basename(filePath).toLowerCase();
+  if (base === "dockerfile" || base.endsWith(".dockerfile")) return "dockerfile";
+  const ext = path.extname(filePath).toLowerCase();
+  return FILE_TYPE_MAP[ext];
+}
+
+function readFileContent(
+  resolvedPath: string,
+  baseDir: string
+): { content: string; fileType: string } | undefined {
+  const fileType = detectFileType(resolvedPath);
+  if (!fileType) return undefined;
+  const absPath = path.isAbsolute(resolvedPath)
+    ? resolvedPath
+    : path.resolve(baseDir, resolvedPath);
+  try {
+    const raw = fs.readFileSync(absPath, "utf-8");
+    const lines = raw.split("\n");
+    const content =
+      lines.length > MAX_FILE_LINES
+        ? lines.slice(0, MAX_FILE_LINES).join("\n") +
+          `\n// … (${lines.length - MAX_FILE_LINES} more lines)`
+        : raw;
+    return { content, fileType };
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Create File nodes from registry
  */
-function buildFileNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): void {
+function buildFileNodes(registry: ExtractedRegistry, graph: KnowledgeGraph, baseDir: string): void {
   for (const [name, data] of registry.files.entries()) {
+    const resolvedPath = data.resolvedPath ?? data.path;
+    const fileContent = resolvedPath ? readFileContent(resolvedPath, baseDir) : undefined;
     const node: FileNode = {
       id: name,
       type: "file",
       desc: data.desc,
-      path: data.resolvedPath ?? data.path,
+      path: resolvedPath,
+      ...(fileContent ?? {}),
     };
     graph.nodes.files[name] = node;
   }

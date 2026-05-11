@@ -115,6 +115,10 @@ export interface FileNode extends GraphNode {
    * Resolved path relative to tsconfig directory (portable across machines)
    */
   path?: string;
+  /** Raw file content, capped at 1000 lines. Only populated for whitelisted text extensions. */
+  content?: string;
+  /** highlight.js language identifier derived from the file extension (e.g. "json", "yaml", "css"). */
+  fileType?: string;
 }
 
 export interface ExternalNode extends GraphNode {
