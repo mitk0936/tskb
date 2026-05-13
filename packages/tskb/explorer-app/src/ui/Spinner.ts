@@ -37,7 +37,7 @@ export function showNodeSpinner(
   arc.setAttribute("cy", "0");
   arc.setAttribute("r", String(size / 2));
   arc.setAttribute("fill", "none");
-  arc.setAttribute("stroke", "#3b82f6");
+  arc.setAttribute("stroke", "#1a76c2");
   arc.setAttribute("stroke-width", "2");
   arc.setAttribute("stroke-dasharray", `${size * 0.8} ${size * 2}`);
   arc.setAttribute("stroke-linecap", "round");

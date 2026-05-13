@@ -82,9 +82,9 @@
 }
 
 .title-refs-target-link {
-  color: #2563eb;
+  color: #0057a1;
   text-decoration: none;
-  background: #eff6ff;
+  background: #e8f2fa;
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 12px;
@@ -93,7 +93,7 @@
 }
 
 .title-refs-target-link:hover {
-  background: #dbeafe;
+  background: #cce0f2;
   text-decoration: underline;
 }
 
@@ -193,9 +193,9 @@
 /* ── Node reference links ─────────────────────────────────────────────────── */
 
 #doc-panel-body a.tskb-ref {
-  color: #2563eb;
+  color: #0057a1;
   text-decoration: none;
-  background: #eff6ff;
+  background: #e8f2fa;
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 12px;
@@ -204,7 +204,7 @@
 }
 
 #doc-panel-body a.tskb-ref:hover {
-  background: #dbeafe;
+  background: #cce0f2;
   text-decoration: underline;
 }
 
@@ -333,7 +333,7 @@
 }
 
 #doc-panel-body a.tskb-ref.accordion-path-ref:hover {
-  color: #2563eb;
+  color: #0057a1;
   background: transparent;
   text-decoration: underline;
 }
@@ -372,8 +372,8 @@
 }
 
 .priority-essential {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: #cce0f2;
+  color: #004880;
 }
 .priority-constraint {
   background: #fce7f3;

@@ -9,7 +9,7 @@ import { EyeIcon, MinusIcon, replaceIcon } from "../../ui/icons";
 // ─── Shared style maps ────────────────────────────────────────────────────────
 
 export const NODE_COLORS: Record<NodeType, string> = {
-  folder: "#2563eb", // blue
+  folder: "#0057a1", // blue
   module: "#ca8a04", // amber
   export: "#16a34a", // green
   doc: "#9333ea", // purple

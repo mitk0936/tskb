@@ -62,10 +62,10 @@
       }
 
       #toolbar .brand {
-        font-size: 13px;
-        font-weight: 700;
-        color: #2563eb;
-        letter-spacing: 0.05em;
+        display: block;
+        height: 26px;
+        width: auto;
+        flex-shrink: 0;
       }
 
       #toolbar .sep {
@@ -82,11 +82,13 @@
         border-radius: 999px;
         padding: 0 4px 0 12px;
         gap: 2px;
-        transition: border-color 0.15s, box-shadow 0.15s;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s;
       }
       #search-bar:focus-within {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 3px #3b82f622;
+        border-color: #1a76c2;
+        box-shadow: 0 0 0 3px #1a76c222;
         background: #fff;
       }
       #search-icon {
@@ -107,24 +109,57 @@
       #search-input::placeholder {
         color: #94a3b8;
       }
-      #search-clear {
+      #search-chip {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: #cce0f2;
+        color: #004880;
+        border-radius: 999px;
+        padding: 3px 8px 3px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      #search-chip[hidden] {
+        display: none;
+      }
+      #search-chip.chip-searching {
+        animation: chip-pulse 0.9s ease-in-out infinite;
+      }
+      @keyframes chip-pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      #search-chip.chip-searching .chip-close {
+        display: none;
+      }
+      .chip-close {
         background: none;
         border: none;
         cursor: pointer;
-        color: #94a3b8;
-        font-size: 12px;
+        color: #004880;
+        font-size: 11px;
         line-height: 1;
-        padding: 3px 4px;
+        padding: 2px 3px;
         border-radius: 999px;
-        flex-shrink: 0;
-        transition: background 0.12s, color 0.12s;
+        transition:
+          background 0.12s,
+          color 0.12s;
       }
-      #search-clear:hover {
+      .chip-close:hover {
         background: #fee2e2;
         color: #ef4444;
       }
       #search-btn {
-        background: #3b82f6;
+        background: #1a76c2;
         border: none;
         border-radius: 999px;
         color: #fff;
@@ -134,14 +169,22 @@
         padding: 4px 12px;
         cursor: pointer;
         flex-shrink: 0;
-        transition: background 0.12s, transform 0.08s;
+        transition:
+          background 0.12s,
+          transform 0.08s;
       }
       #search-btn:hover {
-        background: #2563eb;
+        background: #0057a1;
         transform: scale(1.04);
       }
       #search-btn:active {
         transform: scale(0.97);
+      }
+
+      @media (max-width: 640px) {
+        #stats {
+          display: none;
+        }
       }
 
       #stats {
@@ -182,14 +225,14 @@
     <div id="app">
       <!-- Toolbar -->
       <div id="toolbar">
-        <span class="brand">&lt;TSKB&gt; explorer</span>
+        <img class="brand" src="./assets/logo.png" alt="TSKB Explorer" />
         <div class="sep"></div>
         <div id="search-bar">
           <span id="search-icon">⌕</span>
-          <input id="search-input" type="text" placeholder="Search nodes…" />
-          <button id="search-clear" title="Clear search" hidden>✕</button>
+          <input id="search-input" type="text" placeholder="Fuzzy keywords search..." />
           <button id="search-btn" title="Search (Enter)">Search</button>
         </div>
+        <div id="search-chip" hidden></div>
         <span id="stats"></span>
       </div>
 
@@ -218,7 +261,7 @@
             cy="20"
             r="16"
             fill="none"
-            stroke="#3b82f6"
+            stroke="#1a76c2"
             stroke-width="3"
             stroke-dasharray="50 50"
             stroke-linecap="round"

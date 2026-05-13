@@ -55,6 +55,7 @@ export class ExplorerApp {
   private selected: PositionedNode | null = null;
   private matchIds: Set<string> | null = null;
   private searchWorker: Worker | null = null;
+  private searchChip: HTMLDivElement | null = null;
   private zoomK = 1;
   private pendingScrollGen = 0;
 
@@ -177,7 +178,7 @@ export class ExplorerApp {
   private setupSearch(): void {
     const searchInput = document.getElementById("search-input") as HTMLInputElement;
     const searchBtn = document.getElementById("search-btn") as HTMLButtonElement;
-    const searchClear = document.getElementById("search-clear") as HTMLButtonElement;
+    this.searchChip = document.getElementById("search-chip") as HTMLDivElement;
 
     this.searchWorker = new Worker(new URL("./workers/search.worker.ts", import.meta.url), {
       type: "module",
@@ -190,7 +191,8 @@ export class ExplorerApp {
       const msg = e.data;
       if (msg.type === "results") {
         const ids: string[] = msg.ids;
-        this.matchIds = ids.length > 0 ? new Set<string>(ids) : null;
+        this.matchIds = new Set<string>(ids);
+        if (this.searchChip) this.searchChip.classList.remove("chip-searching");
         if (ids.length > 0) {
           void this.expandToReveal(ids, ids[0], true);
         } else {
@@ -202,30 +204,45 @@ export class ExplorerApp {
     const triggerSearch = () => {
       const query = searchInput.value.trim();
       if (!query) {
-        this.clearSearch(searchInput, searchClear);
+        this.clearSearch(searchInput);
         return;
       }
+      searchInput.value = "";
+      this.showSearchChip(query, searchInput);
+      this.searchChip?.classList.add("chip-searching");
       this.searchWorker?.postMessage({ type: "search", query });
     };
 
-    const updateClearBtn = () => {
-      searchClear.hidden = searchInput.value.length === 0;
-    };
-
-    searchInput.addEventListener("input", updateClearBtn);
     searchBtn.addEventListener("click", triggerSearch);
     searchInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") triggerSearch();
-      if (e.key === "Escape") this.clearSearch(searchInput, searchClear);
+      if (e.key === "Escape") this.clearSearch(searchInput);
     });
-    searchClear.addEventListener("click", () => this.clearSearch(searchInput, searchClear));
   }
 
-  private clearSearch(input: HTMLInputElement, clearBtn: HTMLButtonElement): void {
+  private clearSearch(input: HTMLInputElement): void {
     input.value = "";
-    clearBtn.hidden = true;
     this.matchIds = null;
+    if (this.searchChip) {
+      this.searchChip.hidden = true;
+      this.searchChip.innerHTML = "";
+    }
     this.render();
+  }
+
+  private showSearchChip(query: string, input: HTMLInputElement): void {
+    if (!this.searchChip) return;
+    this.searchChip.innerHTML = "";
+    const label = document.createElement("span");
+    label.textContent = query;
+    const close = document.createElement("button");
+    close.className = "chip-close";
+    close.title = "Clear search";
+    close.textContent = "✕";
+    close.addEventListener("click", () => this.clearSearch(input));
+    this.searchChip.appendChild(label);
+    this.searchChip.appendChild(close);
+    this.searchChip.hidden = false;
   }
 
   private buildRefMaps(meta: import("./graph/chunk-types").MetaChunk): void {
@@ -666,7 +683,7 @@ export class ExplorerApp {
       nodeId
         ? (d) => {
             if (d.id !== nodeId) return null;
-            const c = NODE_COLORS[d.type] ?? "#3b82f6";
+            const c = NODE_COLORS[d.type] ?? "#0057a1";
             return `drop-shadow(0 0 6px ${c}bb) drop-shadow(0 0 14px ${c}66)`;
           }
         : null

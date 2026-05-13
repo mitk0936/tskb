@@ -6,6 +6,17 @@ type InMessage = { type: "init"; url: string } | { type: "search"; query: string
 
 type OutMessage = { type: "ready" } | { type: "results"; query: string; ids: string[] };
 
+// Shape of ExplorerNode as serialised in search-index.json
+interface RawNode {
+  id: string;
+  type: string;
+  label: string;
+  description: string;
+  path?: string;
+  edgeCount: number;
+  detail?: Record<string, string | string[]>;
+}
+
 interface SearchEntry {
   id: string;
   type: string;
@@ -21,10 +32,33 @@ interface SearchEntry {
 let fuse: Fuse<SearchEntry> | null = null;
 let index: SearchEntry[] = [];
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function toSearchEntry(node: RawNode): SearchEntry {
+  const detail = node.detail ?? {};
+  const htmlField = detail["html"];
+  const content = typeof htmlField === "string" ? stripHtml(htmlField).slice(0, 3000) : "";
+  return {
+    id: node.id,
+    type: node.type,
+    label: node.label,
+    desc: node.description ?? "",
+    path: node.path,
+    content,
+    edgeCount: node.edgeCount,
+  };
+}
+
 async function init(url: string): Promise<void> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`search-index fetch failed: ${res.status}`);
-  index = await res.json();
+  const raw: RawNode[] = await res.json();
+  index = raw.map(toSearchEntry);
 
   fuse = new Fuse(index, {
     keys: [
@@ -81,9 +115,16 @@ function rankScores(scores: Map<string, number>): string[] {
 
 function search(query: string): string[] {
   if (!fuse || !index.length || !query.trim()) return [];
-  const scores = substringScores(query.toLowerCase());
-  mergeFuzzyScores(scores, query);
-  return rankScores(scores);
+  const tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const combined = new Map<string, number>();
+  for (const token of tokens) {
+    const tokenScores = substringScores(token);
+    mergeFuzzyScores(tokenScores, token);
+    for (const [id, score] of tokenScores) {
+      combined.set(id, (combined.get(id) ?? 0) + score);
+    }
+  }
+  return rankScores(combined);
 }
 
 // ─── Message handler ─────────────────────────────────────────────────────────
