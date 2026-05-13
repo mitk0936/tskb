@@ -71,6 +71,7 @@ export interface FolderChunk {
 export interface ExplorerChunks {
   meta: MetaChunk;
   folders: Map<string, FolderChunk>;
+  searchIndex: ExplorerNode[];
 }
 
 // ─── Ghost chain builder ──────────────────────────────────────────────────────
@@ -136,6 +137,18 @@ class GraphToExplorerTransformer {
     const parentOf = this.buildParentOf();
     const folderIds = [...this.folderChunks.keys()];
 
+    const searchIndex = this.buildSearchIndex({
+      root,
+      topFolders,
+      topModules,
+      topFiles,
+      docs,
+      flows,
+      terms,
+      externals,
+      files,
+    });
+
     return {
       meta: {
         kind: "meta",
@@ -154,7 +167,36 @@ class GraphToExplorerTransformer {
         folderIds,
       },
       folders: this.folderChunks,
+      searchIndex,
     };
+  }
+
+  private buildSearchIndex(meta: {
+    root: ExplorerNode;
+    topFolders: ExplorerNode[];
+    topModules: ExplorerNode[];
+    topFiles: ExplorerNode[];
+    docs: ExplorerNode[];
+    flows: ExplorerNode[];
+    terms: ExplorerNode[];
+    externals: ExplorerNode[];
+    files: ExplorerNode[];
+  }): ExplorerNode[] {
+    const all: ExplorerNode[] = [
+      meta.root,
+      ...meta.topFolders,
+      ...meta.topModules,
+      ...meta.topFiles,
+      ...meta.docs,
+      ...meta.flows,
+      ...meta.terms,
+      ...meta.externals,
+      ...meta.files,
+    ];
+    for (const chunk of this.folderChunks.values()) {
+      all.push(...chunk.subfolders, ...chunk.modules, ...chunk.exports, ...chunk.files);
+    }
+    return all;
   }
 
   // ── Meta chunk builders ────────────────────────────────────────────────────
@@ -622,54 +664,23 @@ class GraphToExplorerTransformer {
       const directExports: ExplorerNode[] = [];
       const directSubfolders: ExplorerNode[] = [];
 
-      // ── Route modules ────────────────────────────────────────────────────
-      for (const moduleNode of chunk.modules) {
-        const modulePath = moduleNode.path?.replace(/\\/g, "/");
-        if (!modulePath) {
-          directModules.push(moduleNode);
-          continue;
-        }
-
-        const moduleDirPath = modulePath.substring(0, modulePath.lastIndexOf("/"));
-        const chain = this.computeGhostChain(folderPath, moduleDirPath);
-
-        if (chain.length === 0 || chain.some((p) => folderPathToId.has(p))) {
-          // Direct child, or chain passes through a declared folder — leave in place.
-          directModules.push(moduleNode);
-          directExports.push(...this.getModuleExports(moduleNode.id, chunk.exports));
-          continue;
-        }
-
-        this.ensureGhostChain(chain, folderPath, ghostLevels);
-        const deepestPath = chain[chain.length - 1];
-        const deepestLevel = ghostLevels.get(deepestPath)!;
-        deepestLevel.modules.push({ ...moduleNode, parentId: deepestPath });
-        deepestLevel.exports.push(
-          ...this.getModuleExports(moduleNode.id, chunk.exports).map((e) => ({ ...e }))
-        );
-      }
-
-      // ── Route subfolders ─────────────────────────────────────────────────
-      for (const subfolderNode of chunk.subfolders) {
-        const subfolderPath = subfolderNode.path?.replace(/\\/g, "/");
-        if (!subfolderPath) {
-          directSubfolders.push(subfolderNode);
-          continue;
-        }
-
-        const subfolderParentPath = subfolderPath.substring(0, subfolderPath.lastIndexOf("/"));
-        const chain = this.computeGhostChain(folderPath, subfolderParentPath);
-
-        if (chain.length === 0 || chain.some((p) => folderPathToId.has(p))) {
-          directSubfolders.push(subfolderNode);
-          continue;
-        }
-
-        this.ensureGhostChain(chain, folderPath, ghostLevels);
-        const deepestPath = chain[chain.length - 1];
-        const deepestLevel = ghostLevels.get(deepestPath)!;
-        deepestLevel.subfolders.push({ ...subfolderNode, parentId: deepestPath });
-      }
+      // Route subfolders first so we know which ghost paths they create.
+      const subfolderGhostPaths = this.routeSubfoldersToGhosts(
+        chunk,
+        folderPath,
+        folderPathToId,
+        ghostLevels,
+        directSubfolders
+      );
+      this.routeModulesToGhosts(
+        chunk,
+        folderPath,
+        folderPathToId,
+        ghostLevels,
+        directModules,
+        directExports,
+        subfolderGhostPaths
+      );
 
       if (ghostLevels.size === 0) continue;
 
@@ -709,6 +720,82 @@ class GraphToExplorerTransformer {
       chunk.subfolders = [...directSubfolders, ...firstLevelGhosts];
       chunk.internalEdges = internalEdges;
       chunk.externalEdges = externalEdges;
+    }
+  }
+
+  /**
+   * Routes each subfolder in `chunk` to either `directSubfolders` or a ghost
+   * intermediary level. Returns the set of all ghost paths created so that
+   * module routing can reference them.
+   */
+  private routeSubfoldersToGhosts(
+    chunk: FolderChunk,
+    folderPath: string,
+    folderPathToId: Map<string, string>,
+    ghostLevels: Map<string, GhostLevelBuilder>,
+    directSubfolders: ExplorerNode[]
+  ): Set<string> {
+    const subfolderGhostPaths = new Set<string>();
+    for (const subfolderNode of chunk.subfolders) {
+      const subfolderPath = subfolderNode.path?.replace(/\\/g, "/");
+      if (!subfolderPath) {
+        directSubfolders.push(subfolderNode);
+        continue;
+      }
+      const subfolderParentPath = subfolderPath.substring(0, subfolderPath.lastIndexOf("/"));
+      const chain = this.computeGhostChain(folderPath, subfolderParentPath);
+      if (chain.length === 0 || chain.some((p) => folderPathToId.has(p))) {
+        directSubfolders.push(subfolderNode);
+        continue;
+      }
+      for (const p of chain) subfolderGhostPaths.add(p);
+      this.ensureGhostChain(chain, folderPath, ghostLevels);
+      const deepest = ghostLevels.get(chain[chain.length - 1])!;
+      deepest.subfolders.push({ ...subfolderNode, parentId: chain[chain.length - 1] });
+    }
+    return subfolderGhostPaths;
+  }
+
+  /**
+   * Routes each module in `chunk` to either `directModules` or a ghost
+   * intermediary level. Modules whose only intermediary is a ghost path already
+   * used by the subfolder routing are kept as direct children — this prevents
+   * a package's `src/index.ts` from disappearing into a ghost `src/` that was
+   * created solely to group declared sub-areas like `src/cli`, `src/core`, etc.
+   */
+  private routeModulesToGhosts(
+    chunk: FolderChunk,
+    folderPath: string,
+    folderPathToId: Map<string, string>,
+    ghostLevels: Map<string, GhostLevelBuilder>,
+    directModules: ExplorerNode[],
+    directExports: ExplorerNode[],
+    subfolderGhostPaths: Set<string>
+  ): void {
+    for (const moduleNode of chunk.modules) {
+      const modulePath = moduleNode.path?.replace(/\\/g, "/");
+      if (!modulePath) {
+        directModules.push(moduleNode);
+        continue;
+      }
+      const moduleDirPath = modulePath.substring(0, modulePath.lastIndexOf("/"));
+      const chain = this.computeGhostChain(folderPath, moduleDirPath);
+      if (
+        chain.length === 0 ||
+        chain.some((p) => folderPathToId.has(p)) ||
+        (chain.length === 1 && subfolderGhostPaths.has(chain[0]))
+      ) {
+        directModules.push(moduleNode);
+        directExports.push(...this.getModuleExports(moduleNode.id, chunk.exports));
+        continue;
+      }
+      this.ensureGhostChain(chain, folderPath, ghostLevels);
+      const deepestPath = chain[chain.length - 1];
+      const deepestLevel = ghostLevels.get(deepestPath)!;
+      deepestLevel.modules.push({ ...moduleNode, parentId: deepestPath });
+      deepestLevel.exports.push(
+        ...this.getModuleExports(moduleNode.id, chunk.exports).map((e) => ({ ...e }))
+      );
     }
   }
 

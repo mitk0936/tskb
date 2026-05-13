@@ -283,7 +283,7 @@ Each iteration adds nodes, flows, and constraints. The graph gets denser over ti
 }
 ```
 
-The graph is the primary output. The explorer, Graphviz DOT (`.tskb/graph.dot`), and AI skill files are all derived from it.
+The graph is the primary output. The explorer and AI skill files are all derived from it.
 
 ---
 

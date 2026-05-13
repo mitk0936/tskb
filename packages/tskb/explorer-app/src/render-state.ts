@@ -26,7 +26,7 @@ export interface RenderState {
 export function computeRenderState(
   store: GraphStore,
   layout: LaneLayout,
-  searchQuery: string
+  matchIds: Set<string> | null
 ): RenderState {
   const allNodes = [...layout.structureNodes, ...layout.docsNodes, ...layout.otherNodes];
 
@@ -36,19 +36,6 @@ export function computeRenderState(
 
   const crossEdges = store.meta?.crossEdges ?? [];
   const relationLinks = buildRelationLinks(allNodes, crossEdges);
-
-  const matchIds = searchQuery
-    ? new Set(
-        allNodes
-          .filter(
-            (n) =>
-              n.id.toLowerCase().includes(searchQuery) ||
-              n.label.toLowerCase().includes(searchQuery) ||
-              n.description.toLowerCase().includes(searchQuery)
-          )
-          .map((n) => n.id)
-      )
-    : null;
 
   return { allNodes, canvasW, structureLinks, relationLinks, matchIds };
 }

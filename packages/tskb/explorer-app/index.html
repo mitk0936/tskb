@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>&lt;tskb&gt; Explorer</title>
+    <title>&lt;TSKB&gt; Explorer</title>
     <style>
       *,
       *::before,
@@ -74,21 +74,74 @@
         background: #e2e8f0;
       }
 
-      #search-input {
+      #search-bar {
+        display: flex;
+        align-items: center;
         background: #f1f5f9;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 999px;
+        padding: 0 4px 0 12px;
+        gap: 2px;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      #search-bar:focus-within {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px #3b82f622;
+        background: #fff;
+      }
+      #search-icon {
+        font-size: 14px;
+        color: #94a3b8;
+        flex-shrink: 0;
+        pointer-events: none;
+      }
+      #search-input {
+        background: transparent;
+        border: none;
+        outline: none;
         color: #1e293b;
         font-size: 12px;
-        padding: 4px 10px;
-        width: 220px;
-        outline: none;
+        padding: 5px 4px;
+        width: 170px;
       }
       #search-input::placeholder {
         color: #94a3b8;
       }
-      #search-input:focus {
-        border-color: #3b82f6;
+      #search-clear {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #94a3b8;
+        font-size: 12px;
+        line-height: 1;
+        padding: 3px 4px;
+        border-radius: 999px;
+        flex-shrink: 0;
+        transition: background 0.12s, color 0.12s;
+      }
+      #search-clear:hover {
+        background: #fee2e2;
+        color: #ef4444;
+      }
+      #search-btn {
+        background: #3b82f6;
+        border: none;
+        border-radius: 999px;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        padding: 4px 12px;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: background 0.12s, transform 0.08s;
+      }
+      #search-btn:hover {
+        background: #2563eb;
+        transform: scale(1.04);
+      }
+      #search-btn:active {
+        transform: scale(0.97);
       }
 
       #stats {
@@ -129,9 +182,14 @@
     <div id="app">
       <!-- Toolbar -->
       <div id="toolbar">
-        <span class="brand">&lt;tskb&gt; explorer</span>
+        <span class="brand">&lt;TSKB&gt; explorer</span>
         <div class="sep"></div>
-        <input id="search-input" type="text" placeholder="Search nodes…" />
+        <div id="search-bar">
+          <span id="search-icon">⌕</span>
+          <input id="search-input" type="text" placeholder="Search nodes…" />
+          <button id="search-clear" title="Clear search" hidden>✕</button>
+          <button id="search-btn" title="Search (Enter)">Search</button>
+        </div>
         <span id="stats"></span>
       </div>
 

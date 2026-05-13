@@ -9,7 +9,9 @@ import fs from "node:fs";
 
 export const FIXTURE_DIR = path.resolve(import.meta.dirname, "fixture");
 export const TSKB_BIN = path.resolve(import.meta.dirname, "../../packages/tskb/dist/cli/index.js");
-export const GRAPH_PATH = path.join(FIXTURE_DIR, ".tskb", "graph.json");
+export const GRAPH_DIR = path.join(FIXTURE_DIR, ".tskb", "graph");
+/** Kept for build-existence checks — points to the meta file in the split graph dir. */
+export const GRAPH_PATH = path.join(GRAPH_DIR, "meta.json");
 
 /** Run the tskb CLI in a given directory. */
 export function tskbIn(cwd: string, ...args: string[]): string {
@@ -25,9 +27,23 @@ export function tskb(...args: string[]): string {
   return tskbIn(FIXTURE_DIR, ...args);
 }
 
-/** Read and parse the built graph.json from the fixture. */
+/** Read and reconstruct the KnowledgeGraph from the split .tskb/graph/ files. */
 export function loadGraph() {
-  return JSON.parse(fs.readFileSync(GRAPH_PATH, "utf-8"));
+  const read = (name: string) => JSON.parse(fs.readFileSync(path.join(GRAPH_DIR, name), "utf-8"));
+  return {
+    metadata: read("meta.json"),
+    nodes: {
+      folders: read("folders.json"),
+      modules: read("modules.json"),
+      exports: read("exports.json"),
+      terms: read("terms.json"),
+      files: read("files.json"),
+      externals: read("externals.json"),
+      flows: read("flows.json"),
+      docs: read("docs.json"),
+    },
+    edges: read("edges.json"),
+  };
 }
 
 /** Recursively copy a directory. */

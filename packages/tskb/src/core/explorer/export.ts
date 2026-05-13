@@ -34,6 +34,7 @@ export async function exportExplorer(graph: KnowledgeGraph, outputDir: string): 
   const chunks = transformGraph(graph);
 
   fs.writeFileSync(path.join(chunksDir, "meta.json"), JSON.stringify(chunks.meta));
+  fs.writeFileSync(path.join(chunksDir, "search-index.json"), JSON.stringify(chunks.searchIndex));
 
   for (const [id, chunk] of chunks.folders) {
     fs.writeFileSync(

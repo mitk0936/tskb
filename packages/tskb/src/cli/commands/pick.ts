@@ -1,7 +1,6 @@
-import fs from "node:fs";
 import path from "node:path";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
-import { findGraphFile } from "../utils/graph-finder.js";
+import { loadGraph } from "../utils/graph-loader.js";
 import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
 import {
   resolveNode,
@@ -574,9 +573,7 @@ export async function pick(
   plain: boolean = false
 ): Promise<void> {
   const loadDone = time("Loading graph");
-  const graphPath = findGraphFile();
-  const graphJson = fs.readFileSync(graphPath, "utf-8");
-  const graph: KnowledgeGraph = JSON.parse(graphJson);
+  const graph = loadGraph();
   loadDone();
 
   const resolveDone = time("Resolving node");

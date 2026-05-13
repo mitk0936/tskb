@@ -44,6 +44,8 @@ export async function serveExplorer(
 
   // meta
   chunkCache.set("meta", JSON.stringify(chunks.meta));
+  // search index
+  chunkCache.set("search-index", JSON.stringify(chunks.searchIndex));
   // folder chunks
   for (const [id, chunk] of chunks.folders) {
     chunkCache.set(`folder-${sanitizeFolderId(id)}`, JSON.stringify(chunk));

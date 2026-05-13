@@ -32,9 +32,7 @@ import type { LaneLayout } from "./layout/lane-engine";
 
 type Layer = d3.Selection<SVGGElement, unknown, null, undefined>;
 
-/** Below this zoom level, panel-link navigation zooms in so the target is legible. */
-const READABLE_ZOOM_THRESHOLD = 0.6;
-/** Zoom level applied when panel-link navigation triggers a zoom-up. */
+/** Zoom level applied when search scroll resets the viewport. */
 const READABLE_ZOOM = 0.85;
 
 /**
@@ -55,8 +53,10 @@ export class ExplorerApp {
   // UI state — expanded set and selected node live here, not in the store
   private expanded = new Set<string>();
   private selected: PositionedNode | null = null;
-  private searchQuery = "";
+  private matchIds: Set<string> | null = null;
+  private searchWorker: Worker | null = null;
   private zoomK = 1;
+  private pendingScrollGen = 0;
 
   // Layout cache — invalidated on structural changes, reused for search-only re-renders
   private cachedLayout: LaneLayout | null = null;
@@ -176,10 +176,56 @@ export class ExplorerApp {
 
   private setupSearch(): void {
     const searchInput = document.getElementById("search-input") as HTMLInputElement;
-    searchInput.addEventListener("input", () => {
-      this.searchQuery = searchInput.value.toLowerCase().trim();
-      this.render();
+    const searchBtn = document.getElementById("search-btn") as HTMLButtonElement;
+    const searchClear = document.getElementById("search-clear") as HTMLButtonElement;
+
+    this.searchWorker = new Worker(new URL("./workers/search.worker.ts", import.meta.url), {
+      type: "module",
     });
+    this.searchWorker.postMessage({
+      type: "init",
+      url: new URL("./chunks/search-index.json", document.baseURI).href,
+    });
+    this.searchWorker.addEventListener("message", (e: MessageEvent) => {
+      const msg = e.data;
+      if (msg.type === "results") {
+        const ids: string[] = msg.ids;
+        this.matchIds = ids.length > 0 ? new Set<string>(ids) : null;
+        if (ids.length > 0) {
+          void this.expandToReveal(ids, ids[0], true);
+        } else {
+          this.render();
+        }
+      }
+    });
+
+    const triggerSearch = () => {
+      const query = searchInput.value.trim();
+      if (!query) {
+        this.clearSearch(searchInput, searchClear);
+        return;
+      }
+      this.searchWorker?.postMessage({ type: "search", query });
+    };
+
+    const updateClearBtn = () => {
+      searchClear.hidden = searchInput.value.length === 0;
+    };
+
+    searchInput.addEventListener("input", updateClearBtn);
+    searchBtn.addEventListener("click", triggerSearch);
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") triggerSearch();
+      if (e.key === "Escape") this.clearSearch(searchInput, searchClear);
+    });
+    searchClear.addEventListener("click", () => this.clearSearch(searchInput, searchClear));
+  }
+
+  private clearSearch(input: HTMLInputElement, clearBtn: HTMLButtonElement): void {
+    input.value = "";
+    clearBtn.hidden = true;
+    this.matchIds = null;
+    this.render();
   }
 
   private buildRefMaps(meta: import("./graph/chunk-types").MetaChunk): void {
@@ -234,7 +280,7 @@ export class ExplorerApp {
     const { allNodes, canvasW, structureLinks, relationLinks, matchIds } = computeRenderState(
       this.store,
       this.cachedLayout,
-      this.searchQuery
+      this.matchIds
     );
     console.log(
       `[render] computeRenderState — ${allNodes.length} nodes, ${structureLinks.length} struct, ${relationLinks.length} relation (${(performance.now() - t).toFixed(1)}ms)`
@@ -382,7 +428,11 @@ export class ExplorerApp {
    * Expands all ancestor folders/modules needed to make each node in nodeIds visible.
    * Folder chunks are loaded on demand; a final render() is called when done.
    */
-  private async expandToReveal(nodeIds: string[], anchorId?: string): Promise<void> {
+  private async expandToReveal(
+    nodeIds: string[],
+    anchorId?: string,
+    collapseOthers = false
+  ): Promise<void> {
     if (!this.store.meta) return;
     const { parentOf, folderIds } = this.store.meta;
     const folderSet = new Set(folderIds);
@@ -390,6 +440,8 @@ export class ExplorerApp {
     const toExpand = new Set<string>();
     const visited = new Set<string>();
     for (const nodeId of nodeIds) {
+      // If the matched node is itself a folder, expand it too so its contents appear.
+      if (folderSet.has(nodeId)) toExpand.add(nodeId);
       let current = parentOf[nodeId];
       while (current && !visited.has(current)) {
         visited.add(current);
@@ -400,14 +452,51 @@ export class ExplorerApp {
 
     const foldersToLoad = new Set([...toExpand].filter((id) => folderSet.has(id)));
     await this.fetchAndStoreFolders(foldersToLoad);
-    for (const id of toExpand) this.expanded.add(id);
+
+    if (collapseOthers) {
+      this.expanded = new Set(toExpand);
+    } else {
+      for (const id of toExpand) this.expanded.add(id);
+    }
 
     this.layoutDirty = true;
     this.render();
 
     if (anchorId) {
-      this.scrollToNode(anchorId, true);
+      if (collapseOthers) {
+        this.scheduleSearchScroll(nodeIds, anchorId);
+      } else {
+        requestAnimationFrame(() => this.scrollToNode(anchorId, true));
+      }
     }
+  }
+
+  /**
+   * Schedules a deferred viewport pan to the best renderable node after a
+   * search-triggered collapse. Waits 250 ms so the layout transition (220 ms)
+   * settles first, preventing the chaotic "layout collapsing + viewport flying"
+   * simultaneous-animation effect. A generation counter cancels stale callbacks
+   * when a newer search fires before the timeout fires.
+   *
+   * Falls back from the preferred `anchorId` to the first node in `nodeIds`
+   * that is actually in the rendered layout, because doc/flow/term nodes appear
+   * in the search index but are not rendered on the canvas.
+   */
+  private scheduleSearchScroll(nodeIds: string[], anchorId: string): void {
+    const layoutIds = new Set(
+      [...(this.cachedLayout?.structureNodes ?? []), ...(this.cachedLayout?.otherNodes ?? [])].map(
+        (n) => n.id
+      )
+    );
+    const renderableAnchor = layoutIds.has(anchorId)
+      ? anchorId
+      : nodeIds.find((id) => layoutIds.has(id));
+    if (!renderableAnchor) return;
+
+    const gen = ++this.pendingScrollGen;
+    setTimeout(() => {
+      if (this.pendingScrollGen === gen) this.scrollToNode(renderableAnchor, true);
+    }, 250);
   }
 
   /**
@@ -474,10 +563,14 @@ export class ExplorerApp {
     const cy = d.y + h / 2;
     const rect = this.svgEl.getBoundingClientRect();
 
-    if (ensureZoom && this.zoomK < READABLE_ZOOM_THRESHOLD) {
+    if (ensureZoom) {
+      // Always reset to a readable zoom level when navigating to a search result:
+      // just panning (translateTo) keeps whatever zoom was current, which can be
+      // misaligned after a collapse that shrinks the canvas dramatically.
+      const k = Math.min(Math.max(this.zoomK, READABLE_ZOOM), 1.2);
       const transform = d3.zoomIdentity
         .translate(rect.width / 2, rect.height / 2)
-        .scale(READABLE_ZOOM)
+        .scale(k)
         .translate(-cx, -cy);
       this.svg.transition().duration(400).call(this.zoom.transform, transform);
       return;

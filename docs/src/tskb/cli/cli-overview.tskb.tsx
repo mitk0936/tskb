@@ -78,8 +78,13 @@ declare global {
       }>;
 
       "cli.utils.graph-finder": Module<{
-        desc: "Finds the `.tskb/graph.json` file for the current project.";
+        desc: "Finds the `.tskb/graph/` directory for the current project.";
         type: typeof import("packages/tskb/src/cli/utils/graph-finder.js");
+      }>;
+
+      "cli.utils.graph-loader": Module<{
+        desc: "Loads the split graph from `.tskb/graph/`, reading only the node types the caller needs.";
+        type: typeof import("packages/tskb/src/cli/utils/graph-loader.js");
       }>;
 
       "cli.utils.logger": Module<{
@@ -123,11 +128,16 @@ declare global {
         desc: "Finds every node sharing the same ID across types.";
         type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").findAllNodesById;
       }>;
+
+      "cli.utils.graph-loader.loadGraph": Export<{
+        desc: "Reads the split graph from `.tskb/graph/`. Pass a list of node types to load only what you need.";
+        type: typeof import("packages/tskb/src/cli/utils/graph-loader.js").loadGraph;
+      }>;
     }
 
     interface Terms {
       globPattern: Term<"A file-matching pattern like `**/*.tskb.tsx`. Used to pick which doc files to build.">;
-      tskbOutputDir: Term<"The `.tskb/` folder. Holds the build output: `graph.json` and `graph.dot`.">;
+      tskbOutputDir: Term<"The `.tskb/` folder. Holds the build output: a `graph/` directory with per-type JSON files.">;
       searchResult: Term<"A match returned by `tskb search`. A node plus a score from 0 to 1; higher means a better match.">;
       resolvedVia: Term<"How `resolveNode` found a match: by exact ID, by path, or by walking up to the nearest parent folder.">;
     }
@@ -148,6 +158,8 @@ const ContentBuilderModule = ref as tskb.Modules["cli.utils.content-builder"];
 const SkillGenModule = ref as tskb.Modules["cli.utils.skill-generator"];
 const CopilotGenModule = ref as tskb.Modules["cli.utils.copilot-instructions"];
 const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
+const GraphLoaderModule = ref as tskb.Modules["cli.utils.graph-loader"];
+const LoadGraphExport = ref as tskb.Exports["cli.utils.graph-loader.loadGraph"];
 const LoggerModule = ref as tskb.Modules["cli.utils.logger"];
 const ResolveNodeModule = ref as tskb.Modules["cli.utils.resolve-node"];
 const ResolveNodeFn = ref as tskb.Exports["cli.utils.resolve-node.resolveNode"];
@@ -188,7 +200,11 @@ export default (
       </Li>
       <Li>{SkillGenModule}: Generates two Claude Code skills — tskb and tskb-update</Li>
       <Li>{CopilotGenModule}: Generates two Copilot instructions — tskb and tskb-update</Li>
-      <Li>{GraphFinderModule}: Finds .tskb/graph.json from cwd, used by search/pick/ls</Li>
+      <Li>{GraphFinderModule}: Finds the .tskb/graph/ directory from cwd</Li>
+      <Li>
+        {GraphLoaderModule}: {LoadGraphExport} reads only the requested node-type files from the
+        split graph — each command lists what it needs so unrelated files are never parsed
+      </Li>
       <Li>
         {LoggerModule}: Stderr-only logger with info/verbose/error/time — configured once at startup
         via --verbose flag

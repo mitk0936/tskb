@@ -1,0 +1,102 @@
+import Fuse from "fuse.js";
+
+// ─── Protocol ────────────────────────────────────────────────────────────────
+
+type InMessage = { type: "init"; url: string } | { type: "search"; query: string };
+
+type OutMessage = { type: "ready" } | { type: "results"; query: string; ids: string[] };
+
+interface SearchEntry {
+  id: string;
+  type: string;
+  label: string;
+  desc: string;
+  path?: string;
+  content: string;
+  edgeCount: number;
+}
+
+// ─── State ───────────────────────────────────────────────────────────────────
+
+let fuse: Fuse<SearchEntry> | null = null;
+let index: SearchEntry[] = [];
+
+async function init(url: string): Promise<void> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`search-index fetch failed: ${res.status}`);
+  index = await res.json();
+
+  fuse = new Fuse(index, {
+    keys: [
+      { name: "id", weight: 0.3 },
+      { name: "label", weight: 0.25 },
+      { name: "desc", weight: 0.25 },
+      { name: "content", weight: 0.15 },
+      { name: "path", weight: 0.05 },
+    ],
+    threshold: 0.6,
+    includeScore: true,
+    ignoreLocation: true,
+  });
+
+  const out: OutMessage = { type: "ready" };
+  self.postMessage(out);
+}
+
+function substringScores(q: string): Map<string, number> {
+  const scores = new Map<string, number>();
+  for (const item of index) {
+    const best = Math.max(
+      item.label.toLowerCase().includes(q) ? 1.0 : 0,
+      item.id.toLowerCase().includes(q) ? 0.9 : 0,
+      (item.path ?? "").toLowerCase().includes(q) ? 0.8 : 0,
+      (item.desc ?? "").toLowerCase().includes(q) ? 0.7 : 0,
+      (item.content ?? "").toLowerCase().includes(q) ? 0.6 : 0
+    );
+    if (best > 0) scores.set(item.id, best);
+  }
+  return scores;
+}
+
+function mergeFuzzyScores(scores: Map<string, number>, query: string): void {
+  if (!fuse) return;
+  for (const r of fuse.search(query)) {
+    const fuzzyScore = 1 - (r.score ?? 1);
+    const current = scores.get(r.item.id) ?? 0;
+    if (fuzzyScore > current) scores.set(r.item.id, fuzzyScore);
+  }
+}
+
+function rankScores(scores: Map<string, number>): string[] {
+  if (!scores.size) return [];
+  const topScore = Math.max(...scores.values());
+  if (topScore === 0) return [];
+  return [...scores.entries()]
+    .map(([id, s]) => ({ id, norm: s / topScore }))
+    .filter(({ norm }) => norm >= 0.3)
+    .sort((a, b) => b.norm - a.norm)
+    .slice(0, 15)
+    .map(({ id }) => id);
+}
+
+function search(query: string): string[] {
+  if (!fuse || !index.length || !query.trim()) return [];
+  const scores = substringScores(query.toLowerCase());
+  mergeFuzzyScores(scores, query);
+  return rankScores(scores);
+}
+
+// ─── Message handler ─────────────────────────────────────────────────────────
+
+self.addEventListener("message", (e: MessageEvent<InMessage>) => {
+  const msg = e.data;
+  if (msg.type === "init") {
+    init(msg.url).catch(console.error);
+    return;
+  }
+  if (msg.type === "search") {
+    const ids = search(msg.query);
+    const out: OutMessage = { type: "results", query: msg.query, ids };
+    self.postMessage(out);
+  }
+});

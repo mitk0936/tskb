@@ -440,19 +440,25 @@ function cubicH(sx: number, sy: number, tx: number, ty: number): string {
 /**
  * Rightward arc band for relation edges: wide at both ends, curves to the right.
  * Uses a quadratic bezier with the control point pushed rightward from the midpoint.
+ *
+ * For short downward arcs (dist < 2*hw), the target spread blends from vertical
+ * toward horizontal so the arc stays visibly thick instead of producing an S-curve
+ * artifact where the bezier overshoots the control point.
  */
 function bandBubble(sx: number, sy: number, tx: number, ty: number): string {
   const hw = 8;
-  const bulge = Math.max(60, Math.abs(ty - sy) * 0.4);
-  const cpx = Math.max(sx, tx) + bulge; // always to the right of both endpoints
+  const absDist = Math.abs(ty - sy);
+  const bulge = Math.max(60, absDist * 0.4);
+  const cpx = Math.max(sx, tx) + bulge;
   const cpy = (sy + ty) / 2;
 
-  // Source (top-right corner): spread horizontally — band exits left/right of the corner
-  // Target (bottom-right corner): spread vertically — band arrives above/below the corner
+  const vertFrac = ty > sy ? Math.max(0.5, Math.min(1, (ty - sy) / (2 * hw))) : 1;
+  const horizFrac = 1 - vertFrac;
+
   return [
     `M${sx - hw},${sy}`,
-    `Q${cpx},${cpy} ${tx},${ty - hw}`,
-    `L${tx},${ty + hw}`,
+    `Q${cpx},${cpy} ${tx - hw * horizFrac},${ty - hw * vertFrac}`,
+    `L${tx + hw * horizFrac},${ty + hw * vertFrac}`,
     `Q${cpx},${cpy} ${sx + hw},${sy}`,
     "Z",
   ].join(" ");

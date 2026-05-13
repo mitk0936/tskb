@@ -47,7 +47,7 @@ declare global {
       }>;
 
       "explorer.spa.ExplorerApp.setupSearch": Export<{
-        desc: "Wires the search input to the render loop.";
+        desc: "Creates the search Web Worker and wires button clicks to send queries and receive ranked matchIds.";
         type: InstanceType<ExplorerApp>["setupSearch"];
       }>;
 
@@ -175,7 +175,7 @@ export default (
       />
       <Step
         node={SetupSearchExport}
-        label="Search input 'input' event updates searchQuery and calls render()"
+        label="Creates search Web Worker; button click posts query to worker; worker results update matchIds and call render()"
       />
       <Step
         node={LoadInitialDataExport}
@@ -205,7 +205,7 @@ export default (
       />
       <Step
         node={ComputeRenderStateExport}
-        label="computeRenderState(store, layout, searchQuery): derives allNodes, canvasW, structureLinks, relationLinks, matchIds. Pure — no D3."
+        label="computeRenderState(store, layout, matchIds): derives allNodes, canvasW, structureLinks, relationLinks. matchIds comes from the search worker. Pure — no D3."
       />
       <Step
         node={EdgeRendererModule}

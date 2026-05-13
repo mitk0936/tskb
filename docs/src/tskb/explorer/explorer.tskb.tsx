@@ -1,4 +1,15 @@
-import { type Folder, type External, type Term, Doc, H1, H2, P, Relation, ref } from "tskb";
+import {
+  type Folder,
+  type Module,
+  type External,
+  type Term,
+  Doc,
+  H1,
+  H2,
+  P,
+  Relation,
+  ref,
+} from "tskb";
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -53,6 +64,11 @@ declare global {
         desc: "Reusable UI chunks shared across panel views (accordion, ref-link wiring).";
         path: "packages/tskb/explorer-app/src/router/components";
       }>;
+
+      "tskb.explorer.app.workers": Folder<{
+        desc: "Web Workers for the explorer SPA.";
+        path: "packages/tskb/explorer-app/src/workers";
+      }>;
     }
 
     // ── Externals ──────────────────────────────────────────────────────────
@@ -79,6 +95,14 @@ declare global {
       lruChunkCache: Term<"A bounded cache inside the SPA. Keeps recently loaded chunks; drops the oldest when full.">;
       explorerStaticExport: Term<"A self-contained explorer folder that opens directly from the file system, no server needed.">;
       ghostNode: Term<"A placeholder node for a folder or file that exists on disk but isn't declared in the graph. Drawn as a faded card.">;
+      searchIndexChunk: Term<"A flat array of all graph nodes with just the fields needed for search (id, type, label, description, path). Served at /chunks/search-index.json and fetched once by the search worker.">;
+    }
+
+    interface Modules {
+      "explorer.spa.search-worker": Module<{
+        desc: "Web Worker that loads the search index and runs Fuse.js queries off the main thread.";
+        type: typeof import("packages/tskb/explorer-app/src/workers/search.worker.js");
+      }>;
     }
   }
 }
@@ -94,6 +118,7 @@ const ExplorerAppFolder = ref as tskb.Folders["tskb.explorer.app"];
 const TransformModule = ref as tskb.Modules["explorer.transform"];
 const ServerModule = ref as tskb.Modules["explorer.server"];
 const ExportModule = ref as tskb.Modules["explorer.export"];
+const SearchWorkerModule = ref as tskb.Modules["explorer.spa.search-worker"];
 const TransformGraphExport = ref as tskb.Exports["explorer.transformGraph"];
 const ServeExplorerExport = ref as tskb.Exports["explorer.serveExplorer"];
 const ExportExplorerExport = ref as tskb.Exports["explorer.exportExplorer"];
@@ -122,8 +147,9 @@ export default (
     <P>
       {TransformModule} ({TransformGraphExport}) — converts a flat <code>KnowledgeGraph</code> into{" "}
       <code>ExplorerChunks</code>: a <code>MetaChunk</code> plus one <code>FolderChunk</code> per
-      folder that has modules or sub-folders. Ghost nodes are injected for filesystem files not
-      declared in the graph.
+      folder that has modules or sub-folders, plus a flat <code>searchIndex</code> array used by the
+      browser search worker. Ghost nodes are injected for filesystem files not declared in the
+      graph.
     </P>
     <P>
       {ServerModule} ({ServeExplorerExport}) — Node built-in <code>http</code> server that caches
@@ -134,6 +160,15 @@ export default (
       {ExportModule} ({ExportExplorerExport}) — copies the pre-built SPA assets to an output
       directory and writes all chunk JSON files alongside them, producing a fully self-contained
       static explorer.
+    </P>
+
+    <H2>Browser search</H2>
+    <P>
+      {SearchWorkerModule} runs in a Web Worker so search never blocks the UI. On init it fetches{" "}
+      <code>/chunks/search-index.json</code> and builds a Fuse.js index over all node labels,
+      descriptions, IDs, and paths. When the user clicks the search button the main thread posts a
+      query; the worker replies with a ranked list of matching node IDs that the render loop uses to
+      dim non-matching nodes.
     </P>
 
     <Relation

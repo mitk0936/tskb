@@ -76,7 +76,7 @@ declare global {
       cli: Term<"The command-line tool shipped by the package. Run as `tskb` after install. Builds the graph, runs queries, opens the explorer.">;
       jsxRuntime: Term<'A custom JSX runtime that turns .tskb.tsx files into a knowledge graph instead of DOM. Picked up by the docs tsconfig via `jsxImportSource: "tskb"`.'>;
       registry: Term<"The global `namespace tskb` where Folders, Modules, Exports, and Terms are declared. All .tskb.tsx files share one registry — declarations merge across files.">;
-      graph: Term<"The JSON output of the build: every node (folder, module, export, term, doc, flow) and the edges between them. Saved to `.tskb/graph.json`.">;
+      graph: Term<"The output of the build: every node (folder, module, export, term, doc, flow) and the edges between them. Written to `.tskb/graph/` as separate JSON files, one per node type.">;
     }
 
     interface Exports {
@@ -122,10 +122,6 @@ declare global {
         desc: "Lists folders in the graph as a hierarchy.";
         type: typeof import("packages/tskb/src/cli/commands/ls.js").ls;
       }>;
-      generateDot: Export<{
-        desc: "Renders the graph as a Graphviz DOT file.";
-        type: typeof import("packages/tskb/src/core/visualization/dot-generator.js").generateDot;
-      }>;
     }
   }
 }
@@ -142,7 +138,7 @@ const CliBuildExport = ref as tskb.Exports["cli.build"];
 const ExtractRegistryExport = ref as tskb.Exports["extractRegistry"];
 const ExtractDocsExport = ref as tskb.Exports["extractDocs"];
 const BuildGraphExport = ref as tskb.Exports["buildGraph"];
-const GenerateDotExport = ref as tskb.Exports["generateDot"];
+const WriteSplitGraphExport = ref as tskb.Exports["writeSplitGraph"];
 
 export default (
   <Doc explains="What is tskb and what does this package contain?" priority="essential">
@@ -179,8 +175,8 @@ export default (
         label="Merges registry and docs into a unified graph with nodes, edges, and hierarchy"
       />
       <Step
-        node={GenerateDotExport}
-        label="Transforms the graph into DOT format for Graphviz visualization"
+        node={WriteSplitGraphExport}
+        label="Writes the graph to .tskb/graph/ — one JSON file per node type plus a search index"
       />
     </Flow>
   </Doc>

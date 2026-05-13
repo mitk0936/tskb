@@ -1,8 +1,6 @@
-import fs from "node:fs";
 import path from "node:path";
-import { findGraphFile } from "../utils/graph-finder.js";
+import { loadGraph } from "../utils/graph-loader.js";
 import { info } from "../utils/logger.js";
-import type { KnowledgeGraph } from "../../core/graph/types.js";
 
 export interface ExploreOptions {
   port: number;
@@ -12,8 +10,7 @@ export interface ExploreOptions {
 }
 
 export async function explore(opts: ExploreOptions): Promise<void> {
-  const graphPath = findGraphFile();
-  const graph: KnowledgeGraph = JSON.parse(fs.readFileSync(graphPath, "utf-8"));
+  const graph = loadGraph();
 
   if (opts.exportPath !== undefined) {
     const outDir = opts.exportPath || ".tskb/explorer";

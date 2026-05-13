@@ -31,6 +31,11 @@ declare global {
         desc: "Type definitions for the knowledge graph.";
         type: typeof import("packages/tskb/src/core/graph/types.js");
       }>;
+
+      "graph.writer": Module<{
+        desc: "Writes the graph to disk as per-type JSON files under `.tskb/graph/`.";
+        type: typeof import("packages/tskb/src/core/graph/writer.js");
+      }>;
     }
 
     interface Exports {
@@ -50,6 +55,11 @@ declare global {
         desc: "One step inside a Flow.";
         type: import("packages/tskb/src/core/graph/types.js").FlowStep;
       }>;
+
+      writeSplitGraph: Export<{
+        desc: "Writes the graph to `.tskb/graph/` as separate JSON files, one per node type.";
+        type: typeof import("packages/tskb/src/core/graph/writer.js").writeSplitGraph;
+      }>;
     }
   }
 }
@@ -57,10 +67,11 @@ declare global {
 const GraphFolder = ref as tskb.Folders["core.extraction.graph"];
 const BuilderModule = ref as tskb.Modules["graph.builder"];
 const TypesModule = ref as tskb.Modules["graph.types"];
+const WriterModule = ref as tskb.Modules["graph.writer"];
 const BuildGraphExport = ref as tskb.Exports["buildGraph"];
+const WriteSplitGraphExport = ref as tskb.Exports["writeSplitGraph"];
 const KnowledgeGraphExport = ref as tskb.Exports["KnowledgeGraph"];
 const FlowNodeExport = ref as tskb.Exports["FlowNode"];
-const VisualizationDotGenModule = ref as tskb.Modules["visualization.dot-generator"];
 
 export default (
   <Doc explains="How is the knowledge graph modeled and assembled from extracted data?">
@@ -83,8 +94,11 @@ export default (
         edges — explicit references from docs and inferred hierarchy from folder paths
         (contains/belongs-to).
       </Li>
+      <Li>
+        {WriterModule}: {WriteSplitGraphExport} takes the assembled graph and writes one JSON file
+        per node type into <code>.tskb/graph/</code>, plus a lightweight search index.
+      </Li>
     </List>
     <Relation from={BuildGraphExport} to={KnowledgeGraphExport} />
-    <Relation from={BuildGraphExport} to={VisualizationDotGenModule} />
   </Doc>
 );

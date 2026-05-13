@@ -3,16 +3,11 @@
  */
 import { describe, it, expect } from "vitest";
 import fs from "node:fs";
-import { FIXTURE_DIR, GRAPH_PATH, loadGraph } from "./helpers.js";
-import path from "node:path";
+import { GRAPH_PATH, loadGraph } from "./helpers.js";
 
 describe("build output", () => {
-  it("should create graph.json", () => {
-    expect(fs.existsSync(GRAPH_PATH)).toBe(true);
-  });
-
-  it("should create graph.dot", () => {
-    expect(fs.existsSync(path.join(FIXTURE_DIR, ".tskb", "graph.dot"))).toBe(true);
+  it("should create .tskb/graph/ split files", () => {
+    expect(fs.existsSync(GRAPH_PATH)).toBe(true); // GRAPH_PATH → graph/meta.json
   });
 
   it("should produce a valid graph with expected node counts", () => {

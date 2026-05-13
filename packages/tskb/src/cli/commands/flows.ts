@@ -1,7 +1,6 @@
-import fs from "node:fs";
 import Fuse from "fuse.js";
-import type { KnowledgeGraph, FlowNode } from "../../core/graph/types.js";
-import { findGraphFile } from "../utils/graph-finder.js";
+import type { FlowNode } from "../../core/graph/types.js";
+import { loadGraph } from "../utils/graph-loader.js";
 import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
 
 interface FlowEntry {
@@ -45,9 +44,7 @@ export async function flows(
   plain: boolean = false
 ): Promise<void> {
   const loadDone = time("Loading graph");
-  const graphPath = findGraphFile();
-  const graphJson = fs.readFileSync(graphPath, "utf-8");
-  const graph: KnowledgeGraph = JSON.parse(graphJson);
+  const graph = loadGraph(["flows"]);
   loadDone();
 
   const allFlows = Object.entries(graph.nodes.flows).map(([id, flow]) => ({
