@@ -19,6 +19,10 @@ export interface ExtractConfig {
    * Path to tsconfig.json
    */
   tsconfig: string;
+  /**
+   * Human-readable project name included in graph metadata and generated skills
+   */
+  projectName: string;
 }
 
 /**
@@ -163,7 +167,7 @@ export async function build(config: ExtractConfig): Promise<void> {
 
   // Build knowledge graph
   const graphDone = infoTime("Building knowledge graph");
-  const graph = buildGraph(registry, docs, baseDir);
+  const graph = buildGraph(registry, docs, baseDir, config.projectName);
   graphDone();
 
   info(`   ├─ ${graph.metadata.stats.folderCount} folder nodes`);

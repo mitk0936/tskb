@@ -201,7 +201,7 @@ export default (
       />
       <Step
         node={ComputeLayoutExport}
-        label="computeLayout(store, expanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set."
+        label="computeLayout(store, isExpanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set."
       />
       <Step
         node={ComputeRenderStateExport}

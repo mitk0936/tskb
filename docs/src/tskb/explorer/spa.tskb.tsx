@@ -1,7 +1,21 @@
-import { Doc, H1, P, List, Li, ref } from "tskb";
+import { type File, Doc, H1, P, List, Li, ref } from "tskb";
+
+// ─── Registry ─────────────────────────────────────────────────────────────────
+
+declare global {
+  namespace tskb {
+    interface Files {
+      "explorer.spa.html": File<{
+        desc: "HTML entry point for the explorer SPA. Defines the toolbar, canvas, and side-panel skeleton.";
+        path: "/packages/tskb/explorer-app/index.html";
+      }>;
+    }
+  }
+}
 
 // ─── Refs ─────────────────────────────────────────────────────────────────────
 
+const HtmlFile = ref as tskb.Files["explorer.spa.html"];
 const MainModule = ref as tskb.Modules["explorer.spa.main"];
 const ChunkTypesModule = ref as tskb.Modules["explorer.spa.chunk-types"];
 const LaneEngineModule = ref as tskb.Modules["explorer.spa.lane-engine"];
@@ -16,9 +30,9 @@ export default (
     <H1>Explorer SPA</H1>
     <P>
       The SPA is built with Vite (D3 in a separate vendor chunk) and lives in the{" "}
-      <code>explorer-app/</code> directory. It is pre-built into <code>dist/explorer/</code> and
-      shipped inside the tskb npm package. {MainModule} is the entry point that bootstraps the
-      canvas, wires all interaction handlers, and drives the render loop.
+      <code>explorer-app/</code> directory. {HtmlFile} is the Vite entry point — it defines the
+      toolbar, canvas, and side-panel DOM skeleton that {MainModule} attaches to at boot. The SPA is
+      pre-built into <code>dist/explorer/</code> and shipped inside the tskb npm package.
     </P>
     <P>The SPA is split into five layers, each documented separately:</P>
     <List>

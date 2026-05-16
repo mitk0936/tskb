@@ -51,7 +51,13 @@ export class ExplorerApp {
   private flowsOf = new Map<string, string[]>();
 
   // UI state — expanded set and selected node live here, not in the store
+  // Keys are "nodeId:nodeType" so a folder and a module sharing the same id
+  // can be expanded independently.
   private expanded = new Set<string>();
+
+  private static expandKey(node: { id: string; type: string }): string {
+    return `${node.id}:${node.type}`;
+  }
   private selected: PositionedNode | null = null;
   private matchIds: Set<string> | null = null;
   private searchWorker: Worker | null = null;
@@ -144,7 +150,7 @@ export class ExplorerApp {
   }
 
   private setupRenderer(): void {
-    const isExpanded = (node: PositionedNode) => this.expanded.has(node.id);
+    const isExpanded = (node: PositionedNode) => this.expanded.has(ExplorerApp.expandKey(node));
 
     this.renderer = createNodeRenderer(
       (node) => this.onExpand(node),
@@ -248,15 +254,27 @@ export class ExplorerApp {
   private buildRefMaps(meta: import("./graph/chunk-types").MetaChunk): void {
     this.docsOf.clear();
     this.flowsOf.clear();
+    const docsSeen = new Map<string, Set<string>>();
+    const flowsSeen = new Map<string, Set<string>>();
     for (const edge of meta.crossEdges) {
       if (edge.type === "references") {
-        const list = this.docsOf.get(edge.target) ?? [];
-        list.push(edge.source);
-        this.docsOf.set(edge.target, list);
+        const seen = docsSeen.get(edge.target) ?? new Set<string>();
+        if (!seen.has(edge.source)) {
+          seen.add(edge.source);
+          docsSeen.set(edge.target, seen);
+          const list = this.docsOf.get(edge.target) ?? [];
+          list.push(edge.source);
+          this.docsOf.set(edge.target, list);
+        }
       } else if (edge.type === "flow-step") {
-        const list = this.flowsOf.get(edge.target) ?? [];
-        list.push(edge.source);
-        this.flowsOf.set(edge.target, list);
+        const seen = flowsSeen.get(edge.target) ?? new Set<string>();
+        if (!seen.has(edge.source)) {
+          seen.add(edge.source);
+          flowsSeen.set(edge.target, seen);
+          const list = this.flowsOf.get(edge.target) ?? [];
+          list.push(edge.source);
+          this.flowsOf.set(edge.target, list);
+        }
       }
     }
   }
@@ -267,6 +285,12 @@ export class ExplorerApp {
       const meta = await this.loader.load("meta");
       this.buildRefMaps(meta); // populate maps before render() fires
       this.store.loadMeta(meta);
+      const projectName = meta.metadata?.projectName;
+      if (projectName) {
+        const el = document.getElementById("project-name");
+        if (el) el.textContent = projectName;
+        document.title = `${projectName} · TSKB Explorer`;
+      }
       // If the page loaded with a deep-link hash, the active view first
       // rendered with placeholder data — refresh now that meta is loaded.
       this.router.refresh();
@@ -288,7 +312,9 @@ export class ExplorerApp {
 
     if (this.layoutDirty || !this.cachedLayout) {
       const t = performance.now();
-      this.cachedLayout = computeLayout(this.store, this.expanded);
+      this.cachedLayout = computeLayout(this.store, (node) =>
+        this.expanded.has(ExplorerApp.expandKey(node))
+      );
       this.layoutDirty = false;
       console.log(`[render] computeLayout (${(performance.now() - t).toFixed(1)}ms)`);
     }
@@ -347,10 +373,9 @@ export class ExplorerApp {
     // Node enter / update / exit
     const groups = this.nodeLayer
       .selectAll<SVGGElement, PositionedNode>("g.node")
-      .data(allNodes, (d) => d.id);
+      .data(allNodes, (d) => ExplorerApp.expandKey(d));
 
-    groups
-      .exit()
+    (groups.exit() as d3.Selection<SVGGElement, PositionedNode, SVGGElement, unknown>)
       .transition()
       .duration(140)
       .ease(d3.easeQuadIn)
@@ -403,9 +428,10 @@ export class ExplorerApp {
   // ── Interaction handlers ─────────────────────────────────────────────────────
 
   private async onExpand(node: PositionedNode): Promise<void> {
+    const key = ExplorerApp.expandKey(node);
     if (node.type === "folder") {
-      if (this.expanded.has(node.id)) {
-        this.expanded.delete(node.id);
+      if (this.expanded.has(key)) {
+        this.expanded.delete(key);
         this.collapseDescendants(node.id);
         this.layoutDirty = true;
         this.render();
@@ -424,16 +450,16 @@ export class ExplorerApp {
             removeNodeSpinner(spinnerEl);
           }
         }
-        this.expanded.add(node.id);
+        this.expanded.add(key);
         this.layoutDirty = true;
         this.render();
         this.scrollToNode(node.id);
       }
     } else if (node.type === "module") {
-      if (this.expanded.has(node.id)) {
-        this.expanded.delete(node.id);
+      if (this.expanded.has(key)) {
+        this.expanded.delete(key);
       } else {
-        this.expanded.add(node.id);
+        this.expanded.add(key);
       }
       this.layoutDirty = true;
       this.render();
@@ -471,9 +497,12 @@ export class ExplorerApp {
     await this.fetchAndStoreFolders(foldersToLoad);
 
     if (collapseOthers) {
-      this.expanded = new Set(toExpand);
+      this.expanded = new Set(
+        [...toExpand].map((id) => `${id}:${folderSet.has(id) ? "folder" : "module"}`)
+      );
     } else {
-      for (const id of toExpand) this.expanded.add(id);
+      for (const id of toExpand)
+        this.expanded.add(`${id}:${folderSet.has(id) ? "folder" : "module"}`);
     }
 
     this.layoutDirty = true;
@@ -604,11 +633,11 @@ export class ExplorerApp {
     const chunk = this.store.folderChunks.get(folderId);
     if (!chunk) return;
     for (const sf of chunk.subfolders ?? []) {
-      this.expanded.delete(sf.id);
+      this.expanded.delete(ExplorerApp.expandKey(sf));
       this.collapseDescendants(sf.id);
     }
     for (const mod of chunk.modules) {
-      this.expanded.delete(mod.id);
+      this.expanded.delete(ExplorerApp.expandKey(mod));
     }
   }
 
@@ -678,16 +707,11 @@ export class ExplorerApp {
 
   /** Add a colour-matched glow to the referenced node; pass null to clear. */
   private onNodeHighlight(nodeId: string | null): void {
-    this.nodeLayer.selectAll<SVGGElement, PositionedNode>("g.node").style(
-      "filter",
-      nodeId
-        ? (d) => {
-            if (d.id !== nodeId) return null;
-            const c = NODE_COLORS[d.type] ?? "#0057a1";
-            return `drop-shadow(0 0 6px ${c}bb) drop-shadow(0 0 14px ${c}66)`;
-          }
-        : null
-    );
+    this.nodeLayer.selectAll<SVGGElement, PositionedNode>("g.node").style("filter", (d) => {
+      if (!nodeId || d.id !== nodeId) return null;
+      const c = NODE_COLORS[d.type] ?? "#0057a1";
+      return `drop-shadow(0 0 6px ${c}bb) drop-shadow(0 0 14px ${c}66)`;
+    });
   }
 
   private onChipClick(node: PositionedNode, chip: "docs" | "flows"): void {

@@ -8,6 +8,7 @@ export interface MetaChunk {
     generatedAt: string;
     version: string;
     rootPath: string;
+    projectName?: string;
     stats: Record<string, number>;
   };
   /** The __TSKB.ROOT__ folder node */

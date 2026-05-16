@@ -1,11 +1,11 @@
 ---
 name: tskb
-description: "CLI for exploring the codebase map — search, pick, context, ls, docs, flows. Use whenever you enter unfamiliar territory: discover the architecture around an area or concept, find what's related, inspect a module/export/folder/flow/doc, check constraints — all before grepping or reading files."
+description: "CLI for exploring the codebase map (TSKB Monorepo) — search, pick, context, ls, docs, flows. Use whenever you enter unfamiliar territory: discover the architecture around an area or concept, find what's related, inspect a module/export/folder/flow/doc, check constraints — all before grepping or reading files."
 argument-hint: [query]
 allowed-tools: Bash(npx --no -- tskb *)
 ---
 
-# TSKB — Codebase Map CLI
+# TSKB — Codebase Map CLI (TSKB Monorepo)
 
 Commands for exploring the codebase map. Use to discover the architecture around an area or concept, find what's related to a node, trace a flow, or check rules — before you grep or open files.
 

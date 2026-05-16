@@ -41,8 +41,13 @@ function stripHtml(html: string): string {
 
 function toSearchEntry(node: RawNode): SearchEntry {
   const detail = node.detail ?? {};
-  const htmlField = detail["html"];
-  const content = typeof htmlField === "string" ? stripHtml(htmlField).slice(0, 3000) : "";
+  const code = detail["code"];
+  const html = detail["html"];
+  const content = Array.isArray(code)
+    ? code.join(" ")
+    : typeof html === "string"
+      ? stripHtml(html).slice(0, 3000)
+      : "";
   return {
     id: node.id,
     type: node.type,

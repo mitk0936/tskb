@@ -45,11 +45,6 @@ declare global {
         type: typeof import("packages/tskb/src/index.js");
       }>;
 
-      "Jsx.runtime.js": Module<{
-        desc: "The JSX runtime — every tskb JSX tag (Doc, P, Flow, etc.) is a function exported here.";
-        type: typeof import("packages/tskb/src/runtime/jsx.js");
-      }>;
-
       "sample.tsconfig.json": Module<{
         desc: "An example of required tsconfig.json for building <TSKB> docs";
         type: typeof import("../../tsconfig.json");
@@ -133,7 +128,7 @@ const PackageJson = ref as tskb.Modules["package.json"];
 const CliTerm = ref as tskb.Terms["cli"];
 const MainIndexModule = ref as tskb.Modules["Main.index.js"];
 const JsxRuntimeTerm = ref as tskb.Terms["jsxRuntime"];
-const JsxRuntimeModule = ref as tskb.Modules["Jsx.runtime.js"];
+const JsxRuntimeModule = ref as tskb.Modules["runtime.jsx"];
 const CliBuildExport = ref as tskb.Exports["cli.build"];
 const ExtractRegistryExport = ref as tskb.Exports["extractRegistry"];
 const ExtractDocsExport = ref as tskb.Exports["extractDocs"];

@@ -6,7 +6,12 @@
       "Bash(npx --no -- tskb pick \"tskb.cli.commands\" --plain)",
       "Bash(npx --no -- tskb pick \"cli.commands.explore\" --plain)",
       "Bash(npx --no -- tskb pick \"docs/src/tskb/usage.tskb.tsx\" --plain)",
-      "Bash(npx --no -- tskb pick \"cli.commands.init\" --plain)"
+      "Bash(npx --no -- tskb pick \"cli.commands.init\" --plain)",
+      "Bash(npx --no -- tskb ls --depth=4 --plain)",
+      "Bash(npx --no -- tskb docs --plain)",
+      "Bash(npx --no -- tskb context \"tskb.core\" --depth=2 --plain)",
+      "Bash(npx --no -- tskb context \"tskb.cli\" --depth=2 --plain)",
+      "Bash(npx --no -- tskb context \"tskb.explorer.app\" --depth=2 --plain)"
     ]
   }
 }

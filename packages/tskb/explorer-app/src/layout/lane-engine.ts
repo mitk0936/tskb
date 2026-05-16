@@ -36,11 +36,14 @@ interface TreeData extends ExplorerNode {
   treeChildren?: TreeData[];
 }
 
-function buildStructureTree(store: GraphStore, expanded: ReadonlySet<string>): TreeData | null {
+function buildStructureTree(
+  store: GraphStore,
+  isExpanded: (node: ExplorerNode) => boolean
+): TreeData | null {
   if (!store.meta) return null;
-  const folderChildren = buildFolderChildren(store.meta.topFolders, store, expanded);
+  const folderChildren = buildFolderChildren(store.meta.topFolders, store, isExpanded);
   const moduleChildren = (store.meta.topModules ?? []).map((mod) => {
-    if (!expanded.has(mod.id) && hasChildren(mod)) {
+    if (!isExpanded(mod) && hasChildren(mod)) {
       return { ...mod, treeChildren: makeGhostNodes(mod.id, 1, "export") };
     }
     return { ...mod };
@@ -74,10 +77,10 @@ function makeGhostNodes(parentId: string, count: number, type: NodeType = "modul
 function buildFolderChildren(
   folders: ExplorerNode[],
   store: GraphStore,
-  expanded: ReadonlySet<string>
+  isExpanded: (node: ExplorerNode) => boolean
 ): TreeData[] {
   return folders.map((folder) => {
-    if (!expanded.has(folder.id)) {
+    if (!isExpanded(folder)) {
       const count = childCount(folder);
       if (count > 0) return { ...folder, treeChildren: makeGhostNodes(folder.id, count) };
       return { ...folder };
@@ -89,12 +92,12 @@ function buildFolderChildren(
 
     // Sub-folders first (recursively)
     if (chunk.subfolders?.length) {
-      children.push(...buildFolderChildren(chunk.subfolders, store, expanded));
+      children.push(...buildFolderChildren(chunk.subfolders, store, isExpanded));
     }
 
     // Modules
     for (const mod of chunk.modules) {
-      if (!expanded.has(mod.id)) {
+      if (!isExpanded(mod)) {
         if (hasChildren(mod)) {
           const exportCount = chunk.exports.filter((e) => e.parentId === mod.id).length;
           children.push({ ...mod, treeChildren: makeGhostNodes(mod.id, exportCount, "export") });
@@ -134,12 +137,15 @@ export interface LaneLayout {
 
 // ─── Main layout function ─────────────────────────────────────────────────────
 
-export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>): LaneLayout {
+export function computeLayout(
+  store: GraphStore,
+  isExpanded: (node: ExplorerNode) => boolean
+): LaneLayout {
   // ── Structure lane: d3.tree (left-to-right) ─────────────────────────────
   const structureNodes: PositionedNode[] = [];
   let structureHeight = LANE_HEADER_H + LANE_PADDING * 2 + NODE_SIZES.folder.h;
 
-  const treeData = buildStructureTree(store, expanded);
+  const treeData = buildStructureTree(store, isExpanded);
   if (treeData) {
     const maxNodeH = Math.max(...Object.values(NODE_SIZES).map((s) => s.h));
     const colWidth = Math.max(...Object.values(NODE_SIZES).map((s) => s.w)) + H_GAP;
@@ -153,7 +159,7 @@ export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>):
     // Normalize: d3.tree can return negative .x values (sibling spread axis)
     let minX = Infinity;
     root.each((n) => {
-      if (n.x < minX) minX = n.x;
+      if (n.x! < minX) minX = n.x!;
     });
 
     // Skip the TSKB root node (depth 0) and shift children left by one column
@@ -162,8 +168,8 @@ export function computeLayout(store: GraphStore, expanded: ReadonlySet<string>):
       structureNodes.push({
         ...n.data,
         // left-to-right: n.y = depth-based horizontal, n.x = vertical spread
-        x: LANE_PADDING + n.y - colWidth,
-        y: LANE_HEADER_H + LANE_PADDING + n.x - minX,
+        x: LANE_PADDING + n.y! - colWidth,
+        y: LANE_HEADER_H + LANE_PADDING + n.x! - minX,
       });
     });
 

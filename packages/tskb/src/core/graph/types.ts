@@ -230,6 +230,10 @@ export interface KnowledgeGraph {
      * Path to the root directory relative to where the build was run (from tsconfig rootDir or tsconfig directory)
      */
     rootPath: string;
+    /**
+     * Optional human-readable project name, set via --project CLI flag
+     */
+    projectName?: string;
     stats: {
       folderCount: number;
       moduleCount: number;

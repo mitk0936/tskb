@@ -19,7 +19,15 @@ export function setup() {
 
   execFileSync(
     "node",
-    [TSKB_BIN, "build", "docs/**/*.tskb.tsx", "--tsconfig", "docs/tsconfig.json"],
+    [
+      TSKB_BIN,
+      "build",
+      "docs/**/*.tskb.tsx",
+      "--tsconfig",
+      "docs/tsconfig.json",
+      "--project",
+      "e2e-tests-fixtures",
+    ],
     { cwd: FIXTURE_DIR, encoding: "utf-8", timeout: 30_000 }
   );
 }

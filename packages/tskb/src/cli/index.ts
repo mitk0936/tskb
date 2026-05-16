@@ -25,6 +25,7 @@ async function main() {
     args: process.argv.slice(2),
     options: {
       tsconfig: { type: "string", default: "tsconfig.json" },
+      project: { type: "string" },
       depth: { type: "string", default: "1" },
       verbose: { type: "boolean", default: false },
       optimized: { type: "boolean", default: false },
@@ -55,8 +56,12 @@ async function main() {
           error("Error: build command requires a glob pattern");
           process.exit(1);
         }
+        if (!values.project) {
+          error("Error: build command requires --project <name>");
+          process.exit(1);
+        }
         const { build } = await import("./commands/build.js");
-        await build({ pattern, tsconfig: values.tsconfig! });
+        await build({ pattern, tsconfig: values.tsconfig!, projectName: values.project });
         break;
       }
       case "search": {

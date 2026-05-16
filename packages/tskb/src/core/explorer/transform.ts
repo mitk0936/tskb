@@ -844,10 +844,14 @@ class GraphToExplorerTransformer {
   private buildParentOf(): Record<string, string> {
     const map: Record<string, string> = {};
     for (const chunk of this.folderChunks.values()) {
-      for (const sf of chunk.subfolders) if (sf.parentId) map[sf.id] = sf.parentId;
-      for (const mod of chunk.modules) if (mod.parentId) map[mod.id] = mod.parentId;
-      for (const exp of chunk.exports) if (exp.parentId) map[exp.id] = exp.parentId;
-      for (const file of chunk.files) if (file.parentId) map[file.id] = file.parentId;
+      for (const sf of chunk.subfolders)
+        if (sf.parentId && sf.parentId !== sf.id) map[sf.id] = sf.parentId;
+      for (const mod of chunk.modules)
+        if (mod.parentId && mod.parentId !== mod.id) map[mod.id] = mod.parentId;
+      for (const exp of chunk.exports)
+        if (exp.parentId && exp.parentId !== exp.id) map[exp.id] = exp.parentId;
+      for (const file of chunk.files)
+        if (file.parentId && file.parentId !== file.id) map[file.id] = file.parentId;
     }
     return map;
   }

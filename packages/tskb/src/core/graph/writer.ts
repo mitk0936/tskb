@@ -25,11 +25,16 @@ function getNodeContent(node: AnyNode): string {
   if (node.type === "module") {
     const parts: string[] = [];
     if (node.morphologySummary) parts.push(node.morphologySummary);
+    if (node.morphology) parts.push(node.morphology.join(" "));
     if (node.importsSummary) parts.push(node.importsSummary);
+    if (node.imports) parts.push(node.imports.join(" "));
     return parts.join(" ");
   }
-  if (node.type === "export" && node.morphologySummary) {
-    return node.morphologySummary;
+  if (node.type === "export") {
+    const parts: string[] = [];
+    if (node.morphologySummary) parts.push(node.morphologySummary);
+    if (node.morphology) parts.push(node.morphology.join(" "));
+    return parts.join(" ");
   }
   if (node.type === "folder" && node.children) {
     const names = [

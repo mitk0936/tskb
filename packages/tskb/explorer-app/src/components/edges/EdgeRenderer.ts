@@ -19,13 +19,17 @@ export interface StructureLink {
  * Derives parent → child links from parentId references in the positioned node list.
  */
 export function buildStructureLinks(nodes: PositionedNode[]): StructureLink[] {
-  const byId = new Map(nodes.map((n) => [n.id, n]));
+  // First-write-wins: in depth-first order parents precede children, so a folder
+  // lands in the map before a same-id module and stays there as the authoritative
+  // parent target even when both share an id.
+  const byId = new Map<string, PositionedNode>();
+  for (const n of nodes) if (!byId.has(n.id)) byId.set(n.id, n);
   const links: StructureLink[] = [];
 
   for (const node of nodes) {
     if (!node.parentId) continue;
     const parent = byId.get(node.parentId);
-    if (!parent) continue;
+    if (!parent || parent === node) continue;
 
     const parentSize = nodeSize(parent);
     const childSize = nodeSize(node);

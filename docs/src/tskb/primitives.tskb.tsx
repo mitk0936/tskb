@@ -1,6 +1,6 @@
 import { Doc, P, List, Li, ref } from "tskb";
 
-const JsxRuntimeModule = ref as tskb.Modules["Jsx.runtime.js"];
+const JsxRuntimeModule = ref as tskb.Modules["runtime.jsx"];
 const FolderExport = ref as tskb.Exports["Folder"];
 const ModuleExport = ref as tskb.Exports["Module"];
 const ExportExport = ref as tskb.Exports["Export"];

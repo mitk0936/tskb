@@ -1,10 +1,10 @@
 ---
 name: tskb-toc
-description: "ALWAYS load first when working in this repo. Big-picture index — folder tree, boundaries, externals, flows, constraint rules (MUST follow), and essential docs. Tells you what areas exist, what runtimes are separate, and what rules apply before you touch anything."
+description: "ALWAYS load first when working in this repo (TSKB Monorepo). Big-picture index — folder tree, boundaries, externals, flows, constraint rules (MUST follow), and essential docs. Tells you what areas exist, what runtimes are separate, and what rules apply before you touch anything."
 allowed-tools: Bash(npx --no -- tskb *)
 ---
 
-# TSKB — Repo Table of Contents
+# TSKB — Repo Table of Contents (TSKB Monorepo)
 
 The big-picture index of this repo. Load this whenever you start a task — it tells you what areas exist, which folders are distinct runtimes, what external services are in play, what flows describe key processes, what rules MUST be followed, and which docs are essential reading.
 

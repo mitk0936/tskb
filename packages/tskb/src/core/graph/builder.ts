@@ -51,7 +51,8 @@ import { ROOT_FOLDER_NAME } from "../constants.js";
 export function buildGraph(
   registry: ExtractedRegistry,
   docs: ExtractedDoc[],
-  baseDir: string
+  baseDir: string,
+  projectName?: string
 ): KnowledgeGraph {
   const graph: KnowledgeGraph = {
     nodes: {
@@ -69,6 +70,7 @@ export function buildGraph(
       generatedAt: new Date().toISOString(),
       version: "1.0.0",
       rootPath: path.relative(process.cwd(), baseDir) || ".",
+      ...(projectName ? { projectName } : {}),
       stats: {
         folderCount: 0,
         moduleCount: 0,
@@ -163,21 +165,43 @@ function buildFolderNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
   }
 }
 
+function readSourceAsMorphology(
+  resolvedPath: string
+): { summary: string; morphology: string[] } | undefined {
+  const abs = path.isAbsolute(resolvedPath)
+    ? resolvedPath
+    : path.resolve(process.cwd(), resolvedPath);
+  try {
+    const raw = fs.readFileSync(abs, "utf-8");
+    const lines = raw.split("\n");
+    const morphology =
+      lines.length > MAX_FILE_LINES
+        ? [...lines.slice(0, MAX_FILE_LINES), `// … (${lines.length - MAX_FILE_LINES} more lines)`]
+        : lines;
+    return { summary: "", morphology };
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Create Module nodes from registry
  */
 function buildModuleNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): void {
   for (const [name, data] of registry.modules.entries()) {
+    const morphology =
+      data.morphology ??
+      (data.resolvedPath ? readSourceAsMorphology(data.resolvedPath) : undefined);
     const node: ModuleNode = {
       id: name,
       type: "module",
       desc: data.desc,
       typeSignature: data.type,
       resolvedPath: data.resolvedPath,
-      ...(data.morphology
+      ...(morphology
         ? {
-            morphologySummary: data.morphology.summary,
-            morphology: data.morphology.morphology,
+            morphologySummary: morphology.summary,
+            morphology: morphology.morphology,
           }
         : {}),
       ...(data.imports
@@ -495,7 +519,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
     const docId = doc.filePath;
 
     // Create "references" edges from doc to modules/terms/contexts
-    for (const moduleName of doc.references.modules) {
+    for (const moduleName of [...new Set(doc.references.modules)]) {
       if (graph.nodes.modules[moduleName]) {
         graph.edges.push({
           from: docId,
@@ -511,7 +535,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const termName of doc.references.terms) {
+    for (const termName of [...new Set(doc.references.terms)]) {
       if (graph.nodes.terms[termName]) {
         graph.edges.push({
           from: docId,
@@ -527,7 +551,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const folderName of doc.references.folders) {
+    for (const folderName of [...new Set(doc.references.folders)]) {
       if (graph.nodes.folders[folderName]) {
         graph.edges.push({
           from: docId,
@@ -543,7 +567,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const exportName of doc.references.exports) {
+    for (const exportName of [...new Set(doc.references.exports)]) {
       if (graph.nodes.exports[exportName]) {
         graph.edges.push({
           from: docId,
@@ -559,7 +583,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const fileName of doc.references.files) {
+    for (const fileName of [...new Set(doc.references.files)]) {
       if (graph.nodes.files[fileName]) {
         graph.edges.push({
           from: docId,
@@ -575,7 +599,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const externalName of doc.references.externals) {
+    for (const externalName of [...new Set(doc.references.externals)]) {
       if (graph.nodes.externals[externalName]) {
         graph.edges.push({
           from: docId,

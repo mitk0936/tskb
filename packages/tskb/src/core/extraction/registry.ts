@@ -68,6 +68,19 @@ export interface ExtractedRegistry {
   >;
 }
 
+interface SeenDefinitions {
+  folders: Map<string, string>;
+  /** resolved path → first folder name that claimed it */
+  folderPaths: Map<string, string>;
+  modules: Map<string, string>;
+  /** resolved path → first module name that claimed it */
+  modulePaths: Map<string, string>;
+  terms: Map<string, string>;
+  exports: Map<string, string>;
+  files: Map<string, string>;
+  externals: Map<string, string>;
+}
+
 /**
  * Extracts the vocabulary (Folders, Modules, Terms) from the TypeScript type system.
  *
@@ -90,6 +103,17 @@ export function extractRegistry(program: ts.Program, baseDir: string): Extracted
     externals: new Map(),
   };
 
+  const seen: SeenDefinitions = {
+    folders: new Map(),
+    folderPaths: new Map(),
+    modules: new Map(),
+    modulePaths: new Map(),
+    terms: new Map(),
+    exports: new Map(),
+    files: new Map(),
+    externals: new Map(),
+  };
+
   // Use the provided baseDir for all path resolution
   const baseUrl = baseDir;
 
@@ -103,7 +127,7 @@ export function extractRegistry(program: ts.Program, baseDir: string): Extracted
     // Look for global namespace declarations
     ts.forEachChild(sourceFile, (node) => {
       if (ts.isModuleDeclaration(node) && node.name.text === "global") {
-        extractFromGlobalNamespace(node, checker, registry, sourceFile, baseDir, baseUrl);
+        extractFromGlobalNamespace(node, checker, registry, sourceFile, baseDir, baseUrl, seen);
       }
     });
   }
@@ -164,7 +188,8 @@ function extractFromGlobalNamespace(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: SeenDefinitions
 ): void {
   if (!globalNode.body || !ts.isModuleBlock(globalNode.body)) return;
 
@@ -175,7 +200,15 @@ function extractFromGlobalNamespace(
       ts.isIdentifier(statement.name) &&
       statement.name.text === "tskb"
     ) {
-      extractFromTskbNamespace(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractFromTskbNamespace(
+        statement,
+        checker,
+        registry,
+        sourceFile,
+        tsconfigDir,
+        baseUrl,
+        seen
+      );
     }
   }
 }
@@ -189,7 +222,8 @@ function extractFromTskbNamespace(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: SeenDefinitions
 ): void {
   if (!tskbNode.body || !ts.isModuleBlock(tskbNode.body)) return;
 
@@ -199,17 +233,35 @@ function extractFromTskbNamespace(
     const interfaceName = statement.name.text;
 
     if (interfaceName === "Folders") {
-      extractFolders(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractFolders(
+        statement,
+        checker,
+        registry,
+        sourceFile,
+        tsconfigDir,
+        baseUrl,
+        seen.folders,
+        seen.folderPaths
+      );
     } else if (interfaceName === "Modules") {
-      extractModules(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractModules(
+        statement,
+        checker,
+        registry,
+        sourceFile,
+        tsconfigDir,
+        baseUrl,
+        seen.modules,
+        seen.modulePaths
+      );
     } else if (interfaceName === "Terms") {
-      extractTerms(statement, checker, registry, sourceFile);
+      extractTerms(statement, checker, registry, sourceFile, seen.terms);
     } else if (interfaceName === "Exports") {
-      extractExports(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractExports(statement, checker, registry, sourceFile, tsconfigDir, baseUrl, seen.exports);
     } else if (interfaceName === "Files") {
-      extractFiles(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractFiles(statement, checker, registry, sourceFile, tsconfigDir, baseUrl, seen.files);
     } else if (interfaceName === "Externals") {
-      extractExternals(statement, checker, registry, sourceFile);
+      extractExternals(statement, checker, registry, sourceFile, seen.externals);
     }
   }
 }
@@ -238,7 +290,9 @@ function extractFolders(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: Map<string, string>,
+  seenPaths: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -311,6 +365,20 @@ function extractFolders(
         }
       }
 
+      if (seen.has(folderName)) {
+        throw new Error(
+          `Duplicate Folder definition "${folderName}" in ${sourceFile.fileName}:\n` +
+            `  "${folderName}" was already defined in ${seen.get(folderName)}.`
+        );
+      }
+      if (resolvedPath && seenPaths.has(resolvedPath)) {
+        throw new Error(
+          `Duplicate Folder path "${resolvedPath}" registered as "${folderName}" in ${sourceFile.fileName}:\n` +
+            `  The same path was already registered as "${seenPaths.get(resolvedPath)}".`
+        );
+      }
+      seen.set(folderName, sourceFile.fileName);
+      if (resolvedPath) seenPaths.set(resolvedPath, folderName);
       registry.folders.set(folderName, {
         ...folderData,
         resolvedPath,
@@ -391,7 +459,9 @@ function extractModules(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: Map<string, string>,
+  seenPaths: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -473,6 +543,20 @@ function extractModules(
         }
       }
 
+      if (seen.has(moduleName)) {
+        throw new Error(
+          `Duplicate Module definition "${moduleName}" in ${sourceFile.fileName}:\n` +
+            `  "${moduleName}" was already defined in ${seen.get(moduleName)}.`
+        );
+      }
+      if (resolvedPath && seenPaths.has(resolvedPath)) {
+        throw new Error(
+          `Duplicate Module path "${resolvedPath}" registered as "${moduleName}" in ${sourceFile.fileName}:\n` +
+            `  The same file was already registered as "${seenPaths.get(resolvedPath)}".`
+        );
+      }
+      seen.set(moduleName, sourceFile.fileName);
+      if (resolvedPath) seenPaths.set(resolvedPath, moduleName);
       registry.modules.set(moduleName, {
         ...moduleData,
         resolvedPath,
@@ -553,7 +637,8 @@ function extractTerms(
   interfaceNode: ts.InterfaceDeclaration,
   checker: ts.TypeChecker,
   registry: ExtractedRegistry,
-  sourceFile: ts.SourceFile
+  sourceFile: ts.SourceFile,
+  seen: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -577,6 +662,13 @@ function extractTerms(
     }
 
     if (desc) {
+      if (seen.has(termName)) {
+        throw new Error(
+          `Duplicate Term definition "${termName}" in ${sourceFile.fileName}:\n` +
+            `  "${termName}" was already defined in ${seen.get(termName)}.`
+        );
+      }
+      seen.set(termName, sourceFile.fileName);
       registry.terms.set(termName, desc);
     }
   }
@@ -615,7 +707,8 @@ function extractFiles(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -679,6 +772,13 @@ function extractFiles(
       }
     }
 
+    if (seen.has(fileName)) {
+      throw new Error(
+        `Duplicate File definition "${fileName}" in ${sourceFile.fileName}:\n` +
+          `  "${fileName}" was already defined in ${seen.get(fileName)}.`
+      );
+    }
+    seen.set(fileName, sourceFile.fileName);
     registry.files.set(fileName, {
       ...fileData,
       resolvedPath,
@@ -702,7 +802,8 @@ function extractExternals(
   interfaceNode: ts.InterfaceDeclaration,
   checker: ts.TypeChecker,
   registry: ExtractedRegistry,
-  sourceFile: ts.SourceFile
+  sourceFile: ts.SourceFile,
+  seen: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -725,6 +826,13 @@ function extractExternals(
       );
     }
 
+    if (seen.has(externalName)) {
+      throw new Error(
+        `Duplicate External definition "${externalName}" in ${sourceFile.fileName}:\n` +
+          `  "${externalName}" was already defined in ${seen.get(externalName)}.`
+      );
+    }
+    seen.set(externalName, sourceFile.fileName);
     registry.externals.set(externalName, data);
   }
 }
@@ -788,7 +896,8 @@ function extractExports(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -868,6 +977,13 @@ function extractExports(
         }
       }
 
+      if (seen.has(exportName)) {
+        throw new Error(
+          `Duplicate Export definition "${exportName}" in ${sourceFile.fileName}:\n` +
+            `  "${exportName}" was already defined in ${seen.get(exportName)}.`
+        );
+      }
+      seen.set(exportName, sourceFile.fileName);
       registry.exports.set(exportName, {
         ...exportData,
         resolvedPath,

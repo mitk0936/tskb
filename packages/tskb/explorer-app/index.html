@@ -68,6 +68,17 @@
         flex-shrink: 0;
       }
 
+      #project-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #334155;
+        flex-shrink: 0;
+      }
+
+      #project-name:empty {
+        display: none;
+      }
+
       #toolbar .sep {
         width: 1px;
         height: 20px;
@@ -181,7 +192,7 @@
         transform: scale(0.97);
       }
 
-      @media (max-width: 640px) {
+      @media (max-width: 1023px) {
         #stats {
           display: none;
         }
@@ -225,7 +236,9 @@
     <div id="app">
       <!-- Toolbar -->
       <div id="toolbar">
-        <img class="brand" src="./assets/logo.png" alt="TSKB Explorer" />
+        <a href="https://www.npmjs.com/package/tskb" target="_blank" rel="noopener noreferrer" style="line-height:0;flex-shrink:0"><img class="brand" src="./assets/logo.png" alt="TSKB Explorer" /></a>
+        <div class="sep"></div>
+        <span id="project-name"></span>
         <div class="sep"></div>
         <div id="search-bar">
           <span id="search-icon">⌕</span>
