@@ -10,7 +10,7 @@
   "scripts": {
     "postinstall": "npm run build",
     "build": "npm run build --workspaces --if-present && npm run build:docs",
-    "build:docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json --project \"TSKB Monorepo\"",
+    "build:docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json --project \"TSKB Monorepo\" && tskb explore --export ./docs-export",
     "clean": "npx rimraf --glob node_modules **/node_modules **/dist **/.tskb",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
