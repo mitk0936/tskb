@@ -270,6 +270,9 @@ const FILE_TYPE_MAP: Record<string, string> = {
   ".gql": "graphql",
   ".md": "markdown",
   ".markdown": "markdown",
+  ".tf": "bash",
+  ".tfvars": "bash",
+  ".conf": "bash",
 };
 
 const MAX_FILE_LINES = 1000;

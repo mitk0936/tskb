@@ -26,7 +26,7 @@ const TSCONFIG_TEMPLATE = `{
 }
 `;
 
-const STARTER_DOC_TEMPLATE = (_docsDir: string) => `import { Doc, H1, P } from "tskb";
+const STARTER_DOC_TEMPLATE = (projectName: string) => `import { Doc, H1, P } from "tskb";
 
 // Declare your architectural vocabulary here.
 // See: https://www.npmjs.com/package/tskb
@@ -42,8 +42,8 @@ declare global {
 }
 
 export default (
-  <Doc explains="Project architecture overview" priority="essential">
-    <H1>Architecture</H1>
+  <Doc explains="${projectName} architecture overview" priority="essential">
+    <H1>${projectName}</H1>
     <P>Add your first architectural notes here. Declare folders, modules, and terms above.</P>
   </Doc>
 );
@@ -72,7 +72,7 @@ export interface InitOptions {
  * Interactive init command — scaffolds tskb in a new or existing repo.
  *
  * Steps:
- * 1. Ask for docs folder and tsconfig path (or use defaults with --yes)
+ * 1. Ask for docs folder, tsconfig path, and project name (or use defaults with --yes)
  * 2. Ask whether to enable Claude Code / GitHub Copilot integrations
  * 3. Create docs/tsconfig.json, starter .tskb.tsx, and integration directories
  * 4. Add the tskb build script to package.json
@@ -89,9 +89,24 @@ export async function init(options: InitOptions = {}): Promise<void> {
   info("");
 
   try {
+    const cwd = process.cwd();
+
+    // Read project name from package.json if available
+    const pkgPath = path.resolve(cwd, "package.json");
+    let defaultProjectName = "My Project";
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+        if (pkg.name) defaultProjectName = pkg.name;
+      } catch {
+        // ignore parse errors
+      }
+    }
+
     let docsDir: string;
     let pattern: string;
     let tsconfigPath: string;
+    let projectName: string;
     let wantClaude: boolean;
     let wantCopilot: boolean;
 
@@ -99,6 +114,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
       docsDir = "docs";
       pattern = `${docsDir}/**/*.tskb.tsx`;
       tsconfigPath = `${docsDir}/tsconfig.json`;
+      projectName = defaultProjectName;
       wantClaude = true;
       wantCopilot = true;
 
@@ -106,6 +122,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
       info(`  Docs folder: ${docsDir}`);
       info(`  Glob pattern: ${pattern}`);
       info(`  Tsconfig: ${tsconfigPath}`);
+      info(`  Project name: ${projectName}`);
       info(`  Claude Code: yes`);
       info(`  GitHub Copilot: yes`);
       info("");
@@ -124,7 +141,11 @@ export async function init(options: InitOptions = {}): Promise<void> {
       const rawTsconfig = (await ask(rl!, `Docs tsconfig [${defaultTsconfig}]: `)).trim();
       tsconfigPath = rawTsconfig || defaultTsconfig;
 
-      // 4. Integrations
+      // 4. Project name
+      const rawName = (await ask(rl!, `Project name [${defaultProjectName}]: `)).trim();
+      projectName = rawName || defaultProjectName;
+
+      // 5. Integrations
       info("");
       wantClaude = await askYesNo(rl!, "Enable Claude Code skill (creates .claude/skills/)?");
       wantCopilot = await askYesNo(
@@ -134,8 +155,6 @@ export async function init(options: InitOptions = {}): Promise<void> {
 
       rl!.close();
     }
-
-    const cwd = process.cwd();
 
     // Create docs folder
     const absDocs = path.resolve(cwd, docsDir);
@@ -157,21 +176,20 @@ export async function init(options: InitOptions = {}): Promise<void> {
     }
 
     // Write starter doc
-    const starterPath = path.join(absDocs, "architecture.tskb.tsx");
+    const starterPath = path.join(absDocs, "main.tskb.tsx");
     if (!fs.existsSync(starterPath)) {
-      fs.writeFileSync(starterPath, STARTER_DOC_TEMPLATE(docsDir), "utf-8");
-      info(`Created ${docsDir}/architecture.tskb.tsx`);
+      fs.writeFileSync(starterPath, STARTER_DOC_TEMPLATE(projectName), "utf-8");
+      info(`Created ${docsDir}/main.tskb.tsx`);
     } else {
-      info(`  ${docsDir}/architecture.tskb.tsx already exists, skipping`);
+      info(`  ${docsDir}/main.tskb.tsx already exists, skipping`);
     }
 
     // Update package.json
-    const pkgPath = path.resolve(cwd, "package.json");
     if (fs.existsSync(pkgPath)) {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
       const scripts = pkg.scripts ?? {};
       const scriptName = "docs";
-      const scriptValue = `tskb "${pattern}" --tsconfig ${tsconfigPath}`;
+      const scriptValue = `tskb "${pattern}" --tsconfig ${tsconfigPath} --project "${projectName}"`;
       if (!scripts[scriptName]) {
         pkg.scripts = { ...scripts, [scriptName]: scriptValue };
         fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf-8");
@@ -182,7 +200,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
       }
     } else {
       info(`  package.json not found — add the following script manually:`);
-      info(`    "docs": "tskb \\"${pattern}\\" --tsconfig ${tsconfigPath}"`);
+      info(
+        `    "docs": "tskb \\"${pattern}\\" --tsconfig ${tsconfigPath} --project \\"${projectName}\\""`
+      );
     }
 
     // Create integration directories
@@ -209,7 +229,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
     info("");
     info("✓ Done! Next steps:");
     info("");
-    info("  1. Edit your starter doc:  " + path.join(docsDir, "architecture.tskb.tsx"));
+    info("  1. Edit your starter doc:  " + path.join(docsDir, "main.tskb.tsx"));
     info("  2. Build the knowledge graph:  npm run docs");
     info("  3. Query the graph:  npx tskb ls --plain");
     info("");

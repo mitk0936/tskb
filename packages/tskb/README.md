@@ -7,14 +7,16 @@ Let your **AI assistant document your codebase** as it works. Architecture knowl
 [![npm version](https://badge.fury.io/js/tskb.svg)](https://www.npmjs.com/package/tskb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
+[Repository](https://github.com/mitk0936/tskb) · [Issues](https://github.com/mitk0936/tskb/issues) · [npm](https://www.npmjs.com/package/tskb)
+
 ---
 
 ## Quick start
 
 ```bash
 npm install --save-dev tskb
-npx tskb init
-npm run docs
+npx tskb init           # interactive — pass --yes to accept all defaults
+npm run docs            # added to package.json by `init`
 npx tskb explore
 ```
 
@@ -109,7 +111,9 @@ JSX components: `<Doc>`, `<H1>` / `<H2>` / `<H3>`, `<P>`, `<List>` / `<Li>`, `<S
 ```tsx
 // docs/authentication.tskb.tsx
 import { Doc, H1, P, Snippet, ref } from "tskb";
+import { AuthService } from "../src/services/auth.service.js";
 
+// `ref` is a typed sentinel — the cast tells TS which registered node this identifier represents.
 const Service = ref as tskb.Exports["AuthService"];
 const Jwt = ref as tskb.Terms["jwt"];
 
@@ -121,8 +125,8 @@ export default (
     </P>
     <Snippet
       code={async () => {
-        const auth: AuthService = new AuthService();
-        return auth.login({ email, password });
+        const auth = new AuthService();
+        return auth.login({ email: "user@example.com", password: "secret" });
       }}
     />
   </Doc>
@@ -136,6 +140,8 @@ export default (
 Named, ordered sequences through the system — login pipelines, build steps, request paths. They become first-class graph nodes.
 
 ```tsx
+// AuthMiddleware, AuthService, and UserRepository are declared in your vocabulary
+// the same way AuthService is declared above, then pulled in via `ref as tskb.Exports[...]`.
 <Flow name="login" desc="HTTP request to session token" priority="essential">
   <Step node={AuthMiddleware} label="Validates request" />
   <Step node={AuthService} label="Issues JWT" />
@@ -184,8 +190,9 @@ The result combines what you _meant_ with what's _actually there_.
 ## CLI
 
 ```bash
-npx tskb init                            # Interactive scaffolder
-npm run docs                             # Build the graph (added by init)
+npx tskb init                            # Interactive scaffolder (--yes for defaults)
+npm run docs                             # Build the graph (script added by init)
+npx tskb build "<glob>" --project <name> --tsconfig <path>   # Direct build invocation
 
 npx tskb ls --depth 4                    # Folder tree + essential docs
 npx tskb pick "AuthService"              # Full detail for one node
