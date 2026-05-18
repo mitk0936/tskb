@@ -66,25 +66,36 @@ afterEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("generateSkillFiles", () => {
-  it("creates .claude/skills/tskb/SKILL.md and tskb-update/SKILL.md", () => {
+  it("creates SKILL.md for tskb, tskb-toc, tskb-update, and tskb-update-syntax", () => {
     generateSkillFiles(emptyGraph());
 
-    const queryPath = path.join(tmpDir, ".claude", "skills", "tskb", "SKILL.md");
+    const cliPath = path.join(tmpDir, ".claude", "skills", "tskb", "SKILL.md");
+    const tocPath = path.join(tmpDir, ".claude", "skills", "tskb-toc", "SKILL.md");
     const updatePath = path.join(tmpDir, ".claude", "skills", "tskb-update", "SKILL.md");
+    const syntaxPath = path.join(tmpDir, ".claude", "skills", "tskb-update-syntax", "SKILL.md");
 
-    expect(fs.existsSync(queryPath)).toBe(true);
+    expect(fs.existsSync(cliPath)).toBe(true);
+    expect(fs.existsSync(tocPath)).toBe(true);
     expect(fs.existsSync(updatePath)).toBe(true);
+    expect(fs.existsSync(syntaxPath)).toBe(true);
   });
 
-  it("returns paths to both written files", () => {
+  it("returns paths to all four SKILL.md files plus reference files", () => {
     const paths = generateSkillFiles(emptyGraph());
 
-    expect(paths).toHaveLength(2);
-    expect(paths[0]).toMatch(/tskb[/\\]SKILL\.md$/);
-    expect(paths[1]).toMatch(/tskb-update[/\\]SKILL\.md$/);
+    const skillFiles = paths.filter((p) => /SKILL\.md$/.test(p));
+    expect(skillFiles).toHaveLength(4);
+    expect(skillFiles[0]).toMatch(/tskb[/\\]SKILL\.md$/);
+    expect(skillFiles[1]).toMatch(/tskb-toc[/\\]SKILL\.md$/);
+    expect(skillFiles[2]).toMatch(/tskb-update[/\\]SKILL\.md$/);
+    expect(skillFiles[3]).toMatch(/tskb-update-syntax[/\\]SKILL\.md$/);
+
+    // Reference files for tskb-update and tskb-update-syntax are also written.
+    const referenceFiles = paths.filter((p) => /references[/\\][^/\\]+\.md$/.test(p));
+    expect(referenceFiles.length).toBeGreaterThan(0);
   });
 
-  it("query skill has correct frontmatter", () => {
+  it("tskb skill has correct frontmatter", () => {
     generateSkillFiles(emptyGraph());
     const content = fs.readFileSync(
       path.join(tmpDir, ".claude", "skills", "tskb", "SKILL.md"),
@@ -94,7 +105,17 @@ describe("generateSkillFiles", () => {
     expect(content).toContain("allowed-tools: Bash(npx --no -- tskb *)");
   });
 
-  it("update skill has correct frontmatter", () => {
+  it("tskb-toc skill has correct frontmatter", () => {
+    generateSkillFiles(emptyGraph());
+    const content = fs.readFileSync(
+      path.join(tmpDir, ".claude", "skills", "tskb-toc", "SKILL.md"),
+      "utf-8"
+    );
+    expect(content).toContain("name: tskb-toc");
+    expect(content).toContain("allowed-tools: Bash(npx --no -- tskb *)");
+  });
+
+  it("tskb-update skill has correct frontmatter", () => {
     generateSkillFiles(emptyGraph());
     const content = fs.readFileSync(
       path.join(tmpDir, ".claude", "skills", "tskb-update", "SKILL.md"),
@@ -104,7 +125,17 @@ describe("generateSkillFiles", () => {
     expect(content).toContain("Write, Edit, Glob");
   });
 
-  it("query skill body includes command reference", () => {
+  it("tskb-update-syntax skill has correct frontmatter", () => {
+    generateSkillFiles(emptyGraph());
+    const content = fs.readFileSync(
+      path.join(tmpDir, ".claude", "skills", "tskb-update-syntax", "SKILL.md"),
+      "utf-8"
+    );
+    expect(content).toContain("name: tskb-update-syntax");
+    expect(content).toContain("Write, Edit, Glob");
+  });
+
+  it("tskb skill body includes command reference", () => {
     generateSkillFiles(emptyGraph());
     const content = fs.readFileSync(
       path.join(tmpDir, ".claude", "skills", "tskb", "SKILL.md"),
@@ -115,17 +146,19 @@ describe("generateSkillFiles", () => {
     expect(content).toContain("tskb pick");
   });
 
-  it("update skill body includes rebuild instruction", () => {
+  it("update skill body includes a rebuild command", () => {
     generateSkillFiles(emptyGraph());
     const content = fs.readFileSync(
       path.join(tmpDir, ".claude", "skills", "tskb-update", "SKILL.md"),
       "utf-8"
     );
-    expect(content).toContain("package.json");
-    expect(content).toContain("npm run docs");
+    // No package.json in the tmpdir, so detectBuildScript falls back to the
+    // raw `npx --no -- tskb` invocation.
+    expect(content).toContain("Rebuild");
+    expect(content).toContain("npx --no -- tskb");
   });
 
-  it("bakes graph data into skill files", () => {
+  it("bakes graph data into the relevant skill files", () => {
     const graph = emptyGraph();
     graph.nodes.folders["core"] = {
       id: "core",
@@ -144,15 +177,16 @@ describe("generateSkillFiles", () => {
     };
 
     generateSkillFiles(graph);
-    const content = fs.readFileSync(
-      path.join(tmpDir, ".claude", "skills", "tskb", "SKILL.md"),
+
+    // Folder tree and essential docs both live in the always-loaded tskb-toc skill.
+    const tocContent = fs.readFileSync(
+      path.join(tmpDir, ".claude", "skills", "tskb-toc", "SKILL.md"),
       "utf-8"
     );
-
-    expect(content).toContain("**core**");
-    expect(content).toContain("Core business logic");
-    expect(content).toContain("docs/arch.tskb.tsx");
-    expect(content).toContain("Top-level architecture overview");
+    expect(tocContent).toContain("**core**");
+    expect(tocContent).toContain("Core business logic");
+    expect(tocContent).toContain("docs/arch.tskb.tsx");
+    expect(tocContent).toContain("Top-level architecture overview");
   });
 
   it("overwrites existing skill files on re-run", () => {
@@ -168,8 +202,9 @@ describe("generateSkillFiles", () => {
 
     generateSkillFiles(graph);
 
+    // The folder tree lives in the tskb-toc skill, so re-runs must overwrite that file.
     const content = fs.readFileSync(
-      path.join(tmpDir, ".claude", "skills", "tskb", "SKILL.md"),
+      path.join(tmpDir, ".claude", "skills", "tskb-toc", "SKILL.md"),
       "utf-8"
     );
     expect(content).toContain("new-area");

@@ -16,92 +16,130 @@ declare global {
   namespace tskb {
     interface Folders {
       "tskb.cli.commands": Folder<{
-        desc: "Command implementations for init, build, search, pick, context, ls, and docs";
+        desc: "One file per CLI command.";
         path: "packages/tskb/src/cli/commands";
       }>;
 
       "tskb.cli.utils": Folder<{
-        desc: "CLI utilities - output generators (skill, copilot instructions), shared content builder, graph file finder";
+        desc: "Shared helpers for CLI commands.";
         path: "packages/tskb/src/cli/utils";
       }>;
     }
 
     interface Modules {
       "cli.index": Module<{
-        desc: "CLI entry point - handles argument parsing, command routing, and error handling";
+        desc: "CLI entry point. Routes arguments to a command.";
         type: typeof import("packages/tskb/src/cli/index.js");
       }>;
 
       "cli.commands.build": Module<{
-        desc: "Build command module - orchestrates the complete pipeline from source files to knowledge graph, DOT visualization, and agent guidance";
+        desc: "The `tskb build` command.";
         type: typeof import("packages/tskb/src/cli/commands/build.js");
       }>;
 
       "cli.commands.search": Module<{
-        desc: "Search command module - fuzzy searches the entire knowledge graph for nodes matching a query, returning ranked results";
+        desc: "The `tskb search` command.";
         type: typeof import("packages/tskb/src/cli/commands/search.js");
       }>;
 
       "cli.commands.pick": Module<{
-        desc: "Pick command module - resolves any node by ID or filesystem path, returning type-specific data for folders, modules, exports, terms, and docs";
+        desc: "The `tskb pick` command.";
         type: typeof import("packages/tskb/src/cli/commands/pick.js");
       }>;
 
       "cli.commands.ls": Module<{
-        desc: "List command module - recursively lists all folders from root with controllable depth, returning flat JSON hierarchy";
+        desc: "The `tskb ls` command.";
         type: typeof import("packages/tskb/src/cli/commands/ls.js");
       }>;
 
       "cli.commands.init": Module<{
-        desc: "Init command module - interactive scaffolder that creates docs folder, tsconfig, starter doc, build script, and AI integration directories";
+        desc: "The `tskb init` command. Scaffolds a new docs folder.";
         type: typeof import("packages/tskb/src/cli/commands/init.js");
       }>;
 
       "cli.commands.flows": Module<{
-        desc: "Flows command module - lists all flows sorted by priority, with optional fuzzy search";
+        desc: "The `tskb flows` command.";
         type: typeof import("packages/tskb/src/cli/commands/flows.js");
       }>;
 
       "cli.utils.content-builder": Module<{
-        desc: "Shared markdown content builder - produces query body and update body (syntax + session triggers) for generated skill/instructions files";
+        desc: "Shared markdown content for the generated skill and instructions files.";
         type: typeof import("packages/tskb/src/cli/utils/content-builder.js");
       }>;
 
       "cli.utils.skill-generator": Module<{
-        desc: "Generates two Claude Code skills: tskb (query/explore) and tskb-update (write & update docs)";
+        desc: "Writes the Claude Code skill files for tskb.";
         type: typeof import("packages/tskb/src/cli/utils/skill-generator.js");
       }>;
 
       "cli.utils.copilot-instructions": Module<{
-        desc: "Generates two Copilot instructions files: tskb (query/explore) and tskb-update (write & update docs)";
+        desc: "Writes the Copilot instructions files for tskb.";
         type: typeof import("packages/tskb/src/cli/utils/copilot-instructions-generator.js");
       }>;
 
       "cli.utils.graph-finder": Module<{
-        desc: "Locates .tskb/graph.json from the current working directory, used by search/pick/ls commands";
+        desc: "Finds the `.tskb/graph/` directory for the current project.";
         type: typeof import("packages/tskb/src/cli/utils/graph-finder.js");
       }>;
 
+      "cli.utils.graph-loader": Module<{
+        desc: "Loads the split graph from `.tskb/graph/`, reading only the node types the caller needs.";
+        type: typeof import("packages/tskb/src/cli/utils/graph-loader.js");
+      }>;
+
       "cli.utils.logger": Module<{
-        desc: "CLI logger — all output to stderr, supports verbosity levels and timing. Configured once at startup via configure({ verbose })";
+        desc: "Logger for CLI output.";
         type: typeof import("packages/tskb/src/cli/utils/logger.js");
+      }>;
+
+      "cli.utils.resolve-node": Module<{
+        desc: "Resolves an identifier (ID or path) to a graph node and helps walk its edges.";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js");
       }>;
     }
 
     interface Exports {
       "cli.build.ExtractConfig": Export<{
-        desc: "Configuration interface for the build command containing glob pattern and tsconfig path";
+        desc: "Config the build command takes: glob pattern and tsconfig path.";
         type: import("packages/tskb/src/cli/commands/build.js").ExtractConfig;
+      }>;
+
+      "cli.utils.resolve-node.resolveNode": Export<{
+        desc: "Resolves an ID or path to a node in the graph.";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").resolveNode;
+      }>;
+
+      "cli.utils.resolve-node.getNodeEdges": Export<{
+        desc: "Returns a node's incoming and outgoing edges.";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").getNodeEdges;
+      }>;
+
+      "cli.utils.resolve-node.findReferencingDocs": Export<{
+        desc: "Returns the docs that reference a given node.";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").findReferencingDocs;
+      }>;
+
+      "cli.utils.resolve-node.findParent": Export<{
+        desc: "Returns the parent folder or module of a node.";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").findParent;
+      }>;
+
+      "cli.utils.resolve-node.findAllNodesById": Export<{
+        desc: "Finds every node sharing the same ID across types.";
+        type: typeof import("packages/tskb/src/cli/utils/resolve-node.js").findAllNodesById;
+      }>;
+
+      "cli.utils.graph-loader.loadGraph": Export<{
+        desc: "Reads the split graph from `.tskb/graph/`. Pass a list of node types to load only what you need.";
+        type: typeof import("packages/tskb/src/cli/utils/graph-loader.js").loadGraph;
       }>;
     }
 
     interface Terms {
-      cliPipeline: Term<"The build process: file discovery → program initialization → registry extraction → doc extraction → graph construction → output generation (JSON, DOT, skill/instructions)">;
-      commandRouting: Term<"The CLI's mechanism for parsing arguments and delegating to the appropriate command handler (init, build, search, pick, context, ls, docs, or flows)">;
-      globPattern: Term<"File pattern syntax (e.g., '**/*.tskb.tsx') used to match documentation files for processing">;
-      folderIdNavigation: Term<"Navigation strategy using folder IDs from the knowledge graph registry (e.g., 'tskb.cli', 'Package.Root') instead of filesystem paths">;
-      tskbOutputDir: Term<"The .tskb/ directory containing all build outputs: graph.json and graph.dot">;
-      tskbInit: Term<"Interactive scaffolder command that creates docs folder, tsconfig, starter doc, package.json script, and opt-in AI integration directories">;
+      globPattern: Term<"A file-matching pattern like `**/*.tskb.tsx`. Used to pick which doc files to build.">;
+      tskbOutputDir: Term<"The `.tskb/` folder. Holds the build output: a `graph/` directory with per-type JSON files.">;
+      searchResult: Term<"A match returned by `tskb search`. A node plus a score from 0 to 1; higher means a better match.">;
+      resolvedVia: Term<"How `resolveNode` found a match: by exact ID, by path, or by walking up to the nearest parent folder.">;
     }
   }
 }
@@ -120,7 +158,11 @@ const ContentBuilderModule = ref as tskb.Modules["cli.utils.content-builder"];
 const SkillGenModule = ref as tskb.Modules["cli.utils.skill-generator"];
 const CopilotGenModule = ref as tskb.Modules["cli.utils.copilot-instructions"];
 const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
+const GraphLoaderModule = ref as tskb.Modules["cli.utils.graph-loader"];
+const LoadGraphExport = ref as tskb.Exports["cli.utils.graph-loader.loadGraph"];
 const LoggerModule = ref as tskb.Modules["cli.utils.logger"];
+const ResolveNodeModule = ref as tskb.Modules["cli.utils.resolve-node"];
+const ResolveNodeFn = ref as tskb.Exports["cli.utils.resolve-node.resolveNode"];
 
 export default (
   <Doc explains="CLI structure: commands (init, build, search, pick, context, ls, docs, flows) and utils (output generators, content builder, logger)">
@@ -158,10 +200,19 @@ export default (
       </Li>
       <Li>{SkillGenModule}: Generates two Claude Code skills — tskb and tskb-update</Li>
       <Li>{CopilotGenModule}: Generates two Copilot instructions — tskb and tskb-update</Li>
-      <Li>{GraphFinderModule}: Finds .tskb/graph.json from cwd, used by search/pick/ls</Li>
+      <Li>{GraphFinderModule}: Finds the .tskb/graph/ directory from cwd</Li>
+      <Li>
+        {GraphLoaderModule}: {LoadGraphExport} reads only the requested node-type files from the
+        split graph — each command lists what it needs so unrelated files are never parsed
+      </Li>
       <Li>
         {LoggerModule}: Stderr-only logger with info/verbose/error/time — configured once at startup
         via --verbose flag
+      </Li>
+      <Li>
+        {ResolveNodeModule}: Resolves any identifier to a graph node via {ResolveNodeFn} (exact ID →
+        path → nearest parent folder). Also provides edge helpers: getNodeEdges,
+        findReferencingDocs, findParent, findAllNodesById.
       </Li>
     </List>
   </Doc>

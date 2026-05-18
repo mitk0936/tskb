@@ -19,16 +19,11 @@ Core tskb package that provides:
 - TypeScript program analysis and extraction
 - Graph visualization tools
 
-### `examples/taskflow-app/`
-
-Demonstration boilerplate showing a full-stack task management application. This is **not meant to be built or run** - it exists purely as a reference for documentation purposes.
-
 ### `docs/`
 
 Documentation of the repo containing:
 
 - Documentation for the tskb package itself, demonstrating how to document CLI tools, core functionality, and runtime systems.
-- Real-world documentation examples using tskb to document the TaskFlow app architecture, including ADRs, constraints, and system design.
 
 ## Getting Started
 
@@ -47,7 +42,7 @@ This will automatically:
 
 1. Install all dependencies across workspaces
 2. Build the tskb package
-3. Build example projects
+3. Build the existing repo docs
 
 ### Available Scripts
 
@@ -76,8 +71,6 @@ This creates a knowledge graph and visualization in the `dist/` folder.
 tskb/
 ├── packages/
 │   └── tskb/              # Core package
-├── examples/
-│   └── taskflow-app/      # Demo application (reference only)
 ├── docs/                  # Repo documentation (tskb)
 └── package.json           # Workspace root
 ```

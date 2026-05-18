@@ -15,50 +15,50 @@ declare global {
   namespace tskb {
     interface Folders {
       "core.extraction": Folder<{
-        desc: "Contains the logic for extracting registry and documentation from TypeScript AST";
+        desc: "Reads registry and docs out of TypeScript source.";
         path: "packages/tskb/src/core/extraction";
       }>;
     }
 
     interface Modules {
       "extraction.registry": Module<{
-        desc: "Main registry extraction module that traverses TypeScript AST to extract Folders, Modules, Terms, and Exports from the global tskb namespace";
+        desc: "Reads Folders, Modules, Exports, and Terms from the registry types.";
         type: typeof import("packages/tskb/src/core/extraction/registry.js");
       }>;
 
       "extraction.module-morphology": Module<{
-        desc: "Extracts public API shape from TypeScript modules — exports, imports, type stubs, and line ranges using the type checker";
+        desc: "Reads each module's exports and imports, with type stubs.";
         type: typeof import("packages/tskb/src/core/extraction/module-morphology.js");
       }>;
     }
 
     interface Exports {
       extractRegistry: Export<{
-        desc: "Main function that extracts the vocabulary (Folders, Modules, Terms, Exports) from TypeScript's type system using the compiler API";
+        desc: "Extracts the registry from TypeScript types.";
         type: typeof import("packages/tskb/src/core/extraction/registry.js").extractRegistry;
       }>;
 
       ExtractedRegistry: Export<{
-        desc: "Type definition for the registry data structure containing Maps of folders, modules, terms, and exports";
+        desc: "The registry data after extraction.";
         type: import("packages/tskb/src/core/extraction/registry.js").ExtractedRegistry;
       }>;
 
       extractModuleMorphology: Export<{
-        desc: "Resolves a module's source file and extracts its export surface — classifies each export by kind (function, class, interface, type, enum, variable) and renders a code stub with line ranges";
+        desc: "Extracts a module's public exports and renders short code stubs for them.";
         type: typeof import("packages/tskb/src/core/extraction/module-morphology.js").extractModuleMorphology;
       }>;
 
       extractModuleImports: Export<{
-        desc: "Walks import declarations in a module's AST to extract symbol names, paths, and display strings";
+        desc: "Extracts a module's import statements.";
         type: typeof import("packages/tskb/src/core/extraction/module-morphology.js").extractModuleImports;
       }>;
     }
 
     interface Terms {
-      ast: Term<"Abstract Syntax Tree - TypeScript's tree representation of source code, used by the compiler API to analyze code structure">;
-      declarationMerging: Term<"TypeScript feature that allows multiple declarations with the same name to be merged into a single definition, enabling distributed vocabulary across files">;
-      typeChecker: Term<"TypeScript compiler component that resolves types, validates code, and provides type information for symbols in the AST">;
-      literalType: Term<"A TypeScript type that represents a specific literal value (e.g., string literal 'hello' or number literal 42), used to extract constant values from type definitions">;
+      ast: Term<"Abstract Syntax Tree. TypeScript's tree shape of source code.">;
+      declarationMerging: Term<"TypeScript's rule that merges declarations with the same name. Lets the registry be split across files.">;
+      typeChecker: Term<"TypeScript's component that resolves types and gives type info for symbols.">;
+      literalType: Term<"A type that represents one specific value, like the string `'hello'`. Used to read constants out of type definitions.">;
     }
   }
 }
@@ -70,7 +70,7 @@ const ExtractImportsExport = ref as tskb.Exports["extractModuleImports"];
 const BuildModuleNodes = ref as tskb.Modules["graph.builder"];
 
 export default (
-  <Doc explains="Registry extraction: how TypeScript AST is traversed to extract Folders, Modules, Terms, Exports, and module morphology">
+  <Doc explains="How does tskb extract Folders, Modules, Exports, and Terms from the TypeScript AST?">
     <H1>Registry Extraction</H1>
     <P>
       {ExtractRegistryExport} walks the TypeScript AST for registry declarations, then enriches each
@@ -79,8 +79,7 @@ export default (
 
     <Flow
       name="module-morphology-extraction"
-      desc="How a Module declaration becomes a fully enriched graph node with exports, imports, and type stubs"
-      priority="essential"
+      desc="During `tskb build`, extractRegistry enriches every Module declaration with its public API: exports, imports, and type stubs"
     >
       <Step node={ExtractRegistryExport} label="collects Module declarations from tskb namespace" />
       <Step

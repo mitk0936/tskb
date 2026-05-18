@@ -25,11 +25,18 @@ async function main() {
     args: process.argv.slice(2),
     options: {
       tsconfig: { type: "string", default: "tsconfig.json" },
+      project: { type: "string" },
       depth: { type: "string", default: "1" },
       verbose: { type: "boolean", default: false },
       optimized: { type: "boolean", default: false },
       plain: { type: "boolean", default: false },
       yes: { type: "boolean", default: false, short: "y" },
+      // registry options
+      type: { type: "string" },
+      // explore options
+      port: { type: "string", default: "4442" },
+      "no-open": { type: "boolean", default: false },
+      export: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -49,8 +56,12 @@ async function main() {
           error("Error: build command requires a glob pattern");
           process.exit(1);
         }
+        if (!values.project) {
+          error("Error: build command requires --project <name>");
+          process.exit(1);
+        }
         const { build } = await import("./commands/build.js");
-        await build({ pattern, tsconfig: values.tsconfig! });
+        await build({ pattern, tsconfig: values.tsconfig!, projectName: values.project });
         break;
       }
       case "search": {
@@ -96,8 +107,22 @@ async function main() {
         await flows(positionals[1], values.optimized!, values.plain!);
         break;
       }
+      case "registry": {
+        const { registry } = await import("./commands/registry.js");
+        await registry(positionals[1], { type: values.type }, values.optimized!, values.plain!);
+        break;
+      }
       case "init": {
         await init({ yes: values.yes });
+        break;
+      }
+      case "explore": {
+        const { explore } = await import("./commands/explore.js");
+        await explore({
+          port: parseInt(values.port!, 10),
+          open: !values["no-open"],
+          exportPath: values.export,
+        });
         break;
       }
       default:

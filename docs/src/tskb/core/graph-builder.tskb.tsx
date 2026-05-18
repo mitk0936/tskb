@@ -16,39 +16,49 @@ declare global {
   namespace tskb {
     interface Folders {
       "core.extraction.graph": Folder<{
-        desc: "Part of the core of the library responsible for building the graph structure, mapping nodes and relations between them into nodes - edges";
+        desc: "Builds the knowledge graph from extracted registry and docs.";
         path: "packages/tskb/src/core/graph";
       }>;
     }
 
     interface Modules {
       "graph.builder": Module<{
-        desc: "Module containing utility functions for constructing the graph";
+        desc: "Assembles the graph from extracted data.";
         type: typeof import("packages/tskb/src/core/graph/builder.js");
       }>;
 
       "graph.types": Module<{
-        desc: "Type definitions for the knowledge graph data model - all node types, edge types, and the KnowledgeGraph structure";
+        desc: "Type definitions for the knowledge graph.";
         type: typeof import("packages/tskb/src/core/graph/types.js");
+      }>;
+
+      "graph.writer": Module<{
+        desc: "Writes the graph to disk as per-type JSON files under `.tskb/graph/`.";
+        type: typeof import("packages/tskb/src/core/graph/writer.js");
       }>;
     }
 
     interface Exports {
       buildGraph: Export<{
-        desc: "Main entry point for graph construction - takes extracted registry and docs, produces a complete KnowledgeGraph";
+        desc: "Builds the knowledge graph from extracted registry and docs.";
         type: typeof import("packages/tskb/src/core/graph/builder.js").buildGraph;
       }>;
       KnowledgeGraph: Export<{
-        desc: "The top-level graph structure containing all nodes (folders, modules, terms, exports, flows, docs), edges, and metadata";
+        desc: "The full graph: nodes, edges, and metadata.";
         type: import("packages/tskb/src/core/graph/types.js").KnowledgeGraph;
       }>;
       FlowNode: Export<{
-        desc: "Graph node for an ordered flow through the system — contains steps referencing other nodes, with priority for skill file inclusion";
+        desc: "Graph node for a Flow.";
         type: import("packages/tskb/src/core/graph/types.js").FlowNode;
       }>;
       FlowStep: Export<{
-        desc: "A single step within a flow — references a node ID with order and optional label";
+        desc: "One step inside a Flow.";
         type: import("packages/tskb/src/core/graph/types.js").FlowStep;
+      }>;
+
+      writeSplitGraph: Export<{
+        desc: "Writes the graph to `.tskb/graph/` as separate JSON files, one per node type.";
+        type: typeof import("packages/tskb/src/core/graph/writer.js").writeSplitGraph;
       }>;
     }
   }
@@ -57,13 +67,14 @@ declare global {
 const GraphFolder = ref as tskb.Folders["core.extraction.graph"];
 const BuilderModule = ref as tskb.Modules["graph.builder"];
 const TypesModule = ref as tskb.Modules["graph.types"];
+const WriterModule = ref as tskb.Modules["graph.writer"];
 const BuildGraphExport = ref as tskb.Exports["buildGraph"];
+const WriteSplitGraphExport = ref as tskb.Exports["writeSplitGraph"];
 const KnowledgeGraphExport = ref as tskb.Exports["KnowledgeGraph"];
 const FlowNodeExport = ref as tskb.Exports["FlowNode"];
-const VisualizationDotGenModule = ref as tskb.Modules["visualization.dot-generator"];
 
 export default (
-  <Doc explains="Graph module: data model (types) and construction (builder) of the knowledge graph">
+  <Doc explains="How is the knowledge graph modeled and assembled from extracted data?">
     <H1>Graph Module</H1>
     <P>
       Located in {GraphFolder}. Takes extracted registry and documentation, produces a{" "}
@@ -83,8 +94,11 @@ export default (
         edges — explicit references from docs and inferred hierarchy from folder paths
         (contains/belongs-to).
       </Li>
+      <Li>
+        {WriterModule}: {WriteSplitGraphExport} takes the assembled graph and writes one JSON file
+        per node type into <code>.tskb/graph/</code>, plus a lightweight search index.
+      </Li>
     </List>
     <Relation from={BuildGraphExport} to={KnowledgeGraphExport} />
-    <Relation from={BuildGraphExport} to={VisualizationDotGenModule} />
   </Doc>
 );

@@ -1,7 +1,6 @@
-import fs from "node:fs";
 import type { KnowledgeGraph, GraphEdge } from "../../core/graph/types.js";
 import { ROOT_FOLDER_NAME } from "../../core/constants.js";
-import { findGraphFile } from "../utils/graph-finder.js";
+import { loadGraph } from "../utils/graph-loader.js";
 import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
 
 /**
@@ -18,6 +17,7 @@ interface LsResult {
     nodeId: string;
     desc?: string;
     path?: string;
+    boundary?: string;
     structureSummary?: string;
   }>;
 }
@@ -34,9 +34,7 @@ export async function ls(
 ): Promise<void> {
   // Find and load the knowledge graph
   const loadDone = time("Loading graph");
-  const graphPath = findGraphFile();
-  const graphJson = fs.readFileSync(graphPath, "utf-8");
-  const graph: KnowledgeGraph = JSON.parse(graphJson);
+  const graph = loadGraph(["folders", "docs", "edges"]);
   loadDone();
 
   // Find the root folder (Package.Root)
@@ -93,6 +91,7 @@ function formatLsPlain(result: LsResult, maxDepth: number): string {
   for (const f of result.folders) {
     const meta: string[] = [];
     if (f.path) meta.push(f.path);
+    if (f.boundary) meta.push(`boundary: ${f.boundary}`);
     if (f.structureSummary) meta.push(f.structureSummary);
     const metaStr = meta.length > 0 ? ` (${meta.join(" | ")})` : "";
     lines.push(`  id: ${f.nodeId}${metaStr} — ${f.desc}`);
@@ -136,6 +135,7 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
     nodeId: string;
     desc?: string;
     path?: string;
+    boundary?: string;
     structureSummary?: string;
   }> = [];
   const visited = new Set<string>();
@@ -155,6 +155,7 @@ function listFolders(graph: KnowledgeGraph, rootId: string, maxDepth: number): L
       nodeId: folderId,
       desc: folder.desc,
       path: folderPath,
+      ...(folder.boundary ? { boundary: folder.boundary } : {}),
       ...(folder.structureSummary ? { structureSummary: folder.structureSummary } : {}),
     });
 

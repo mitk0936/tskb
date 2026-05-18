@@ -11,7 +11,7 @@ import type {
   GraphEdge,
 } from "./types.js";
 import type { ExtractedRegistry } from "../extraction/registry.js";
-import type { ExtractedDoc } from "../extraction/documentation.js";
+import type { ExtractedDoc } from "../extraction/documentation/index.js";
 import fs from "node:fs";
 import path from "node:path";
 import { ROOT_FOLDER_NAME } from "../constants.js";
@@ -51,7 +51,8 @@ import { ROOT_FOLDER_NAME } from "../constants.js";
 export function buildGraph(
   registry: ExtractedRegistry,
   docs: ExtractedDoc[],
-  baseDir: string
+  baseDir: string,
+  projectName?: string
 ): KnowledgeGraph {
   const graph: KnowledgeGraph = {
     nodes: {
@@ -69,6 +70,7 @@ export function buildGraph(
       generatedAt: new Date().toISOString(),
       version: "1.0.0",
       rootPath: path.relative(process.cwd(), baseDir) || ".",
+      ...(projectName ? { projectName } : {}),
       stats: {
         folderCount: 0,
         moduleCount: 0,
@@ -91,7 +93,7 @@ export function buildGraph(
   buildModuleNodes(registry, graph);
   buildTermNodes(registry, graph);
   buildExportNodes(registry, graph);
-  buildFileNodes(registry, graph);
+  buildFileNodes(registry, graph, baseDir);
   buildExternalNodes(registry, graph);
 
   // Enrich folder children with node IDs from registered folders/modules
@@ -112,7 +114,7 @@ export function buildGraph(
   // Build hierarchical edges
   buildFolderHierarchy(graph);
   buildModuleFolderMembership(graph);
-  buildExportMembership(graph);
+  buildExportMembership(graph, registry);
   buildFileFolderMembership(graph);
 
   // Build import edges between modules
@@ -151,6 +153,7 @@ function buildFolderNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
       type: "folder",
       desc: data.desc,
       path: data.resolvedPath ?? data.path,
+      ...(data.boundary ? { boundary: data.boundary } : {}),
       ...(data.folderSummary
         ? {
             structureSummary: data.folderSummary.summary,
@@ -162,21 +165,43 @@ function buildFolderNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
   }
 }
 
+function readSourceAsMorphology(
+  resolvedPath: string
+): { summary: string; morphology: string[] } | undefined {
+  const abs = path.isAbsolute(resolvedPath)
+    ? resolvedPath
+    : path.resolve(process.cwd(), resolvedPath);
+  try {
+    const raw = fs.readFileSync(abs, "utf-8");
+    const lines = raw.split("\n");
+    const morphology =
+      lines.length > MAX_FILE_LINES
+        ? [...lines.slice(0, MAX_FILE_LINES), `// … (${lines.length - MAX_FILE_LINES} more lines)`]
+        : lines;
+    return { summary: "", morphology };
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Create Module nodes from registry
  */
 function buildModuleNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): void {
   for (const [name, data] of registry.modules.entries()) {
+    const morphology =
+      data.morphology ??
+      (data.resolvedPath ? readSourceAsMorphology(data.resolvedPath) : undefined);
     const node: ModuleNode = {
       id: name,
       type: "module",
       desc: data.desc,
       typeSignature: data.type,
       resolvedPath: data.resolvedPath,
-      ...(data.morphology
+      ...(morphology
         ? {
-            morphologySummary: data.morphology.summary,
-            morphology: data.morphology.morphology,
+            morphologySummary: morphology.summary,
+            morphology: morphology.morphology,
           }
         : {}),
       ...(data.imports
@@ -227,16 +252,74 @@ function buildExportNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): v
   }
 }
 
+const FILE_TYPE_MAP: Record<string, string> = {
+  ".json": "json",
+  ".yaml": "yaml",
+  ".yml": "yaml",
+  ".sql": "sql",
+  ".xml": "xml",
+  ".html": "xml",
+  ".htm": "xml",
+  ".css": "css",
+  ".js": "javascript",
+  ".mjs": "javascript",
+  ".cjs": "javascript",
+  ".sh": "bash",
+  ".bash": "bash",
+  ".graphql": "graphql",
+  ".gql": "graphql",
+  ".md": "markdown",
+  ".markdown": "markdown",
+  ".tf": "bash",
+  ".tfvars": "bash",
+  ".conf": "bash",
+};
+
+const MAX_FILE_LINES = 1000;
+
+function detectFileType(filePath: string): string | undefined {
+  const base = path.basename(filePath).toLowerCase();
+  if (base === "dockerfile" || base.endsWith(".dockerfile")) return "dockerfile";
+  const ext = path.extname(filePath).toLowerCase();
+  return FILE_TYPE_MAP[ext];
+}
+
+function readFileContent(
+  resolvedPath: string,
+  baseDir: string
+): { content: string; fileType: string } | undefined {
+  const fileType = detectFileType(resolvedPath);
+  if (!fileType) return undefined;
+  const absPath = path.isAbsolute(resolvedPath)
+    ? resolvedPath
+    : path.resolve(baseDir, resolvedPath);
+  try {
+    const raw = fs.readFileSync(absPath, "utf-8");
+    const lines = raw.split("\n");
+    const content =
+      lines.length > MAX_FILE_LINES
+        ? lines.slice(0, MAX_FILE_LINES).join("\n") +
+          `\n// … (${lines.length - MAX_FILE_LINES} more lines)`
+        : raw;
+    return { content, fileType };
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Create File nodes from registry
  */
-function buildFileNodes(registry: ExtractedRegistry, graph: KnowledgeGraph): void {
+function buildFileNodes(registry: ExtractedRegistry, graph: KnowledgeGraph, baseDir: string): void {
   for (const [name, data] of registry.files.entries()) {
+    const resolvedPath = data.resolvedPath ?? data.path;
+    const fileContent = resolvedPath ? readFileContent(resolvedPath, baseDir) : undefined;
     const node: FileNode = {
       id: name,
       type: "file",
       desc: data.desc,
-      path: data.resolvedPath ?? data.path,
+      path: resolvedPath,
+      ...(fileContent ?? {}),
     };
     graph.nodes.files[name] = node;
   }
@@ -354,7 +437,8 @@ function buildFlowNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       };
       graph.nodes.flows[flow.name] = node;
 
-      // Create flow-step edges
+      // Create flow-step edges (deduplicated — a node may appear in multiple steps)
+      const seenStepTargets = new Set<string>();
       for (let i = 0; i < flow.steps.length; i++) {
         const step = flow.steps[i];
         // Verify the step target exists in the graph
@@ -366,12 +450,15 @@ function buildFlowNodes(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
           graph.nodes.files[step.nodeId] ||
           graph.nodes.externals[step.nodeId];
         if (exists) {
-          graph.edges.push({
-            from: flow.name,
-            to: step.nodeId,
-            type: "flow-step",
-            label: step.label,
-          });
+          if (!seenStepTargets.has(step.nodeId)) {
+            seenStepTargets.add(step.nodeId);
+            graph.edges.push({
+              from: flow.name,
+              to: step.nodeId,
+              type: "flow-step",
+              label: step.label,
+            });
+          }
         } else {
           throw new Error(
             `Unresolved flow step reference "${step.nodeId}" in flow "${flow.name}" (doc "${doc.filePath}"):\n` +
@@ -435,7 +522,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
     const docId = doc.filePath;
 
     // Create "references" edges from doc to modules/terms/contexts
-    for (const moduleName of doc.references.modules) {
+    for (const moduleName of [...new Set(doc.references.modules)]) {
       if (graph.nodes.modules[moduleName]) {
         graph.edges.push({
           from: docId,
@@ -451,7 +538,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const termName of doc.references.terms) {
+    for (const termName of [...new Set(doc.references.terms)]) {
       if (graph.nodes.terms[termName]) {
         graph.edges.push({
           from: docId,
@@ -467,7 +554,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const folderName of doc.references.folders) {
+    for (const folderName of [...new Set(doc.references.folders)]) {
       if (graph.nodes.folders[folderName]) {
         graph.edges.push({
           from: docId,
@@ -483,7 +570,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const exportName of doc.references.exports) {
+    for (const exportName of [...new Set(doc.references.exports)]) {
       if (graph.nodes.exports[exportName]) {
         graph.edges.push({
           from: docId,
@@ -499,7 +586,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const fileName of doc.references.files) {
+    for (const fileName of [...new Set(doc.references.files)]) {
       if (graph.nodes.files[fileName]) {
         graph.edges.push({
           from: docId,
@@ -515,7 +602,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
       }
     }
 
-    for (const externalName of doc.references.externals) {
+    for (const externalName of [...new Set(doc.references.externals)]) {
       if (graph.nodes.externals[externalName]) {
         graph.edges.push({
           from: docId,
@@ -550,7 +637,7 @@ function buildEdges(docs: ExtractedDoc[], graph: KnowledgeGraph): void {
           graph.nodes.files[rel.to] ||
           graph.nodes.externals[rel.to];
         if (fromExists && toExists) {
-          const edge: any = {
+          const edge: GraphEdge = {
             from: rel.from,
             to: rel.to,
             type: "related-to",
@@ -652,25 +739,25 @@ function buildModuleFolderMembership(graph: KnowledgeGraph): void {
 
     // Find the most specific folder (longest matching path)
     let bestFolder: FolderNode | null = null;
-    let bestFolderPathLength = 0;
+    let bestFolderPathLength = -1;
 
     for (const folder of folders) {
       if (!folder.path) continue;
 
-      // Both paths are already relative to baseDir, just check prefix
-      // Normalize to forward slashes for consistent comparison
+      // Both paths are relative to baseDir; use path.posix.relative so the
+      // root folder (path === ".") matches every descendant correctly.
       const folderPath = folder.path.replace(/\\/g, "/");
       const modulePath = module.resolvedPath.replace(/\\/g, "/");
-
-      // Check if module path starts with folder path
-      const isModuleInFolder =
-        modulePath.startsWith(folderPath + "/") || modulePath.startsWith(folderPath);
+      const rel = path.posix.relative(folderPath, modulePath);
+      const isModuleInFolder = rel !== "" && rel !== "." && !rel.startsWith("..");
 
       if (isModuleInFolder) {
-        // Use the longest matching folder (most specific)
-        if (folderPath.length > bestFolderPathLength) {
+        // Use the longest matching folder (most specific). Treat "." as
+        // length 0 so any other folder wins over the root.
+        const effectiveLength = folderPath === "." ? 0 : folderPath.length;
+        if (effectiveLength > bestFolderPathLength) {
           bestFolder = folder;
-          bestFolderPathLength = folderPath.length;
+          bestFolderPathLength = effectiveLength;
         }
       }
     }
@@ -704,13 +791,45 @@ function buildModuleFolderMembership(graph: KnowledgeGraph): void {
  * 1. First try to find a matching module (same file)
  * 2. If no module, find the most specific folder containing it
  */
-function buildExportMembership(graph: KnowledgeGraph): void {
+function buildExportMembership(graph: KnowledgeGraph, registry: ExtractedRegistry): void {
   const exports = Object.values(graph.nodes.exports);
   const modules = Object.values(graph.nodes.modules);
   const folders = Object.values(graph.nodes.folders);
 
   for (const exp of exports) {
+    // InstanceType<X>["method"] membership: store ownerExportId on the node (no belongs-to edge).
+    // All exports belong directly to their parent module; the ownerExportId is used only for
+    // deriving compound labels like "ClassName.methodName" in the explorer.
+    const regEntry = registry.exports.get(exp.id);
+    if (regEntry?.ownerAlias) {
+      for (const [candidateId, candidateNode] of Object.entries(graph.nodes.exports)) {
+        const sig = candidateNode.typeSignature;
+        const ownerMatches =
+          sig?.endsWith(`.${regEntry.ownerAlias}`) || sig === regEntry.ownerAlias;
+        if (candidateId !== exp.id && ownerMatches) {
+          exp.ownerExportId = candidateId;
+          break;
+        }
+      }
+    }
+
+    // Class method exports (ownerExportId set) typically have no resolvedPath.
+    // Inherit the parent module from the owner's belongs-to edge.
+    if (exp.ownerExportId && !exp.resolvedPath) {
+      const ownerEdge = graph.edges.find(
+        (e) => e.from === exp.ownerExportId && e.type === "belongs-to"
+      );
+      if (ownerEdge) {
+        graph.edges.push({ from: exp.id, to: ownerEdge.to, type: "belongs-to" });
+      }
+      continue;
+    }
+
     if (!exp.resolvedPath) continue;
+
+    // When an export shares its ID with a module, the module's own folder membership
+    // (from buildModuleFolderMembership) already covers this node — skip entirely.
+    if (graph.nodes.modules[exp.id]) continue;
 
     // Normalize path for comparison
     const exportPath = exp.resolvedPath.replace(/\\/g, "/");
@@ -760,8 +879,8 @@ function buildExportMembership(graph: KnowledgeGraph): void {
         }
       }
 
-      // Create edge from export to folder
-      if (bestFolder) {
+      // Create edge from export to folder (skip if IDs collide — would be a self-loop)
+      if (bestFolder && bestFolder.id !== exp.id) {
         graph.edges.push({
           from: exp.id,
           to: bestFolder.id,
@@ -785,21 +904,21 @@ function buildFileFolderMembership(graph: KnowledgeGraph): void {
     if (!file.path) continue;
 
     let bestFolder: FolderNode | null = null;
-    let bestFolderPathLength = 0;
+    let bestFolderPathLength = -1;
 
     for (const folder of folders) {
       if (!folder.path) continue;
 
       const folderPath = folder.path.replace(/\\/g, "/");
       const filePath = file.path.replace(/\\/g, "/");
-
-      const isFileInFolder =
-        filePath.startsWith(folderPath + "/") || filePath.startsWith(folderPath);
+      const rel = path.posix.relative(folderPath, filePath);
+      const isFileInFolder = rel !== "" && rel !== "." && !rel.startsWith("..");
 
       if (isFileInFolder) {
-        if (folderPath.length > bestFolderPathLength) {
+        const effectiveLength = folderPath === "." ? 0 : folderPath.length;
+        if (effectiveLength > bestFolderPathLength) {
           bestFolder = folder;
-          bestFolderPathLength = folderPath.length;
+          bestFolderPathLength = effectiveLength;
         }
       }
     }
@@ -847,39 +966,40 @@ function buildModuleImportEdges(graph: KnowledgeGraph): void {
     const moduleDir = path.posix.dirname(mod.resolvedPath.replace(/\\/g, "/"));
     const seen = new Set<string>(); // avoid duplicate edges to same target
 
-    for (const entry of mod.importEntries) {
-      if (entry.path.startsWith("./") || entry.path.startsWith("../")) {
-        // Resolve relative imports to modules
-        const resolved = path.posix.normalize(path.posix.join(moduleDir, entry.path));
-        const normalizedResolved = stripExtension(resolved);
+    // Collect all entries per resolved target to determine if any are value imports
+    const targetValueImport = new Map<string, boolean>(); // targetId -> hasValueImport
 
-        const targetId = pathToModuleId.get(normalizedResolved);
-        if (targetId && targetId !== mod.id && !seen.has(targetId)) {
-          seen.add(targetId);
-          graph.edges.push({
-            from: mod.id,
-            to: targetId,
-            type: "imports",
-          });
-        }
+    for (const entry of mod.importEntries) {
+      let targetId: string | undefined;
+
+      if (entry.path.startsWith("./") || entry.path.startsWith("../")) {
+        const resolved = path.posix.normalize(path.posix.join(moduleDir, entry.path));
+        targetId = pathToModuleId.get(stripExtension(resolved));
       } else {
-        // Bare specifier — check if it matches a registered package name
-        // e.g. "tskb" or "tskb/runtime/jsx" both match package "tskb"
         const specifier = entry.path;
         for (const [pkgName, folderId] of packageNameToFolderId) {
           if (specifier === pkgName || specifier.startsWith(pkgName + "/")) {
-            if (folderId !== mod.id && !seen.has(folderId)) {
-              seen.add(folderId);
-              graph.edges.push({
-                from: mod.id,
-                to: folderId,
-                type: "imports",
-              });
-            }
+            targetId = folderId;
             break;
           }
         }
       }
+
+      if (!targetId || targetId === mod.id) continue;
+
+      // Track whether any entry for this target imports a value (not just types)
+      const prev = targetValueImport.get(targetId);
+      targetValueImport.set(targetId, (prev ?? false) || !entry.typeOnly);
+    }
+
+    for (const [targetId, hasValueImport] of targetValueImport) {
+      if (seen.has(targetId)) continue;
+      seen.add(targetId);
+      graph.edges.push({
+        from: mod.id,
+        to: targetId,
+        type: hasValueImport ? "imports" : "imports-type",
+      });
     }
   }
 }

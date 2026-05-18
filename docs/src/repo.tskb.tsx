@@ -1,4 +1,4 @@
-import { Folder } from "tskb";
+import { type Folder } from "tskb";
 
 declare global {
   namespace tskb {
@@ -6,10 +6,6 @@ declare global {
       docs: Folder<{
         desc: "A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration.";
         path: "docs/";
-      }>;
-      "examples.taskflow-app": Folder<{
-        desc: "Example application, not meant to be run, but used as reference for example docs";
-        path: "examples/taskflow-app";
       }>;
       packages: Folder<{
         desc: "A folder that contains independent packages in the repo (npm worskspace)";

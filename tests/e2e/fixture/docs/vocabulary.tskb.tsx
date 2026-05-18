@@ -1,5 +1,9 @@
 import type { Folder, Module, Export, External, Term } from "tskb";
 
+type AuthServiceClass = typeof import("../src/services/auth.service.js").AuthService;
+type NotificationServiceClass =
+  typeof import("../src/services/notification.service.js").NotificationService;
+
 declare global {
   namespace tskb {
     interface Folders {
@@ -30,6 +34,10 @@ declare global {
         desc: "Structured logging utility";
         type: typeof import("../src/utils/logger.js");
       }>;
+      "services.notification": Module<{
+        desc: "Notification delivery service (email + push)";
+        type: typeof import("../src/services/notification.service.js");
+      }>;
       /** Barrel module — intentionally shares ID with the utils Folder */
       utils: Module<{
         desc: "Utils barrel re-exporting all utilities";
@@ -41,6 +49,22 @@ declare global {
       AuthService: Export<{
         desc: "Handles login, registration, and token management";
         type: typeof import("../src/services/auth.service.js").AuthService;
+      }>;
+      "AuthService.login": Export<{
+        desc: "Authenticates user credentials and returns session tokens";
+        type: InstanceType<AuthServiceClass>["login"];
+      }>;
+      "AuthService.register": Export<{
+        desc: "Creates a new user account and returns session tokens";
+        type: InstanceType<AuthServiceClass>["register"];
+      }>;
+      "AuthService.refreshToken": Export<{
+        desc: "Issues a new access token given a valid refresh token";
+        type: InstanceType<AuthServiceClass>["refreshToken"];
+      }>;
+      "AuthService.logout": Export<{
+        desc: "Invalidates the user session";
+        type: InstanceType<AuthServiceClass>["logout"];
       }>;
       TaskService: Export<{
         desc: "CRUD operations for tasks with status workflow";
@@ -54,12 +78,25 @@ declare global {
         desc: "Factory for structured loggers";
         type: typeof import("../src/utils/logger.js").createLogger;
       }>;
+      /** Method exports WITHOUT a class export — tests InstanceType path resolution fallback */
+      "NotificationService.sendEmail": Export<{
+        desc: "Sends an email notification";
+        type: InstanceType<NotificationServiceClass>["sendEmail"];
+      }>;
+      "NotificationService.sendPush": Export<{
+        desc: "Sends a push notification";
+        type: InstanceType<NotificationServiceClass>["sendPush"];
+      }>;
     }
 
     interface Externals {
       postgres: External<{
         desc: "Primary relational database";
         kind: "database";
+      }>;
+      mailgun: External<{
+        desc: "Outbound transactional email provider";
+        kind: "email-service";
       }>;
     }
 

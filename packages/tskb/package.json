@@ -1,6 +1,6 @@
 {
   "name": "tskb",
-  "version": "0.6.2",
+  "version": "0.6.3-beta.36",
   "description": "TS Knowledge Base. A TypeScript-native DSL for expressing architectural intent as typed declarations. Produces renderable docs/diagrams and a queryable knowledge graph, supporting type-checked snippet references, semantic relations, and constraints.",
   "type": "module",
   "bin": {
@@ -23,11 +23,16 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build:explorer": "vite build --config explorer-app/vite.config.ts",
+    "build:lib": "tsc",
+    "build": "npm run build:explorer && npm run build:lib",
     "dev": "tsc --watch",
+    "dev:explorer": "vite --config explorer-app/vite.config.ts",
     "clean": "rimraf dist",
     "pack:test": "npm run build && npm pack",
     "prepublishOnly": "npm run clean && npm run build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "author": "Dimitar Mihaylov",
@@ -63,12 +68,14 @@
   ],
   "dependencies": {
     "fuse.js": "^7.1.0",
-    "glob": "^13.0.0"
-  },
-  "peerDependencies": {
-    "typescript": ">=5.0.0"
+    "glob": "^13.0.0",
+    "highlight.js": "^11.11.1",
+    "typescript": ">=5.0.0",
+    "d3": "^7.9.0"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "@types/d3": "^7.4.3",
+    "lucide": "^1.8.0",
+    "vite": "^6.0.0"
   }
 }

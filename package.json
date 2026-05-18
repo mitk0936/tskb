@@ -2,6 +2,7 @@
   "name": "tskb-workspace",
   "version": "0.0.1",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*",
     "examples/*"
@@ -9,11 +10,13 @@
   "scripts": {
     "postinstall": "npm run build",
     "build": "npm run build --workspaces --if-present && npm run build:docs",
-    "build:docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json",
+    "build:docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json --project \"TSKB Monorepo\" && tskb explore --export ./docs-export",
     "clean": "npx rimraf --glob node_modules **/node_modules **/dist **/.tskb",
     "test": "vitest run",
-    "test:coverage": "c8 --src packages/tskb/src --include \"packages/tskb/dist/**\" --reporter text --reporter html -o coverage vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
+    "lint": "npm run lint --workspaces --if-present && eslint --config docs/eslint.config.js docs/src",
+    "lint:fix": "npm run lint:fix --workspaces --if-present && eslint --config docs/eslint.config.js docs/src --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "prepare": "husky"
@@ -22,12 +25,14 @@
     "tskb": "workspace:*"
   },
   "devDependencies": {
+    "@types/node": "^25.6.0",
     "@vitest/coverage-v8": "^4.1.1",
-    "c8": "^11.0.0",
+    "eslint": "^10.2.0",
     "husky": "^9.1.7",
     "mkdirp": "^3.0.1",
     "prettier": "^3.2.4",
     "rimraf": "^6.0.1",
+    "typescript-eslint": "^8.58.1",
     "vitest": "^4.1.1"
   },
   "engines": {

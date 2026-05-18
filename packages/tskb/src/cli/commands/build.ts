@@ -1,10 +1,10 @@
 import { globSync } from "glob";
 import fs from "node:fs";
 import path from "node:path";
-import { createProgram } from "../../typescript/index.js";
+import { createProgram } from "../../core/typescript/index.js";
 import { extractRegistry, extractDocs } from "../../core/extraction/index.js";
 import { buildGraph } from "../../core/graph/index.js";
-import { generateDot } from "../../core/visualization/index.js";
+import { writeSplitGraph } from "../../core/graph/writer.js";
 import { info, verbose, infoTime } from "../utils/logger.js";
 
 /**
@@ -19,6 +19,10 @@ export interface ExtractConfig {
    * Path to tsconfig.json
    */
   tsconfig: string;
+  /**
+   * Human-readable project name included in graph metadata and generated skills
+   */
+  projectName: string;
 }
 
 /**
@@ -79,7 +83,7 @@ export async function build(config: ExtractConfig): Promise<void> {
   }
 
   // Create TypeScript program
-  const programDone = infoTime("Creating TypeScript program");
+  const programDone = infoTime("TypeScript magic happening");
   const program = createProgram(files, config.tsconfig);
   programDone();
 
@@ -95,7 +99,7 @@ export async function build(config: ExtractConfig): Promise<void> {
 
   verbose(`   Base directory: ${baseDir}`);
 
-  const registry = extractRegistry(program, baseDir, config.tsconfig);
+  const registry = extractRegistry(program, baseDir);
   registryDone();
 
   info(`   ├─ ${registry.folders.size} folders`);
@@ -157,13 +161,13 @@ export async function build(config: ExtractConfig): Promise<void> {
 
   // Extract documentation
   const docsDone = infoTime("Extracting documentation");
-  const docs = extractDocs(program, new Set(files));
+  const docs = extractDocs(program, new Set(files), registry);
   docsDone();
   info(`└─ ${docs.length} docs`);
 
   // Build knowledge graph
   const graphDone = infoTime("Building knowledge graph");
-  const graph = buildGraph(registry, docs, baseDir);
+  const graph = buildGraph(registry, docs, baseDir, config.projectName);
   graphDone();
 
   info(`   ├─ ${graph.metadata.stats.folderCount} folder nodes`);
@@ -179,22 +183,16 @@ export async function build(config: ExtractConfig): Promise<void> {
   info(`   ├─ ${graph.metadata.stats.docCount} doc nodes`);
   info(`   └─ ${graph.metadata.stats.edgeCount} edges`);
 
-  // Create .tskb output directory
+  // Create .tskb output directory (clean first so stale files don't linger)
   const outputDone = infoTime("Writing outputs");
   const outputDir = path.resolve(process.cwd(), ".tskb");
   verbose(`   Output directory: ${outputDir}`);
+  fs.rmSync(outputDir, { recursive: true, force: true });
   fs.mkdirSync(outputDir, { recursive: true });
 
-  // Write graph.json
-  const graphPath = path.join(outputDir, "graph.json");
-  verbose(`   Writing graph to ${graphPath}`);
-  fs.writeFileSync(graphPath, JSON.stringify(graph, null, 2), "utf-8");
-
-  // Generate and write graph.dot
-  const dotPath = path.join(outputDir, "graph.dot");
-  verbose(`   Generating visualization: ${dotPath}`);
-  const dot = generateDot(graph);
-  fs.writeFileSync(dotPath, dot, "utf-8");
+  // Write split graph files to .tskb/graph/
+  const graphDir = writeSplitGraph(graph, outputDir);
+  verbose(`   Writing graph to ${graphDir}`);
 
   // Generate Claude Code skills if .claude/skills/ exists
   const { generateSkillFiles } = await import("../utils/skill-generator.js");
@@ -216,15 +214,12 @@ export async function build(config: ExtractConfig): Promise<void> {
   info("✓ Done!");
   info("");
   info("Output directory: .tskb/");
-  info("   ├─ graph.json     Knowledge graph data");
-  info("   └─ graph.dot      Graphviz visualization");
+  info("   └─ graph/         Knowledge graph data (split by type)");
   for (const p of skillPaths) {
     info(`   └─ ${path.relative(process.cwd(), p)}  Claude Code skill`);
   }
   for (const p of copilotPaths) {
     info(`   └─ ${path.relative(process.cwd(), p)}  Copilot instructions`);
   }
-  info("");
-  info(`Visualize with: dot -Tpng .tskb/graph.dot -o .tskb/graph.png`);
   buildDone();
 }

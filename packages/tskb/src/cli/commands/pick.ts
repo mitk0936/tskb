@@ -1,16 +1,17 @@
-import fs from "node:fs";
 import path from "node:path";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
-import { findGraphFile } from "../utils/graph-finder.js";
+import { loadGraph } from "../utils/graph-loader.js";
 import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
 import {
   resolveNode,
   getNodeEdges,
   findReferencingDocs,
+  findReferencingFlows,
   findParent,
   findAllNodesById,
   type NodeEdges,
   type DocRef,
+  type FlowRef,
   type ResolvedVia,
 } from "../utils/resolve-node.js";
 
@@ -23,6 +24,7 @@ interface FolderPickResult {
     nodeId: string;
     desc: string;
     path?: string;
+    boundary?: string;
     packageName?: string;
     structureSummary?: string;
     children?: import("../../core/graph/types.js").FolderNode["children"];
@@ -31,6 +33,7 @@ interface FolderPickResult {
   exports: Array<{ nodeId: string; desc: string; path?: string }>;
   importedBy?: Array<{ moduleId: string; desc: string }>;
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -57,6 +60,7 @@ interface ModulePickResult {
   exports: Array<{ nodeId: string; desc: string; typeSignature?: string }>;
   importedBy?: Array<{ moduleId: string; desc: string }>;
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -79,6 +83,7 @@ interface ExportPickResult {
   };
   parent?: { nodeId: string; type: string; desc: string; morphologySummary?: string };
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -93,6 +98,7 @@ interface TermPickResult {
   resolvedVia: ResolvedVia;
   node: { nodeId: string; desc: string };
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -112,6 +118,7 @@ interface FilePickResult {
   };
   parentFolder?: { nodeId: string; desc: string; path?: string };
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -130,6 +137,7 @@ interface ExternalPickResult {
     metadata: Record<string, string>;
   };
   referencingDocs: DocRef[];
+  referencingFlows: FlowRef[];
   relations?: Array<{
     from: string;
     fromType?: string;
@@ -233,6 +241,7 @@ function resolveFolder(
       nodeId: id,
       desc: folder.desc,
       path: folder.path,
+      ...(folder.boundary ? { boundary: folder.boundary } : {}),
       ...(folder.packageName ? { packageName: folder.packageName } : {}),
       ...(folder.structureSummary ? { structureSummary: folder.structureSummary } : {}),
       ...(folder.children ? { children: folder.children } : {}),
@@ -241,6 +250,7 @@ function resolveFolder(
     exports,
     ...(importedBy.length > 0 ? { importedBy } : {}),
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -260,12 +270,22 @@ function resolveModule(
     if (folder) parentFolder = { nodeId: parentEdge.to, desc: folder.desc, path: folder.path };
   }
 
-  // exports that belong to this module
+  // exports that belong to this module (direct and nested, e.g. class methods)
   const exps: ModulePickResult["exports"] = [];
-  for (const edge of edges.incoming) {
-    if (edge.type === "belongs-to") {
-      const exp = graph.nodes.exports[edge.from];
-      if (exp) exps.push({ nodeId: edge.from, desc: exp.desc, typeSignature: exp.typeSignature });
+  const expQueue: string[] = [id]; // start from the module, then recurse into class exports
+  const expVisited = new Set<string>();
+  while (expQueue.length > 0) {
+    const ownerId = expQueue.shift()!;
+    if (expVisited.has(ownerId)) continue;
+    expVisited.add(ownerId);
+    for (const edge of graph.edges) {
+      if (edge.to === ownerId && edge.type === "belongs-to") {
+        const exp = graph.nodes.exports[edge.from];
+        if (exp) {
+          exps.push({ nodeId: edge.from, desc: exp.desc, typeSignature: exp.typeSignature });
+          expQueue.push(edge.from); // recurse into this export's members
+        }
+      }
     }
   }
 
@@ -299,6 +319,7 @@ function resolveModule(
     exports: exps,
     ...(importedBy.length > 0 ? { importedBy } : {}),
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -332,6 +353,7 @@ function resolveExport(
     },
     parent,
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -348,6 +370,7 @@ function resolveTerm(
     resolvedVia: "id",
     node: { nodeId: id, desc: term.desc },
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -377,6 +400,7 @@ function resolveFile(
     },
     parentFolder,
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -397,6 +421,7 @@ function resolveExternal(
       metadata: external.metadata,
     },
     referencingDocs: findReferencingDocs(edges, graph),
+    referencingFlows: findReferencingFlows(edges, graph),
   };
 }
 
@@ -548,9 +573,7 @@ export async function pick(
   plain: boolean = false
 ): Promise<void> {
   const loadDone = time("Loading graph");
-  const graphPath = findGraphFile();
-  const graphJson = fs.readFileSync(graphPath, "utf-8");
-  const graph: KnowledgeGraph = JSON.parse(graphJson);
+  const graph = loadGraph();
   loadDone();
 
   const resolveDone = time("Resolving node");
@@ -628,6 +651,15 @@ function formatDocs(docs: DocRef[]): string[] {
   const lines = ["  docs:"];
   for (const d of docs) {
     lines.push(`    id: ${d.nodeId} [${d.priority}] — ${d.explains}`);
+  }
+  return lines;
+}
+
+function formatFlows(flows: FlowRef[]): string[] {
+  if (flows.length === 0) return [];
+  const lines = ["  flows:"];
+  for (const f of flows) {
+    lines.push(`    id: ${f.nodeId} [${f.priority}] — ${f.desc}`);
   }
   return lines;
 }
@@ -732,6 +764,7 @@ function formatModulePlain(result: ModulePickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -741,6 +774,7 @@ function formatFolderPlain(result: FolderPickResult): string[] {
   const { node } = result;
   const meta: string[] = [];
   if (node.path) meta.push(`path: ${node.path}`);
+  if (node.boundary) meta.push(`boundary: ${node.boundary}`);
   if (node.structureSummary) meta.push(node.structureSummary);
   if (node.packageName) meta.push(`package: ${node.packageName}`);
 
@@ -780,6 +814,7 @@ function formatFolderPlain(result: FolderPickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -811,6 +846,7 @@ function formatExportPlain(result: ExportPickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -820,6 +856,7 @@ function formatTermPlain(result: TermPickResult): string[] {
   const lines: string[] = [`id: ${result.node.nodeId} (term)`, `  ${result.node.desc}`];
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -836,6 +873,7 @@ function formatFilePlain(result: FilePickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;
@@ -852,6 +890,7 @@ function formatExternalPlain(result: ExternalPickResult): string[] {
   }
 
   lines.push(...formatDocs(result.referencingDocs));
+  lines.push(...formatFlows(result.referencingFlows));
   lines.push(...formatRelations(result.relations));
 
   return lines;

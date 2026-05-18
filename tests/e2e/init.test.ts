@@ -48,8 +48,8 @@ describe("tskb init", () => {
     expect(tsconfig.include).toContain("**/*.tskb.tsx");
   });
 
-  it("should create starter architecture.tskb.tsx", () => {
-    const starterPath = path.join(tempDir, "docs", "architecture.tskb.tsx");
+  it("should create starter main.tskb.tsx", () => {
+    const starterPath = path.join(tempDir, "docs", "main.tskb.tsx");
     expect(fs.existsSync(starterPath)).toBe(true);
 
     const content = fs.readFileSync(starterPath, "utf-8");
@@ -64,6 +64,14 @@ describe("tskb init", () => {
     expect(pkg.scripts.docs).toBeDefined();
     expect(pkg.scripts.docs).toContain("tskb");
     expect(pkg.scripts.docs).toContain("tsconfig");
+    expect(pkg.scripts.docs).toContain("--project");
+  });
+
+  it("should include project name in the starter doc", () => {
+    const starterPath = path.join(tempDir, "docs", "main.tskb.tsx");
+    const content = fs.readFileSync(starterPath, "utf-8");
+    const fixturePkg = JSON.parse(fs.readFileSync(path.join(FIXTURE_DIR, "package.json"), "utf-8"));
+    expect(content).toContain(fixturePkg.name);
   });
 
   it("should create .claude/skills/ directory", () => {
@@ -75,7 +83,7 @@ describe("tskb init", () => {
   });
 
   it("should not overwrite existing files on re-run", () => {
-    const starterPath = path.join(tempDir, "docs", "architecture.tskb.tsx");
+    const starterPath = path.join(tempDir, "docs", "main.tskb.tsx");
     const originalContent = fs.readFileSync(starterPath, "utf-8");
     fs.writeFileSync(starterPath, originalContent + "\n// custom edit");
 

@@ -18,6 +18,7 @@ export interface ExtractedRegistry {
     {
       desc: string;
       path?: string;
+      boundary?: string;
       resolvedPath?: string;
       pathExists: boolean;
       folderSummary?: FolderSummary;
@@ -43,6 +44,7 @@ export interface ExtractedRegistry {
       type?: string;
       importPath?: string;
       memberName?: string;
+      ownerAlias?: string;
       resolvedPath?: string;
       pathExists: boolean;
       morphology?: ModuleMorphology;
@@ -66,6 +68,19 @@ export interface ExtractedRegistry {
   >;
 }
 
+interface SeenDefinitions {
+  folders: Map<string, string>;
+  /** resolved path → first folder name that claimed it */
+  folderPaths: Map<string, string>;
+  modules: Map<string, string>;
+  /** resolved path → first module name that claimed it */
+  modulePaths: Map<string, string>;
+  terms: Map<string, string>;
+  exports: Map<string, string>;
+  files: Map<string, string>;
+  externals: Map<string, string>;
+}
+
 /**
  * Extracts the vocabulary (Folders, Modules, Terms) from the TypeScript type system.
  *
@@ -77,15 +92,22 @@ export interface ExtractedRegistry {
  * @param tsconfigPath - Path to tsconfig.json (for reading additional config if needed)
  * @returns Extracted registry data
  */
-export function extractRegistry(
-  program: ts.Program,
-  baseDir: string,
-  tsconfigPath: string
-): ExtractedRegistry {
+export function extractRegistry(program: ts.Program, baseDir: string): ExtractedRegistry {
   const checker = program.getTypeChecker();
   const registry: ExtractedRegistry = {
     folders: new Map(),
     modules: new Map(),
+    terms: new Map(),
+    exports: new Map(),
+    files: new Map(),
+    externals: new Map(),
+  };
+
+  const seen: SeenDefinitions = {
+    folders: new Map(),
+    folderPaths: new Map(),
+    modules: new Map(),
+    modulePaths: new Map(),
     terms: new Map(),
     exports: new Map(),
     files: new Map(),
@@ -105,7 +127,7 @@ export function extractRegistry(
     // Look for global namespace declarations
     ts.forEachChild(sourceFile, (node) => {
       if (ts.isModuleDeclaration(node) && node.name.text === "global") {
-        extractFromGlobalNamespace(node, checker, registry, sourceFile, baseDir, baseUrl);
+        extractFromGlobalNamespace(node, checker, registry, sourceFile, baseDir, baseUrl, seen);
       }
     });
   }
@@ -166,7 +188,8 @@ function extractFromGlobalNamespace(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: SeenDefinitions
 ): void {
   if (!globalNode.body || !ts.isModuleBlock(globalNode.body)) return;
 
@@ -177,7 +200,15 @@ function extractFromGlobalNamespace(
       ts.isIdentifier(statement.name) &&
       statement.name.text === "tskb"
     ) {
-      extractFromTskbNamespace(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractFromTskbNamespace(
+        statement,
+        checker,
+        registry,
+        sourceFile,
+        tsconfigDir,
+        baseUrl,
+        seen
+      );
     }
   }
 }
@@ -191,7 +222,8 @@ function extractFromTskbNamespace(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: SeenDefinitions
 ): void {
   if (!tskbNode.body || !ts.isModuleBlock(tskbNode.body)) return;
 
@@ -201,17 +233,35 @@ function extractFromTskbNamespace(
     const interfaceName = statement.name.text;
 
     if (interfaceName === "Folders") {
-      extractFolders(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractFolders(
+        statement,
+        checker,
+        registry,
+        sourceFile,
+        tsconfigDir,
+        baseUrl,
+        seen.folders,
+        seen.folderPaths
+      );
     } else if (interfaceName === "Modules") {
-      extractModules(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractModules(
+        statement,
+        checker,
+        registry,
+        sourceFile,
+        tsconfigDir,
+        baseUrl,
+        seen.modules,
+        seen.modulePaths
+      );
     } else if (interfaceName === "Terms") {
-      extractTerms(statement, checker, registry, sourceFile);
-    } else if (interfaceName == "Exports") {
-      extractExports(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractTerms(statement, checker, registry, sourceFile, seen.terms);
+    } else if (interfaceName === "Exports") {
+      extractExports(statement, checker, registry, sourceFile, tsconfigDir, baseUrl, seen.exports);
     } else if (interfaceName === "Files") {
-      extractFiles(statement, checker, registry, sourceFile, tsconfigDir, baseUrl);
+      extractFiles(statement, checker, registry, sourceFile, tsconfigDir, baseUrl, seen.files);
     } else if (interfaceName === "Externals") {
-      extractExternals(statement, checker, registry, sourceFile);
+      extractExternals(statement, checker, registry, sourceFile, seen.externals);
     }
   }
 }
@@ -240,7 +290,9 @@ function extractFolders(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: Map<string, string>,
+  seenPaths: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -313,6 +365,20 @@ function extractFolders(
         }
       }
 
+      if (seen.has(folderName)) {
+        throw new Error(
+          `Duplicate Folder definition "${folderName}" in ${sourceFile.fileName}:\n` +
+            `  "${folderName}" was already defined in ${seen.get(folderName)}.`
+        );
+      }
+      if (resolvedPath && seenPaths.has(resolvedPath)) {
+        throw new Error(
+          `Duplicate Folder path "${resolvedPath}" registered as "${folderName}" in ${sourceFile.fileName}:\n` +
+            `  The same path was already registered as "${seenPaths.get(resolvedPath)}".`
+        );
+      }
+      seen.set(folderName, sourceFile.fileName);
+      if (resolvedPath) seenPaths.set(resolvedPath, folderName);
       registry.folders.set(folderName, {
         ...folderData,
         resolvedPath,
@@ -339,9 +405,9 @@ function extractFolders(
  */
 function extractFolderType(
   typeNode: ts.TypeNode,
-  checker: ts.TypeChecker
-): { desc: string; path?: string } | null {
-  // Handle Folder<{ desc: "...", path: "..." }>
+  _checker: ts.TypeChecker
+): { desc: string; path?: string; boundary?: string } | null {
+  // Handle Folder<{ desc: "...", path: "...", boundary?: "..." }>
   if (!ts.isTypeReferenceNode(typeNode)) return null;
 
   const typeArgs = typeNode.typeArguments;
@@ -352,6 +418,7 @@ function extractFolderType(
 
   let desc = "";
   let path: string | undefined;
+  let boundary: string | undefined;
 
   for (const member of objectType.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -365,10 +432,12 @@ function extractFolderType(
       desc = (propType.literal as ts.StringLiteral).text;
     } else if (propName === "path" && propType && ts.isLiteralTypeNode(propType)) {
       path = (propType.literal as ts.StringLiteral).text;
+    } else if (propName === "boundary" && propType && ts.isLiteralTypeNode(propType)) {
+      boundary = (propType.literal as ts.StringLiteral).text;
     }
   }
 
-  return desc ? { desc, path } : null;
+  return desc ? { desc, path, boundary } : null;
 }
 
 /**
@@ -390,7 +459,9 @@ function extractModules(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: Map<string, string>,
+  seenPaths: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -472,6 +543,20 @@ function extractModules(
         }
       }
 
+      if (seen.has(moduleName)) {
+        throw new Error(
+          `Duplicate Module definition "${moduleName}" in ${sourceFile.fileName}:\n` +
+            `  "${moduleName}" was already defined in ${seen.get(moduleName)}.`
+        );
+      }
+      if (resolvedPath && seenPaths.has(resolvedPath)) {
+        throw new Error(
+          `Duplicate Module path "${resolvedPath}" registered as "${moduleName}" in ${sourceFile.fileName}:\n` +
+            `  The same file was already registered as "${seenPaths.get(resolvedPath)}".`
+        );
+      }
+      seen.set(moduleName, sourceFile.fileName);
+      if (resolvedPath) seenPaths.set(resolvedPath, moduleName);
       registry.modules.set(moduleName, {
         ...moduleData,
         resolvedPath,
@@ -493,7 +578,7 @@ function extractModules(
  */
 function extractModuleType(
   typeNode: ts.TypeNode,
-  checker: ts.TypeChecker
+  _checker: ts.TypeChecker
 ): { desc: string; type?: string; importPath?: string } | null {
   if (!ts.isTypeReferenceNode(typeNode)) return null;
 
@@ -552,7 +637,8 @@ function extractTerms(
   interfaceNode: ts.InterfaceDeclaration,
   checker: ts.TypeChecker,
   registry: ExtractedRegistry,
-  sourceFile: ts.SourceFile
+  sourceFile: ts.SourceFile,
+  seen: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -576,6 +662,13 @@ function extractTerms(
     }
 
     if (desc) {
+      if (seen.has(termName)) {
+        throw new Error(
+          `Duplicate Term definition "${termName}" in ${sourceFile.fileName}:\n` +
+            `  "${termName}" was already defined in ${seen.get(termName)}.`
+        );
+      }
+      seen.set(termName, sourceFile.fileName);
       registry.terms.set(termName, desc);
     }
   }
@@ -614,7 +707,8 @@ function extractFiles(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -678,6 +772,13 @@ function extractFiles(
       }
     }
 
+    if (seen.has(fileName)) {
+      throw new Error(
+        `Duplicate File definition "${fileName}" in ${sourceFile.fileName}:\n` +
+          `  "${fileName}" was already defined in ${seen.get(fileName)}.`
+      );
+    }
+    seen.set(fileName, sourceFile.fileName);
     registry.files.set(fileName, {
       ...fileData,
       resolvedPath,
@@ -701,7 +802,8 @@ function extractExternals(
   interfaceNode: ts.InterfaceDeclaration,
   checker: ts.TypeChecker,
   registry: ExtractedRegistry,
-  sourceFile: ts.SourceFile
+  sourceFile: ts.SourceFile,
+  seen: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -724,6 +826,13 @@ function extractExternals(
       );
     }
 
+    if (seen.has(externalName)) {
+      throw new Error(
+        `Duplicate External definition "${externalName}" in ${sourceFile.fileName}:\n` +
+          `  "${externalName}" was already defined in ${seen.get(externalName)}.`
+      );
+    }
+    seen.set(externalName, sourceFile.fileName);
     registry.externals.set(externalName, data);
   }
 }
@@ -787,7 +896,8 @@ function extractExports(
   registry: ExtractedRegistry,
   sourceFile: ts.SourceFile,
   tsconfigDir: string,
-  baseUrl: string
+  baseUrl: string,
+  seen: Map<string, string>
 ): void {
   for (const member of interfaceNode.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -867,11 +977,19 @@ function extractExports(
         }
       }
 
+      if (seen.has(exportName)) {
+        throw new Error(
+          `Duplicate Export definition "${exportName}" in ${sourceFile.fileName}:\n` +
+            `  "${exportName}" was already defined in ${seen.get(exportName)}.`
+        );
+      }
+      seen.set(exportName, sourceFile.fileName);
       registry.exports.set(exportName, {
         ...exportData,
         resolvedPath,
         pathExists,
         memberName: exportData.memberName,
+        ownerAlias: exportData.ownerAlias,
       });
     }
   }
@@ -890,7 +1008,13 @@ function extractExports(
 function extractExportType(
   typeNode: ts.TypeNode,
   checker: ts.TypeChecker
-): { desc: string; type?: string; importPath?: string; memberName?: string } | null {
+): {
+  desc: string;
+  type?: string;
+  importPath?: string;
+  memberName?: string;
+  ownerAlias?: string;
+} | null {
   if (!ts.isTypeReferenceNode(typeNode)) return null;
 
   const typeArgs = typeNode.typeArguments;
@@ -903,6 +1027,7 @@ function extractExportType(
   let typeSignature: string | undefined;
   let importPath: string | undefined;
   let memberName: string | undefined;
+  let ownerAlias: string | undefined;
 
   for (const member of objectType.members) {
     if (!ts.isPropertySignature(member)) continue;
@@ -923,10 +1048,39 @@ function extractExportType(
 
       // Try to extract member name from typeof import("...").memberName
       memberName = extractImportMember(propType);
+
+      // If no direct import found, the type may be a local alias (e.g. `type Foo = typeof import("...").Foo`).
+      // Resolve through the checker to get the import path and member from the alias declaration.
+      if (!importPath && ts.isTypeReferenceNode(propType)) {
+        const resolved = resolveTypeAliasImport(propType, checker);
+        if (resolved) {
+          importPath = resolved.importPath;
+          memberName = resolved.memberName;
+        }
+      }
+
+      // Detect InstanceType<X>["method"] — class member export.
+      // Resolve the alias (e.g. `AuthServiceClass`) to the actual class name (e.g. `AuthService`)
+      // so buildExportMembership can match against typeSignature via `.endsWith('.AuthService')`.
+      // Also populate importPath when missing so exports get a resolvedPath even when
+      // the owner class is not itself registered as an export.
+      const rawAlias = extractInstanceTypeOwner(propType);
+      if (rawAlias && ts.isIndexedAccessTypeNode(propType)) {
+        const aliasArg = (propType.objectType as ts.TypeReferenceNode).typeArguments?.[0];
+        if (aliasArg && ts.isTypeReferenceNode(aliasArg)) {
+          const resolved = resolveTypeAliasImport(aliasArg, checker);
+          ownerAlias = resolved?.memberName ?? rawAlias;
+          if (!importPath && resolved?.importPath) {
+            importPath = resolved.importPath;
+          }
+        } else {
+          ownerAlias = rawAlias;
+        }
+      }
     }
   }
 
-  return desc ? { desc, type: typeSignature, importPath, memberName } : null;
+  return desc ? { desc, type: typeSignature, importPath, memberName, ownerAlias } : null;
 }
 
 /**
@@ -984,6 +1138,51 @@ function extractImportMember(typeNode: ts.TypeNode): string | undefined {
 
   visit(typeNode);
   return memberName;
+}
+
+/**
+ * Resolve a local type alias (e.g. `type Foo = typeof import("...").Foo`) through the
+ * TypeScript checker and extract the import path and member name from the alias declaration.
+ * Returns undefined if the type node is not a resolvable alias.
+ */
+function resolveTypeAliasImport(
+  typeNode: ts.TypeReferenceNode,
+  checker: ts.TypeChecker
+): { importPath: string; memberName?: string } | undefined {
+  const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+  if (!symbol) return undefined;
+
+  // Follow alias chain (handles re-exports and multi-hop aliases)
+  const aliased = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+  const decls = aliased.declarations ?? symbol.declarations ?? [];
+  for (const decl of decls) {
+    if (!ts.isTypeAliasDeclaration(decl)) continue;
+    const path = extractImportPath(decl.type);
+    if (path) {
+      return { importPath: path, memberName: extractImportMember(decl.type) };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Detect `InstanceType<X>["method"]` pattern and return the local alias name X.
+ * Used to link class-method exports back to their owner class export.
+ */
+function extractInstanceTypeOwner(typeNode: ts.TypeNode): string | undefined {
+  if (!ts.isIndexedAccessTypeNode(typeNode)) return undefined;
+  const obj = typeNode.objectType;
+  if (
+    !ts.isTypeReferenceNode(obj) ||
+    !ts.isIdentifier(obj.typeName) ||
+    obj.typeName.text !== "InstanceType" ||
+    !obj.typeArguments ||
+    obj.typeArguments.length !== 1
+  )
+    return undefined;
+  const arg = obj.typeArguments[0];
+  if (!ts.isTypeReferenceNode(arg) || !ts.isIdentifier(arg.typeName)) return undefined;
+  return arg.typeName.text;
 }
 
 /**

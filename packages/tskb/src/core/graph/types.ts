@@ -31,6 +31,10 @@ export interface FolderNode extends GraphNode {
    */
   packageName?: string;
   /**
+   * Explicit architectural boundary declared by doc maintainers (e.g. "public-api", "domain", "infra")
+   */
+  boundary?: string;
+  /**
    * Auto-generated filesystem summary, e.g. "3 folders, 7 files"
    */
   structureSummary?: string;
@@ -97,6 +101,11 @@ export interface ExportNode extends GraphNode {
    * Code stub lines showing the export's API shape (signature, class members, interface fields, etc.)
    */
   morphology?: string[];
+  /**
+   * ID of the class export this method belongs to (set for InstanceType<X>["method"] patterns).
+   * Used to derive compound labels like "ClassName.methodName" in the explorer.
+   */
+  ownerExportId?: string;
 }
 
 export interface FileNode extends GraphNode {
@@ -106,6 +115,10 @@ export interface FileNode extends GraphNode {
    * Resolved path relative to tsconfig directory (portable across machines)
    */
   path?: string;
+  /** Raw file content, capped at 1000 lines. Only populated for whitelisted text extensions. */
+  content?: string;
+  /** highlight.js language identifier derived from the file extension (e.g. "json", "yaml", "css"). */
+  fileType?: string;
 }
 
 export interface ExternalNode extends GraphNode {
@@ -174,7 +187,8 @@ export type EdgeType =
   | "references" // Doc references a Folder/Module/Term/Export
   | "belongs-to" // Module/Export belongs to a Folder or Module
   | "contains" // Folder contains another Folder (path hierarchy)
-  | "imports" // Module imports from another Module
+  | "imports" // Module imports values from another Module
+  | "imports-type" // Module imports only types from another Module
   | "related-to" // General relationship
   | "flow-step"; // Flow references a step participant (ordered)
 
@@ -216,6 +230,10 @@ export interface KnowledgeGraph {
      * Path to the root directory relative to where the build was run (from tsconfig rootDir or tsconfig directory)
      */
     rootPath: string;
+    /**
+     * Optional human-readable project name, set via --project CLI flag
+     */
+    projectName?: string;
     stats: {
       folderCount: number;
       moduleCount: number;
