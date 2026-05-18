@@ -62,7 +62,7 @@ All paths are relative to project root and can be used directly to read files.
   - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [1 folder, 2 files]
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [1 folder]
     - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [2 folders, 5 files]
-  - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [3 files]
+  - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [4 files]
   - **tests** (`tests`) — End-to-end tests for the tskb CLI. [2 folders]
     - **tests.e2e** (`tests/e2e`) — E2E test files that run the CLI and check its output. [1 folder, 8 files]
 

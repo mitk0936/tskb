@@ -26,12 +26,18 @@ An empty graph, an interactive D3 explorer in the browser, and AI skills wired i
 
 ## Status
 
-**Beta** — `0.6.x`.
+**Beta** — `0.7.x`.
 
 - **Stable:** CLI commands (`init`, `build`, `ls`, `pick`, `search`, `docs`, `flows`, `context`, `explore`), JSX components, registry primitives, graph schema, generated skill/instruction files.
 - **May still evolve:** internal extraction APIs, explorer chunk format, additional node types.
 
 Pin a minor version if you script against the JSON output.
+
+---
+
+## Preview
+
+![tskb explorer](https://raw.githubusercontent.com/mitk0936/tskb/main/references/explorer.png)
 
 ---
 
