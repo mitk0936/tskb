@@ -1,36 +1,13 @@
 # tskb
 
-Let your AI assistant document your codebase while you work.
-
-tskb turns architecture knowledge into a **typed, queryable, compiler-validated graph** that evolves alongside your system.
-
-> **Your AI writes the docs. You navigate them.**
+A typed, compiler-validated knowledge graph for TypeScript codebases - authored in `.tskb.tsx` files, queryable from the CLI, explorable in the browser.
 
 [![npm version](https://badge.fury.io/js/tskb.svg)](https://www.npmjs.com/package/tskb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-[Repository](https://github.com/mitk0936/tskb) · [Issues](https://github.com/mitk0936/tskb/issues) · [npm](https://www.npmjs.com/package/tskb)
+> **Your AI assistant authors the docs. You navigate them.**
 
----
-
-## Why I built it
-
-While working across large TypeScript codebases, I kept running into the same problems:
-
-- Architecture knowledge lives in people’s heads
-- AI assistants repeatedly rediscover the same context
-- Markdown docs silently drift after refactors
-- Cross-repo understanding becomes expensive over time
-
-I wanted a system where:
-
-- AI could accumulate implementation knowledge continuously
-- Documentation stayed connected to real code
-- Stale docs became detectable
-- Architectural context persisted across sessions
-- Knowledge could be visually explored and queried
-
-tskb is an experiment around that idea.
+`.tskb.tsx` files are written by AI assistants during normal engineering work - humans use the [explorer](#explorer) and the assistant itself to navigate the resulting graph. Documentation references real code via `typeof import()`, so renaming or removing a referenced symbol breaks the next `tskb build` - stale docs surface as a build failure rather than silent drift.
 
 ---
 
@@ -38,32 +15,7 @@ tskb is an experiment around that idea.
 
 ![tskb explorer](https://raw.githubusercontent.com/mitk0936/tskb/main/references/explorer.png)
 
----
-
-## Live explorer
-
-You can explore the documentation and graph for tskb itself here:
-
-https://tskb-static-b3hqdl4xbq-ew.a.run.app/
-
----
-
-## What it does
-
-tskb lets your AI assistant write and maintain `.tskb.tsx` documentation files while you work.
-
-Those docs are:
-
-- validated by the TypeScript compiler
-- connected to real files and exports via `typeof import()`
-- transformed into a structured graph
-- queryable through a CLI
-- explorable through a visual UI
-- reusable by AI assistants in future sessions
-
-When your code changes, stale references break during the docs build.
-
-> Refactor your code → stale docs fail compilation.
+The graph for tskb itself is live at **https://tskb-static-b3hqdl4xbq-ew.a.run.app/**.
 
 ---
 
@@ -72,250 +24,281 @@ When your code changes, stale references break during the docs build.
 ```bash
 npm install --save-dev tskb
 
-npx tskb init
-npm run docs
-npx tskb explore
+npx --no -- tskb init      # scaffolds docs/, tsconfig, starter file, and an "npm run docs" script
+npm run docs       # builds the knowledge graph
+npx --no -- tskb explore   # opens the visual explorer
 ```
 
-This gives you:
-
-- a typed architecture graph
-- AI assistant skills/instructions
-- CLI querying tools
-- an interactive explorer UI
-
-The graph starts empty and grows incrementally as you and your AI document the system over time.
+`tskb init` writes a starter `docs/main.tskb.tsx` and a `docs/tsconfig.json`. The graph starts empty and grows as you author docs alongside your code.
 
 ---
 
-## Example workflow
+## How it works
 
-During normal engineering work:
+tskb is built around three layers:
 
-```text
-You:
-"I'm updating authentication flow. Document the changes."
+1. **A type registry** - `.tskb.tsx` files declare folders, modules, exports, files, externals, and terms. References use `typeof import()`, so the TypeScript compiler validates every link to source code.
+2. **A JSX document layer** - each file exports a `<Doc>` answering one question. References to registered nodes appear inline; the build verifies they exist.
+3. **A graph** - the build compiles docs into a structured graph that the CLI and explorer query, and that AI assistants can navigate via generated skills.
+
+### Compared to alternatives
+
+|                       | Source of truth      | Refactor-aware | Queryable | Architecture-level |
+| --------------------- | -------------------- | -------------- | --------- | ------------------ |
+| Markdown / wikis      | Prose                | No             | No        | Yes                |
+| TypeDoc               | JSDoc comments       | Partial        | No        | No (API-level)     |
+| Diagrams (Mermaid, …) | Embedded text        | No             | No        | Yes                |
+| RAG over the repo     | Snippets at query    | Implicit       | Yes       | Variable           |
+| **tskb**              | Typed registry + JSX | **Yes**        | **Yes**   | **Yes**            |
+
+---
+
+## Authoring
+
+> **`.tskb.tsx` syntax is written by AI assistants, not by hand.** The schema, registry primitives, and JSX components below exist so the assistant can produce structured, compiler-checked output - and so you can review what it wrote. Day-to-day, you describe what to document; the assistant writes the file, runs the build, and fixes broken references when the build fails. The sections below are reference material - useful for reviewing or occasionally hand-editing, but not a syntax you're expected to memorize.
+
+A `.tskb.tsx` file has two parts: a **registry block** that declares structural anchors, and a **`<Doc>`** that describes them.
+
+### Registry primitives
+
+```tsx
+import type { Folder, Module, Export, File, External, Term } from "tskb";
+
+declare global {
+  namespace tskb {
+    interface Folders {
+      auth: Folder<{ desc: "Authentication and session management"; path: "src/auth" }>;
+    }
+    interface Modules {
+      "auth.service": Module<{
+        desc: "Core auth logic";
+        type: typeof import("../src/auth/service.js");
+      }>;
+    }
+    interface Exports {
+      "auth.service.login": Export<{
+        desc: "Authenticates user, returns session token";
+        type: typeof import("../src/auth/service.js").login;
+      }>;
+    }
+    interface Files {
+      "auth.config": File<{ desc: "Auth provider config"; path: "src/auth/config.yml" }>;
+    }
+    interface Externals {
+      redis: External<{ desc: "Session cache"; url: "https://redis.io" }>;
+    }
+    interface Terms {
+      "session-token": Term<"JWT issued on login, used to authenticate API requests">;
+    }
+  }
+}
 ```
 
-Your AI assistant:
+| Primitive  | Purpose                                                                       |
+| ---------- | ----------------------------------------------------------------------------- |
+| `Folder`   | A logical area of the codebase. `boundary` marks a distinct runtime.          |
+| `Module`   | A source file - import path validates it exists.                              |
+| `Export`   | A named export - compiler validates it exists. Supports class methods.        |
+| `File`     | Non-TS/JS files: configs, READMEs, specs.                                     |
+| `External` | npm packages, APIs, services outside the repo.                                |
+| `Term`     | A name from the area's vocabulary, declared once and reused across that area. |
 
-1. Searches existing architecture knowledge
-2. Explores related flows/modules
-3. Writes or updates `.tskb.tsx` docs
-4. Rebuilds the graph
-5. Fixes stale references if compilation fails
+### JSX components
 
-Future sessions reuse that accumulated context instead of rediscovering the system from scratch.
+| Component                        | Purpose                                                                         |
+| -------------------------------- | ------------------------------------------------------------------------------- |
+| `<Doc>`                          | Root component. Every file exports one. `explains` must be a real question.     |
+| `<P>` / `<H1>` / `<H2>` / `<H3>` | Content structure.                                                              |
+| `<List>` / `<Li>`                | Bulleted lists.                                                                 |
+| `<Snippet>`                      | Type-checked code example (an arrow function the compiler reads at build time). |
+| `<Relation>`                     | Explicit semantic edge between two nodes.                                       |
+| `<Adr>`                          | Architecture Decision Record (accepted / proposed / deprecated / superseded).   |
+| `<Flow>` / `<Step>`              | A named, ordered sequence of steps through the system.                          |
 
----
+### Type-checked snippets
 
-## Core ideas
+The `code` prop is a real arrow function. If a referenced symbol is renamed, the build fails.
 
-### AI-first authoring
+```tsx
+import { UserRepository } from "../src/db/user.repository.js";
 
-The AI accumulates observations while you work.
-
-Humans stay responsible for:
-
-- navigation
-- validation
-- architectural intent
-- deciding what matters
-
----
-
-### Compiler-validated docs
-
-Documentation references real code:
-
-```ts
-typeof import("../src/auth.service.ts").AuthService;
+<Snippet
+  code={async () => {
+    const repo = new UserRepository();
+    const user = await repo.findByEmail("test@example.com");
+    return user?.id;
+  }}
+/>;
 ```
 
-Rename or remove something → the docs build breaks.
+### Flows
 
----
+A `<Flow>` describes a multi-step process - useful when several parts work together and order matters.
 
-### Continuous verifiability
-
-Traditional docs silently decay.
-
-tskb experiments with making architecture knowledge:
-
-- continuously checkable
-- refactor-aware
-- invalidatable when stale
-
----
-
-### Persistent architectural memory
-
-Instead of repeatedly reconstructing intent every session, the AI works against an accumulated graph of:
-
-- modules
-- flows
-- architectural boundaries
-- decisions
-- relationships
-- implementation observations
-
----
-
-### Workspace-scale exploration
-
-tskb is designed to operate above individual repos.
-
-The graph can connect:
-
-- applications
-- packages
-- infra
-- tooling
-- testing frameworks
-- docs
-- flows between systems
-
----
-
-## Explorer
-
-`tskb explore` launches a visual graph explorer for navigating architecture knowledge.
-
-Features include:
-
-- folder nesting
-- module expansion
-- flow visualization
-- relationship tracing
-- cross-repo navigation
-- interactive graph exploration
-
-The explorer ships prebuilt and can also be exported as a static site.
-
-```bash
-npx tskb explore
-npx tskb explore --export ./public
+```tsx
+<Flow
+  name="auth-login"
+  desc="User submits login form; API validates credentials and issues a JWT"
+  priority="essential"
+>
+  <Step node={ApiRoutes} label="receives login request" />
+  <Step node={AuthServiceExport} label="validates credentials" />
+  <Step node={Postgres} label="queries user record" />
+  <Step node={AuthServiceExport} label="signs and returns JWT" />
+</Flow>
 ```
+
+Flows become first-class graph nodes - listed by `tskb flows` and rendered as lanes in the explorer.
+
+---
+
+## Project setup
+
+`tskb init` scaffolds the minimum needed to author docs:
+
+- **`docs/main.tskb.tsx`** - starter doc with an empty registry block.
+- **`docs/tsconfig.json`** - a dedicated tsconfig with `jsxImportSource: "tskb"`, NodeNext module resolution, and `baseUrl` / `rootDir` pointing at the repo root so `typeof import("../src/…")` resolves correctly.
+- **`"docs"` script** in `package.json` - runs `tskb` against `docs/**/*.tskb.tsx`.
+
+The docs tsconfig is intentionally separate from your app's tsconfig: it only includes `.tskb.tsx` files, so the docs build doesn't affect (or get affected by) your runtime build. Point `tskb build --tsconfig <path>` at a different file if you keep yours elsewhere.
+
+### Monorepos
+
+Place `docs/` at the workspace root and let it reference every package via relative paths:
+
+```jsonc
+// docs/tsconfig.json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "tskb",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "baseUrl": "../",
+    "rootDir": "../",
+    "paths": {
+      "@scope/*": ["packages/*/src"],
+    },
+  },
+  "include": ["**/*.tskb.tsx"],
+}
+```
+
+One graph spans every workspace package. Use `Folder<{ boundary: … }>` on the top-level folder of each distinct runtime (server, browser, worker) so the explorer renders the boundaries.
+
+### Multi-repo
+
+For a graph that spans multiple repositories, create a parent workspace folder that contains each repo as a subfolder - typically via **git submodules** or sibling checkouts - and place `docs/` at the workspace root:
+
+```
+workspace/
+├── docs/                  # tskb lives here
+│   ├── tsconfig.json
+│   └── **/*.tskb.tsx
+├── repo-a/                # git submodule
+├── repo-b/                # git submodule
+└── repo-c/                # git submodule
+```
+
+Point `baseUrl` / `rootDir` at the workspace root so `typeof import("../repo-a/src/…")` resolves into each submodule. One graph spans every repo; use `Folder<{ boundary }>` on each repo's top-level folder to mark it as a distinct unit in the explorer.
 
 ---
 
 ## CLI
 
+The CLI is designed primarily for **AI assistants during a session** - `search`, `pick`, and `context` are how an assistant orients itself in the codebase without re-reading files. Humans usually reach for the [explorer](#explorer) instead. The `--plain` flag on every query command exists to keep output token-efficient for that use.
+
+**Setup and build:**
+
 ```bash
-npx tskb init
-npx tskb build
-npx tskb ls
-npx tskb search "auth"
-npx tskb context "AuthService"
-npx tskb pick "AuthService"
-npx tskb flows
-npx tskb explore
+npx --no -- tskb init                                 # scaffold docs/, tsconfig, and the npm script
+npx --no -- tskb build "<glob>" --project "<name>"    # compile .tskb.tsx files into a graph
+npx --no -- tskb explore                              # open the visual explorer
+npx --no -- tskb explore --export ./public            # export the explorer as a static site
 ```
 
-Especially useful for AI assistants:
+**Querying the graph:**
 
-- `search` → fuzzy graph search
-- `context` → fetch node + neighborhood + docs in one call
-- `pick` → detailed node inspection
+```bash
+npx --no -- tskb search "<query>"                     # fuzzy search across the entire graph (incl. docs and flows)
+npx --no -- tskb pick "<id-or-path>"                  # detailed info on any node (by ID or repo path)
+npx --no -- tskb context "<id-or-path>" --depth=2     # node + neighborhood + docs (BFS traversal)
+npx --no -- tskb ls --depth=4                         # folder hierarchy
+npx --no -- tskb docs [<query>]                       # list or search docs
+npx --no -- tskb flows [<query>]                      # list or search flows
+npx --no -- tskb registry [<query>] --type=module     # discover registered nodes; --type filters by primitive
+```
 
-All commands support:
+`context` is the most efficient single call: it returns a node's children, modules, exports, and every referencing doc in one shot. Constraint docs are surfaced at the top.
 
-- `--plain` for lower token usage
-- `--optimized` for compact JSON output
+**Output flags** (work on every query command):
+
+- `--plain` - token-efficient text output, suited to AI assistants
+- `--optimized` - compact JSON (no whitespace)
+- Drop both for default JSON output
+
+---
+
+## Explorer
+
+The explorer is **the primary surface for human developers** - where you actually read what the AI documented, trace flows across the system, and check what changed. `tskb explore` launches a browser UI that renders the graph as nested folders, modules, exports, and flows. It is also exportable as a static site:
+
+```bash
+npx --no -- tskb explore --export ./public
+```
+
+The explorer ships pre-built in the npm package - no separate install step.
 
 ---
 
 ## AI assistant integration
 
-tskb generates assistant skills/instructions automatically from the graph.
+`tskb init` can scaffold integration directories for AI assistants. After each `npm run docs`, the build regenerates skills/instructions from the current graph - so the assistant always sees the current architecture, not a snapshot.
 
-Current integrations:
+Supported assistants:
 
-- Claude Code
-- GitHub Copilot
+- **Claude Code** - generates skills in `.claude/skills/`
+- **GitHub Copilot** - generates instruction files in `.github/instructions/`
 
-Generated skills include:
+### What gets generated
 
-- repo map / orientation
-- architecture TOC
-- documentation workflows
-- authoring syntax
-- querying guidance
+Four skills, each with a focused purpose. Reference sub-docs load on demand to keep the assistant's context window lean.
 
-The AI can then:
+```
+.claude/skills/
+├── tskb-toc/              # repo map: folder tree, boundaries, externals,
+│                          # flows, constraint rules - load this first
+├── tskb/                  # CLI usage: search, pick, context, ls,
+│                          # docs, flows, registry
+├── tskb-update/           # workflow for writing & maintaining .tskb.tsx docs
+│   └── references/        #   folder-layout, removing-areas, setup
+└── tskb-update-syntax/    # authoring syntax: registry, JSX, snippets, flows
+    └── references/        #   boundaries, class-methods, relations, snippets-advanced
+```
 
-- navigate existing knowledge
-- avoid rereading the same code repeatedly
-- build on prior sessions
-- update stale documentation
+| Skill                | Use when                                                                          |
+| -------------------- | --------------------------------------------------------------------------------- |
+| `tskb-toc`           | Orienting in the repo - what exists, what's a separate runtime, what rules apply. |
+| `tskb`               | Querying the graph during a task (find related nodes, inspect, trace).            |
+| `tskb-update`        | Adding or updating documentation - where things go, what to answer.               |
+| `tskb-update-syntax` | Hands-on-keyboard writing of a `.tskb.tsx` file.                                  |
 
----
-
-## What makes it different
-
-### vs Markdown docs
-
-- connected to real code
-- compiler validated
-- queryable
-- refactor-aware
-
-### vs diagrams
-
-- generated from typed references
-- continuously maintainable
-- navigable
-- integrated with AI workflows
-
-### vs TypeDoc
-
-TypeDoc documents APIs.
-
-tskb focuses on:
-
-- architecture
-- flows
-- intent
-- relationships
-- implementation knowledge
-
-### vs generic AI/RAG tooling
-
-Most systems focus on retrieval.
-
-tskb focuses on:
-
-- continuously accumulated knowledge
-- verification
-- architectural continuity
-- persistent engineering context
+The Copilot instructions cover the same ground in a flatter format under `.github/instructions/`.
 
 ---
 
 ## Status
 
-Current version: `0.7.x`
-
-Still evolving, especially around:
-
-- graph evolution
-- stale invalidation
-- architectural constraints
-- explorer capabilities
-- AI workflows
-
-The core workflow and CLI are already stable enough for daily use.
+`0.7.x` - the core workflow, authoring syntax, CLI, and explorer are stable for daily use.
 
 ---
 
 ## Roadmap
 
-- richer architecture validation
-- stale knowledge detection
-- additional assistant integrations
-- architecture pattern primitives
-- improved graph analysis
-- larger workspace support
+- Richer architecture validation and constraint primitives
+- Stale-knowledge detection beyond compile-time invalidation
+- Additional AI assistant integrations
+- Improved graph analysis in the explorer
 
 ---
 
