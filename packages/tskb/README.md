@@ -41,6 +41,12 @@ tskb is built around three layers:
 2. **A JSX document layer** - each file exports a `<Doc>` answering one question. References to registered nodes appear inline; the build verifies they exist.
 3. **A graph** - the build compiles docs into a structured graph that the CLI and explorer query, and that AI assistants can navigate via generated skills.
 
+### Distributed authorship
+
+The registry blocks in every `.tskb.tsx` file extend the same `tskb` global namespace - TypeScript merges them at compile time. There is no central manifest to coordinate on: each team declares the nodes for their area in the docs that live next to their code.
+
+Cross-team references work the same way as in-team ones. When the billing team writes a doc that uses `tskb.Exports["auth.service.login"]`, the compiler checks that key exists in the merged registry - which means the auth team can't silently rename the export without breaking billing's docs build. Each team owns its slice of the graph; the type system stitches the whole picture together into one queryable architecture.
+
 ### Compared to alternatives
 
 |                       | Source of truth      | Refactor-aware | Queryable | Architecture-level |
@@ -60,39 +66,6 @@ tskb is built around three layers:
 A `.tskb.tsx` file has two parts: a **registry block** that declares structural anchors, and a **`<Doc>`** that describes them.
 
 ### Registry primitives
-
-```tsx
-import type { Folder, Module, Export, File, External, Term } from "tskb";
-
-declare global {
-  namespace tskb {
-    interface Folders {
-      auth: Folder<{ desc: "Authentication and session management"; path: "src/auth" }>;
-    }
-    interface Modules {
-      "auth.service": Module<{
-        desc: "Core auth logic";
-        type: typeof import("../src/auth/service.js");
-      }>;
-    }
-    interface Exports {
-      "auth.service.login": Export<{
-        desc: "Authenticates user, returns session token";
-        type: typeof import("../src/auth/service.js").login;
-      }>;
-    }
-    interface Files {
-      "auth.config": File<{ desc: "Auth provider config"; path: "src/auth/config.yml" }>;
-    }
-    interface Externals {
-      redis: External<{ desc: "Session cache"; url: "https://redis.io" }>;
-    }
-    interface Terms {
-      "session-token": Term<"JWT issued on login, used to authenticate API requests">;
-    }
-  }
-}
-```
 
 | Primitive  | Purpose                                                                       |
 | ---------- | ----------------------------------------------------------------------------- |
@@ -115,40 +88,118 @@ declare global {
 | `<Adr>`                          | Architecture Decision Record (accepted / proposed / deprecated / superseded).   |
 | `<Flow>` / `<Step>`              | A named, ordered sequence of steps through the system.                          |
 
-### Type-checked snippets
+### A full example
 
-The `code` prop is a real arrow function. If a referenced symbol is renamed, the build fails.
-
-```tsx
-import { UserRepository } from "../src/db/user.repository.js";
-
-<Snippet
-  code={async () => {
-    const repo = new UserRepository();
-    const user = await repo.findByEmail("test@example.com");
-    return user?.id;
-  }}
-/>;
-```
-
-### Flows
-
-A `<Flow>` describes a multi-step process - useful when several parts work together and order matters.
+A complete `docs/auth/login.tskb.tsx` - registry declarations on top, the `<Doc>` below. Every `typeof import(...)` resolves to source code, every `ref as tskb.X[...]` is checked against the registry, and every snippet body is type-checked.
 
 ```tsx
-<Flow
-  name="auth-login"
-  desc="User submits login form; API validates credentials and issues a JWT"
-  priority="essential"
->
-  <Step node={ApiRoutes} label="receives login request" />
-  <Step node={AuthServiceExport} label="validates credentials" />
-  <Step node={Postgres} label="queries user record" />
-  <Step node={AuthServiceExport} label="signs and returns JWT" />
-</Flow>
+import type { Folder, Module, Export, External, Term } from "tskb";
+import { Doc, H1, H2, P, List, Li, Snippet, Relation, Flow, Step, ref } from "tskb";
+
+declare global {
+  namespace tskb {
+    interface Folders {
+      auth: Folder<{ desc: "Authentication and session management"; path: "src/auth" }>;
+    }
+    interface Modules {
+      "auth.service": Module<{
+        desc: "Issues and validates session tokens";
+        type: typeof import("../src/auth/service.js");
+      }>;
+      "auth.routes": Module<{
+        desc: "HTTP routes for login and logout";
+        type: typeof import("../src/auth/routes.js");
+      }>;
+    }
+    interface Exports {
+      "auth.service.login": Export<{
+        desc: "Validates credentials and returns a signed JWT";
+        type: typeof import("../src/auth/service.js").login;
+      }>;
+      "auth.service.verify": Export<{
+        desc: "Verifies a JWT and returns the decoded session, or null";
+        type: typeof import("../src/auth/service.js").verify;
+      }>;
+      "auth.routes.handleLogin": Export<{
+        desc: "POST /login - parses body, calls login, sets cookie";
+        type: typeof import("../src/auth/routes.js").handleLogin;
+      }>;
+    }
+    interface Externals {
+      jose: External<{
+        desc: "JWT signing and verification";
+        url: "https://github.com/panva/jose";
+      }>;
+      redis: External<{
+        desc: "Revocation list keyed by session id";
+        url: "https://redis.io";
+      }>;
+    }
+    interface Terms {
+      "session-token": Term<"Short-lived JWT issued on login; carried in an HttpOnly cookie">;
+    }
+  }
+}
+
+const AuthFolder = ref as tskb.Folders["auth"];
+const AuthService = ref as tskb.Modules["auth.service"];
+const Login = ref as tskb.Exports["auth.service.login"];
+const Verify = ref as tskb.Exports["auth.service.verify"];
+const HandleLogin = ref as tskb.Exports["auth.routes.handleLogin"];
+const Jose = ref as tskb.Externals["jose"];
+const Redis = ref as tskb.Externals["redis"];
+const SessionToken = ref as tskb.Terms["session-token"];
+
+export default (
+  <Doc explains="How does login issue and validate session tokens?" priority="essential">
+    <H1>Authentication</H1>
+    <P>
+      {AuthFolder} owns credential validation and the {SessionToken} lifecycle.
+      {AuthService} signs tokens with {Jose} and tracks revoked ones in {Redis}.
+    </P>
+
+    <H2>Issuing a token</H2>
+    <P>
+      {HandleLogin} parses the request body, delegates to {Login}, and sets the resulting JWT as an
+      HttpOnly cookie. Tokens are short-lived; clients refresh by logging in again.
+    </P>
+    <Snippet
+      code={async () => {
+        const { login } = await import("../src/auth/service.js");
+        const token = await login({ email: "a@b.com", password: "secret" });
+        return token; // signed JWT
+      }}
+    />
+
+    <H2>Verifying a token</H2>
+    <List>
+      <Li>{Verify} decodes the JWT, checks the signature, and rejects revoked ids.</Li>
+      <Li>Revoked ids live in {Redis} under a per-user set with the token's TTL.</Li>
+      <Li>Callers receive the decoded session or `null` - never an exception.</Li>
+    </List>
+
+    <Relation from={Login} to={Redis} label="records session id on issue" />
+
+    <Flow
+      name="auth-login"
+      desc="User submits the login form; the route validates credentials and returns a JWT cookie"
+      priority="essential"
+    >
+      <Step node={HandleLogin} label="receives POST /login" />
+      <Step node={Login} label="validates credentials" />
+      <Step node={Jose} label="signs the JWT" />
+      <Step node={Redis} label="records the session id" />
+      <Step node={HandleLogin} label="sets HttpOnly cookie and responds" />
+    </Flow>
+  </Doc>
+);
 ```
 
-Flows become first-class graph nodes - listed by `tskb flows` and rendered as lanes in the explorer.
+A few details worth calling out:
+
+- **Snippet bodies are real code.** Rename `login` and the build fails - docs can't drift past their referent.
+- **Flows are first-class graph nodes.** `auth-login` shows up in `tskb flows` and renders as a lane in the explorer.
+- **References are type-checked.** `tskb.Exports["auth.service.login"]` only compiles if that exact key was declared above; a missing or misspelled key fails the build.
 
 ---
 
