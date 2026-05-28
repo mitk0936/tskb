@@ -8,11 +8,14 @@ import {
   Doc,
   H1,
   ref,
+  val,
   P,
   Relation,
   Flow,
   Step,
 } from "tskb";
+
+type Pkg = typeof import("../../../packages/tskb/package.json");
 
 declare global {
   namespace tskb {
@@ -135,18 +138,26 @@ const ExtractDocsExport = ref as tskb.Exports["extractDocs"];
 const BuildGraphExport = ref as tskb.Exports["buildGraph"];
 const WriteSplitGraphExport = ref as tskb.Exports["writeSplitGraph"];
 
+const BinName = val as keyof Pkg["bin"];
+const BuildLibScript = val as Extract<keyof Pkg["scripts"], "build:lib">;
+const BuildExplorerScript = val as Extract<keyof Pkg["scripts"], "build:explorer">;
+const TypeScriptDep = val as Extract<keyof Pkg["dependencies"], "typescript">;
+
 export default (
   <Doc explains="What is tskb and what does this package contain?" priority="essential">
     <H1>tskb</H1>
     <P>
       A TypeScript DSL for type-safe architectural documentation. {TSKBRootFolder} contains the
-      library, CLI, and pre-built explorer SPA. Its {PackageJson} declares a <code>tskb</code> bin
-      that runs the {CliTerm}, and {NpmReadme} is the public-facing readme.
+      library, CLI, and pre-built explorer SPA. Its {PackageJson} declares a <code>{BinName}</code>{" "}
+      bin that runs the {CliTerm}, and {NpmReadme} is the public-facing readme.
     </P>
     <Relation from={TSKBRootFolder} to={NpmExternal} label="published to" />
     <P>
       Two main entry modules sit alongside the {CliTerm}: {MainIndexModule} (the library API) and
-      {JsxRuntimeModule} (the JSX runtime, {JsxRuntimeTerm}).
+      {JsxRuntimeModule} (the JSX runtime, {JsxRuntimeTerm}). The package depends on{" "}
+      <code>{TypeScriptDep}</code> for static analysis. Library code is built via{" "}
+      <code>npm run {BuildLibScript}</code>; the explorer SPA via{" "}
+      <code>npm run {BuildExplorerScript}</code>.
     </P>
     <Flow
       name="build-pipeline"

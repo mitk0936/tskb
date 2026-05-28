@@ -2,7 +2,7 @@ import ts from "typescript";
 import path from "node:path";
 import type { ExtractedRegistry } from "../registry.js";
 import type { DocPriority } from "../../../runtime/jsx.js";
-import { buildRefMap, findDefaultExport } from "./doc-utils.js";
+import { buildRefMap, buildValueMap, findDefaultExport } from "./doc-utils.js";
 import { JsxExtractor } from "./jsx-extractor.js";
 
 // ─── Public types ─────────────────────────────────────────────────────────────
@@ -53,11 +53,12 @@ export function extractDocs(
     Array.from(filePaths).map((p) => p.replace(/\\/g, "/").toLowerCase())
   );
 
+  const checker = program.getTypeChecker();
   const docs: ExtractedDoc[] = [];
   for (const sourceFile of program.getSourceFiles()) {
     const normalized = sourceFile.fileName.replace(/\\/g, "/").toLowerCase();
     if (normalizedPaths.has(normalized) && sourceFile.fileName.endsWith(".tsx")) {
-      const doc = extractFromTsxFile(sourceFile, registry);
+      const doc = extractFromTsxFile(sourceFile, registry, checker);
       if (doc) docs.push(doc);
     }
   }
@@ -71,14 +72,17 @@ export function extractDocs(
  */
 export function extractFromTsxFile(
   sourceFile: ts.SourceFile,
-  registry?: ExtractedRegistry
+  registry?: ExtractedRegistry,
+  checker?: ts.TypeChecker
 ): ExtractedDoc | null {
   const constantRefs = buildRefMap(sourceFile);
+  const constantValues = checker ? buildValueMap(sourceFile, checker) : new Map<string, string>();
   const defaultExport = findDefaultExport(sourceFile);
   if (!defaultExport) return null;
 
   const { html, refs, docMeta, relations, flows } = new JsxExtractor(
     constantRefs,
+    constantValues,
     registry
   ).extract(defaultExport);
 

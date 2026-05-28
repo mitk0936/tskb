@@ -57,6 +57,52 @@ describe("build output", () => {
     expect(supplementary.length).toBe(1); // tasks
   });
 
+  it("should preserve allowlisted inline formatting tags in doc content", () => {
+    const graph = loadGraph();
+    const docs = Object.values(graph.nodes.docs) as Array<{
+      filePath: string;
+      content: string;
+    }>;
+    const tasksDoc = docs.find((d) => d.filePath.endsWith("tasks.tskb.tsx"));
+    expect(tasksDoc).toBeDefined();
+    const html = tasksDoc!.content;
+    expect(html).toContain("<strong>statuses ");
+    expect(html).toContain("<code>todo ");
+    expect(html).toContain("<kbd>Ctrl ");
+    expect(html).toContain("<br>");
+    expect(html).toContain("<del>strikethrough ");
+    expect(html).toContain("<em>italics ");
+    expect(html).not.toMatch(/<(div|script|iframe|img)\b/);
+  });
+
+  it("should resolve `val as T` bindings to literal strings from the type checker", () => {
+    const graph = loadGraph();
+    const docs = Object.values(graph.nodes.docs) as Array<{
+      filePath: string;
+      content: string;
+    }>;
+    const tasksDoc = docs.find((d) => d.filePath.endsWith("tasks.tskb.tsx"));
+    expect(tasksDoc).toBeDefined();
+    const html = tasksDoc!.content;
+    expect(html).toContain("<code>todo</code>");
+    expect(html).toContain("<code>done</code>");
+    expect(html).toContain("<code>draft</code>");
+    expect(html).not.toMatch(/\{TodoStatus\}|\{DoneStatus\}|\{DraftPhase\}/);
+  });
+
+  it("should resolve DotPath<T, [...]> assertions to dotted key paths", () => {
+    const graph = loadGraph();
+    const docs = Object.values(graph.nodes.docs) as Array<{
+      filePath: string;
+      content: string;
+    }>;
+    const tasksDoc = docs.find((d) => d.filePath.endsWith("tasks.tskb.tsx"));
+    const html = tasksDoc!.content;
+    expect(html).toContain("<code>pagination.defaultLimit</code>");
+    expect(html).toContain("<code>notifications.channels.slack</code>");
+    expect(html).not.toMatch(/\{PageLimitPath\}|\{SlackChannelPath\}/);
+  });
+
   it("should have related-to edges from Relation components", () => {
     const graph = loadGraph();
     const relatedEdges = graph.edges.filter((e: { type: string }) => e.type === "related-to");

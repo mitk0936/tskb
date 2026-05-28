@@ -1,4 +1,5 @@
 import { showDomTooltip, hideDomTooltip } from "../../ui/DomTooltip";
+import { copyToClipboard } from "../../ui/HeaderActions";
 import { NODE_COLORS, exportDisplayLabel } from "../../components/nodes/base";
 import type { ExplorerNode } from "../../types";
 import type { GetNodeFn, OnNodeHighlightFn, OnNodePrefetchFn, OnNodeRefClick } from "../../types";
@@ -11,9 +12,11 @@ interface RefLinksDeps {
 }
 
 const HANDLER_KEY = "__tskbRefClickHandler";
+const COPY_HANDLER_KEY = "__tskbCopyClickHandler";
 
 interface RootWithHandler extends HTMLElement {
   [HANDLER_KEY]?: (e: MouseEvent) => void;
+  [COPY_HANDLER_KEY]?: (e: MouseEvent) => void;
 }
 
 /**
@@ -76,6 +79,27 @@ export function wireRefs(rootEl: HTMLElement, deps: RefLinksDeps): void {
       deps.onNodeHighlight(null);
     });
   });
+}
+
+/**
+ * Wires every `button[data-copy-path]` under `rootEl`. Uses delegated, idempotent
+ * click handling on the root — safe to call after every re-render. Copies the
+ * `data-copy-path` value to the clipboard and flashes a toast on success.
+ */
+export function wireCopyButtons(rootEl: HTMLElement): void {
+  const root = rootEl as RootWithHandler;
+  const previous = root[COPY_HANDLER_KEY];
+  if (previous) root.removeEventListener("click", previous);
+  const handler = (e: MouseEvent): void => {
+    const btn = (e.target as Element | null)?.closest("button[data-copy-path]");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const path = btn.getAttribute("data-copy-path");
+    if (path) copyToClipboard(path, path);
+  };
+  root.addEventListener("click", handler);
+  root[COPY_HANDLER_KEY] = handler;
 }
 
 function displayFor(

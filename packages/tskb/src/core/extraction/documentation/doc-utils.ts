@@ -5,6 +5,7 @@ import type { ExtractedRegistry } from "../registry.js";
 // ─── Internal types ───────────────────────────────────────────────────────────
 
 export type ConstantRefMap = Map<string, { category: string; name: string }>;
+export type ConstantValueMap = Map<string, string>;
 
 export interface DocRefs {
   modules: string[];
@@ -48,6 +49,42 @@ export function buildRefMap(sourceFile: ts.SourceFile): ConstantRefMap {
         if (ts.isIdentifier(decl.name) && decl.initializer && ts.isAsExpression(decl.initializer)) {
           const meta = parseTypeAssertion(decl.initializer);
           if (meta) map.set(decl.name.text, meta);
+        }
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return map;
+}
+
+/**
+ * First pass over the source file: collects `const X = val as T` bindings
+ * where T resolves to a single string-literal type. The literal value is
+ * stored in the returned map for inline rendering. Non-literal or non-`val`
+ * assertions are ignored.
+ */
+export function buildValueMap(
+  sourceFile: ts.SourceFile,
+  checker: ts.TypeChecker
+): ConstantValueMap {
+  const map: ConstantValueMap = new Map();
+
+  function visit(node: ts.Node): void {
+    if (ts.isVariableStatement(node)) {
+      for (const decl of node.declarationList.declarations) {
+        if (
+          ts.isIdentifier(decl.name) &&
+          decl.initializer &&
+          ts.isAsExpression(decl.initializer) &&
+          ts.isIdentifier(decl.initializer.expression) &&
+          decl.initializer.expression.text === "val"
+        ) {
+          const type = checker.getTypeFromTypeNode(decl.initializer.type);
+          if (type.isStringLiteral()) {
+            map.set(decl.name.text, type.value);
+          }
         }
       }
     }

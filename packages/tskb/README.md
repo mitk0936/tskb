@@ -200,6 +200,7 @@ A few details worth calling out:
 - **Snippet bodies are real code.** Rename `login` and the build fails - docs can't drift past their referent.
 - **Flows are first-class graph nodes.** `auth-login` shows up in `tskb flows` and renders as a lane in the explorer.
 - **References are type-checked.** `tskb.Exports["auth.service.login"]` only compiles if that exact key was declared above; a missing or misspelled key fails the build.
+- **Type-driven citations.** Beyond `ref`, `val` inlines a literal string the type system already knows - `val as keyof Pkg["bin"]`, `val as Extract<keyof Pkg["scripts"], "build">`, `val as typeof MyEnum.Member`. Rename the underlying thing and the doc either auto-updates or fails to type-check. Full shapes in the `tskb-update-syntax` skill.
 
 ---
 

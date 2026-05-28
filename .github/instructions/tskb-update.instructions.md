@@ -221,6 +221,67 @@ const MyTerm   = ref as tskb.Terms["my-concept"];    // reference a term
 
 The `ref` value is a placeholder — only the type matters. The compiler validates that the key exists in the registry.
 
+## Inlining Type-Driven Values
+
+When prose names a value the type system already knows — a `package.json` key, a string-enum member, a string-union member — bind it with `val` and reference it inline. The extractor resolves the asserted type through the TypeScript checker at build time and emits the literal string. Same shape as `ref`, different intent: `ref` points at a registered node, `val` inlines a string the compiler can prove.
+
+```tsx
+import { val } from "tskb";
+import { TaskPhase, type TaskStatus } from "../src/models/task.js";
+
+type Pkg = typeof import("../package.json");
+
+// package.json keys — cite a bin, script, or dep by name
+const BinName       = val as keyof Pkg["bin"];                                  // → "tskb"
+const BuildScript   = val as Extract<keyof Pkg["scripts"], "build">;            // → "build"
+const TypeScriptDep = val as Extract<keyof Pkg["dependencies"], "typescript">;  // → "typescript"
+
+// string-union member
+const TodoStatus = val as Extract<TaskStatus, "todo">;                          // → "todo"
+
+// string-enum member
+const DraftPhase = val as typeof TaskPhase.Draft;                               // → "draft"
+
+// in JSX:
+<P>The <code>{BinName}</code> bin runs after <code>npm run {BuildScript}</code>.</P>
+<P>Depends on <code>{TypeScriptDep}</code>.</P>
+<P>New tasks start in <code>{DraftPhase}</code> phase as <code>{TodoStatus}</code>.</P>
+```
+
+**Rules:**
+
+- **One var = one literal.** The asserted type must resolve to a *single* string-literal type. Unions, plain `string`, `never`, and non-string types are silently skipped — narrow a union with `Extract<U, "member">`.
+- **Use `as`, not generics.** Same shape as `ref` — keeps the DSL uniform across all type-driven bindings.
+- **Type changes flow through.** Rename a script, drop a dep, remove a union member — the doc either auto-updates or fails to type-check. No stale prose.
+
+**Why `Extract`?** `val as keyof Pkg["scripts"]` resolves to the *union* of all script names, not one literal, and gets silently skipped. `Extract<keyof Pkg["scripts"], "build">` narrows to the one name and validates at compile time that the script actually exists. Rename or delete it and TypeScript reports `Type '"build"' is not assignable to type 'never'` at the assertion site.
+
+**Limitation — nested JSON values widen.** TypeScript keeps literal types for top-level JSON properties and object keys, but widens nested *string values*. So `Pkg["scripts"]["build"]` resolves to plain `string`, not the literal command body — and `val` skips it. Cite **names** via `keyof` / `Extract`, not value bodies. Same constraint applies to dep version strings.
+
+### Citing deep key paths with `DotPath`
+
+For "this lives at `a.b.c` in some config" prose, use `DotPath<T, P>`. Each segment in the tuple `P` is validated against `keyof` at its level; restructure the type and the binding stops type-checking.
+
+```tsx
+import { val, type DotPath } from "tskb";
+import { taskDefaults } from "../src/models/task.js";
+
+type Pkg = typeof import("../package.json");
+
+const ServerHostPath = val as DotPath<AppConfig, ["system", "server", "host"]>;
+// → "system.server.host"
+
+const PageLimitPath = val as DotPath<typeof taskDefaults, ["pagination", "defaultLimit"]>;
+// → "pagination.defaultLimit"
+
+const BuildScriptPath = val as DotPath<Pkg, ["scripts", "build:lib"]>;
+// → "scripts.build:lib"
+
+<P>Override the listener with <code>{ServerHostPath}</code> in <code>config.json</code>.</P>
+```
+
+Works on any TS shape — JSON imports, `interface` declarations, `as const` objects, `typeof someValue`. `DotPath` only walks `keyof`, so it sidesteps the nested-string-value widening that blocks the direct `val as Pkg["scripts"]["build:lib"]` form. Returns `never` when a segment isn't a key — the assertion fails to type-check at the call site rather than silently emitting nothing.
+
 ## JSX Components
 
 - **`<Doc explains="..." priority?>`** — Root component. Every file exports one default Doc. The `explains` string must be a real question.

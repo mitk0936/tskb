@@ -1,8 +1,13 @@
-import { Doc, P, List, Li, ref } from "tskb";
+import { Doc, P, List, Li, ref, val, type DotPath } from "tskb";
+
+type SampleTsconfig = typeof import("../../tsconfig.json");
 
 const CliTerm = ref as tskb.Terms["cli"];
 const SampleTsconfigModule = ref as tskb.Modules["sample.tsconfig.json"];
 const CliBuildExport = ref as tskb.Exports["cli.build"];
+
+const JsxOpt = val as DotPath<SampleTsconfig, ["compilerOptions", "jsx"]>;
+const JsxImportSourceOpt = val as DotPath<SampleTsconfig, ["compilerOptions", "jsxImportSource"]>;
 
 export default (
   <Doc explains="What's the typical workflow for setting up tskb in a repo?" priority="essential">
@@ -14,8 +19,9 @@ export default (
         Create a <code>docs/</code> folder for <code>.tskb.tsx</code> files.
       </Li>
       <Li>
-        Add a tsconfig like {SampleTsconfigModule} pointing at the repo root with{" "}
-        <code>jsx: "react-jsx"</code> and <code>jsxImportSource: "tskb"</code>.
+        Add a tsconfig like {SampleTsconfigModule} pointing at the repo root. Set{" "}
+        <code>{JsxOpt}</code> to <code>"react-jsx"</code> and <code>{JsxImportSourceOpt}</code> to{" "}
+        <code>"tskb"</code>.
       </Li>
       <Li>
         Declare structural elements (Folders, Modules, Exports, Terms, Files) using global namespace
