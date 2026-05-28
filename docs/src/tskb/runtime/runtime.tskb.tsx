@@ -1,4 +1,17 @@
-import { type Module, type Export, Doc, H1, ref, P, H2, List, Li, Relation } from "tskb";
+import {
+  type Module,
+  type Export,
+  type DocPriority,
+  Doc,
+  H1,
+  ref,
+  val,
+  P,
+  H2,
+  List,
+  Li,
+  Relation,
+} from "tskb";
 
 declare global {
   namespace tskb {
@@ -86,6 +99,10 @@ const FlowExport = ref as tskb.Exports["jsx.Flow"];
 const StepExport = ref as tskb.Exports["jsx.Step"];
 const ExampleTerm = ref as tskb.Terms["graph"];
 
+const Essential = val as Extract<DocPriority, "essential">;
+const Constraint = val as Extract<DocPriority, "constraint">;
+const Supplementary = val as Extract<DocPriority, "supplementary">;
+
 export default (
   <Doc
     explains="What does the runtime module provide and what does it not do?"
@@ -100,9 +117,9 @@ export default (
     <List>
       <Li>
         {JsxModule}: JSX runtime with {DocExport} (requires explains prop and optional priority via{" "}
-        {DocPriorityExport}: essential, constraint, or supplementary). Includes
-        heading/paragraph/list components, {AdrExport} for Architecture Decision Records, and{" "}
-        {RefExport} for type-safe registry references.
+        {DocPriorityExport}: <code>{Essential}</code>, <code>{Constraint}</code>, or{" "}
+        <code>{Supplementary}</code>). Includes heading/paragraph/list components, {AdrExport} for
+        Architecture Decision Records, and {RefExport} for type-safe registry references.
       </Li>
       <Li>
         {JsxModule} also provides {FlowExport} and {StepExport} for defining named, ordered

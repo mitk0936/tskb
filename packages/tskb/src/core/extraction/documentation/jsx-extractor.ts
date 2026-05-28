@@ -3,6 +3,7 @@ import type { DocPriority } from "../../../runtime/jsx.js";
 import type { ExtractedRegistry } from "../registry.js";
 import {
   type ConstantRefMap,
+  type ConstantValueMap,
   type DocRefs,
   type DocMeta,
   REF_CATEGORY_MAP,
@@ -16,6 +17,24 @@ import {
   escapeHtml,
   escapeAttr,
 } from "./doc-utils.js";
+
+const PASSTHROUGH_TAGS = new Set([
+  "code",
+  "strong",
+  "em",
+  "b",
+  "i",
+  "kbd",
+  "mark",
+  "small",
+  "sub",
+  "sup",
+  "del",
+  "ins",
+  "br",
+  "hr",
+]);
+const VOID_TAGS = new Set(["br", "hr"]);
 
 /**
  * Stateful JSX tree walker. Created once per file by extractFromTsxFile.
@@ -43,6 +62,7 @@ export class JsxExtractor {
 
   constructor(
     private readonly constantRefs: ConstantRefMap,
+    private readonly constantValues: ConstantValueMap,
     private readonly registry?: ExtractedRegistry
   ) {}
 
@@ -108,8 +128,19 @@ export class JsxExtractor {
     if (name === "Flow" && ts.isJsxElement(node)) return this.handleFlow(node, attrs);
     if (name === "Adr") return this.handleAdr(node, attrs);
     if (name in REF_CATEGORY_MAP) return this.handleRefTag(name, attrs);
+    if (PASSTHROUGH_TAGS.has(name)) return this.handlePassthrough(name, node);
 
     if (ts.isJsxElement(node)) this.visitChildren(node);
+  }
+
+  private handlePassthrough(tag: string, node: ts.JsxElement | ts.JsxSelfClosingElement): void {
+    if (VOID_TAGS.has(tag)) {
+      this.html += `<${tag}>`;
+      return;
+    }
+    this.html += `<${tag}>`;
+    if (ts.isJsxElement(node)) this.visitChildren(node);
+    this.html += `</${tag}>`;
   }
 
   private visitExpression(expr: ts.Expression): void {
@@ -129,6 +160,8 @@ export class JsxExtractor {
       if (meta) {
         const link = buildRefLink(meta.category, meta.name, this.refs, this.registry);
         if (link) this.html += link;
+      } else if (this.constantValues.has(expr.text)) {
+        this.html += escapeHtml(this.constantValues.get(expr.text)!);
       } else {
         this.html += `{${expr.text}} `;
       }

@@ -72,6 +72,70 @@ export type ReactNode =
 
 export const ref: ReactNode = Symbol("tskb.ref") as any;
 
+/* ============================================================
+ * Value Helper
+ * ============================================================
+ *
+ * Used with type assertions to inline a string-literal value from a type
+ * into doc prose. The extractor resolves the asserted type via the
+ * TypeScript checker and emits the literal string. Only single string
+ * literals are supported — for a union, narrow with `Extract<U, "x">`.
+ *
+ *   const BinName = val as keyof typeof pkg.bin;                  // → "tskb"
+ *   const Essential = val as Extract<DocPriority, "essential">;   // → "essential"
+ *   const BuildCmd = val as typeof pkg.scripts.build;             // → "tsc -p ."
+ */
+
+export const val: string = Symbol("tskb.val") as any;
+
+/* ============================================================
+ * Path Helper
+ * ============================================================
+ *
+ * Type-level utility for citing a deep key path in any TS shape — JSON
+ * imports, interfaces, `as const` objects, anything with a known
+ * key structure. Each segment is validated against `keyof` at its
+ * level, so a typo or restructure fails the build.
+ *
+ *   type Pkg = typeof import("./package.json");
+ *   const BuildScriptPath = val as DotPath<Pkg, ["scripts", "build"]>;
+ *   // → "scripts.build"
+ *
+ *   interface AppConfig { system: { server: { host: string } } }
+ *   const HostPath = val as DotPath<AppConfig, ["system", "server", "host"]>;
+ *   // → "system.server.host"
+ *
+ * Resolves to `never` if any segment isn't a key of the current type
+ * at that level — the assertion site then fails to type-check.
+ */
+/**
+ * Brand type returned by {@link DotPath} when a tuple segment isn't a key of
+ * the current type at that level. Because this is an object type, asserting
+ * `val as InvalidDotPath<...>` triggers a TypeScript error ("Conversion of
+ * type 'string' to type '...' may be a mistake") — a typo can't compile
+ * silently the way `never` would.
+ */
+export interface InvalidDotPath<Got extends string, Expected> {
+  readonly __dotPathError: "Invalid key";
+  readonly got: Got;
+  readonly expected: Expected;
+}
+
+export type DotPath<T, P extends readonly string[]> = P extends readonly [
+  infer Head extends string,
+  ...infer Tail extends readonly string[],
+]
+  ? Head extends keyof T
+    ? Tail extends readonly []
+      ? Head
+      : DotPath<T[Head], Tail> extends infer Rest
+        ? Rest extends string
+          ? `${Head}.${Rest}`
+          : Rest
+        : never
+    : InvalidDotPath<Head, keyof T & string>
+  : InvalidDotPath<"", never>;
+
 /**
  * Importance level for documentation.
  * - "essential": included in generated skill/instructions files

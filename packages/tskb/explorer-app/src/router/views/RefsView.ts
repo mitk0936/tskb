@@ -1,7 +1,7 @@
 import type { View, ViewContext } from "../types";
 import type { NodeRefHooks } from "../../types";
 import { renderAccordion } from "../components/Accordion";
-import { wireRefs } from "../components/RefLinks";
+import { wireRefs, wireCopyButtons } from "../components/RefLinks";
 
 const escapeHtml = (s: string): string =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -60,5 +60,6 @@ export class RefsView implements View {
     const items = this.deps.getRefsFor(this.nodeId, this.kind);
     bodyEl.innerHTML = renderAccordion(items, this.kind, { getNode: this.deps.getNode });
     wireRefs(bodyEl, this.deps);
+    wireCopyButtons(bodyEl);
   }
 }
