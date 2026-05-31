@@ -25,6 +25,13 @@ export interface Task {
   updatedAt: Date;
 }
 
+export interface ProjectSettings {
+  archive?: {
+    retentionDays: number;
+    purgeOnDelete?: boolean;
+  };
+}
+
 export interface CreateTaskInput {
   title: string;
   description: string;

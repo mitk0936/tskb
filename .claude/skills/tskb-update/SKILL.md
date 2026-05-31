@@ -100,7 +100,7 @@ Declare any new modules, exports, and Terms in the **closest** area's `main.tskb
 - A few sentences plus references is usually enough.
 - Use `{NodeRef}` to link to other things instead of restating them.
 - For multi-step processes, use `<Flow>` instead of prose.
-- For code examples, use `<Snippet>` — they're type-checked.
+- For code examples, use `<Snippet>` — they're type-checked. Always include a short comment or sentence (above the snippet or as a leading code comment) explaining what the snippet demonstrates, so the example isn't left to speak for itself.
 
 For full syntax (registry primitives, JSX components, snippets), load the **`tskb-update-syntax`** skill.
 

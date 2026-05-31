@@ -1,5 +1,10 @@
 import { Doc, H1, P, Relation, ref, val, type DotPath } from "tskb";
-import { TaskPhase, taskDefaults, type TaskStatus } from "../src/models/task.js";
+import {
+  TaskPhase,
+  taskDefaults,
+  type TaskStatus,
+  type ProjectSettings,
+} from "../src/models/task.js";
 
 const TaskService = ref as tskb.Exports["TaskService"];
 const ProjectService = ref as tskb.Exports["ProjectService"];
@@ -13,6 +18,7 @@ const SlackChannelPath = val as DotPath<
   typeof taskDefaults,
   ["notifications", "channels", "slack"]
 >;
+const RetentionDaysPath = val as DotPath<ProjectSettings, ["archive", "retentionDays"]>;
 
 export default (
   <Doc
@@ -37,7 +43,8 @@ export default (
     </P>
     <P>
       Pagination default lives at <code>{PageLimitPath}</code>; the Slack channel toggle is at{" "}
-      <code>{SlackChannelPath}</code>.
+      <code>{SlackChannelPath}</code>. Archive retention is configured via{" "}
+      <code>{RetentionDaysPath}</code>.
     </P>
 
     <Relation from={TaskService} to={ProjectService} label="tasks belong to projects" />

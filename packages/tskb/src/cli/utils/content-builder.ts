@@ -338,7 +338,7 @@ Declare any new modules, exports, and Terms in the **closest** area's \`main.tsk
 - A few sentences plus references is usually enough.
 - Use \`{NodeRef}\` to link to other things instead of restating them.
 - For multi-step processes, use \`<Flow>\` instead of prose.
-- For code examples, use \`<Snippet>\` — they're type-checked.
+- For code examples, use \`<Snippet>\` — they're type-checked. Always include a short comment or sentence (above the snippet or as a leading code comment) explaining what the snippet demonstrates, so the example isn't left to speak for itself.
 
 For full syntax (registry primitives, JSX components, snippets), load the **\`tskb-update-syntax\`** skill.
 
@@ -708,6 +708,8 @@ Works on any TS shape — JSON imports, \`interface\` declarations, \`as const\`
 ## Snippets
 
 The \`code\` prop is a real arrow function — TypeScript reads it at build time, so renames break the build. The body must be valid JS/TS (no raw JSON, shell, or SQL strings). Snippets are never executed.
+
+**Always explain what the snippet shows.** Either a short sentence in the surrounding prose (e.g. *"Looking up a user by email:"*) or a leading code comment inside the arrow body. A snippet without context forces the reader to reverse-engineer the point.
 
 \`\`\`tsx
 import { UserRepository } from "../src/db/user.repository.js";

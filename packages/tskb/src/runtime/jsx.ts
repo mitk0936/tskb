@@ -101,12 +101,15 @@ export const val: string = Symbol("tskb.val") as any;
  *   const BuildScriptPath = val as DotPath<Pkg, ["scripts", "build"]>;
  *   // → "scripts.build"
  *
- *   interface AppConfig { system: { server: { host: string } } }
+ *   interface AppConfig { system?: { server: { host: string } } }
  *   const HostPath = val as DotPath<AppConfig, ["system", "server", "host"]>;
- *   // → "system.server.host"
+ *   // → "system.server.host"  (optional segments are walked transparently)
  *
- * Resolves to `never` if any segment isn't a key of the current type
- * at that level — the assertion site then fails to type-check.
+ * Optional / nullable segments are unwrapped via `NonNullable` at each
+ * level, so `foo?: { bar: string }` still resolves to `"foo.bar"`.
+ *
+ * Resolves to `InvalidDotPath<...>` if any segment isn't a key of the
+ * current type at that level — the assertion site then fails to type-check.
  */
 /**
  * Brand type returned by {@link DotPath} when a tuple segment isn't a key of
@@ -125,15 +128,15 @@ export type DotPath<T, P extends readonly string[]> = P extends readonly [
   infer Head extends string,
   ...infer Tail extends readonly string[],
 ]
-  ? Head extends keyof T
+  ? Head extends keyof NonNullable<T>
     ? Tail extends readonly []
       ? Head
-      : DotPath<T[Head], Tail> extends infer Rest
+      : DotPath<NonNullable<T>[Head], Tail> extends infer Rest
         ? Rest extends string
           ? `${Head}.${Rest}`
           : Rest
         : never
-    : InvalidDotPath<Head, keyof T & string>
+    : InvalidDotPath<Head, keyof NonNullable<T> & string>
   : InvalidDotPath<"", never>;
 
 /**
