@@ -100,7 +100,8 @@ describe("build output", () => {
     const html = tasksDoc!.content;
     expect(html).toContain("<code>pagination.defaultLimit</code>");
     expect(html).toContain("<code>notifications.channels.slack</code>");
-    expect(html).not.toMatch(/\{PageLimitPath\}|\{SlackChannelPath\}/);
+    expect(html).toContain("<code>archive.retentionDays</code>");
+    expect(html).not.toMatch(/\{PageLimitPath\}|\{SlackChannelPath\}|\{RetentionDaysPath\}/);
   });
 
   it("should have related-to edges from Relation components", () => {

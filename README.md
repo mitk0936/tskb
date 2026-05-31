@@ -1,84 +1,111 @@
-# tskb - TypeScript Knowledge Base
+# tskb
 
-A TypeScript-based system for documenting software architecture using TSX syntax. Write architectural documentation as code with type-safe, structured components.
+**A typed, compiler-validated knowledge graph for TypeScript codebases — authored in `.tskb.tsx` files, queryable from the CLI, explorable in the browser.**
 
-## For Ai Assistants
+[![npm version](https://badge.fury.io/js/tskb.svg)](https://www.npmjs.com/package/tskb)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-Read this before querying the codebase: [AGENTS.md](./.tskb/AGENTS.md)
+> **Your AI assistant authors the docs. You navigate them.**
 
-## Workspace Structure
+![tskb explorer](./references/explorer.png)
 
-This monorepo contains:
+🔗 **Live demo:** [tskb's own graph](https://tskb-static-b3hqdl4xbq-ew.a.run.app/) · 🎬 [Explorer walkthrough video](./references/tskb-explorer-video.webm)
 
-### `packages/tskb/`
+---
 
-Core tskb package that provides:
+## Why tskb
 
-- CLI tool for building documentation graphs
-- JSX runtime for documentation components
-- TypeScript program analysis and extraction
-- Graph visualization tools
+- **Refactor-proof.** Docs reference real code via `typeof import()`. Rename a function and the docs build fails — stale docs surface as a build error, not silent drift.
+- **AI authors, humans navigate.** `.tskb.tsx` files are written by AI assistants during normal engineering work. You read the result in the explorer or query it from the CLI.
+- **One graph across teams.** Registry blocks in every file merge into one `tskb` namespace. No central manifest — each team documents its slice next to its code, the type system stitches it together.
+- **Queryable architecture.** A typed graph of folders, modules, exports, flows, and decisions — not a wiki. Search, traverse, and inspect from the CLI or browser.
 
-### `docs/`
+---
 
-Documentation of the repo containing:
+## A taste
 
-- Documentation for the tskb package itself, demonstrating how to document CLI tools, core functionality, and runtime systems.
+A `.tskb.tsx` file answers one question, with type-checked references to real code:
 
-## Getting Started
+```tsx
+import type { Module, Export } from "tskb";
+import { Doc, P, ref } from "tskb";
+
+declare global {
+  namespace tskb {
+    interface Modules {
+      "auth.service": Module<{
+        desc: "Issues and validates session tokens";
+        type: typeof import("../src/auth/service.js");
+      }>;
+    }
+    interface Exports {
+      "auth.service.login": Export<{
+        desc: "Validates credentials and returns a signed JWT";
+        type: typeof import("../src/auth/service.js").login;
+      }>;
+    }
+  }
+}
+
+const Login = ref as tskb.Exports["auth.service.login"];
+
+export default (
+  <Doc explains="How does login issue a session token?" priority="essential">
+    <P>{Login} signs a short-lived JWT and returns it as an HttpOnly cookie.</P>
+  </Doc>
+);
+```
+
+Rename `login` in `service.ts` → `tskb build` fails. The doc can't drift past its referent.
+
+👉 **Full authoring guide, CLI reference, and AI assistant integration:** [packages/tskb/README.md](./packages/tskb/README.md)
+
+---
+
+## Quick start
+
+```bash
+npm install --save-dev tskb
+
+npx --no -- tskb init       # scaffold docs/, tsconfig, starter file, and an npm script
+npm run docs                # build the knowledge graph
+npx --no -- tskb explore    # open the visual explorer
+```
+
+---
+
+## This repository
+
+This is the tskb monorepo. If you're here to **use** tskb, you want the [package README](./packages/tskb/README.md). The sections below are for contributing to tskb itself.
+
+### Workspace
+
+```
+tskb/
+├── packages/tskb/   # the published npm package (CLI, runtime, explorer)
+├── docs/            # tskb documenting itself (meta)
+├── references/      # screenshots and example graphs used in docs
+└── tests/           # e2e tests for the CLI
+```
 
 ### Prerequisites
 
 - Node.js >= 20.0.0
 - npm >= 10.0.0
 
-### Installation
+### Scripts
 
 ```bash
-npm install
+npm install          # installs deps, builds the package, builds the meta docs
+npm run build        # build all workspace packages
+npm run build:docs   # rebuild the tskb graph for this repo
+npm run format       # format with Prettier
+npm run format:check # check formatting
+npm run clean        # remove build outputs and node_modules
 ```
 
-This will automatically:
-
-1. Install all dependencies across workspaces
-2. Build the tskb package
-3. Build the existing repo docs
-
-### Available Scripts
-
-```bash
-# Clean all build outputs and dependencies
-npm run clean
-
-# Build all workspace packages
-npm run build
-
-# Build tskb docs (meta documentation of the repo)
-npm run build:docs
-
-# Format all code with Prettier
-npm run format
-
-# Check code formatting
-npm run format:check
-```
-
-This creates a knowledge graph and visualization in the `dist/` folder.
-
-## Project Structure
-
-```
-tskb/
-├── packages/
-│   └── tskb/              # Core package
-├── docs/                  # Repo documentation (tskb)
-└── package.json           # Workspace root
-```
-
-## Development
-
-The workspace uses npm workspaces for monorepo management
+---
 
 ## License
 
-MIT
+MIT © Dimitar Mihaylov

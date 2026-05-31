@@ -169,6 +169,8 @@ Works on any TS shape — JSON imports, `interface` declarations, `as const` obj
 
 The `code` prop is a real arrow function — TypeScript reads it at build time, so renames break the build. The body must be valid JS/TS (no raw JSON, shell, or SQL strings). Snippets are never executed.
 
+**Always explain what the snippet shows.** Either a short sentence in the surrounding prose (e.g. *"Looking up a user by email:"*) or a leading code comment inside the arrow body. A snippet without context forces the reader to reverse-engineer the point.
+
 ```tsx
 import { UserRepository } from "../src/db/user.repository.js";
 
