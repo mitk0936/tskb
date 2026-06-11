@@ -1,6 +1,9 @@
 import * as d3 from "d3";
 import type { PositionedNode } from "../types";
 import { NODE_SIZES } from "../layout/lane-engine";
+import { createLogger } from "../log";
+
+const log = createLogger("app:boundary");
 
 type Layer = d3.Selection<SVGGElement, unknown, null, undefined>;
 
@@ -154,11 +157,11 @@ interface BoundaryGroup {
 }
 
 function buildGroups(nodes: PositionedNode[], parentOf: Record<string, string>): BoundaryGroup[] {
-  console.log(
-    `[boundary] buildGroups — ${nodes.length} nodes, ${Object.keys(parentOf).length} parentOf entries`
+  log.debug(
+    `buildGroups — ${nodes.length} nodes, ${Object.keys(parentOf).length} parentOf entries`
   );
   const resolved = resolveBoundaries(nodes, parentOf);
-  console.log(`[boundary] resolveBoundaries done — ${resolved.size} resolved`);
+  log.debug(`resolveBoundaries done — ${resolved.size} resolved`);
 
   const byBoundary = new Map<string, PositionedNode[]>();
   for (const n of nodes) {

@@ -15,7 +15,9 @@ import { context } from "./commands/context.js";
 import { docs } from "./commands/docs.js";
 import { init } from "./commands/init.js";
 import { printHelpAndExit } from "./utils/help.js";
-import { configure, error } from "./utils/logger.js";
+import { configure, createLogger } from "../log/index.js";
+
+const log = createLogger("cli");
 
 /** Parses argv into positionals + typed option values. */
 function parseCliArgs() {
@@ -152,9 +154,98 @@ async function main() {
   }
 
   try {
+<<<<<<< HEAD
     await handler(args, values);
+=======
+    switch (resolvedCommand) {
+      case "build": {
+        const pattern = resolvedCommand === command ? positionals[1] : command;
+        if (!pattern) {
+          log.error("Error: build command requires a glob pattern");
+          process.exit(1);
+        }
+        if (!values.project) {
+          log.error("Error: build command requires --project <name>");
+          process.exit(1);
+        }
+        const config = { pattern, tsconfig: values.tsconfig!, projectName: values.project };
+        if (values.watch) {
+          const { watch } = await import("./commands/watch.js");
+          await watch(config, values["watch-path"] ?? []);
+        } else {
+          const { build } = await import("./commands/build.js");
+          await build(config);
+        }
+        break;
+      }
+      case "search": {
+        const query = positionals[1];
+        if (!query) {
+          log.error("Error: search command requires a query");
+          log.error('Usage: tskb search "<query>"');
+          process.exit(1);
+        }
+        await search(query, values.optimized!, values.plain!);
+        break;
+      }
+      case "pick": {
+        const identifier = positionals[1];
+        if (!identifier) {
+          log.error("Error: pick command requires an identifier");
+          log.error('Usage: tskb pick "<identifier>"');
+          process.exit(1);
+        }
+        await pick(identifier, values.optimized!, values.plain!);
+        break;
+      }
+      case "ls": {
+        await ls(parseInt(values.depth!, 10), values.optimized!, values.plain!);
+        break;
+      }
+      case "context": {
+        const identifier = positionals[1];
+        if (!identifier) {
+          log.error("Error: context command requires an identifier");
+          log.error('Usage: tskb context "<identifier>" [--depth <n>]');
+          process.exit(1);
+        }
+        await context(identifier, parseInt(values.depth!, 10), values.optimized!, values.plain!);
+        break;
+      }
+      case "docs": {
+        await docs(positionals[1], values.optimized!, values.plain!);
+        break;
+      }
+      case "flows": {
+        const { flows } = await import("./commands/flows.js");
+        await flows(positionals[1], values.optimized!, values.plain!);
+        break;
+      }
+      case "registry": {
+        const { registry } = await import("./commands/registry.js");
+        await registry(positionals[1], { type: values.type }, values.optimized!, values.plain!);
+        break;
+      }
+      case "init": {
+        await init({ yes: values.yes });
+        break;
+      }
+      case "explore": {
+        const { explore } = await import("./commands/explore.js");
+        await explore({
+          port: parseInt(values.port!, 10),
+          open: !values["no-open"],
+          exportPath: values.export,
+        });
+        break;
+      }
+      default:
+        log.error(`Unknown command: ${command}`);
+        process.exit(1);
+    }
+>>>>>>> c9b8173 (Initial Experimentation)
   } catch (err) {
-    error("❌ Error: " + (err instanceof Error ? err.message : String(err)));
+    log.error("❌ Error: " + (err instanceof Error ? err.message : String(err)));
     process.exit(1);
   }
 }

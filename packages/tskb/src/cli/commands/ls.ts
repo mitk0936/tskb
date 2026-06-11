@@ -1,7 +1,10 @@
 import type { KnowledgeGraph, GraphEdge } from "../../core/graph/types.js";
 import { ROOT_FOLDER_NAME } from "../../core/constants.js";
 import { loadGraph } from "../utils/graph-loader.js";
-import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
+import { jsonOut, plainOut } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
+
+const log = createLogger("cli:ls");
 
 /**
  * Result from listing folders in the knowledge graph
@@ -33,7 +36,7 @@ export async function ls(
   plain: boolean = false
 ): Promise<void> {
   // Find and load the knowledge graph
-  const loadDone = time("Loading graph");
+  const loadDone = log.time("Loading graph");
   const graph = loadGraph(["folders", "docs", "edges"]);
   loadDone();
 
@@ -56,11 +59,11 @@ export async function ls(
     process.exit(1);
   }
 
-  const traverseDone = time("Traversing folders");
+  const traverseDone = log.time("Traversing folders");
   const result = listFolders(graph, rootId, maxDepth);
   traverseDone();
 
-  verbose(
+  log.debug(
     `   ${result.folders.length} folders, ${result.docs.length} essential docs (depth=${maxDepth})`
   );
 

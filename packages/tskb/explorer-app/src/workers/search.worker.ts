@@ -1,4 +1,7 @@
 import Fuse from "fuse.js";
+import { createLogger } from "../log";
+
+const log = createLogger("app:search-worker");
 
 // ─── Protocol ────────────────────────────────────────────────────────────────
 
@@ -137,7 +140,7 @@ function search(query: string): string[] {
 self.addEventListener("message", (e: MessageEvent<InMessage>) => {
   const msg = e.data;
   if (msg.type === "init") {
-    init(msg.url).catch(console.error);
+    init(msg.url).catch((err) => log.error("init failed: %o", err));
     return;
   }
   if (msg.type === "search") {

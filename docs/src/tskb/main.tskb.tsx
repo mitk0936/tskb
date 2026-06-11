@@ -35,6 +35,10 @@ declare global {
         desc: "Registry types and JSX primitives. No runtime code — these are the types and tags users import.";
         path: "packages/tskb/src/runtime";
       }>;
+      "tskb.log": Folder<{
+        desc: "Diagnostic logging: namespaced loggers with verbosity levels, shared by the CLI and core.";
+        path: "packages/tskb/src/log";
+      }>;
     }
 
     interface Modules {
@@ -48,9 +52,26 @@ declare global {
         type: typeof import("packages/tskb/src/index.js");
       }>;
 
+      log: Module<{
+        desc: "Namespaced, leveled logger for the CLI and core. Routes normal output and an opt-in diagnostic stream.";
+        type: typeof import("packages/tskb/src/log/index.js");
+      }>;
+
       "sample.tsconfig.json": Module<{
         desc: "An example of required tsconfig.json for building <TSKB> docs";
         type: typeof import("../../tsconfig.json");
+      }>;
+    }
+
+    interface Exports {
+      "log.createLogger": Export<{
+        desc: "Creates a namespaced logger (under the `tskb:` root) with level methods: error, warn, info, debug, trace, plus time/infoTime helpers.";
+        type: typeof import("packages/tskb/src/log/index.js").createLogger;
+      }>;
+
+      "log.configure": Export<{
+        desc: "Sets up logging once at startup: picks the verbosity level and enables the diagnostic namespaces.";
+        type: typeof import("packages/tskb/src/log/index.js").configure;
       }>;
     }
 

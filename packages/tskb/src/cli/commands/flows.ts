@@ -1,7 +1,10 @@
 import Fuse from "fuse.js";
 import type { FlowNode } from "../../core/graph/types.js";
 import { loadGraph } from "../utils/graph-loader.js";
-import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
+import { jsonOut, plainOut } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
+
+const log = createLogger("cli:flows");
 
 interface FlowEntry {
   nodeId: string;
@@ -43,7 +46,7 @@ export async function flows(
   optimized: boolean = false,
   plain: boolean = false
 ): Promise<void> {
-  const loadDone = time("Loading graph");
+  const loadDone = log.time("Loading graph");
   const graph = loadGraph(["flows"]);
   loadDone();
 
@@ -57,7 +60,7 @@ export async function flows(
     const result: FlowsResult = {
       flows: allFlows.map(({ content: _, ...rest }) => rest),
     };
-    verbose(`   ${allFlows.length} flows listed`);
+    log.debug(`   ${allFlows.length} flows listed`);
     if (plain) {
       plainOut(formatFlowsListPlain(result));
     } else {
@@ -66,7 +69,7 @@ export async function flows(
     return;
   }
 
-  const searchDone = time("Searching flows");
+  const searchDone = log.time("Searching flows");
   const fuse = new Fuse(allFlows, {
     keys: [
       { name: "nodeId", weight: 0.3 },
@@ -108,7 +111,7 @@ export async function flows(
   };
   searchDone();
 
-  verbose(`   ${fuseResults.length} raw matches, returning ${result.flows.length}`);
+  log.debug(`   ${fuseResults.length} raw matches, returning ${result.flows.length}`);
 
   if (plain) {
     plainOut(formatFlowsSearchPlain(result));

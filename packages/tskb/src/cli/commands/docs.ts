@@ -1,6 +1,9 @@
 import Fuse from "fuse.js";
 import { loadGraph } from "../utils/graph-loader.js";
-import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
+import { jsonOut, plainOut } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
+
+const log = createLogger("cli:docs");
 
 interface DocEntry {
   nodeId: string;
@@ -35,7 +38,7 @@ export async function docs(
   optimized: boolean = false,
   plain: boolean = false
 ): Promise<void> {
-  const loadDone = time("Loading graph");
+  const loadDone = log.time("Loading graph");
   const graph = loadGraph(["docs"]);
   loadDone();
 
@@ -54,7 +57,7 @@ export async function docs(
     const result: DocsResult = {
       docs: allDocs.map(({ content: _, ...rest }) => rest),
     };
-    verbose(`   ${allDocs.length} docs listed`);
+    log.debug(`   ${allDocs.length} docs listed`);
     if (plain) {
       plainOut(formatDocsListPlain(result));
     } else {
@@ -63,7 +66,7 @@ export async function docs(
     return;
   }
 
-  const searchDone = time("Searching docs");
+  const searchDone = log.time("Searching docs");
   const fuse = new Fuse(allDocs, {
     keys: [
       { name: "nodeId", weight: 0.2 },
@@ -108,7 +111,7 @@ export async function docs(
   };
   searchDone();
 
-  verbose(`   ${fuseResults.length} raw matches, returning ${result.docs.length}`);
+  log.debug(`   ${fuseResults.length} raw matches, returning ${result.docs.length}`);
 
   if (plain) {
     plainOut(formatDocsSearchPlain(result));

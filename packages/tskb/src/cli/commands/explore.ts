@@ -1,6 +1,9 @@
 import path from "node:path";
+
 import { loadGraph, findGraphDir } from "../utils/graph-loader.js";
-import { info } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
+
+const log = createLogger("cli:explore");
 
 export interface ExploreOptions {
   port: number;
@@ -16,8 +19,8 @@ export async function explore(opts: ExploreOptions): Promise<void> {
     const outDir = opts.exportPath || ".tskb/explorer";
     const { exportExplorer } = await import("../../core/explorer/index.js");
     await exportExplorer(graph, outDir);
-    info(`Explorer exported to ${outDir}`);
-    info(`Open: ${path.join(outDir, "index.html")}`);
+    log.info(`Explorer exported to ${outDir}`);
+    log.info(`Open: ${path.join(outDir, "index.html")}`);
   } else {
     const { serveExplorer } = await import("../../core/explorer/index.js");
     await serveExplorer(graph, opts.port, opts.open, {

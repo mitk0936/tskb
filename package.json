@@ -5,7 +5,7 @@
   "type": "module",
   "workspaces": [
     "packages/*",
-    "examples/*"
+    "wm"
   ],
   "scripts": {
     "postinstall": "npm run build",

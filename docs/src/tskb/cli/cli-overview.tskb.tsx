@@ -99,7 +99,7 @@ declare global {
       }>;
 
       "cli.utils.logger": Module<{
-        desc: "Logger for CLI output.";
+        desc: "Stdout output helpers for command results (JSON and plain text).";
         type: typeof import("packages/tskb/src/cli/utils/logger.js");
       }>;
 
@@ -184,6 +184,7 @@ const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
 const GraphLoaderModule = ref as tskb.Modules["cli.utils.graph-loader"];
 const LoadGraphExport = ref as tskb.Exports["cli.utils.graph-loader.loadGraph"];
 const LoggerModule = ref as tskb.Modules["cli.utils.logger"];
+const LogModule = ref as tskb.Modules["log"];
 const ResolveNodeModule = ref as tskb.Modules["cli.utils.resolve-node"];
 const ResolveNodeFn = ref as tskb.Exports["cli.utils.resolve-node.resolveNode"];
 
@@ -218,8 +219,13 @@ export default (
         {ResolveNodeModule} ({ResolveNodeFn}) turns an ID or path into a node and walks its edges.
       </Li>
       <Li>
+<<<<<<< HEAD
         <strong>Doc generation</strong> — {ContentBuilderModule} is the shared source of skill and
         instruction markdown.
+=======
+        {LoggerModule}: Stdout output helpers (jsonOut/plainOut) for command results — separate from
+        logging, which lives in {LogModule}
+>>>>>>> 3689aea (Initial Experimentation)
       </Li>
       <Li>
         <strong>Build support</strong> — {WatcherModule} reports settled file changes;{" "}

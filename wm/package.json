@@ -1,0 +1,22 @@
+{
+  "name": "wm",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "x": "tsx",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "tsc -p tsconfig.build.json && node dist/src/pipelines/tskb-build.js"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "zx": "^8.8.5"
+  }
+}

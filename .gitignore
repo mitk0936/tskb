@@ -9,4 +9,4 @@ tests/e2e/fixture/.github
 
 .tskb/
 docs-export/
-
+logs/

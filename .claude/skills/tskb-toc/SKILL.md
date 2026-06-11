@@ -41,7 +41,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 
 ## Essential Docs
 
-- `docs/src/tskb/cli/logging.tskb.tsx` — How does the CLI route log output and what controls verbosity?
+- `docs/src/tskb/cli/logging.tskb.tsx` — How does tskb route log output across verbosity levels and streams?
 - `docs/src/tskb/core/typescript.tskb.tsx` — How does tskb create a TypeScript Program for static analysis without compiling?
 - `docs/src/tskb/explorer/explorer.tskb.tsx` — What is the tskb explorer and how does its data flow from CLI to browser?
 - `docs/src/tskb/main.tskb.tsx` — What is tskb and what does this package contain?
@@ -54,6 +54,7 @@ _Plus 22 supplementary docs available via `npx --no -- tskb docs --plain`._
 ## Externals
 
 - **d3** — Data-visualisation library used for layout, zoom, and SVG drawing. (url: https://d3js.org, kind: npm-package)
+- **debug** — Tiny namespaced logging library. Off by default, enabled per-namespace via the DEBUG env var (Node) or localStorage.debug (browser). (url: https://www.npmjs.com/package/debug, kind: package)
 - **npm** — npm package registry where tskb is published. The package includes the CLI binary, library entry point, JSX runtime, and pre-built explorer SPA assets. (url: https://www.npmjs.com/package/tskb, kind: package-registry)
 - **typescript** — TypeScript compiler API (the 'typescript' npm package). Provides the AST, type checker, and symbol resolution used throughout registry extraction and documentation parsing. (url: https://www.typescriptlang.org, kind: npm-package)
 - **vite** — Build tool that bundles the explorer SPA. (url: https://vitejs.dev, kind: npm-package)
