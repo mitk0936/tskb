@@ -1,45 +1,51 @@
 import os from "node:os";
 import { $, usePowerShell, type Options, type ProcessPromise } from "zx";
-import { getSignal } from "./abort.ts";
-import { getLogs } from "./logs/context.ts";
+import type { Logger } from "./log-collector/LogsCollector.ts";
 
 // zx defaults to bash, which isn't present on a stock Windows box.
 // Use Windows PowerShell there so zx spawns and quotes for the right shell.
 if (os.platform() === "win32") usePowerShell();
 
 /**
- * zx-backed process primitive. Spawns a command exactly like zx's `$` and, when
- * run inside a pipeline (see `withLogs`), streams the child's stdout/stderr into
- * the ambient {@link LogsCollector} (stdout as `info`, stderr as `error`) under
- * the given `name`. As a core internal it sources the collector from async
- * context itself, so actions just describe the command. Returns zx's
+ * Spawns a command (tagged-template, exactly like zx's `$`) and streams the
+ * child's stdout/stderr into a log (stdout as `info`, stderr as `error`) under
+ * the given `name`, killing the child when the bound signal aborts. Returns zx's
  * `ProcessPromise`, so the caller can await it for the result.
  *
- * @param name Labels this process's log entries (their `source`).
  * @example
  * proc("build-docs", { cwd })`tskb ${pattern} --project ${name}`;
  */
-export const proc = (name: string, opts?: Partial<Options>) => {
-  // quiet: zx must not echo the child's output to our terminal — the collector
-  // owns all output (otherwise every line prints twice: raw from zx, formatted
-  // from the drain). Caller opts can still override.
-  const $$ = $({ quiet: true, ...opts });
+export type Proc = (
+  name: string,
+  opts?: Partial<Options>
+) => (pieces: TemplateStringsArray, ...args: unknown[]) => ProcessPromise;
 
-  return (pieces: TemplateStringsArray, ...args: unknown[]): ProcessPromise => {
-    const child = $$(pieces, ...args);
+/**
+ * Builds a {@link Proc} bound to a specific log sink and abort signal. The action
+ * pipeline injects one per action as `ctx.proc`, wired to that action's logger
+ * and the run's signal — so actions just describe the command, with no ambient
+ * lookup and nothing threaded through. A custom source (e.g. a CDP connection)
+ * follows the same shape: take the action's `logs`/`signal`, push into the log,
+ * and hook teardown.
+ */
+export const createProc =
+  (logs: Logger, signal: AbortSignal): Proc =>
+  (name, opts) => {
+    // quiet: zx must not echo the child's output to our terminal — the collector
+    // owns all output (otherwise every line prints twice: raw from zx, formatted
+    // from the drain). Caller opts can still override.
+    const $$ = $({ quiet: true, ...opts });
 
-    const logs = getLogs();
-    if (logs) {
+    return (pieces, ...args): ProcessPromise => {
+      const child = $$(pieces, ...args);
+
       logs.attach(child.stdout, name, "info");
       logs.attach(child.stderr, name, "error");
-    }
 
-    // Hook teardown: when the run's signal aborts, kill the child — but only if
-    // it's still running. zx throws "Too late to kill" (on nextTick, uncatchably)
-    // if the process already exited, which is routine now that an action's
-    // completion drives teardown. So we track settlement and skip the kill.
-    const signal = getSignal();
-    if (signal) {
+      // Kill the child on teardown — but only if it's still running. zx throws
+      // "Too late to kill" (on nextTick, uncatchably) if the process already
+      // exited, which is routine now that an action's completion drives teardown.
+      // So we track settlement and skip the kill.
       let finished = false;
       const onAbort = (): void => {
         if (!finished) void child.kill();
@@ -49,11 +55,10 @@ export const proc = (name: string, opts?: Partial<Options>) => {
         signal.removeEventListener("abort", onAbort);
       };
       signal.addEventListener("abort", onAbort, { once: true });
-      // Registered before the caller's own `.then`, so `finished` is set before
-      // a completion handler can fire `cancel()` and abort us.
+      // Registered before the caller's own `.then`, so `finished` is set before a
+      // completion handler can fire `cancel()` and abort us.
       void child.then(markFinished, markFinished);
-    }
 
-    return child;
+      return child;
+    };
   };
-};

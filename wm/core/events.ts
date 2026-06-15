@@ -1,5 +1,5 @@
-import { log } from "./logs/global.ts";
-import { marker } from "./markers.ts";
+import { log } from "./log-collector/global.ts";
+import { captureSnapshot } from "./output.ts";
 
 /** Passed to every handler so it can tell a replayed snapshot from a live emit. */
 export interface EventMeta {
@@ -36,14 +36,20 @@ export const events = <Events extends object>(namespace?: string): Emitter<Event
 
     // Every emit also lands in the global log, so events share the timeline with
     // process output and end up in the drained log file. Fields are `·`-delimited
-    // — namespace (the emitting action) · key · payload — and only string payloads
-    // are shown inline; richer objects stay with the handlers, out of the log.
+    // — namespace (the emitting action) · key · payload. String payloads show
+    // inline; richer payloads are no longer dropped — they're written to a
+    // snapshot file and linked (`→ <path>`), so the durable record keeps them.
     const fields = [namespace, String(key)];
-    if (typeof payload === "string") fields.push(payload);
+    if (typeof payload === "string") {
+      fields.push(payload);
+    } else if (payload !== undefined) {
+      const name = `event-${[namespace, String(key)].filter(Boolean).join("-")}`;
+      fields.push(`→ ${captureSnapshot(name, payload).rel}`);
+    }
     log.append({
       source: "event",
       level: "event",
-      message: marker("event", fields.filter(Boolean).join(" · ")),
+      message: fields.filter(Boolean).join(" · "),
     });
 
     const set = handlers.get(key);

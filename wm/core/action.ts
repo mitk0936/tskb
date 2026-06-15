@@ -1,15 +1,21 @@
-import type { Logger } from "./logs/LogsCollector.ts";
+import type { Logger } from "./log-collector/LogsCollector.ts";
 import { events, type Emitter, type EventHandler } from "./events.ts";
+import { createProc, type Proc } from "./process.ts";
 
 /** An action that declares no events. */
 export type NoEvents = Record<never, never>;
 
+/** A value an action's `exec` may return: a result, or a promise of one. */
+export type Awaitable<T> = T | Promise<T>;
+
 /**
- * Lifecycle events the framework emits for every action when its run settles —
- * on top of whatever the action declares via `.emits<…>()`. They make completion
- * a first-class signal (no log-scraping) and give a uniform sequencing hook.
+ * Lifecycle events the framework emits for every action — on top of whatever it
+ * declares via `.emits<…>()`. They make key moments first-class signals (no
+ * log-scraping) and give a uniform sequencing hook.
  */
 export interface SystemEvents<Result> {
+  /** The action published its imperative handle via `ctx.attach` (fires once). */
+  attached: void;
   /** The run resolved; payload is its result. */
   done: Result;
   /** The run rejected; payload is the thrown error. */
@@ -27,12 +33,18 @@ export interface SystemGlobal {
   readonly signal: AbortSignal;
 }
 
-/** What an action's implementation receives: the system bag, plus `emit` and `attach`. */
+/** What an action's implementation receives: the system bag, plus `emit`, `attach`, and `proc`. */
 export interface ActionContext<Events extends object, Handle = void> extends SystemGlobal {
   /** Emit one of this action's declared events (also pushed to the global log). */
   readonly emit: Emitter<Events>["emit"];
   /** Publish this action's imperative handle, resolving its instance's `.ref`. */
   readonly attach: (handle: Handle) => void;
+  /**
+   * Spawn child processes bound to this action: their output streams into this
+   * action's log and they're killed on teardown. The built-in source; a custom
+   * one (e.g. CDP) follows the same pattern over `logs`/`signal`.
+   */
+  readonly proc: Proc;
 }
 
 /** A constructed-but-not-yet-run action: what calling an `Action` produces. */
@@ -41,7 +53,12 @@ export interface ActionInstance<Result = unknown, Events extends object = NoEven
   readonly args: readonly unknown[];
   /** Runs the action with the captured args and the injected system services. */
   readonly start: (system: SystemGlobal) => Promise<Result>;
-  /** Resolves with the handle the action attached via `ctx.attach` (set once). */
+  /**
+   * Resolves with the handle the action attached via `ctx.attach` (set once). If
+   * the action settles *without* attaching, this never hangs: it resolves
+   * (`undefined` for the default `void` handle) on success, or rejects with the
+   * action's error on failure.
+   */
   readonly ref: Promise<Handle>;
   /** Subscribe to a declared or system event (`done`/`error`). Chainable. */
   on<K extends keyof InstanceEvents<Events, Result>>(
@@ -74,23 +91,29 @@ export interface ActionBuilder<Events extends object, Handle = void> {
   ref<H>(): ActionBuilder<Events, H>;
   /** Provide the implementation. `ctx` carries `logs`, `signal`, `emit`, and `attach`. */
   run<Args extends unknown[], Result>(
-    exec: (ctx: ActionContext<Events, Handle>, ...args: Args) => Promise<Result>
+    exec: (ctx: ActionContext<Events, Handle>, ...args: Args) => Awaitable<Result>
   ): Action<Args, Result, Events, Handle>;
 }
 
-/** A promise paired with its resolver, for the set-once handle. */
-const deferred = <T>(): { promise: Promise<T>; resolve: (value: T) => void } => {
+/** A promise paired with its settlers, for the set-once handle. */
+const deferred = <T>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (reason: unknown) => void;
+} => {
   let resolve!: (value: T) => void;
-  const promise = new Promise<T>((r) => {
-    resolve = r;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
   });
-  return { promise, resolve };
+  return { promise, resolve, reject };
 };
 
 /** Assembles an {@link Action} from a name and its implementation. */
 const build = <Events extends object, Handle, Args extends unknown[], Result>(
   name: string,
-  exec: (ctx: ActionContext<Events, Handle>, ...args: Args) => Promise<Result>
+  exec: (ctx: ActionContext<Events, Handle>, ...args: Args) => Awaitable<Result>
 ): Action<Args, Result, Events, Handle> => {
   const create = (...args: Args): ActionInstance<Result, Events, Handle> => {
     // The emitter covers declared + system events; `ctx.emit` is narrowed to the
@@ -98,28 +121,60 @@ const build = <Events extends object, Handle, Args extends unknown[], Result>(
     const emitter = events<InstanceEvents<Events, Result>>(name);
     const emit = emitter.emit as Emitter<Events>["emit"];
     // Loosely typed for the framework's own emits (sidesteps EmitArgs for void results).
-    const systemEmit = emitter.emit as (key: "done" | "error", payload?: unknown) => void;
+    const systemEmit = emitter.emit as (
+      key: "attached" | "done" | "error",
+      payload?: unknown
+    ) => void;
 
     // The handle lives on the instance as a set-once promise: `attach` resolves
     // it, `instance.ref` awaits it. A second attach is a no-op (promise settled).
+    // If the action settles without ever attaching, `start` below settles it too
+    // (resolve on success, reject on error) so `ref` can't hang.
     const handle = deferred<Handle>();
-    const attach = (value: Handle): void => handle.resolve(value);
+    // Attaching is a one-time lifecycle moment: resolve `ref` and emit `attached`
+    // (the *fact* the action became controllable — not the handle, which is just
+    // functions). Guarded so a second attach neither re-emits nor re-resolves.
+    let attached = false;
+    const attach = (value: Handle): void => {
+      if (attached) return;
+      attached = true;
+      handle.resolve(value);
+      systemEmit("attached");
+    };
+    // Most actions have a `void` handle and no one awaits `ref`; mark the promise
+    // handled so a settle-time rejection on such an instance doesn't surface as an
+    // unhandled rejection. Real awaiters of `ref` still receive the rejection.
+    void handle.promise.catch(() => {});
 
     const instance: ActionInstance<Result, Events, Handle> = {
       name,
       args,
       ref: handle.promise,
       start: (system) =>
-        exec({ ...system, emit, attach }, ...args).then(
-          (result) => {
-            systemEmit("done", result);
-            return result;
-          },
-          (error: unknown) => {
-            systemEmit("error", error);
-            throw error;
-          }
-        ),
+        // `Promise.resolve().then` normalizes a sync result and routes a sync
+        // throw to the `error` path, so exec may be sync or async.
+        Promise.resolve()
+          .then(() =>
+            exec({ ...system, emit, attach, proc: createProc(system.logs, system.signal) }, ...args)
+          )
+          .then(
+            (result) => {
+              systemEmit("done", result);
+              // Settle `ref` if the action finished without attaching, so awaiters
+              // resolve (with `undefined` for the default void handle) rather than
+              // hang. Idempotent — a no-op when a handle was already attached.
+              handle.resolve(undefined as Handle);
+              return result;
+            },
+            (error: unknown) => {
+              systemEmit("error", error);
+              // The action failed, so its handle will never arrive — reject `ref`
+              // with the same error instead of leaving awaiters hung. No-op if a
+              // handle was already attached before the failure.
+              handle.reject(error);
+              throw error;
+            }
+          ),
       on(key, handler) {
         emitter.listen(key, handler);
         return instance;
@@ -141,26 +196,20 @@ const builder = <Events extends object, Handle>(name: string): ActionBuilder<Eve
 });
 
 /**
- * Defines an action. Two forms:
+ * Defines an action. Always returns a builder; provide the implementation via
+ * `.run(…)`, optionally after declaring events and/or a handle:
  *
- *   action("Build", async (ctx, opts) => { … })          // no declared events / handle
+ *   action("Build").run(async (ctx, opts) => { … })       // no declared events / handle
  *   action("Watch")                                       // typed events + handle
  *     .emits<{ create: string }>()
  *     .ref<{ rescan(): void }>()
  *     .run((ctx, opts) => { ctx.emit(…); ctx.attach(…); … })
  *
- * Calling the returned action constructs an {@link ActionInstance} (deferred —
- * the run executes it). Instances expose chainable `.on` / `.once` (declared
- * events plus `done`/`error`); the attached handle is awaited via `instance.ref`.
+ * `.run(…)` yields a callable that, when invoked, constructs an
+ * {@link ActionInstance} (deferred — the run executes it). Instances expose
+ * chainable `.on` / `.once` (declared events plus `done`/`error`); the attached
+ * handle is awaited via `instance.ref`.
  */
-export function action<Args extends unknown[], Result>(
-  name: string,
-  exec: (ctx: ActionContext<NoEvents, void>, ...args: Args) => Promise<Result>
-): Action<Args, Result, NoEvents, void>;
-export function action(name: string): ActionBuilder<NoEvents, void>;
-export function action(
-  name: string,
-  exec?: (ctx: ActionContext<NoEvents, void>, ...args: never[]) => Promise<unknown>
-): unknown {
-  return exec ? build(name, exec) : builder<NoEvents, void>(name);
+export function action(name: string): ActionBuilder<NoEvents, void> {
+  return builder<NoEvents, void>(name);
 }

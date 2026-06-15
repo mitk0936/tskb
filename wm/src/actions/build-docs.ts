@@ -1,6 +1,5 @@
 import path from "node:path";
 import { action } from "../../core/action.ts";
-import { proc } from "../../core/process.ts";
 
 export interface BuildDocsOptions {
   /** Glob for the .tskb.tsx documentation files, e.g. "./docs/**\/*.tskb.tsx". */
@@ -21,9 +20,8 @@ export interface BuildDocsOptions {
   verbose?: boolean;
 }
 
-export const buildDocs = action(
-  "Build Docs",
-  (_system, { pattern, config, projectName, cwd = ".", verbose = false }: BuildDocsOptions) => {
+export const buildDocs = action("Build Docs").run(
+  ({ proc }, { pattern, config, projectName, cwd = ".", verbose = false }: BuildDocsOptions) => {
     // path.resolve keeps an absolute cwd as-is and resolves a relative one
     // against process.cwd() — exactly the "absolute from where node runs" rule.
     const resolvedCwd = path.resolve(cwd);

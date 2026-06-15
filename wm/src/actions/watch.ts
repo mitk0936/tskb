@@ -37,8 +37,7 @@ export interface WatchOptions {
  * Assumes the parent directory exists; watching when an ancestor is missing is
  * a later case.
  */
-export const watch = action(
-  "Watch",
+export const watch = action("Watch").run(
   ({ logs, signal }, target: string, opts: WatchOptions = {}) => {
     const { onMissing, onCreate, onUpdate, onDelete, debounceMs = 50 } = opts;
 

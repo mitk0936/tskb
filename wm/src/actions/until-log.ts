@@ -1,5 +1,5 @@
 import { action } from "../../core/action.ts";
-import type { LogEntry } from "../../core/logs/LogsCollector.ts";
+import type { LogEntry } from "../../core/log-collector/LogsCollector.ts";
 
 /** Predicate over a log entry — return `true` for the entry to wait for. */
 export type LogMatcher = (entry: LogEntry) => boolean;

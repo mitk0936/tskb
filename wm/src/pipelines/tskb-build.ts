@@ -25,5 +25,7 @@ const build = run(
   watchBuildDir,
   // The build proc exiting fires the system `done` event (no log-scraping); when
   // it does, tear everything down — build + watcher.
-  buildRepoDocs.once("done", () => build.cancel())
+  buildRepoDocs.once("done", () => {
+    build.cancel();
+  })
 ).drain();
