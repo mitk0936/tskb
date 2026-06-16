@@ -34,7 +34,8 @@ export async function serveExplorer(
   if (!fs.existsSync(distDir)) {
     throw new Error(
       `Explorer assets not found at ${distDir}\n` +
-        `Run 'npm run build:app' inside packages/tskb/ first.`
+        `The tskb package appears to be incompletely built. ` +
+        `If you are developing tskb, run 'npm run build:explorer' first.`
     );
   }
 

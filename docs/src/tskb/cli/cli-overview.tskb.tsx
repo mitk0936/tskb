@@ -37,6 +37,11 @@ declare global {
         type: typeof import("packages/tskb/src/cli/commands/build.js");
       }>;
 
+      "cli.commands.watch": Module<{
+        desc: "Watch mode for `tskb build` — rebuilds the graph when watched files change.";
+        type: typeof import("packages/tskb/src/cli/commands/watch.js");
+      }>;
+
       "cli.commands.search": Module<{
         desc: "The `tskb search` command.";
         type: typeof import("packages/tskb/src/cli/commands/search.js");
@@ -87,6 +92,11 @@ declare global {
         type: typeof import("packages/tskb/src/cli/utils/graph-loader.js");
       }>;
 
+      "cli.utils.watcher": Module<{
+        desc: "Watches files and folders and reports changes after a short quiet period.";
+        type: typeof import("packages/tskb/src/cli/utils/watcher.js");
+      }>;
+
       "cli.utils.logger": Module<{
         desc: "Logger for CLI output.";
         type: typeof import("packages/tskb/src/cli/utils/logger.js");
@@ -102,6 +112,16 @@ declare global {
       "cli.build.ExtractConfig": Export<{
         desc: "Config the build command takes: glob pattern and tsconfig path.";
         type: import("packages/tskb/src/cli/commands/build.js").ExtractConfig;
+      }>;
+
+      "cli.commands.watch.watch": Export<{
+        desc: "Runs `tskb build` in watch mode: an initial build, then a rebuild on each change.";
+        type: typeof import("packages/tskb/src/cli/commands/watch.js").watch;
+      }>;
+
+      "cli.utils.watcher.watchPaths": Export<{
+        desc: "Watches one or more paths and calls back once per change, after changes settle.";
+        type: typeof import("packages/tskb/src/cli/utils/watcher.js").watchPaths;
       }>;
 
       "cli.utils.resolve-node.resolveNode": Export<{
@@ -149,6 +169,8 @@ const CommandsFolder = ref as tskb.Folders["tskb.cli.commands"];
 const UtilsFolder = ref as tskb.Folders["tskb.cli.utils"];
 const IndexModule = ref as tskb.Modules["cli.index"];
 const BuildModule = ref as tskb.Modules["cli.commands.build"];
+const WatchModule = ref as tskb.Modules["cli.commands.watch"];
+const WatcherModule = ref as tskb.Modules["cli.utils.watcher"];
 const SearchModule = ref as tskb.Modules["cli.commands.search"];
 const PickModule = ref as tskb.Modules["cli.commands.pick"];
 const LsModule = ref as tskb.Modules["cli.commands.ls"];
@@ -180,7 +202,8 @@ export default (
         script
       </Li>
       <Li>
-        {BuildModule}: Full pipeline — files → TypeScript program → extraction → graph → outputs
+        {BuildModule}: Full pipeline — files → TypeScript program → extraction → graph → outputs.
+        Its <code>--watch</code> flag hands off to {WatchModule}.
       </Li>
       <Li>{SearchModule}: Fuzzy search across all node types, returns ranked JSON results</Li>
       <Li>{PickModule}: Resolve any node by ID or path, returns type-specific context</Li>
@@ -208,6 +231,10 @@ export default (
       <Li>
         {LoggerModule}: Stderr-only logger with info/verbose/error/time — configured once at startup
         via --verbose flag
+      </Li>
+      <Li>
+        {WatcherModule}: Watches files and folders for the build {WatchModule}, collapsing rapid
+        changes into one callback
       </Li>
       <Li>
         {ResolveNodeModule}: Resolves any identifier to a graph node via {ResolveNodeFn} (exact ID →

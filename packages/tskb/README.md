@@ -265,9 +265,13 @@ The CLI is designed primarily for **AI assistants during a session** - `search`,
 ```bash
 npx --no -- tskb init                                 # scaffold docs/, tsconfig, and the npm script
 npx --no -- tskb build "<glob>" --project "<name>"    # compile .tskb.tsx files into a graph
+npx --no -- tskb build "<glob>" --project "<name>" --watch          # rebuild on doc changes (Ctrl+C to stop)
+npx --no -- tskb build "<glob>" --project "<name>" --watch --watch-path ./src   # also rebuild on changes under ./src
 npx --no -- tskb explore                              # open the visual explorer
 npx --no -- tskb explore --export ./public            # export the explorer as a static site
 ```
+
+`--watch` watches the directories covered by the doc glob and rebuilds the graph on every change (logging which file changed); add one or more `--watch-path <dir>` to also rebuild when referenced source code changes.
 
 **Querying the graph:**
 

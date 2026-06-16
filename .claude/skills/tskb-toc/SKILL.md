@@ -13,7 +13,7 @@ The big-picture index of this repo. Load this whenever you start a task — it t
 ## Folder Structure
 
 - **__TSKB.ROOT__** (`.`) — The root directory (automatically added by tskb)
-  - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [1 folder, 2 files]
+  - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [2 folders, 2 files]
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [1 folder]
     - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [2 folders, 5 files]
   - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [4 files]
@@ -47,7 +47,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — What does the runtime module provide and what does it not do?
 - `docs/src/tskb/usage.tskb.tsx` — What's the typical workflow for setting up tskb in a repo?
 
-_Plus 19 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 20 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 ## Externals
 
@@ -74,4 +74,4 @@ _Plus 19 supplementary docs available via `npx --no -- tskb docs --plain`._
 - **static-analysis** [essential] — `tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly
   ts.createProgram → extraction.registry → extraction.documentation → graph.builder
 
-_Plus 9 supplementary flows available via `npx --no -- tskb flows --plain`._
+_Plus 10 supplementary flows available via `npx --no -- tskb flows --plain`._
