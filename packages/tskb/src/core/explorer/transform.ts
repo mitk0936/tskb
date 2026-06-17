@@ -52,6 +52,10 @@ export interface MetaChunk {
   parentOf: Record<string, string>;
   /** IDs of all folder nodes (declared + ghost intermediaries); used to decide which ancestors need chunk loading */
   folderIds: string[];
+  /** Delivery mode of this meta chunk: "served" by the live server, "static" by export. */
+  mode?: "served" | "static";
+  /** meta.json mtime (ms). Only set in served mode; used by the browser reload watcher. */
+  version?: number;
 }
 
 export interface FolderChunk {

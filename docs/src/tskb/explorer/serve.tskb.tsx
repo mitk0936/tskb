@@ -42,6 +42,9 @@ const LaneEngineModule = ref as tskb.Modules["explorer.spa.lane-engine"];
 const NodeBaseModule = ref as tskb.Modules["explorer.spa.node-base"];
 const GraphFinderModule = ref as tskb.Modules["cli.utils.graph-finder"];
 const ChunkTerm = ref as tskb.Terms["knowledgeChunk"];
+const GraphWriterModule = ref as tskb.Modules["graph.writer"];
+const BuildCommandModule = ref as tskb.Modules["cli.commands.build"];
+const ExportExplorerExport = ref as tskb.Exports["explorer.exportExplorer"];
 
 // ─── Documentation ────────────────────────────────────────────────────────────
 
@@ -50,17 +53,22 @@ export default (
     <H1>Explorer Server</H1>
     <P>
       {ServeExplorerExport} in {ServerModule} starts a Node built-in <code>http</code> server — no
-      external dependency. It runs the graph transform once at startup, serializes every {ChunkTerm}{" "}
-      to JSON, and keeps all of them in a <code>Map&lt;string, string&gt;</code> for the lifetime of
-      the process. Subsequent chunk requests are pure string writes with no re-serialization.
+      external dependency. It runs the graph transform at startup, serializes every {ChunkTerm} to
+      JSON, and keeps all of them in a <code>Map&lt;string, string&gt;</code>. Subsequent chunk
+      requests are pure string writes with no re-serialization. The cache is rebuilt only when the
+      graph changes on disk (see <strong>Reload on change</strong> below).
     </P>
 
     <H2>Request routing</H2>
-    <P>Two routes are handled:</P>
+    <P>Three routes are handled:</P>
     <P>
       <strong>/chunks/*.json</strong> — chunk API. The key is extracted from the pathname (e.g.{" "}
       <code>meta</code> or <code>folder-tskb.core</code>) and looked up in the in-memory cache. A
       404 is returned if the key is unknown.
+    </P>
+    <P>
+      <strong>/version</strong> — returns <code>{`{ version }`}</code>, the current{" "}
+      <code>meta.json</code> mtime. The browser polls this to detect a rebuild (see below).
     </P>
     <P>
       <strong>/* (static assets)</strong> — SPA files are served from <code>dist/explorer/</code>,
@@ -74,8 +82,28 @@ export default (
     <P>
       {ExploreExport} in {ExploreCommandModule} locates <code>graph.json</code> via{" "}
       {GraphFinderModule}, parses it, then branches: if <code>--export</code> is provided it calls{" "}
-      <code>exportExplorer</code>; otherwise it calls {ServeExplorerExport}. The module is
-      dynamically imported so the SPA assets directory is only resolved when actually needed.
+      {ExportExplorerExport}; otherwise it calls {ServeExplorerExport}. The module is dynamically
+      imported so the SPA assets directory is only resolved when actually needed.
+    </P>
+
+    <H2>Reload on change</H2>
+    <P>
+      When serving (not exporting), {ServeExplorerExport} polls <code>meta.json</code>'s mtime once
+      a second. It polls rather than <code>fs.watch</code>-ing the directory because{" "}
+      {BuildCommandModule} deletes and recreates the whole <code>.tskb/</code> directory on every
+      build — a recursive watch bound to the old directory goes dead the moment it is removed, while
+      a <code>stat</code> follows the path and survives the recreate. Because {GraphWriterModule}{" "}
+      writes files atomically and writes <code>meta.json</code> last, a changed mtime is a reliable
+      signal that a complete new graph is on disk. On that signal the server reloads the graph and
+      rebuilds its chunk cache, so a browser reload fetches fresh chunks.
+    </P>
+    <P>
+      The served {ChunkTerm} for <code>meta</code> is stamped with <code>mode: "served"</code> and a{" "}
+      <code>version</code> (the <code>meta.json</code> mtime); the static export instead stamps{" "}
+      <code>mode: "static"</code>. In the browser, {MainModule} starts a <code>ReloadWatcher</code>{" "}
+      that polls <code>/version</code> only when <code>mode === "served"</code> and shows a reload
+      dialog when the version changes. In the static export the watcher is inert, so the same SPA
+      build works for both.
     </P>
 
     <Flow

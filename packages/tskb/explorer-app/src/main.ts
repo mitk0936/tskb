@@ -21,6 +21,8 @@ import { mountCodeTooltip, toggleCodeTooltip, updateCodeTooltipTransform } from 
 import { mountNodeTooltip, updateNodeTooltipTransform } from "./ui/NodeTooltip";
 import { mountDomTooltip } from "./ui/DomTooltip";
 import { showToast } from "./ui/Toast";
+import { startReloadWatcher } from "./ui/ReloadWatcher";
+import { showReloadDialog } from "./ui/ReloadDialog";
 import { DocPanel } from "./ui/DocPanel";
 import { panelRouter, RefsView } from "./router";
 import type { NodeRefHooks } from "./types";
@@ -103,6 +105,15 @@ export class ExplorerApp {
       this.render();
     });
     await this.loadInitialData();
+
+    // Reload-on-change: only active when served by a live `tskb explore` server
+    // (meta.mode === "served"). No-op in the static export.
+    const meta = await this.loader.load("meta");
+    startReloadWatcher({
+      mode: (meta as { mode?: string }).mode,
+      baseline: (meta as { version?: number }).version,
+      onUpdate: showReloadDialog,
+    });
   }
 
   // ── Setup phase ─────────────────────────────────────────────────────────────

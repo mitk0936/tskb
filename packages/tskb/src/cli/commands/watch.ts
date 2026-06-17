@@ -75,8 +75,6 @@ export async function watch(
     }
   };
 
-  info("manqqqqk");
-
   // Initial build (resilient — a failure must not stop watch mode).
   await rebuild();
 
@@ -95,9 +93,6 @@ export async function watch(
 
   info("");
 
-  info(`👀 Watching ${watched.length} path(s) for changes. Press Ctrl+C to stop.`);
-  info(`👀 Watching ${watched.length} path(s) for changes. Press Ctrl+C to stop.`);
-  info(`👀 Watching ${watched.length} path(s) for changes. Press Ctrl+C to stop.`);
   info(`👀 Watching ${watched.length} path(s) for changes. Press Ctrl+C to stop.`);
   for (const p of watched) info(`   └─ ${p}`);
 
