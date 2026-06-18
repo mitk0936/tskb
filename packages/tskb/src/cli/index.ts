@@ -37,6 +37,9 @@ async function main() {
       port: { type: "string", default: "4442" },
       "no-open": { type: "boolean", default: false },
       export: { type: "string" },
+      // build watch mode
+      watch: { type: "boolean", default: false },
+      "watch-path": { type: "string", multiple: true },
     },
     allowPositionals: true,
   });
@@ -60,8 +63,14 @@ async function main() {
           error("Error: build command requires --project <name>");
           process.exit(1);
         }
-        const { build } = await import("./commands/build.js");
-        await build({ pattern, tsconfig: values.tsconfig!, projectName: values.project });
+        const config = { pattern, tsconfig: values.tsconfig!, projectName: values.project };
+        if (values.watch) {
+          const { watch } = await import("./commands/watch.js");
+          await watch(config, values["watch-path"] ?? []);
+        } else {
+          const { build } = await import("./commands/build.js");
+          await build(config);
+        }
         break;
       }
       case "search": {

@@ -148,7 +148,7 @@ export default (
 
     <H2>Test Structure</H2>
     <P>
-      Tests are split into focused files under {E2eFolder}, sharing utilities from {Helpers}. A
+      AS Tests are split into focused files under {E2eFolder}, sharing utilities from {Helpers}. A
       Vitest global setup ({GlobalSetup}) builds the fixture graph once before any test runs.
     </P>
     <List>

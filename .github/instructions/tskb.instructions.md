@@ -59,12 +59,12 @@ All paths are relative to project root and can be used directly to read files.
 ## Folder Structure
 
 - **__TSKB.ROOT__** (`.`) — The root directory (automatically added by tskb)
-  - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [1 folder, 2 files]
+  - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [2 folders, 2 files]
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [1 folder]
     - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [2 folders, 5 files]
   - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [4 files]
   - **tests** (`tests`) — End-to-end tests for the tskb CLI. [2 folders]
-    - **tests.e2e** (`tests/e2e`) — E2E test files that run the CLI and check its output. [1 folder, 8 files]
+    - **tests.e2e** (`tests/e2e`) — E2E test files that run the CLI and check its output. [1 folder, 9 files]
 
 ## Boundaries
 
@@ -76,6 +76,7 @@ All paths are relative to project root and can be used directly to read files.
 
 ## Constraint Docs
 
+- `docs/src/tskb/constraints/constraint-graph-write-order.tskb.tsx` — Why must the graph writer write meta.json last and atomically?
 - `docs/src/tskb/constraints/constraint-panel-views.tskb.tsx` — How are explorer panel views structured?
 - `docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx` — When must the npm README.md be updated?
 - `docs/src/tskb/constraints/constraint-skill-generation.tskb.tsx` — How are the .claude/skills/ files maintained?
@@ -93,7 +94,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — What does the runtime module provide and what does it not do?
 - `docs/src/tskb/usage.tskb.tsx` — What's the typical workflow for setting up tskb in a repo?
 
-_Plus 19 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 21 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 ## Externals
 
@@ -120,4 +121,4 @@ _Plus 19 supplementary docs available via `npx --no -- tskb docs --plain`._
 - **static-analysis** [essential] — `tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly
   ts.createProgram → extraction.registry → extraction.documentation → graph.builder
 
-_Plus 9 supplementary flows available via `npx --no -- tskb flows --plain`._
+_Plus 10 supplementary flows available via `npx --no -- tskb flows --plain`._

@@ -46,4 +46,10 @@ describe("explorer export", () => {
     expect(postgresIdx).toBeGreaterThan(-1);
     expect(mailgunIdx).toBeLessThan(postgresIdx);
   });
+
+  it("marks the exported meta chunk as static", () => {
+    const meta = JSON.parse(fs.readFileSync(path.join(exportDir, "chunks", "meta.json"), "utf-8"));
+    expect(meta.mode).toBe("static");
+    expect(meta.version).toBeUndefined();
+  });
 });

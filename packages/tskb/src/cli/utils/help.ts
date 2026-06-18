@@ -4,7 +4,7 @@
 export function getHelpText(): string {
   return `Usage:
   tskb init [--yes|-y]
-  tskb build <glob> [--tsconfig <path>] [--verbose]
+  tskb build <glob> [--tsconfig <path>] [--watch [--watch-path <path>]...] [--verbose]
   tskb ls [--depth <n>] [--optimized] [--plain] [--verbose]
   tskb pick <identifier> [--optimized] [--plain] [--verbose]
   tskb search <query> [--optimized] [--plain] [--verbose]
@@ -23,6 +23,8 @@ Examples:
   # Validates that .tskb.tsx docs match the actual codebase (folders, modules, exports)
   # Produces a queryable knowledge graph artifact for code assistants
   tskb build "src/**/*.tsx" --tsconfig ./tsconfig.json
+  tskb build "src/**/*.tsx" --watch                       # Rebuild on doc changes (Ctrl+C to stop)
+  tskb build "src/**/*.tsx" --watch --watch-path ./src    # Also rebuild on changes under ./src
 
   # Query commands - primarily used by code assistants to explore architecture
   tskb ls --depth 4                                       # List folders up to depth 4

@@ -37,7 +37,7 @@ export const ALL_NODE_TYPES: GraphNodeType[] = [
   "edges",
 ];
 
-function findGraphDir(): string {
+export function findGraphDir(): string {
   const cwd = process.cwd();
   const graphDir = path.join(cwd, ".tskb", GRAPH_DIR_NAME);
 

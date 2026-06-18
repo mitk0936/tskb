@@ -8,6 +8,12 @@ function compact(obj: unknown): string {
   return JSON.stringify(obj);
 }
 
+function writeAtomic(filePath: string, data: string): void {
+  const tmp = filePath + ".tmp";
+  fs.writeFileSync(tmp, data, "utf-8");
+  fs.renameSync(tmp, filePath);
+}
+
 function stripHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
@@ -89,21 +95,18 @@ export function writeSplitGraph(graph: KnowledgeGraph, outputDir: string): strin
   const graphDir = path.join(outputDir, GRAPH_DIR_NAME);
   fs.mkdirSync(graphDir, { recursive: true });
 
-  fs.writeFileSync(path.join(graphDir, "meta.json"), compact(graph.metadata), "utf-8");
-  fs.writeFileSync(path.join(graphDir, "folders.json"), compact(graph.nodes.folders), "utf-8");
-  fs.writeFileSync(path.join(graphDir, "modules.json"), compact(graph.nodes.modules), "utf-8");
-  fs.writeFileSync(path.join(graphDir, "exports.json"), compact(graph.nodes.exports), "utf-8");
-  fs.writeFileSync(path.join(graphDir, "terms.json"), compact(graph.nodes.terms), "utf-8");
-  fs.writeFileSync(path.join(graphDir, "files.json"), compact(graph.nodes.files), "utf-8");
-  fs.writeFileSync(path.join(graphDir, "externals.json"), compact(graph.nodes.externals), "utf-8");
-  fs.writeFileSync(path.join(graphDir, "flows.json"), compact(graph.nodes.flows), "utf-8");
-  fs.writeFileSync(path.join(graphDir, "docs.json"), compact(graph.nodes.docs), "utf-8");
-  fs.writeFileSync(path.join(graphDir, "edges.json"), compact(graph.edges), "utf-8");
-  fs.writeFileSync(
-    path.join(graphDir, "search-index.json"),
-    compact(buildSearchIndex(graph)),
-    "utf-8"
-  );
+  writeAtomic(path.join(graphDir, "folders.json"), compact(graph.nodes.folders));
+  writeAtomic(path.join(graphDir, "modules.json"), compact(graph.nodes.modules));
+  writeAtomic(path.join(graphDir, "exports.json"), compact(graph.nodes.exports));
+  writeAtomic(path.join(graphDir, "terms.json"), compact(graph.nodes.terms));
+  writeAtomic(path.join(graphDir, "files.json"), compact(graph.nodes.files));
+  writeAtomic(path.join(graphDir, "externals.json"), compact(graph.nodes.externals));
+  writeAtomic(path.join(graphDir, "flows.json"), compact(graph.nodes.flows));
+  writeAtomic(path.join(graphDir, "docs.json"), compact(graph.nodes.docs));
+  writeAtomic(path.join(graphDir, "edges.json"), compact(graph.edges));
+  writeAtomic(path.join(graphDir, "search-index.json"), compact(buildSearchIndex(graph)));
+  // meta.json LAST: its mtime is the "new graph is fully written" signal.
+  writeAtomic(path.join(graphDir, "meta.json"), compact(graph.metadata));
 
   return graphDir;
 }

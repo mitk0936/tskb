@@ -32,6 +32,7 @@ export async function exportExplorer(graph: KnowledgeGraph, outputDir: string): 
   fs.mkdirSync(chunksDir, { recursive: true });
 
   const chunks = transformGraph(graph);
+  chunks.meta.mode = "static";
 
   fs.writeFileSync(path.join(chunksDir, "meta.json"), JSON.stringify(chunks.meta));
   fs.writeFileSync(path.join(chunksDir, "search-index.json"), JSON.stringify(chunks.searchIndex));

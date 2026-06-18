@@ -63,18 +63,19 @@ export function createProgram(files: string[], tsconfigPath: string): ts.Program
     options: compilerOptions,
   });
 
-  // Check for TypeScript errors only in the specified files (not dependencies)
+  // Check for TypeScript errors only in the files we're analyzing (not the
+  // dependency graph). Passing each SourceFile to the diagnostic methods scopes
+  // the type-check to that file instead of the whole program (lib.d.ts +
+  // node_modules + every imported source file) — diagnostics from those other
+  // files would be discarded here anyway, so checking them is wasted work.
   const fileSet = new Set(files.map((f) => path.normalize(f)));
-  const allDiagnostics = [
-    ...program.getSyntacticDiagnostics(),
-    ...program.getSemanticDiagnostics(),
-  ];
-
-  // Filter diagnostics to only include errors from the files we're analyzing
-  const diagnostics = allDiagnostics.filter((diagnostic) => {
-    if (!diagnostic.file) return false;
-    return fileSet.has(path.normalize(diagnostic.file.fileName));
-  });
+  const diagnostics = program
+    .getSourceFiles()
+    .filter((sourceFile) => fileSet.has(path.normalize(sourceFile.fileName)))
+    .flatMap((sourceFile) => [
+      ...program.getSyntacticDiagnostics(sourceFile),
+      ...program.getSemanticDiagnostics(sourceFile),
+    ]);
 
   if (diagnostics.length > 0) {
     const errorMessages = diagnostics

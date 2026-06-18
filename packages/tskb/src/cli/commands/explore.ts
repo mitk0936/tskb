@@ -1,5 +1,5 @@
 import path from "node:path";
-import { loadGraph } from "../utils/graph-loader.js";
+import { loadGraph, findGraphDir } from "../utils/graph-loader.js";
 import { info } from "../utils/logger.js";
 
 export interface ExploreOptions {
@@ -20,6 +20,9 @@ export async function explore(opts: ExploreOptions): Promise<void> {
     info(`Open: ${path.join(outDir, "index.html")}`);
   } else {
     const { serveExplorer } = await import("../../core/explorer/index.js");
-    await serveExplorer(graph, opts.port, opts.open);
+    await serveExplorer(graph, opts.port, opts.open, {
+      graphDir: findGraphDir(),
+      reloadGraph: () => loadGraph(),
+    });
   }
 }
