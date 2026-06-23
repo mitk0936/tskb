@@ -200,6 +200,34 @@ export function run(...args: ActionInstance[] | [RunOptions, ...ActionInstance[]
   const onSigint = (): void => beginClosing("interrupted (SIGINT)");
   process.once("SIGINT", onSigint);
 
+  // A throw or rejection that escaped every action's own handling. Without a
+  // handler Node prints it and exits *immediately* — before the run can flush its
+  // log, which leaves a silent, empty log directory and no verdict. So catch it,
+  // log it, fold it into the verdict, and drive teardown so the log still flushes
+  // and the exit code reflects the fault — degrading a stray throw to a recorded
+  // failure instead of a hard crash. Removed at finalize, so it only governs
+  // while this run owns the process.
+  const onFatal =
+    (kind: "uncaughtException" | "unhandledRejection") =>
+    (error: unknown): void => {
+      logs.append({
+        source: kind,
+        level: "error",
+        message: error instanceof Error ? (error.stack ?? error.message) : String(error),
+      });
+      // Genuine fault vs. teardown fallout: only one that surfaces *before* the
+      // signal aborts is the run's own (mirrors `launch`'s cascade rule); a throw
+      // during unwind is logged but doesn't pollute the verdict. Either way tear
+      // down — an uncaught fault leaves the process state undefined, so we always
+      // finish and flush, even under `failFast: false`.
+      if (!controller.signal.aborted) failures.push({ action: kind, error });
+      beginClosing(kind);
+    };
+  const onUncaught = onFatal("uncaughtException");
+  const onUnhandled = onFatal("unhandledRejection");
+  process.on("uncaughtException", onUncaught);
+  process.on("unhandledRejection", onUnhandled);
+
   narrate(`run started · ${scriptPath()}`);
 
   const launch = (instance: ActionInstance): void => {
@@ -246,6 +274,8 @@ export function run(...args: ActionInstance[] | [RunOptions, ...ActionInstance[]
     // ── Finalize (reached exactly once) ──────────────────────────────────────
     state = "closed";
     process.off("SIGINT", onSigint);
+    process.off("uncaughtException", onUncaught);
+    process.off("unhandledRejection", onUnhandled);
     narrate("finished");
     const file = await writeLog(logs);
     // Direct to the terminal — the file's already written, so this line isn't in it.

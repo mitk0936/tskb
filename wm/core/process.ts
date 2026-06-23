@@ -1,6 +1,7 @@
 import os from "node:os";
 import { $, usePowerShell, type Options, type ProcessPromise } from "zx";
 import type { Logger } from "./log-collector/LogsCollector.ts";
+import { captureSnapshot } from "./output.ts";
 
 // zx defaults to bash, which isn't present on a stock Windows box.
 // Use Windows PowerShell there so zx spawns and quotes for the right shell.
@@ -39,16 +40,47 @@ export const createProc =
     return (pieces, ...args): ProcessPromise => {
       const child = $$(pieces, ...args);
 
+      // Record the launch on the timeline as an event (the `event` level renders
+      // `[ev]`), under the proc's own `source` so it's filterable by origin in
+      // run.jsonl while still rendering as a milestone. The command zx resolved
+      // rides inline for scanning; the structured args (cmd, cwd, …) are written
+      // to a snapshot file and linked, exactly as the event bus does for a
+      // non-string payload (see events.ts).
+      //
+      // `env` is dropped: passing it to zx means handing the whole environment
+      // (you spread `...process.env` to add one var), so snapshotting it would
+      // write 600+ entries — secrets and tokens included — to logs/ on every
+      // launch. Everything else in opts is kept.
+      const { env: _env, ...safeOpts } = opts ?? {};
+      const snap = captureSnapshot(`proc-${name}-start`, { cmd: child.cmd, ...safeOpts });
+      logs.append({
+        source: name,
+        level: "event",
+        message: `${name} · start · ${child.cmd} · → ${snap.rel}`,
+      });
+
       logs.attach(child.stdout, name, "info");
       logs.attach(child.stderr, name, "error");
 
       // Kill the child on teardown — but only if it's still running. zx throws
-      // "Too late to kill" (on nextTick, uncatchably) if the process already
-      // exited, which is routine now that an action's completion drives teardown.
-      // So we track settlement and skip the kill.
+      // "Too late to kill" if the process already exited, which is routine now
+      // that an action's completion drives teardown. So we track settlement and
+      // skip the kill.
       let finished = false;
       const onAbort = (): void => {
-        if (!finished) void child.kill();
+        if (finished) return;
+        // An abort listener must never throw: a throw here escapes the synchronous
+        // `controller.abort()` dispatch as an uncaught exception (rethrown on
+        // nextTick by the event target), killing the process before the run can
+        // flush its log. zx's kill() throws *synchronously* when the child never
+        // got a pid (an immediate spawn failure that raced ahead of this proc's
+        // own `markFinished`), and can reject otherwise — neither matters during
+        // teardown, so swallow both.
+        try {
+          void Promise.resolve(child.kill()).catch(() => {});
+        } catch {
+          // No pid — the child never started; nothing to kill.
+        }
       };
       const markFinished = (): void => {
         finished = true;

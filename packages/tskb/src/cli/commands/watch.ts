@@ -2,7 +2,9 @@ import path from "node:path";
 import { globSync } from "glob";
 import { build, type ExtractConfig } from "./build.js";
 import { watchPaths as realWatchPaths, type WatchHandle } from "../utils/watcher.js";
-import { info, error } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
+
+const { info, error } = createLogger("tskb:watch");
 
 export interface WatchDeps {
   /** Runs one full build. Defaults to the real `build`. Injected in tests. */
