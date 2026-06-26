@@ -94,10 +94,10 @@ export async function serveExplorer(
         const next = reloadGraph();
         currentVersion = mtime;
         chunkCache = buildChunkCache(next, currentVersion);
-        info(`🔄 Graph changed — explorer chunks refreshed (v${currentVersion}).`);
+        log.info(`🔄 Graph changed — explorer chunks refreshed (v${currentVersion}).`);
       } catch (err) {
         // Keep serving the previous good cache; the next poll retries.
-        info(`⚠️  Graph reload skipped: ${err instanceof Error ? err.message : String(err)}`);
+        log.info(`⚠️  Graph reload skipped: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
         reloading = false;
       }
