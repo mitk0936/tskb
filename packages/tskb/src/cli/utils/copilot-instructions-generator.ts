@@ -66,10 +66,10 @@ applyTo: "**/*.tskb.tsx"
 This project uses **TSKB**, a semantic knowledge graph of the codebase.
 This guide covers how to write, update, and maintain \`.tskb.tsx\` documentation files — workflow, folder structure, registry primitives, JSX components, and best practices.
 
-${buildUpdateBody(graph, buildScript)}
+${buildUpdateBody(graph, buildScript, "inline")}
 
 ---
 
-${buildUpdateSyntaxBody(graph)}
+${buildUpdateSyntaxBody(graph, "inline")}
 `;
 }

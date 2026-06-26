@@ -81,6 +81,7 @@ All paths are relative to project root and can be used directly to read files.
 - `docs/src/tskb/constraints/constraint-readme-sync.tskb.tsx` — When must the npm README.md be updated?
 - `docs/src/tskb/constraints/constraint-skill-generation.tskb.tsx` — How are the .claude/skills/ files maintained?
 - `docs/src/tskb/constraints/constraint-test-coverage.tskb.tsx` — What test coverage is required for new functionality in the tskb package?
+- `docs/src/tskb/explorer/dev-server.tskb.tsx` — How does the explorer dev server serve graph chunks while developing the SPA?
 
 Constraint docs define architectural rules that **MUST** be followed when working on related code.
 
@@ -94,7 +95,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — What does the runtime module provide and what does it not do?
 - `docs/src/tskb/usage.tskb.tsx` — What's the typical workflow for setting up tskb in a repo?
 
-_Plus 21 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 22 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 ## Externals
 
