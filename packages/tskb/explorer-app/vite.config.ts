@@ -5,21 +5,51 @@ import fs from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** Absolute path to the graph snapshot used during dev */
-const GRAPH_JSON = path.resolve(__dirname, "../../../.tskb/graph.json");
+/** Absolute path to the graph snapshot dir used during dev */
+const GRAPH_DIR = path.resolve(__dirname, "../../../.tskb/graph");
+/** meta.json — written last by `tskb build`, so its mtime gates cache invalidation */
+const GRAPH_JSON = path.join(GRAPH_DIR, "meta.json");
 /** Absolute path to the transform module (loaded via ssrLoadModule — no build needed) */
 const TRANSFORM_MOD = path.resolve(__dirname, "../src/core/explorer/transform.ts");
 
-// ─── Chunk cache (invalidated when graph.json changes) ────────────────────────
+/**
+ * Reassembles the full KnowledgeGraph from the split JSON files `tskb build`
+ * writes. transformGraph needs the whole graph (nodes + edges); meta.json alone
+ * is just `metadata`, which makes the transform throw ("edges is not iterable").
+ */
+function loadFullGraph() {
+  const readJson = (name: string) =>
+    JSON.parse(fs.readFileSync(path.join(GRAPH_DIR, name), "utf-8"));
+  return {
+    metadata: readJson("meta.json"),
+    nodes: {
+      folders: readJson("folders.json"),
+      modules: readJson("modules.json"),
+      exports: readJson("exports.json"),
+      terms: readJson("terms.json"),
+      files: readJson("files.json"),
+      externals: readJson("externals.json"),
+      flows: readJson("flows.json"),
+      docs: readJson("docs.json"),
+    },
+    edges: readJson("edges.json"),
+  };
+}
+
+// ─── Chunk cache (invalidated when meta.json changes) ────────────────────────
 
 let chunkCache: Map<string, string> | null = null;
 
 async function buildChunkCache(server: ViteDevServer): Promise<Map<string, string>> {
   if (chunkCache) return chunkCache;
 
-  const graph = JSON.parse(fs.readFileSync(GRAPH_JSON, "utf-8"));
+  const graph = loadFullGraph();
   const { transformGraph, sanitizeFolderId } = (await server.ssrLoadModule(TRANSFORM_MOD)) as {
-    transformGraph: (g: unknown) => { meta: unknown; folders: Map<string, unknown> };
+    transformGraph: (g: unknown) => {
+      meta: unknown;
+      folders: Map<string, unknown>;
+      searchIndex: unknown;
+    };
     sanitizeFolderId: (id: string) => string;
   };
 
@@ -27,6 +57,7 @@ async function buildChunkCache(server: ViteDevServer): Promise<Map<string, strin
   const cache = new Map<string, string>();
 
   cache.set("meta", JSON.stringify(result.meta));
+  cache.set("search-index", JSON.stringify(result.searchIndex));
   for (const [id, chunk] of result.folders) {
     cache.set(`folder-${sanitizeFolderId(id)}`, JSON.stringify(chunk));
   }
@@ -73,7 +104,9 @@ export default defineConfig({
           if (!fs.existsSync(GRAPH_JSON)) {
             res.statusCode = 503;
             res.setHeader("Content-Type", "application/json");
-            res.end(JSON.stringify({ error: "graph.json not found — run `tskb build` first" }));
+            res.end(
+              JSON.stringify({ error: `${GRAPH_JSON} not found — run \`tskb build\` first` })
+            );
             return;
           }
 

@@ -127,13 +127,65 @@ The `main.tskb.tsx` file holds:
 
 You can put other `.tskb.tsx` files alongside `main.tskb.tsx` for specific docs — one question per file is fine. **Registry declarations across all `.tskb.tsx` files merge into one global registry**, so a sibling file can reference anything declared anywhere else.
 
-For naming registry keys, when to split a file, and the top-level layout under `docs/`, load `references/folder-layout.md`.
+For naming registry keys, when to split a file, and the top-level layout under `docs/`, load the **Folder layout & naming** section below.
 
-## References (load only when needed)
+## Folder layout & naming
 
-- `references/folder-layout.md` — top-level `docs/` files, naming registry keys, and when to split a file. Load when creating a new area or splitting up a doc.
-- `references/removing-areas.md` — recovery procedure when deleting or moving a Folder, Module, or Export breaks references. Load when the build fails after a deletion or rename.
-- `references/setup.md` — tsconfig requirements, monorepo tips, common build errors. Load when tskb is being set up in a new repo or the build is failing on config.
+### Top-level files in `docs/`
+
+- `architecture.tskb.tsx` — overview of the whole repo: main areas and how they fit.
+- `vocabulary.tskb.tsx` — only for `Terms` and `Externals` shared across many areas (e.g., a domain concept used by both client and server). Area-specific Terms belong in that area's `main.tskb.tsx`.
+- `adr/` — Architecture Decision Records, one file per decision.
+- `constraints/` — docs with `priority="constraint"`, one rule per file.
+
+### Naming registry keys
+
+Keys should hint at where the thing lives, but stay short. The goal: a reader sees the key and knows what it refers to.
+
+Both styles are fine — pick what reads better:
+- Dot-separated lowercase: `auth.service.login`
+- PascalCase: `AuthService`, `LoginEndpoint`
+
+Keep keys meaningful, not exhaustive:
+
+```
+GOOD: ServerUtils
+BAD:  MicroservicesServerUtils    // too much path baked in
+```
+
+Class methods follow the parent: `pkg.MyClass.mount`.
+
+**Keys are global.** The same key can't appear twice across all files.
+
+### When to split a file
+
+Split when:
+- The registry block has more than ~15–20 declarations.
+- The file mixes unrelated areas (e.g., auth and payments).
+- One `<Doc>` is growing into a wall of prose — turn it into several smaller question-shaped docs, possibly in separate files.
+
+## Removing or moving an area
+
+Deleting a Folder, Module, or Export breaks every `<Doc>`, `<Flow>`, or `<Relation>` that references it — the build fails on the missing key.
+
+Recovery:
+
+1. `npx --no -- tskb search "<oldKey>" --plain` and `tskb context "<oldKey>" --plain` — find every dependent.
+2. Update or delete the referencing docs **as part of the same change**. Don't leave stale references; don't comment out — delete.
+3. Rebuild to confirm the graph still resolves.
+
+## tskb setup & troubleshooting
+
+If the build fails with a TypeScript error, check:
+- `docs/tsconfig.json` has `"jsxImportSource": "tskb"`
+- `baseUrl` and `rootDir` point to the repo root (e.g., `"../"`)
+- Import paths in `.tskb.tsx` files end with `.js` (NodeNext module resolution)
+
+### Monorepo tips
+
+- Place `docs/` at the workspace root.
+- Set `baseUrl` and `rootDir` to `"../"` from the docs folder (or adjust for your layout).
+- Add `paths` entries for workspace packages if needed.
 
 
 ---
@@ -195,9 +247,9 @@ export default (
 
 | Primitive | When to use |
 |-----------|-------------|
-| `Folder<{ desc; path; boundary? }>` | A logical area of the codebase. Add `boundary` only on the top-level folder of a distinct runtime — see `references/boundaries.md`. |
+| `Folder<{ desc; path; boundary? }>` | A logical area of the codebase. Add `boundary` only on the top-level folder of a distinct runtime — see the **Boundary prop reference** section below. |
 | `Module<{ desc; type: typeof import("...") }>` | A source file — import path validates it exists. |
-| `Export<{ desc; type: typeof import("...").Name }>` | A named export — compiler validates it exists. For class methods, see `references/class-methods.md`. |
+| `Export<{ desc; type: typeof import("...").Name }>` | A named export — compiler validates it exists. For class methods, see the **Documenting class methods** section below. |
 | `File<{ desc; path }>` | Non-TS/JS files: configs, READMEs, specs. |
 | `External<{ desc; [key]: string }>` | npm packages, APIs, services outside the repo. |
 | `Term<"...">` | A name from the area's vocabulary (e.g., `SessionToken`, `DispatchQueue`). Declared in the area's `main.tskb.tsx` and used across that area's docs. |
@@ -290,7 +342,7 @@ Works on any TS shape — JSON imports, `interface` declarations, `as const` obj
   - `priority="supplementary"` (default) — additional context.
 - **`<P>`**, **`<H1>`**, **`<H2>`**, **`<H3>`**, **`<List>`/`<Li>`** — Content structure.
 - **`<Snippet code={() => { ... }} />`** — Type-checked code example. See Snippets below.
-- **`<Relation from={NodeA} to={NodeB} label?="..." />`** — Explicit semantic edge between two nodes. See `references/relations.md` for label and direction guidance.
+- **`<Relation from={NodeA} to={NodeB} label?="..." />`** — Explicit semantic edge between two nodes. See the **Relations — when, what, and which direction** section below for label and direction guidance.
 - **`<Adr id="..." title="..." status="accepted|proposed|deprecated|superseded">`** — Architecture Decision Record.
 - **`<Flow name="..." desc="..." priority?>`** — Named, ordered sequence of steps through the system. Becomes a first-class graph node. Only `<Step>` children allowed. See Flows below.
 - **`<Step node={NodeRef} label?="..." />`** — A single participant in a Flow. References any registered node.
@@ -313,7 +365,7 @@ import { UserRepository } from "../src/db/user.repository.js";
 />
 ```
 
-If `findByEmail` is renamed, the build fails — the doc can't drift. For wrapping JSON, shell commands, or SQL inside a snippet, see `references/snippets-advanced.md`.
+If `findByEmail` is renamed, the build fails — the doc can't drift. For wrapping JSON, shell commands, or SQL inside a snippet, see the **Snippets — non-JS content and tsconfig tweaks** section below.
 
 ## Flows
 
@@ -341,10 +393,126 @@ A `<Flow>` describes a multi-step process — how several parts work together to
 </Flow>
 ```
 
-## References (load only when needed)
+## Boundary prop reference
 
-- `references/boundaries.md` — full table of `boundary` values + when to use each. Load when adding `boundary` to a top-level folder.
-- `references/class-methods.md` — declare one Export per method (public or private) using `InstanceType<...>`. Load when documenting a class with notable methods.
-- `references/snippets-advanced.md` — wrapping JSON, shell commands, SQL or other non-JS content inside a snippet body, plus tsconfig tweaks. Load when a basic snippet won't fit.
-- `references/relations.md` — what to put in a `<Relation>` label, when an edge is worth declaring, and which direction to pick. Load when adding a `<Relation>`.
+`boundary` marks a folder as the root of a distinct runtime or deployment unit — a process, app, or package that runs or deploys on its own. Add it only to the **top-level folder** that IS that boundary; never repeat it on sub-folders inside.
+
+Prefer one of these values. Add a new value only if your runtime genuinely doesn't fit:
+
+| Value | When to use |
+|-------|-------------|
+| `"[NAME] repository"` | A distinct git repo |
+| `"[NAME] package"` | An npm package root with its own `package.json`, published or consumed as a library |
+| `"[NAME] SPA"` | A browser single-page application (Vite, CRA, Next.js client bundle) |
+| `"[NAME] client"` | Frontend app in a project that also has a server. Pair with `"server"`. |
+| `"[NAME] server"` | Node.js (or similar) backend process. Pair with `"client"` when both exist. |
+| `"[NAME] CLI"` | A command-line binary published or invoked as its own process |
+| `"[NAME] worker"` | Background or queue worker — long-running process, distinct from request handlers |
+| `"[NAME] function"` | Serverless function / Lambda / Cloud Function — each deployable unit is its own boundary |
+| `"[NAME] mobile app"` | iOS or Android app target |
+| `"[NAME] extension"` | Browser or IDE extension package with its own runtime host |
+| `"[NAME] daemon"` | OS-level daemon or background service |
+| `"[TYPE] tests"` | Test suite root — the test runner is a distinct process from production code |
+
+**Don't** add boundary to architectural layers (core, cli, utils, shared types), sub-folders already inside a bounded area, or organizational groupings with no independent runtime. If in doubt, leave it off.
+
+## Documenting class methods
+
+For classes with important methods (public or private), declare one `Export` per method using a local type alias and `InstanceType`:
+
+```tsx
+// 1. Hoist the class constructor type once at the top of the file
+type MyClass = typeof import("src/my-class.js").MyClass;
+
+// 2. One Export per method — works for private methods too
+interface Exports {
+  "pkg.MyClass": Export<{
+    desc: "Top-level controller. Call mount() once on startup.";
+    type: MyClass;
+  }>;
+
+  "pkg.MyClass.mount": Export<{
+    desc: "Public entry point. Wires dependencies and loads initial data.";
+    type: InstanceType<MyClass>["mount"];
+  }>;
+
+  "pkg.MyClass.render": Export<{
+    desc: "Re-runs the full D3 enter/update/exit cycle.";
+    type: InstanceType<MyClass>["render"]; // works even if render is private
+  }>;
+}
+```
+
+`InstanceType<MyClass>["methodName"]` resolves to the actual method signature. The compiler validates the name exists and catches renames. Works for **both public and private** TypeScript members.
+
+## Snippets — non-JS content and tsconfig tweaks
+
+The snippet body must be valid JavaScript or TypeScript. When the content you want to show isn't JS — JSON, a shell command, a SQL query, a config blob — wrap it in a JS expression so the body stays valid and the imports keep getting type-checked.
+
+### JSON output — use `JSON.stringify`
+
+```tsx
+import { buildConfig } from "../src/config.js";
+
+<Snippet
+  code={() => {
+    const config = buildConfig({ env: "prod" });
+    return JSON.stringify(config, null, 2);
+  }}
+/>
+```
+
+### Shell command — use `execSync`
+
+The call is type-checked; the command isn't run at doc-build time.
+
+```tsx
+import { execSync } from "node:child_process";
+
+<Snippet
+  code={() => execSync("npx --no -- tskb search 'auth' --plain")}
+/>
+```
+
+### SQL or other strings — tagged template or plain string
+
+```tsx
+<Snippet
+  code={() => `
+    SELECT id, email FROM users WHERE active = true;
+  `}
+/>
+```
+
+The point of the wrapper is the same: the body stays valid JS, and TypeScript still validates any imports or function calls inside it.
+
+### tsconfig tweaks for snippets
+
+To support the types your snippets need, extend the docs `tsconfig.json`:
+- Add `lib` entries (`"DOM"`, `"ES2022"`) for browser or modern-runtime APIs.
+- Add `paths` aliases if your project uses them.
+- Add `types` for ambient declarations.
+
+The docs `tsconfig.json` is independent from the project's build config — tailor it for documentation without affecting production builds.
+
+## Relations — when, what, and which direction
+
+A `<Relation from={A} to={B} label="..." />` is a single semantic edge between two registered nodes. Use it for one-line "X relates to Y" facts. For anything with order or multiple participants, use a `<Flow>` instead.
+
+### What Relations are for
+
+**Pointing out non-obvious links between parts of the codebase** — connections a reader wouldn't see by following the folder tree, the imports, or the module morphology. Two distant modules that share a hidden coupling. A module that depends on an external boundary the import graph doesn't make obvious. A folder that owns a domain term defined elsewhere. If the link is already visible from the structural edges (`belongs-to`, `contains`) or the import graph, you don't need a Relation.
+
+### What labels should say
+
+Describe the **functional or architectural relationship** — the role one part plays for the other. Not how it's wired in code.
+
+- **Good:** "owns user identity", "is the source of truth for tasks", "wraps the compiler API", "depends on for auth", "renders into".
+- **Bad:** "calls login()", "imports `validateToken`", "instantiates new AuthService()". These are implementation details — the imports edge and morphology already capture them, and they break the moment a method is renamed.
+
+If the only thing you can say about the edge is the name of a function call, you don't need a Relation.
+
+### Direction matters
+
+Read the label as a verb phrase from `from` to `to`. Pick `from`/`to` so the sentence scans naturally: `<Relation from={AuthService} to={Postgres} label="persists sessions to" />` reads "AuthService persists sessions to Postgres".
 

@@ -122,6 +122,7 @@ const SearchWorkerModule = ref as tskb.Modules["explorer.spa.search-worker"];
 const TransformGraphExport = ref as tskb.Exports["explorer.transformGraph"];
 const ServeExplorerExport = ref as tskb.Exports["explorer.serveExplorer"];
 const ExportExplorerExport = ref as tskb.Exports["explorer.exportExplorer"];
+const ViteConfigModule = ref as tskb.Modules["explorer.app.vite-config"];
 
 // ─── Documentation ────────────────────────────────────────────────────────────
 
@@ -195,9 +196,9 @@ export default (
       <code>dist/</code> when the package is published.
     </P>
     <P>
-      During development, <code>npm run dev:explorer</code> starts Vite's HMR dev server against a
-      fixed <code>chunks/</code> directory. The CLI <code>build:lib</code> must be run at least once
-      so the <code>dist/</code> server code exists.
+      During development, <code>npm run dev:explorer</code> starts Vite's HMR dev server, which
+      serves the chunk API from the live graph via a custom plugin in {ViteConfigModule}. No prior{" "}
+      <code>build:lib</code> is needed.
     </P>
   </Doc>
 );

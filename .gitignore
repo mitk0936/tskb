@@ -6,3 +6,7 @@ coverage
 tests/e2e/fixture/.tskb
 tests/e2e/fixture/.claude
 tests/e2e/fixture/.github
+
+.tskb/
+docs-export/
+

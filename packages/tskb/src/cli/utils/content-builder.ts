@@ -40,6 +40,70 @@ export function detectBuildScript(cwd: string = process.cwd()): string {
 }
 
 /**
+ * Output target for body builders that have split-out reference material.
+ *
+ * - `"skill"` — Claude Code skills, where reference bodies are written as
+ *   separate `references/*.md` files loaded on demand. The body advertises them
+ *   with `references/<file>.md` pointers.
+ * - `"inline"` — single-file targets like Copilot instructions, where there is
+ *   no on-demand loading. Reference bodies are inlined into the same file and
+ *   the prose points at the inlined section instead of a filename.
+ */
+export type ContentTarget = "skill" | "inline";
+
+/** Extract the title from a reference body's leading `# Heading` line. */
+function referenceTitle(body: string): string {
+  const match = body.match(/^#\s+(.+)$/m);
+  return match ? match[1].trim() : "";
+}
+
+/**
+ * Render an inline pointer to a reference, target-aware.
+ *
+ * Returns only the link fragment so the surrounding prose keeps its verb:
+ * - `"skill"` → `` `references/boundaries.md` ``
+ * - `"inline"` → `the **Boundary prop reference** section below`
+ */
+function refLink(filename: string, refs: SkillReference[], target: ContentTarget): string {
+  if (target === "skill") return `\`references/${filename}\``;
+  const ref = refs.find((r) => r.filename === filename);
+  const title = ref ? referenceTitle(ref.body) : filename;
+  return `the **${title}** section below`;
+}
+
+/** Add one `#` to every heading line, skipping fenced code blocks. */
+function demoteHeadings(md: string): string {
+  let inFence = false;
+  return md
+    .split("\n")
+    .map((line) => {
+      if (/^\s*```/.test(line)) {
+        inFence = !inFence;
+        return line;
+      }
+      if (!inFence && /^#{1,5}\s/.test(line)) return `#${line}`;
+      return line;
+    })
+    .join("\n");
+}
+
+/**
+ * Render the trailing reference section of a body, target-aware.
+ *
+ * - `"skill"` → a "load only when needed" bulleted list of `references/*.md`
+ *   pointers (the files are written to disk alongside the SKILL.md).
+ * - `"inline"` → the full reference bodies, headings demoted one level so each
+ *   becomes a `##` section in the single-file output.
+ */
+function renderReferences(refs: SkillReference[], target: ContentTarget): string {
+  if (target === "skill") {
+    const list = refs.map((r) => `- \`references/${r.filename}\` — ${r.hook}`).join("\n");
+    return `## References (load only when needed)\n\n${list}`;
+  }
+  return refs.map((r) => demoteHeadings(r.body).trimEnd()).join("\n\n");
+}
+
+/**
  * Build the CLI body for the `tskb` skill.
  *
  * Contains: when to use, commands, what's on the map, response shapes.
@@ -243,10 +307,10 @@ If the build fails with a TypeScript error, check:
  */
 export function buildUpdateBody(
   graph: KnowledgeGraph,
-  buildScript: string = detectBuildScript()
+  buildScript: string = detectBuildScript(),
+  target: ContentTarget = "skill"
 ): string {
   const refs = buildUpdateReferences(graph);
-  const referencesList = refs.map((r) => `- \`references/${r.filename}\` — ${r.hook}`).join("\n");
 
   return `## When to Update
 
@@ -368,11 +432,9 @@ The \`main.tskb.tsx\` file holds:
 
 You can put other \`.tskb.tsx\` files alongside \`main.tskb.tsx\` for specific docs — one question per file is fine. **Registry declarations across all \`.tskb.tsx\` files merge into one global registry**, so a sibling file can reference anything declared anywhere else.
 
-For naming registry keys, when to split a file, and the top-level layout under \`docs/\`, load \`references/folder-layout.md\`.
+For naming registry keys, when to split a file, and the top-level layout under \`docs/\`, load ${refLink("folder-layout.md", refs, target)}.
 
-## References (load only when needed)
-
-${referencesList}
+${renderReferences(refs, target)}
 `;
 }
 
@@ -544,9 +606,11 @@ Read the label as a verb phrase from \`from\` to \`to\`. Pick \`from\`/\`to\` so
  * class methods, snippet wrappers, relations detail) live in references/
  * emitted by buildUpdateSyntaxReferences().
  */
-export function buildUpdateSyntaxBody(_graph: KnowledgeGraph): string {
+export function buildUpdateSyntaxBody(
+  _graph: KnowledgeGraph,
+  target: ContentTarget = "skill"
+): string {
   const refs = buildUpdateSyntaxReferences();
-  const referencesList = refs.map((r) => `- \`references/${r.filename}\` — ${r.hook}`).join("\n");
 
   return `## File Anatomy
 
@@ -605,9 +669,9 @@ export default (
 
 | Primitive | When to use |
 |-----------|-------------|
-| \`Folder<{ desc; path; boundary? }>\` | A logical area of the codebase. Add \`boundary\` only on the top-level folder of a distinct runtime — see \`references/boundaries.md\`. |
+| \`Folder<{ desc; path; boundary? }>\` | A logical area of the codebase. Add \`boundary\` only on the top-level folder of a distinct runtime — see ${refLink("boundaries.md", refs, target)}. |
 | \`Module<{ desc; type: typeof import("...") }>\` | A source file — import path validates it exists. |
-| \`Export<{ desc; type: typeof import("...").Name }>\` | A named export — compiler validates it exists. For class methods, see \`references/class-methods.md\`. |
+| \`Export<{ desc; type: typeof import("...").Name }>\` | A named export — compiler validates it exists. For class methods, see ${refLink("class-methods.md", refs, target)}. |
 | \`File<{ desc; path }>\` | Non-TS/JS files: configs, READMEs, specs. |
 | \`External<{ desc; [key]: string }>\` | npm packages, APIs, services outside the repo. |
 | \`Term<"...">\` | A name from the area's vocabulary (e.g., \`SessionToken\`, \`DispatchQueue\`). Declared in the area's \`main.tskb.tsx\` and used across that area's docs. |
@@ -700,7 +764,7 @@ Works on any TS shape — JSON imports, \`interface\` declarations, \`as const\`
   - \`priority="supplementary"\` (default) — additional context.
 - **\`<P>\`**, **\`<H1>\`**, **\`<H2>\`**, **\`<H3>\`**, **\`<List>\`/\`<Li>\`** — Content structure.
 - **\`<Snippet code={() => { ... }} />\`** — Type-checked code example. See Snippets below.
-- **\`<Relation from={NodeA} to={NodeB} label?="..." />\`** — Explicit semantic edge between two nodes. See \`references/relations.md\` for label and direction guidance.
+- **\`<Relation from={NodeA} to={NodeB} label?="..." />\`** — Explicit semantic edge between two nodes. See ${refLink("relations.md", refs, target)} for label and direction guidance.
 - **\`<Adr id="..." title="..." status="accepted|proposed|deprecated|superseded">\`** — Architecture Decision Record.
 - **\`<Flow name="..." desc="..." priority?>\`** — Named, ordered sequence of steps through the system. Becomes a first-class graph node. Only \`<Step>\` children allowed. See Flows below.
 - **\`<Step node={NodeRef} label?="..." />\`** — A single participant in a Flow. References any registered node.
@@ -723,7 +787,7 @@ import { UserRepository } from "../src/db/user.repository.js";
 />
 \`\`\`
 
-If \`findByEmail\` is renamed, the build fails — the doc can't drift. For wrapping JSON, shell commands, or SQL inside a snippet, see \`references/snippets-advanced.md\`.
+If \`findByEmail\` is renamed, the build fails — the doc can't drift. For wrapping JSON, shell commands, or SQL inside a snippet, see ${refLink("snippets-advanced.md", refs, target)}.
 
 ## Flows
 
@@ -751,9 +815,7 @@ A \`<Flow>\` describes a multi-step process — how several parts work together 
 </Flow>
 \`\`\`
 
-## References (load only when needed)
-
-${referencesList}
+${renderReferences(refs, target)}
 `;
 }
 
