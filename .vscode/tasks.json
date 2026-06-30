@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Compiles the wm pipelines to wm/dist (with source maps, per
+      // tsconfig.build.json). Used as the preLaunchTask for the debug configs.
+      "label": "wm: build",
+      "type": "shell",
+      "command": "npm run build",
+      "options": { "cwd": "${workspaceFolder}/wm" },
+      "problemMatcher": ["$tsc"],
+      "presentation": { "reveal": "silent", "clear": true },
+      "group": "build"
+    }
+  ]
+}

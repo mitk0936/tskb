@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Debug the dev pipeline (docs watch + lib dev + explorer SPA).
+      "type": "node",
+      "request": "launch",
+      "name": "Debug tskb dev",
+      "preLaunchTask": "wm: build",
+      "program": "${workspaceFolder}/wm/dist/src/pipelines/tskb-dev.js",
+      // Faithful to the npm script, which launches `node dist/...` from wm/.
+      "cwd": "${workspaceFolder}/wm",
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      // Cover every workspace package's dist, not just wm — so breakpoints in
+      // the spawned tskb CLI / tswm core bind to their compiled output too.
+      "outFiles": [
+        "${workspaceFolder}/wm/dist/**/*.js",
+        "${workspaceFolder}/packages/*/dist/**/*.js"
+      ],
+      // The pipeline's whole job is spawning child processes (tsc watch, vite,
+      // npx tskb). Attach the debugger to those too so breakpoints in the
+      // spawned tools / tswm core are hit, not just the orchestrator. NOTE:
+      // through zx's PowerShell + npx + .cmd-shim chain this is unreliable on
+      // Windows — to debug the tskb CLI itself, use "Debug tskb CLI" below.
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      // Debug the one-shot build pipeline (build docs + watch .tskb dir).
+      "type": "node",
+      "request": "launch",
+      "name": "Debug tskb build",
+      "preLaunchTask": "wm: build",
+      "program": "${workspaceFolder}/wm/dist/src/pipelines/tskb-build.js",
+      "cwd": "${workspaceFolder}/wm",
+      "console": "integratedTerminal",
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/wm/dist/**/*.js",
+        "${workspaceFolder}/packages/*/dist/**/*.js"
+      ],
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

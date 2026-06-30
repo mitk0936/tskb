@@ -2,7 +2,11 @@ import path from "node:path";
 import { run } from "tswm";
 import { command } from "tswm/actions";
 
-const repoRoot = path.resolve(import.meta.dirname, "../../../");
+// Resolve paths from this file's compiled location, not the launch dir, so the
+// pipeline works regardless of where it's invoked from. The compiled file lives
+// at <repo>/wm/dist/src/pipelines/tskb-dev.js, so the repo root is 4 levels up
+// (pipelines → src → dist → wm → repo).
+const repoRoot = path.resolve(import.meta.dirname, "../../../../");
 const tskbPath = path.resolve(repoRoot, "packages/tskb");
 
 const tskbDevWatch = command("TSKB:lib:dev", "npm run dev");

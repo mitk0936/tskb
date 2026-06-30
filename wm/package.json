@@ -8,8 +8,7 @@
   "license": "MIT",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json",
-    "start": "tsc -p tsconfig.build.json && node dist/src/pipelines/tskb-build.js"
+    "build": "tsc -p tsconfig.build.json"
   },
   "devDependencies": {
     "@types/node": "^24",
