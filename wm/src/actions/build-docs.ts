@@ -1,5 +1,5 @@
 import path from "node:path";
-import { action } from "../../core/action.ts";
+import { action } from "tswm";
 
 export interface BuildDocsOptions {
   /** Glob for the .tskb.tsx documentation files, e.g. "./docs/**\/*.tskb.tsx". */
@@ -30,6 +30,6 @@ export const buildDocs = action("Build Docs").run(
     // proc sources the LogsCollector from async context and streams output into it.
     return proc("build-docs", {
       cwd: resolvedCwd,
-    })`tskb ${pattern} --tsconfig ${config} --project ${projectName} ${flags}`;
+    })`npx --no -- tskb ${pattern} --tsconfig ${config} --project ${projectName} ${flags}`;
   }
 );

@@ -1,7 +1,6 @@
-import { run } from "../../core/run.ts";
-import { snapshot } from "../../core/output.ts";
+import { run, snapshot } from "tswm";
+import { watchDir } from "tswm/actions";
 import { buildDocs } from "../actions/build-docs.ts";
-import { watchDir } from "../actions/watch-dir.ts";
 
 // The watcher emits its own events (also pushed to the global log); no bus needed.
 const watchBuildDir = watchDir("../.tskb");
@@ -25,7 +24,7 @@ const build = run(
   watchBuildDir,
   // The build proc exiting fires the system `done` event (no log-scraping); when
   // it does, tear everything down — build + watcher.
-  buildRepoDocs.once("done", () => {
-    build.cancel();
-  })
-).drain();
+  buildRepoDocs.once("done", () => build.cancel())
+);
+
+build.drain();

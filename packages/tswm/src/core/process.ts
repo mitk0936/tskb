@@ -1,5 +1,5 @@
 import os from "node:os";
-import { $, usePowerShell, type Options, type ProcessPromise } from "zx";
+import { $, kill, usePowerShell, type Options, type ProcessPromise } from "zx";
 import type { Logger } from "./log-collector/LogsCollector.ts";
 import { captureSnapshot } from "./output.ts";
 
@@ -52,35 +52,33 @@ export const createProc =
       // write 600+ entries — secrets and tokens included — to logs/ on every
       // launch. Everything else in opts is kept.
       const { env: _env, ...safeOpts } = opts ?? {};
-      const snap = captureSnapshot(`proc-${name}-start`, { cmd: child.cmd, ...safeOpts });
+      // Resolve where the child actually runs. zx only records cwd on its child
+      // when one was passed; left unset it falls back to process.cwd() at spawn,
+      // so mirror that here to always log a concrete directory (the `...safeOpts`
+      // spread sits before `cwd` so this resolved value wins even when opts omits
+      // it). This is the "where" that makes a launch line reproducible.
+      const cwd = opts?.cwd ?? process.cwd();
+      const snap = captureSnapshot(`proc-${name}-start`, { cmd: child.cmd, ...safeOpts, cwd });
       logs.append({
         source: name,
         level: "event",
-        message: `${name} · start · ${child.cmd} · → ${snap.rel}`,
+        message: `${name} · start · ${child.cmd} · in ${cwd} · → ${snap.rel}`,
       });
 
       logs.attach(child.stdout, name, "info");
       logs.attach(child.stderr, name, "error");
 
-      // Kill the child on teardown — but only if it's still running. zx throws
-      // "Too late to kill" if the process already exited, which is routine now
-      // that an action's completion drives teardown. So we track settlement and
-      // skip the kill.
+      // Kill the child's entire process tree on teardown. `child.kill()` (zx's
+      // ProcessPromise method) throws "Too late to kill" when the direct child
+      // has already settled — but grandchildren (vite, tsc, npm scripts) may
+      // still be alive. Using zx's standalone `kill(pid)` bypasses that guard
+      // and does a cross-platform tree kill (taskkill /T /F on Windows,
+      // ps.tree + process-group kill on Unix).
       let finished = false;
       const onAbort = (): void => {
         if (finished) return;
-        // An abort listener must never throw: a throw here escapes the synchronous
-        // `controller.abort()` dispatch as an uncaught exception (rethrown on
-        // nextTick by the event target), killing the process before the run can
-        // flush its log. zx's kill() throws *synchronously* when the child never
-        // got a pid (an immediate spawn failure that raced ahead of this proc's
-        // own `markFinished`), and can reject otherwise — neither matters during
-        // teardown, so swallow both.
-        try {
-          void Promise.resolve(child.kill()).catch(() => {});
-        } catch {
-          // No pid — the child never started; nothing to kill.
-        }
+        const pid = child.pid;
+        if (pid != null) void kill(pid).catch(() => {});
       };
       const markFinished = (): void => {
         finished = true;

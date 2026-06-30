@@ -1,13 +1,12 @@
 {
   "name": "wm",
   "version": "1.0.0",
-  "description": "",
-  "license": "ISC",
-  "author": "",
+  "description": "POC consumer of tswm: tskb's build/dev pipelines expressed as actions and runs.",
+  "private": true,
   "type": "module",
-  "main": "index.js",
+  "author": "Dimitar Mihaylov",
+  "license": "MIT",
   "scripts": {
-    "x": "tsx",
     "typecheck": "tsc --noEmit",
     "build": "tsc -p tsconfig.build.json",
     "start": "tsc -p tsconfig.build.json && node dist/src/pipelines/tskb-build.js"
@@ -17,6 +16,6 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "zx": "^8.8.5"
+    "tswm": "*"
   }
 }

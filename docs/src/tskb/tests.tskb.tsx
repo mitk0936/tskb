@@ -108,9 +108,7 @@ export default (
       against a realistic fixture project. Tests use Vitest and spawn the built CLI binary via
       Node's execFileSync, asserting on stdout and generated artifacts.
     </P>
-
     <Relation from={TestsFolder} to={VitestExternal} label="test runner" />
-
     <Flow
       name="e2e-test-execution"
       desc="Developer runs `npm test`: Vitest loads config, global setup builds the fixture graph, test files exercise every CLI command, teardown cleans output"
@@ -120,7 +118,6 @@ export default (
       <Step node={Helpers} label="provides CLI runners and graph loader to all test files" />
       <Step node={GlobalSetup} label="teardown cleans .tskb/ output directory" />
     </Flow>
-
     <Flow
       name="init-scaffolding-test"
       desc="`init.test.ts` runs: copies fixture to a temp dir, invokes `tskb init`, asserts the generated files"
@@ -136,7 +133,6 @@ export default (
         label="asserts scaffolded files: tsconfig, starter doc, scripts, AI dirs"
       />
     </Flow>
-
     <H2>Fixture Project</H2>
     <P>
       The fixture at {FixtureFolder} is a small task-management TypeScript app with models,
@@ -145,7 +141,6 @@ export default (
       primitives (Folder, Module, Export, Term, External, Relation, Flow). This makes it a
       comprehensive test subject for the full build and query pipeline.
     </P>
-
     <H2>Test Structure</H2>
     <P>
       AS Tests are split into focused files under {E2eFolder}, sharing utilities from {Helpers}. A
@@ -158,7 +153,6 @@ export default (
       <Li>{DisambiguationTest} — ambiguous ID resolution across commands</Li>
       <Li>{GraphIntegrityTest} — edge consistency, type signatures, external metadata</Li>
     </List>
-
     <H2>Running Tests</H2>
     <P>
       Tests require the package to be built first (npm run build). Run with npm test (vitest run) or

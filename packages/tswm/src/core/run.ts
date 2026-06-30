@@ -2,7 +2,7 @@ import { relative } from "node:path";
 import type { ActionInstance } from "./action.ts";
 import { log as logs } from "./log-collector/global.ts";
 import { createRenderer } from "./log-collector/render.ts";
-import { writeLog } from "./output.ts";
+import { streamLog, writeLog } from "./output.ts";
 import { marker } from "./markers.ts";
 
 /**
@@ -229,6 +229,10 @@ export function run(...args: ActionInstance[] | [RunOptions, ...ActionInstance[]
   process.on("unhandledRejection", onUnhandled);
 
   narrate(`run started · ${scriptPath()}`);
+
+  // Start streaming log entries to disk immediately — incremental writes survive
+  // hard kills where the final writeLog never runs.
+  void streamLog(logs).catch(() => {});
 
   const launch = (instance: ActionInstance): void => {
     narrate(`launch ${instance.name}`);

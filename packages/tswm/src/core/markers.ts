@@ -2,10 +2,10 @@
 export type MarkerKind = "event" | "action" | "run" | "snapshot";
 
 const PREFIX: Record<MarkerKind, string> = {
-  event: "[ev]",
-  action: "[action]",
-  run: "[run]",
-  snapshot: "[snapshot]",
+  event: "⚡",
+  action: "▸",
+  run: "●",
+  snapshot: "📎",
 };
 
 /**

@@ -6,5 +6,5 @@
     "rootDir": ".",
     "rewriteRelativeImportExtensions": true
   },
-  "include": ["core/**/*.ts", "src/**/*.ts"]
+  "include": ["src/**/*.ts"]
 }

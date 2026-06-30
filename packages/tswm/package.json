@@ -1,0 +1,54 @@
+{
+  "name": "tswm",
+  "version": "0.0.1",
+  "description": "A companion to tskb for building simulations: typed actions, runs, and a shared run log. The operational/runtime layer to tskb's knowledge layer.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./actions": {
+      "types": "./dist/actions/index.d.ts",
+      "import": "./dist/actions/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "author": "Dimitar Mihaylov",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mitk0936/tskb.git"
+  },
+  "keywords": [
+    "typescript",
+    "orchestration",
+    "actions",
+    "simulation",
+    "pipeline",
+    "process",
+    "watch",
+    "logging",
+    "developer-tools"
+  ],
+  "dependencies": {
+    "zx": "^8.8.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,7 +1,13 @@
+import { createWriteStream } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { log } from "./log-collector/global.ts";
-import { createRenderer } from "./log-collector/render.ts";
+import {
+  COLLAPSE_HEAD,
+  createRenderer,
+  renderCollapsed,
+  segmentForFile,
+} from "./log-collector/render.ts";
 import type { LogsCollector } from "./log-collector/LogsCollector.ts";
 
 const pad = (n: number, width = 2) => String(n).padStart(width, "0");
@@ -29,6 +35,18 @@ let made: Promise<void> | undefined;
 const ensureDir = (): Promise<void> =>
   (made ??= mkdir(runDir(), { recursive: true }).then(() => {}));
 
+/** A compact header block for the top of run.log — legend + run identity. */
+const logHeader = (): string => {
+  const now = new Date();
+  const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  return [
+    `─── ${pipelineName()} · ${date} ${time} ───`,
+    `● run  ⚡ event  ▸ action  📎 snapshot  ⇥ output`,
+    "",
+  ].join("\n");
+};
+
 /**
  * Drains the collected log to two files in the run's output folder (the common
  * `logs/<name>/<date>/<time>/` convention, local time):
@@ -44,18 +62,60 @@ export const writeLog = async (logs: LogsCollector): Promise<string> => {
   await ensureDir();
   const entries = logs.snapshot();
 
-  // Apply grouping/indentation at write time from the raw entries (the same
-  // renderer `drain` uses live), so the stored messages stay presentation-free.
-  const render = createRenderer();
+  // Apply grouping/indentation at write time from the raw entries, so the stored
+  // messages stay presentation-free. Unlike the live `drain`, the final file
+  // collapses large same-source runs: each is off-loaded to a text snapshot and
+  // replaced inline by its head plus a pointer, so one proc's burst can't drown
+  // the timeline. `run.jsonl` below keeps every line, raw.
   const file = path.join(runDir(), "run.log");
-  const pretty = entries.map(render).join("\n");
-  await writeFile(file, pretty ? `${pretty}\n` : "", "utf8");
+  const header = logHeader();
+  const writes: Promise<void>[] = [];
+  const parts = segmentForFile(entries).map((item) => {
+    if (item.kind === "line") return item.text;
+    const snap = captureText(`output-${item.run.source}`, item.run.lines);
+    writes.push(snap.written);
+    return renderCollapsed(item.run, { head: COLLAPSE_HEAD, rel: snap.rel });
+  });
+  const pretty = parts.join("\n");
+  await writeFile(file, pretty ? `${header}${pretty}\n` : "", "utf8");
+  // Ensure every off-loaded run is flushed before we report the log is written.
+  await Promise.all(writes);
 
   const jsonlFile = path.join(runDir(), "run.jsonl");
   const jsonl = entries.map((entry) => JSON.stringify(entry)).join("\n");
   await writeFile(jsonlFile, jsonl ? `${jsonl}\n` : "", "utf8");
 
   return file;
+};
+
+/**
+ * Streams log entries to `run.jsonl` and `run.log` incrementally as they arrive,
+ * so output survives a hard kill or lost SIGINT. Each entry is appended via a
+ * write stream. The subscription ends on teardown (`logs.endOn`), after which
+ * {@link writeLog} overwrites both files with the authoritative final snapshot
+ * (including post-abort entries like "finished"). For dirty exits, whatever was
+ * flushed to disk by the OS is the best available record.
+ */
+export const streamLog = async (logs: LogsCollector): Promise<void> => {
+  await ensureDir();
+  const jsonlFile = path.join(runDir(), "run.jsonl");
+  const logFile = path.join(runDir(), "run.log");
+
+  const jsonl = createWriteStream(jsonlFile);
+  const pretty = createWriteStream(logFile);
+  const render = createRenderer();
+
+  pretty.write(logHeader() + "\n");
+
+  try {
+    for await (const entry of logs.subscribe({ replay: true })) {
+      jsonl.write(JSON.stringify(entry) + "\n");
+      pretty.write(render(entry) + "\n");
+    }
+  } finally {
+    jsonl.end();
+    pretty.end();
+  }
 };
 
 let seq = 0;
@@ -94,6 +154,22 @@ export const captureSnapshot = (name: string, value: unknown): SnapshotRef => {
   const safe = name.replace(/[^\w.-]+/g, "-");
   const file = path.join(runDir(), `${safe}-${pad(++seq)}.json`);
   const written = ensureDir().then(() => writeFile(file, `${serialize(value)}\n`, "utf8"));
+  // Normalize to forward slashes so the reference is portable in the log artifact.
+  const rel = path.relative(process.cwd(), file).replaceAll("\\", "/");
+  return { file, rel, written };
+};
+
+/**
+ * Writes raw text `lines` as a sequenced `.log` snapshot file in the run's output
+ * folder and returns its path refs — the text sibling of {@link captureSnapshot}
+ * (which writes JSON). {@link writeLog} uses it to off-load a collapsed output
+ * run from `run.log`, keeping the burst's full text one click away.
+ */
+export const captureText = (name: string, lines: readonly string[]): SnapshotRef => {
+  const safe = name.replace(/[^\w.-]+/g, "-");
+  const file = path.join(runDir(), `${safe}-${pad(++seq)}.log`);
+  const body = lines.length ? `${lines.join("\n")}\n` : "";
+  const written = ensureDir().then(() => writeFile(file, body, "utf8"));
   // Normalize to forward slashes so the reference is portable in the log artifact.
   const rel = path.relative(process.cwd(), file).replaceAll("\\", "/");
   return { file, rel, written };

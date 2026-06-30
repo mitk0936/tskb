@@ -1,5 +1,5 @@
 import path from "node:path";
-import { action } from "../../core/action.ts";
+import { action } from "../core/action.ts";
 
 /** Params accepted by an action built with {@link command}. */
 export interface CommandParams {
@@ -13,13 +13,10 @@ export interface CommandParams {
 
 /** Tunes an action built with {@link command}. */
 export interface CommandOptions {
-  /**
-   * Log source for the child's output and its `start` event. Defaults to the
-   * action's name.
-   */
-  label?: string;
   /** Default working directory when an instance isn't given one. Defaults to ".". */
   cwd?: string;
+  /** Label the child's output is logged under. Defaults to the action's name. */
+  label?: string;
 }
 
 /**
