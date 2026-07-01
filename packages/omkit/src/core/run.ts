@@ -1,5 +1,5 @@
 import { relative } from "node:path";
-import type { ActionInstance } from "./action.ts";
+import type { ActionInstance, AnyActionInstance } from "./action.ts";
 import { log as logs } from "./log-collector/global.ts";
 import { createRenderer } from "./log-collector/render.ts";
 import { streamLog, writeLog } from "./output.ts";
@@ -72,7 +72,7 @@ export interface Run {
    * a lifecycle event of an action that is still running (those fire while the
    * run is still `open`).
    */
-  run(...actions: ActionInstance[]): Run;
+  run(...actions: AnyActionInstance[]): Run;
   /** Begin teardown: abort the signal (killing procs, unblocking waits, stopping daemons). */
   cancel(): void;
   /**
@@ -96,7 +96,7 @@ const scriptPath = (): string => {
 };
 
 /** A constructed instance is an object carrying a `start` function. */
-const isActionInstance = (value: unknown): value is ActionInstance =>
+const isActionInstance = (value: unknown): value is AnyActionInstance =>
   typeof value === "object" &&
   value !== null &&
   typeof (value as ActionInstance).start === "function";
@@ -111,7 +111,7 @@ const isUncalledAction = (value: unknown): boolean =>
  * `.start`), and silently treating it as something else would report a false
  * green — so fail loudly with the fix.
  */
-function assertInstance(value: unknown): asserts value is ActionInstance {
+function assertInstance(value: unknown): asserts value is AnyActionInstance {
   if (isActionInstance(value)) return;
   const hint = isUncalledAction(value)
     ? ` — that looks like an action that wasn't invoked; construct an instance by calling it: action("…").run(…)()`
@@ -137,9 +137,9 @@ function assertInstance(value: unknown): asserts value is ActionInstance {
  * the first failure (under fail-fast), or natural completion, the run transitions
  * through {@link RunState} to `closed`.
  */
-export function run(...actions: ActionInstance[]): Run;
-export function run(options: RunOptions, ...actions: ActionInstance[]): Run;
-export function run(...args: ActionInstance[] | [RunOptions, ...ActionInstance[]]): Run {
+export function run(...actions: AnyActionInstance[]): Run;
+export function run(options: RunOptions, ...actions: AnyActionInstance[]): Run;
+export function run(...args: AnyActionInstance[] | [RunOptions, ...AnyActionInstance[]]): Run {
   if (started) {
     throw new Error(
       "run() may only be called once per process — attach more actions to the existing run with its .run(…) method."
@@ -153,7 +153,7 @@ export function run(...args: ActionInstance[] | [RunOptions, ...ActionInstance[]
   const first: unknown = args[0];
   const hasOptions = first !== undefined && !isActionInstance(first) && typeof first !== "function";
   const options: RunOptions = hasOptions ? (first as RunOptions) : {};
-  const actions = (hasOptions ? args.slice(1) : args) as ActionInstance[];
+  const actions = (hasOptions ? args.slice(1) : args) as AnyActionInstance[];
   const failFast = options.failFast ?? true;
 
   // Validate eagerly, before the one-run latch flips, so a bad argument throws
@@ -234,7 +234,7 @@ export function run(...args: ActionInstance[] | [RunOptions, ...ActionInstance[]
   // hard kills where the final writeLog never runs.
   void streamLog(logs).catch(() => {});
 
-  const launch = (instance: ActionInstance): void => {
+  const launch = (instance: AnyActionInstance): void => {
     narrate(`launch ${instance.name}`);
     // The action logs into the one shared store (entries carry their `source`;
     // grouping is applied at render time) and gets the run's signal directly; the

@@ -1,7 +1,7 @@
 {
-  "name": "tswm",
+  "name": "omkit",
   "version": "0.0.1",
-  "description": "A companion to tskb for building simulations: typed actions, runs, and a shared run log. The operational/runtime layer to tskb's knowledge layer.",
+  "description": "A tiny runtime for developer workflows: typed actions that pass runtime capabilities and emit typed events, under one run and one shared log. The operational/runtime layer to tskb's knowledge layer.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -30,7 +30,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mitk0936/tskb.git"
+    "url": "https://github.com/mitk0936/tskb.git",
+    "directory": "packages/omkit"
+  },
+  "engines": {
+    "node": ">=20.11"
   },
   "keywords": [
     "typescript",
@@ -44,6 +48,7 @@
     "developer-tools"
   ],
   "dependencies": {
+    "playwright-core": "^1.49.0",
     "zx": "^8.8.5"
   },
   "devDependencies": {

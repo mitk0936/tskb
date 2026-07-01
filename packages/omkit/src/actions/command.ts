@@ -1,19 +1,12 @@
 import path from "node:path";
 import { action } from "../core/action.ts";
 
-/** Params accepted by an action built with {@link command}. */
-export interface CommandParams {
-  /**
-   * Directory to run the command in. Relative paths resolve against the directory
-   * node was executed from (process.cwd()). Falls back to the action's configured
-   * default, then ".".
-   */
-  cwd?: string;
-}
-
 /** Tunes an action built with {@link command}. */
 export interface CommandOptions {
-  /** Default working directory when an instance isn't given one. Defaults to ".". */
+  /**
+   * Directory to run the command in. Relative paths resolve against the directory
+   * node was executed from (process.cwd()). Default ".".
+   */
   cwd?: string;
   /** Label the child's output is logged under. Defaults to the action's name. */
   label?: string;
@@ -30,20 +23,25 @@ const verbatim = (cmd: string): TemplateStringsArray =>
   Object.assign([cmd], { raw: [cmd] }) as unknown as TemplateStringsArray;
 
 /**
- * Defines an action that runs a fixed command via `proc` in a given cwd — the
- * shape shared by every "wrap a process" action (dev watchers, builders, …). It
- * owns the boilerplate those repeat: a `{ cwd }` param, resolving it to an
- * absolute path, and streaming the child into the log under a label.
+ * Runs a fixed shell command via `proc` as an action **instance** — built in a
+ * single call, the same shape as every other bundled action (`healthcheck`,
+ * `prompt`, …), rather than a factory you instantiate separately. `name`
+ * identifies it across the run (the `launch <name>` line and the proc's log
+ * source); `cmd` runs verbatim in the resolved `cwd`.
  *
- *   export const devWatch = command("TSKB:devWatch", "npm run dev");
+ *   run(
+ *     command("TSKB:dev", "npm run dev:explorer", { cwd: pkg }),
+ *     command("TSKB:test", "npm test", { cwd: repo }),
+ *   );
  *
- * The returned action's instance takes an optional {@link CommandParams}; its
- * `cwd` (or the configured default, then ".") is resolved against process.cwd().
  * For anything beyond a static command — interpolated args, emitted events, a
  * daemon loop — drop down to `action(...).run(...)` directly.
  */
 export const command = (name: string, cmd: string, options: CommandOptions = {}) =>
-  action(name).run(({ proc }, params: CommandParams = {}) => {
-    const cwd = path.resolve(params.cwd ?? options.cwd ?? ".");
+  action(name).run(({ proc }) => {
+    // path.resolve keeps an absolute cwd as-is and resolves a relative one
+    // against process.cwd() — exactly the "absolute from where node runs" rule.
+    const cwd = path.resolve(options.cwd ?? ".");
+    // proc sources the LogsCollector from async context and streams output into it.
     return proc(options.label ?? name, { cwd })(verbatim(cmd));
-  });
+  })(); // construct the instance here, so callers get one in a single call

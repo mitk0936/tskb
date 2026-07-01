@@ -60,17 +60,32 @@ export interface ActionInstance<Result = unknown, Events extends object = NoEven
    * action's error on failure.
    */
   readonly ref: Promise<Handle>;
-  /** Subscribe to a declared or system event (`done`/`error`). Chainable. */
+  /** Subscribe to a declared or system event (`done`/`error`) with a handler. */
   on<K extends keyof InstanceEvents<Events, Result>>(
     key: K,
     handler: EventHandler<InstanceEvents<Events, Result>[K]>
-  ): this;
-  /** Like {@link on} but auto-unsubscribes after the first delivery. Chainable. */
+  ): void;
+  /**
+   * A promise for the next occurrence of an event: resolves with its payload —
+   * or rejects if the action settles first (`error`, or `done` without the
+   * event), so an awaiter never hangs. Use {@link on} for ongoing/handler
+   * subscriptions; `once` is the awaitable, one-value form.
+   */
   once<K extends keyof InstanceEvents<Events, Result>>(
-    key: K,
-    handler: EventHandler<InstanceEvents<Events, Result>[K]>
-  ): this;
+    key: K
+  ): Promise<InstanceEvents<Events, Result>[K]>;
 }
+
+/**
+ * Any constructed instance, whatever its result, events, or handle. The launch
+ * surface ({@link ActionInstance}-takers like `run` and `Run.run`) accepts this
+ * so handle-bearing actions — those declaring `.ref<H>()` — can be launched: the
+ * bare `ActionInstance` pins the handle to `void`, so an instance whose `ref` is
+ * a `Promise<Page>` (not `Promise<void>`) would otherwise be rejected. `unknown`
+ * for result/handle and `object` for events admit every concrete instance while
+ * still excluding non-instances.
+ */
+export type AnyActionInstance = ActionInstance<unknown, object, unknown>;
 
 /** A callable produced by `action`: invoking it builds an {@link ActionInstance}. */
 export interface Action<
@@ -109,6 +124,50 @@ const deferred = <T>(): {
   });
   return { promise, resolve, reject };
 };
+
+/**
+ * A promise for the next emit of `key`. It races the event against the
+ * instance's terminal events: if the action errors first it rejects with that
+ * error, and if it completes (`done`) without ever emitting `key` it rejects too
+ * — so an awaiter can never hang. A retained snapshot resolves it immediately.
+ */
+const awaitEvent = <E extends object, K extends keyof E>(
+  emitter: Emitter<E>,
+  name: string,
+  key: K
+): Promise<E[K]> =>
+  new Promise<E[K]>((resolve, reject) => {
+    const offs: Array<() => void> = [];
+    let settled = false;
+    // First of [the event | error | done] to fire wins; the rest are unsubscribed.
+    const settle = (act: () => void): void => {
+      if (settled) return;
+      settled = true;
+      for (const off of offs) off();
+      act();
+    };
+    // listenOnce is keyed by E; the system keys (error/done) are always present
+    // on an instance's event map, so reach them through a loosened view.
+    const listen = emitter.listenOnce as (
+      k: PropertyKey,
+      h: (payload: unknown) => void
+    ) => () => void;
+
+    offs.push(listen(key, (payload) => settle(() => resolve(payload as E[K]))));
+    if ((key as PropertyKey) !== "error") {
+      offs.push(listen("error", (err) => settle(() => reject(err))));
+    }
+    if ((key as PropertyKey) !== "done") {
+      offs.push(
+        listen("done", () =>
+          settle(() => reject(new Error(`${name}: settled before "${String(key)}"`)))
+        )
+      );
+    }
+    // A retained snapshot fires a listen synchronously during registration; if
+    // that already settled us, drop any listeners registered afterwards.
+    if (settled) for (const off of offs) off();
+  });
 
 /** Assembles an {@link Action} from a name and its implementation. */
 const build = <Events extends object, Handle, Args extends unknown[], Result>(
@@ -177,11 +236,9 @@ const build = <Events extends object, Handle, Args extends unknown[], Result>(
           ),
       on(key, handler) {
         emitter.listen(key, handler);
-        return instance;
       },
-      once(key, handler) {
-        emitter.listenOnce(key, handler);
-        return instance;
+      once(key) {
+        return awaitEvent(emitter, name, key);
       },
     };
     return instance;

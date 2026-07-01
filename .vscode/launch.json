@@ -13,14 +13,14 @@
       "console": "integratedTerminal",
       "sourceMaps": true,
       // Cover every workspace package's dist, not just wm — so breakpoints in
-      // the spawned tskb CLI / tswm core bind to their compiled output too.
+      // the spawned tskb CLI / omkit core bind to their compiled output too.
       "outFiles": [
         "${workspaceFolder}/wm/dist/**/*.js",
         "${workspaceFolder}/packages/*/dist/**/*.js"
       ],
       // The pipeline's whole job is spawning child processes (tsc watch, vite,
       // npx tskb). Attach the debugger to those too so breakpoints in the
-      // spawned tools / tswm core are hit, not just the orchestrator. NOTE:
+      // spawned tools / omkit core are hit, not just the orchestrator. NOTE:
       // through zx's PowerShell + npx + .cmd-shim chain this is unreliable on
       // Windows — to debug the tskb CLI itself, use "Debug tskb CLI" below.
       "autoAttachChildProcesses": true,

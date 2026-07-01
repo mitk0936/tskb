@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import type { LogEntry } from "../../packages/tswm/src/core/log-collector/LogsCollector.ts";
+import type { LogEntry } from "../../packages/omkit/src/core/log-collector/LogsCollector.ts";
 import {
   COLLAPSE_HEAD,
   COLLAPSE_THRESHOLD,
   createRenderer,
   renderCollapsed,
   segmentForFile,
-} from "../../packages/tswm/src/core/log-collector/render.ts";
+} from "../../packages/omkit/src/core/log-collector/render.ts";
 
 let seq = 0;
 const entry = (source: string, message: string, level = "info"): LogEntry => ({

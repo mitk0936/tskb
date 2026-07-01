@@ -1,5 +1,5 @@
 import path from "node:path";
-import { action } from "tswm";
+import { action } from "omkit";
 
 export interface BuildDocsOptions {
   /** Glob for the .tskb.tsx documentation files, e.g. "./docs/**\/*.tskb.tsx". */

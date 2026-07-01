@@ -15,6 +15,7 @@ export type {
   Action,
   ActionBuilder,
   ActionInstance,
+  AnyActionInstance,
   ActionContext,
   SystemGlobal,
   SystemEvents,
@@ -26,6 +27,10 @@ export type {
 // ── Runs ───────────────────────────────────────────────────────────────────
 export { run } from "./core/run.ts";
 export type { Run, RunResult, RunOptions, RunState, ActionFailure } from "./core/run.ts";
+
+// ── Spin (linear orchestration) ──────────────────────────────────────────────
+export { spin } from "./core/spin.ts";
+export type { Nod, SpinOptions, SpinContext, SpinBody } from "./core/spin.ts";
 
 // ── Events ─────────────────────────────────────────────────────────────────
 export { events } from "./core/events.ts";

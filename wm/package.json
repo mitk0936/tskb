@@ -1,7 +1,7 @@
 {
   "name": "wm",
   "version": "1.0.0",
-  "description": "POC consumer of tswm: tskb's build/dev pipelines expressed as actions and runs.",
+  "description": "POC consumer of omkit: tskb's build/dev pipelines expressed as actions and runs.",
   "private": true,
   "type": "module",
   "author": "Dimitar Mihaylov",
@@ -15,6 +15,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "tswm": "*"
+    "chromedriver": "^149.0.0",
+    "omkit": "*"
   }
 }
