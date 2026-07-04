@@ -1,14 +1,16 @@
-import { createWriteStream } from "node:fs";
+import { createReadStream, createWriteStream, mkdirSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
+import { createInterface } from "node:readline";
 import path from "node:path";
 import { log } from "./log-collector/global.ts";
 import {
   COLLAPSE_HEAD,
+  createFileSegmenter,
   createRenderer,
   renderCollapsed,
-  segmentForFile,
+  type DisplayItem,
 } from "./log-collector/render.ts";
-import type { LogsCollector } from "./log-collector/LogsCollector.ts";
+import type { LogEntry, LogsCollector } from "./log-collector/LogsCollector.ts";
 
 const pad = (n: number, width = 2) => String(n).padStart(width, "0");
 
@@ -35,6 +37,24 @@ let made: Promise<void> | undefined;
 const ensureDir = (): Promise<void> =>
   (made ??= mkdir(runDir(), { recursive: true }).then(() => {}));
 
+let ensuredSync = false;
+/**
+ * Absolute path to this run's output folder — `logs/<name>/<date>/<time>/`, where
+ * `run.log`, `run.jsonl`, and snapshots live. Exposed so actions can drop their
+ * own **artifacts** into the same per-run folder (one folder per run; one run per
+ * process). The folder is created on first access — synchronously, so a caller
+ * can write into it in the same tick — and the path is absolute so it's safe to
+ * hand to a child process with a different cwd.
+ */
+export const artifactsFolder = (): string => {
+  const abs = path.resolve(runDir());
+  if (!ensuredSync) {
+    mkdirSync(abs, { recursive: true });
+    ensuredSync = true;
+  }
+  return abs;
+};
+
 /** A compact header block for the top of run.log — legend + run identity. */
 const logHeader = (): string => {
   const now = new Date();
@@ -48,55 +68,72 @@ const logHeader = (): string => {
 };
 
 /**
- * Drains the collected log to two files in the run's output folder (the common
- * `logs/<name>/<date>/<time>/` convention, local time):
+ * Renders the final, collapsed `run.log` from the authoritative `run.jsonl` (the
+ * complete record {@link streamLog} wrote), **streaming** it line by line so the
+ * whole run is never held in memory. Grouping/indentation is applied here so the
+ * stored `run.jsonl` stays presentation-free; large same-source runs are collapsed
+ * — off-loaded to a text snapshot and replaced inline by their head plus a pointer
+ * — so one proc's burst can't drown the timeline. `run.jsonl` is left as-is (it's
+ * the full raw record). Returns the `run.log` path (surfaced to the terminal).
  *
- * - `run.log` — the pretty, human-scannable rendering: just the message lines.
- * - `run.jsonl` — the structured, machine-queryable record: one full {@link LogEntry}
- *   per line (sequence, timestamp, level, source, message), so an agent can filter
- *   and correlate by origin/level/time instead of parsing prose.
- *
- * Returns the `run.log` path (the one surfaced to the terminal).
+ * Call only after {@link streamLog} has closed (the run's log is ended), so
+ * `run.jsonl` is complete and no longer being written.
  */
-export const writeLog = async (logs: LogsCollector): Promise<string> => {
+export const writeLog = async (): Promise<string> => {
   await ensureDir();
-  const entries = logs.snapshot();
-
-  // Apply grouping/indentation at write time from the raw entries, so the stored
-  // messages stay presentation-free. Unlike the live `drain`, the final file
-  // collapses large same-source runs: each is off-loaded to a text snapshot and
-  // replaced inline by its head plus a pointer, so one proc's burst can't drown
-  // the timeline. `run.jsonl` below keeps every line, raw.
-  const file = path.join(runDir(), "run.log");
-  const header = logHeader();
-  const writes: Promise<void>[] = [];
-  const parts = segmentForFile(entries).map((item) => {
-    if (item.kind === "line") return item.text;
-    const snap = captureText(`output-${item.run.source}`, item.run.lines);
-    writes.push(snap.written);
-    return renderCollapsed(item.run, { head: COLLAPSE_HEAD, rel: snap.rel });
-  });
-  const pretty = parts.join("\n");
-  await writeFile(file, pretty ? `${header}${pretty}\n` : "", "utf8");
-  // Ensure every off-loaded run is flushed before we report the log is written.
-  await Promise.all(writes);
-
   const jsonlFile = path.join(runDir(), "run.jsonl");
-  const jsonl = entries.map((entry) => JSON.stringify(entry)).join("\n");
-  await writeFile(jsonlFile, jsonl ? `${jsonl}\n` : "", "utf8");
+  const file = path.join(runDir(), "run.log");
 
+  const out = createWriteStream(file);
+  out.write(logHeader());
+
+  const seg = createFileSegmenter();
+  const writes: Promise<void>[] = [];
+  const emit = (item: DisplayItem): void => {
+    if (item.kind === "line") {
+      out.write(item.text + "\n");
+    } else {
+      const snap = captureText(`output-${item.run.source}`, item.run.lines);
+      writes.push(snap.written);
+      out.write(renderCollapsed(item.run, { head: COLLAPSE_HEAD, rel: snap.rel }) + "\n");
+    }
+  };
+
+  try {
+    const rl = createInterface({ input: createReadStream(jsonlFile), crlfDelay: Infinity });
+    for await (const line of rl) {
+      if (!line) continue;
+      let entry: LogEntry;
+      try {
+        entry = JSON.parse(line) as LogEntry;
+      } catch {
+        continue; // a torn final line (dirty exit) — skip it
+      }
+      for (const item of seg.push(entry)) emit(item);
+    }
+  } catch {
+    // run.jsonl missing/unreadable (e.g. a very early crash) — write what we have.
+  }
+  for (const item of seg.end()) emit(item);
+
+  await streamClosed(out); // flush + close run.log before reporting it written
+  await Promise.all(writes); // ensure every off-loaded run is on disk
   return file;
 };
 
 /**
- * Streams log entries to `run.jsonl` and `run.log` incrementally as they arrive,
- * so output survives a hard kill or lost SIGINT. Each entry is appended via a
- * write stream. The subscription ends on teardown (`logs.endOn`), after which
- * {@link writeLog} overwrites both files with the authoritative final snapshot
- * (including post-abort entries like "finished"). For dirty exits, whatever was
- * flushed to disk by the OS is the best available record.
+ * Streams every log entry to `run.jsonl` (the complete, authoritative record) and
+ * a live `run.log` incrementally as they arrive, so output survives a hard kill or
+ * lost SIGINT. The log is closed once at finalize, after which {@link writeLog}
+ * re-renders `run.log` from `run.jsonl` in collapsed form.
+ *
+ * Subscribes **synchronously, before any `await`** — so a fast synchronous
+ * producer that appends (and trims the in-memory history) before the file setup
+ * finishes still has its entries buffered on the subscription queue rather than
+ * lost. `replay: true` covers anything already logged when this is called.
  */
 export const streamLog = async (logs: LogsCollector): Promise<void> => {
+  const entries = logs.subscribe({ replay: true });
   await ensureDir();
   const jsonlFile = path.join(runDir(), "run.jsonl");
   const logFile = path.join(runDir(), "run.log");
@@ -108,15 +145,28 @@ export const streamLog = async (logs: LogsCollector): Promise<void> => {
   pretty.write(logHeader() + "\n");
 
   try {
-    for await (const entry of logs.subscribe({ replay: true })) {
+    for await (const entry of entries) {
       jsonl.write(JSON.stringify(entry) + "\n");
       pretty.write(render(entry) + "\n");
     }
   } finally {
-    jsonl.end();
-    pretty.end();
+    // End AND wait for both streams to fully close before resolving. {@link writeLog}
+    // re-renders run.log at finalize (from this run.jsonl); if a buffered chunk from
+    // this stream landed *after* writeLog truncated run.log, the OS would zero-fill
+    // the gap — a multi-MB run of NUL bytes. `run` awaits this promise before
+    // calling `writeLog`, so this writer is guaranteed done first (and run.jsonl is
+    // complete for writeLog to read).
+    await Promise.all([streamClosed(jsonl), streamClosed(pretty)]);
   }
 };
+
+/** Resolve once a write stream has flushed and closed its file descriptor. */
+const streamClosed = (stream: ReturnType<typeof createWriteStream>): Promise<void> =>
+  new Promise((resolve) => {
+    stream.on("close", () => resolve());
+    stream.on("error", () => resolve()); // a stream error still frees the file; don't hang
+    stream.end();
+  });
 
 let seq = 0;
 

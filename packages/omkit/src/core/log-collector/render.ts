@@ -76,29 +76,26 @@ export interface SegmentOptions {
 }
 
 /**
- * Segments a full, ordered entry list into {@link DisplayItem}s. Milestones and
- * runs no longer than `threshold` become `line` items byte-identical to
- * {@link createRenderer}; a run longer than `threshold` becomes a single
- * `collapsed` item carrying every line of the run. Pure — no filesystem, no
- * snapshot writing.
+ * A stateful, **streaming** segmenter: `push` each {@link LogEntry} in order and
+ * it returns the {@link DisplayItem}s that just became final (0, 1, or a whole
+ * flushed run), then `end()` flushes the last pending run. Only the current
+ * same-source run is held in memory, so segmenting a huge log stays bounded —
+ * {@link writeLog} feeds it straight from `run.jsonl` on disk. Output is
+ * byte-identical to {@link segmentForFile}. Pure — no filesystem.
  */
-export const segmentForFile = (
-  entries: readonly LogEntry[],
-  { threshold = COLLAPSE_THRESHOLD }: SegmentOptions = {}
-): DisplayItem[] => {
-  const items: DisplayItem[] = [];
+export const createFileSegmenter = ({ threshold = COLLAPSE_THRESHOLD }: SegmentOptions = {}) => {
   // The run currently being accumulated: a same-source stretch of output lines.
   let run: { source: string; lines: string[] } | undefined;
 
-  // Flush the pending run: collapse it if it ran long, else emit grouped lines
-  // exactly as createRenderer would (header on the first line, indent the rest).
-  const flush = (): void => {
+  // Flush the pending run into `out`: collapse it if it ran long, else emit
+  // grouped lines exactly as createRenderer would (header first, indent the rest).
+  const flush = (out: DisplayItem[]): void => {
     if (!run) return;
     if (run.lines.length > threshold) {
-      items.push({ kind: "collapsed", run: { source: run.source, lines: run.lines } });
+      out.push({ kind: "collapsed", run: { source: run.source, lines: run.lines } });
     } else {
       run.lines.forEach((message, i) => {
-        items.push({
+        out.push({
           kind: "line",
           text: i === 0 ? `${marker("action", run!.source)}\n\t${message}` : `\t${message}`,
         });
@@ -107,22 +104,46 @@ export const segmentForFile = (
     run = undefined;
   };
 
-  for (const entry of entries) {
-    const milestone = MILESTONE[entry.level];
-    if (milestone) {
-      // A milestone breaks the current run, then renders as its own line.
-      flush();
-      items.push({ kind: "line", text: marker(milestone, entry.message) });
-      continue;
-    }
-    if (run && run.source === entry.source) {
-      run.lines.push(entry.message);
-    } else {
-      flush();
-      run = { source: entry.source, lines: [entry.message] };
-    }
-  }
-  flush();
+  return {
+    push(entry: LogEntry): DisplayItem[] {
+      const out: DisplayItem[] = [];
+      const milestone = MILESTONE[entry.level];
+      if (milestone) {
+        // A milestone breaks the current run, then renders as its own line.
+        flush(out);
+        out.push({ kind: "line", text: marker(milestone, entry.message) });
+        return out;
+      }
+      if (run && run.source === entry.source) {
+        run.lines.push(entry.message);
+      } else {
+        flush(out);
+        run = { source: entry.source, lines: [entry.message] };
+      }
+      return out;
+    },
+    end(): DisplayItem[] {
+      const out: DisplayItem[] = [];
+      flush(out);
+      return out;
+    },
+  };
+};
+
+/**
+ * Segments a full, ordered entry list into {@link DisplayItem}s (the array form of
+ * {@link createFileSegmenter}). Milestones and runs no longer than `threshold`
+ * become `line` items byte-identical to {@link createRenderer}; a run longer than
+ * `threshold` becomes a single `collapsed` item carrying every line of the run.
+ */
+export const segmentForFile = (
+  entries: readonly LogEntry[],
+  options: SegmentOptions = {}
+): DisplayItem[] => {
+  const seg = createFileSegmenter(options);
+  const items: DisplayItem[] = [];
+  for (const entry of entries) items.push(...seg.push(entry));
+  items.push(...seg.end());
   return items;
 };
 

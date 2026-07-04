@@ -25,6 +25,9 @@ const watchDocs = command(
 );
 const watchLib = command("TSKB:lib:dev", "npm run dev", { cwd: tskbPath });
 const serveExplorer = command("TSKB:dev", "npm run dev:explorer", { cwd: tskbPath });
+// A failing suite no longer aborts the pipeline — `nod(x).done` yields an Outcome
+// (never throws), so the dev servers/browser still come up. The failures are
+// logged and recorded in the spin verdict.
 const runTests = command("TSKB:test", "npm test", { cwd: repoRoot });
 
 // ── Prompt, gate & browser ───────────────────────────────────────────────────
@@ -48,24 +51,21 @@ const explorerChrome = chromedriver({ url: explorerUrl });
 const explorerPage = chromePage(explorerChrome.ref);
 const inspectExplorer = inspectPage(explorerPage.ref);
 
-// The whole pipeline as one linear spin. failFast:false so a browser/gate
-// problem records a failure but never tears down the dev servers — the browser is
-// an add-on, not a reason to kill the watchers. drain:false so the live log
-// doesn't write over the prompt — we start it by hand once the prompt is answered.
-spin({ failFast: false, drain: false }, async ({ nod, drain }) => {
-  const answer = await nod(askToRunTests).once("done");
+// The whole pipeline as one linear spin. A failing action never tears the spin
+// down (its Outcome is recorded in the verdict), so a browser/gate problem can't
+// kill the dev servers — the browser is an add-on, not a reason to stop watching.
+// drain:false so the live log doesn't write over the prompt — we start it by hand
+// once the prompt is answered.
+spin({ drain: false }, async ({ nod }) => {
+  const answer = await nod(askToRunTests).done;
 
-  // Start streaming the log only now — while the prompt was open it owned the
-  // terminal, so the question wasn't buried under the run's output.
-  drain();
-
-  if (answer === "yes") await nod(runTests).once("done");
+  if (answer.ok && answer.value === "yes") await nod(runTests).done;
 
   nod(watchDocs);
   nod(watchLib);
   nod(serveExplorer);
 
-  await nod(explorerReady).once("done");
+  await nod(explorerReady).done;
 
   nod(explorerChrome);
   nod(explorerPage);

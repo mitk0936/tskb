@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import os from "node:os";
 import { $, kill, usePowerShell, type Options, type ProcessPromise } from "zx";
 import type { Logger } from "./log-collector/LogsCollector.ts";
@@ -6,6 +7,30 @@ import { captureSnapshot } from "./output.ts";
 // zx defaults to bash, which isn't present on a stock Windows box.
 // Use Windows PowerShell there so zx spawns and quotes for the right shell.
 if (os.platform() === "win32") usePowerShell();
+
+/**
+ * Force-kill a process **and its whole tree, synchronously**.
+ *
+ * Windows has no process groups: a child outlives its parent, and a Ctrl-C sent
+ * to the console group can make an intermediate shell exit and *orphan* the real
+ * app (e.g. electron.exe), which then survives teardown. So the tree must be
+ * reaped explicitly by PID — `taskkill /F /T` does it, and running it
+ * **synchronously** guarantees it completes before the run's own process exits
+ * (a fire-and-forget kill can lose that race). On POSIX, zx's `kill` already
+ * does a process-group tree kill. Best-effort: an already-dead/missing PID is
+ * ignored.
+ */
+export const killTree = (pid: number): void => {
+  if (process.platform === "win32") {
+    try {
+      execFileSync("taskkill", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore" });
+    } catch {
+      // already gone, access denied, or taskkill missing — nothing more to do
+    }
+  } else {
+    void kill(pid).catch(() => {});
+  }
+};
 
 /**
  * Spawns a command (tagged-template, exactly like zx's `$`) and streams the
@@ -68,17 +93,19 @@ export const createProc =
       logs.attach(child.stdout, name, "info");
       logs.attach(child.stderr, name, "error");
 
-      // Kill the child's entire process tree on teardown. `child.kill()` (zx's
-      // ProcessPromise method) throws "Too late to kill" when the direct child
-      // has already settled — but grandchildren (vite, tsc, npm scripts) may
-      // still be alive. Using zx's standalone `kill(pid)` bypasses that guard
-      // and does a cross-platform tree kill (taskkill /T /F on Windows,
-      // ps.tree + process-group kill on Unix).
+      // Kill the child's entire process tree on teardown via {@link killTree} —
+      // a synchronous, force tree kill by PID (taskkill /F /T on Windows,
+      // process-group kill on Unix). Synchronous so it finishes before the run's
+      // process exits. NOTE: with zx the direct child is a *shell wrapper*
+      // (PowerShell on Windows), so this only reaps grandchildren while that
+      // wrapper is still alive; a GUI app that must survive its shell being
+      // Ctrl-C'd should be launched shell-less via `command(name, file, args)`,
+      // whose direct child is the app itself.
       let finished = false;
       const onAbort = (): void => {
         if (finished) return;
         const pid = child.pid;
-        if (pid != null) void kill(pid).catch(() => {});
+        if (pid != null) killTree(pid);
       };
       const markFinished = (): void => {
         finished = true;

@@ -1,6 +1,7 @@
 import { watch as fsWatch } from "node:fs";
 import { open, stat } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
+import { StringDecoder } from "node:string_decoder";
 import { action } from "../core/action.ts";
 
 export interface TailLogOptions {
@@ -48,6 +49,10 @@ export const tailLog = action("Tail Log").run(
 
     let pos = 0; // bytes consumed so far
     let pending = ""; // partial trailing line, buffered until its newline
+    // Decodes bytes to text across reads. It holds back an incomplete trailing
+    // multi-byte char (split across a chunk or read boundary) until its remaining
+    // bytes arrive, so a character straddling a boundary never decodes to `�`.
+    let decoder = new StringDecoder(encoding);
 
     // Append every complete line in `text`, keeping any remainder for next time.
     const feed = (text: string): void => {
@@ -60,28 +65,44 @@ export const tailLog = action("Tail Log").run(
       }
     };
 
-    // Read [pos, size) and feed it. Catches the file being absent (rotated away)
-    // and resets on a shrink (truncation/rotation), so reading self-heals.
-    const readDelta = async (): Promise<void> => {
+    const readDelta = async () => {
       let size: number;
+
       try {
         size = (await stat(file)).size;
       } catch {
         return; // missing/unreadable — wait for the next event
       }
+
       if (size < pos) {
+        // Truncation/rotation: restart from the top and drop any buffered partial
+        // line and half-decoded char — they belong to the old file's bytes.
         pos = 0;
         pending = "";
+        decoder = new StringDecoder(encoding);
       }
+
       if (size <= pos) return;
 
       const handle = await open(file, "r");
+
       try {
-        const length = size - pos;
-        const buffer = Buffer.alloc(length);
-        await handle.read(buffer, 0, length, pos);
-        pos = size;
-        feed(buffer.toString(encoding));
+        const CHUNK = 64 * 1024;
+        const buffer = Buffer.allocUnsafe(CHUNK);
+
+        while (pos < size) {
+          const length = Math.min(CHUNK, size - pos);
+
+          const { bytesRead } = await handle.read(buffer, 0, length, pos);
+
+          if (bytesRead === 0) break;
+
+          pos += bytesRead;
+
+          // decoder.write returns only fully-decoded chars, buffering any partial
+          // trailing multi-byte char for the next chunk/read.
+          feed(decoder.write(buffer.subarray(0, bytesRead)));
+        }
       } finally {
         await handle.close();
       }
@@ -123,6 +144,11 @@ export const tailLog = action("Tail Log").run(
     } catch {
       pos = 0;
     }
+
+    // Announce the target up front so the combined log shows which file these
+    // lines come from — the resolved absolute path, plus whether we're replaying.
+    logs.append({ source, level, message: `tailing ${file}${fromStart ? " (from start)" : ""}` });
+
     if (fromStart) pump();
 
     const watcher = fsWatch(dir, (_event, filename) => {

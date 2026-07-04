@@ -23,8 +23,8 @@ const buildRepoDocs = buildDocs(buildConfig);
 spin(async ({ nod, cancel }) => {
   // Watch the graph the build rewrites; each change lands in the log as an event.
   nod(watchBuildDir);
-  // Run the build to completion (its proc exiting resolves `.done`)…
-  await nod(buildRepoDocs).once("done");
+  // Run the build to completion (its proc exiting resolves `.done` with an Outcome)…
+  await nod(buildRepoDocs).done;
   // …then tear everything down — build's done, so the watcher's job is too.
   cancel();
 });

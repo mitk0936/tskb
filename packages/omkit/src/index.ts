@@ -22,11 +22,12 @@ export type {
   InstanceEvents,
   NoEvents,
   Awaitable,
+  Outcome,
 } from "./core/action.ts";
 
-// ── Runs ───────────────────────────────────────────────────────────────────
+// ── Spin (the run handle) ────────────────────────────────────────────────────
 export { run } from "./core/run.ts";
-export type { Run, RunResult, RunOptions, RunState, ActionFailure } from "./core/run.ts";
+export type { Spin, SpinResult, SpinState, ActionFailure } from "./core/run.ts";
 
 // ── Spin (linear orchestration) ──────────────────────────────────────────────
 export { spin } from "./core/spin.ts";
@@ -53,3 +54,14 @@ export { log } from "./core/log-collector/global.ts";
 // ── Snapshots ──────────────────────────────────────────────────────────────
 export { snapshot, captureSnapshot } from "./core/output.ts";
 export type { SnapshotRef } from "./core/output.ts";
+
+// ── Artifacts ────────────────────────────────────────────────────────────────
+// This run's output folder (absolute) — also on the `spin`/action `ctx`. Import
+// it directly for artifact-writing helpers that aren't inside an action.
+export { artifactsFolder } from "./core/output.ts";
+
+// ── Folder cache ─────────────────────────────────────────────────────────────
+// Backs the `.withCache(...inputs)` method on instances (fingerprints an
+// action's input files/folders, not its outputs); exported for scripts that
+// want to inspect or manually invalidate the cache.
+export { fingerprint, cacheDir } from "./core/folder-cache.ts";

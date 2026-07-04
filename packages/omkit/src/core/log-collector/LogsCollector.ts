@@ -44,7 +44,16 @@ export interface Logger {
 export class LogsCollector implements Logger {
   private sequence = 0;
 
+  // Recent entries retained in memory, only to replay to late subscribers. The
+  // *complete* record is streamed to run.jsonl on disk, so this is capped — an
+  // indefinite run (dev servers, tailing big logs) must not grow without bound.
   private readonly history: LogEntry[] = [];
+
+  // Cap and the size we trim back to when it's exceeded (trimming in batches keeps
+  // append amortized O(1) instead of O(n) per line once full).
+  private readonly maxHistory = 100_000;
+
+  private readonly trimHistoryTo = 90_000;
 
   private readonly subscribers = new Set<AsyncQueue<LogEntry>>();
 
@@ -72,6 +81,10 @@ export class LogsCollector implements Logger {
     };
 
     this.history.push(log);
+    // Cap the in-memory history — the durable copy is already on disk (run.jsonl).
+    if (this.history.length > this.maxHistory) {
+      this.history.splice(0, this.history.length - this.trimHistoryTo);
+    }
 
     for (const subscriber of this.subscribers) {
       // push the log into the queue for every subscriber to receive
@@ -80,14 +93,13 @@ export class LogsCollector implements Logger {
   }
 
   /**
-   * Bind the run's abort signal: when it aborts (teardown), every subscription
-   * ends — each parked or future `for await` returns — so subscribers don't each
-   * have to watch the signal. The collector *is* the world's log and the signal
-   * is the world ending; the log closes with it.
+   * End the log: every subscription returns and no new one is accepted. Called
+   * once at run finalize — *after* the last entry (e.g. `finished`) is appended —
+   * so `streamLog` captures the whole run before its stream closes. Kept separate
+   * from teardown so entries logged *during* teardown still stream/drain live.
    */
-  endOn(signal: AbortSignal): void {
-    if (signal.aborted) this.closeAll();
-    else signal.addEventListener("abort", () => this.closeAll(), { once: true });
+  close(): void {
+    this.closeAll();
   }
 
   /** EOF for readers: end every live subscription and refuse to register new ones. */
