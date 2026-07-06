@@ -1,4 +1,4 @@
-import { AsyncQueue } from "../helpers/AsyncQueue.ts";
+import { AsyncQueue } from "../../utils/AsyncQueue.ts";
 
 export interface LogEntry {
   sequence: number;
@@ -148,6 +148,35 @@ export class LogsCollector implements Logger {
 
   snapshot(): readonly LogEntry[] {
     return this.history;
+  }
+}
+
+/**
+ * A {@link Logger} decorator that prefixes every entry's `source` with a fixed path
+ * (` › `-joined), forwarding to a base logger. Handed to a **child** action (and its
+ * `proc`) so all of its output is attributed to its ancestry — `parent › child ›
+ * <source>` — while the underlying store stays the run's one log.
+ */
+export class ScopedLogger implements Logger {
+  private readonly base: Logger;
+
+  private readonly prefix: string;
+
+  constructor(base: Logger, path: string) {
+    this.base = base;
+    this.prefix = `${path} › `;
+  }
+
+  attach(stream: AsyncIterable<unknown>, source: string, level: string): void {
+    this.base.attach(stream, this.prefix + source, level);
+  }
+
+  append(entry: LogInput): void {
+    this.base.append({ ...entry, source: this.prefix + entry.source });
+  }
+
+  subscribe(options?: SubscribeOptions): AsyncIterable<LogEntry> {
+    return this.base.subscribe(options);
   }
 }
 

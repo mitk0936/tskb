@@ -10,7 +10,7 @@
  */
 
 // ── Actions ────────────────────────────────────────────────────────────────
-export { action } from "./core/action.ts";
+export { action } from "./orchestration/action/action.ts";
 export type {
   Action,
   ActionBuilder,
@@ -23,45 +23,35 @@ export type {
   NoEvents,
   Awaitable,
   Outcome,
-} from "./core/action.ts";
-
-// ── Spin (the run handle) ────────────────────────────────────────────────────
-export { run } from "./core/run.ts";
-export type { Spin, SpinResult, SpinState, ActionFailure } from "./core/run.ts";
+} from "./orchestration/action/types.ts";
 
 // ── Spin (linear orchestration) ──────────────────────────────────────────────
-export { spin } from "./core/spin.ts";
-export type { Nod, SpinOptions, SpinContext, SpinBody } from "./core/spin.ts";
+export { spin } from "./orchestration/spin/spin.ts";
+export type { Nod, SpinContext, SpinBody } from "./orchestration/spin/types.ts";
 
 // ── Events ─────────────────────────────────────────────────────────────────
-export { events } from "./core/events.ts";
-export type { Emitter, EventHandler, EventMeta } from "./core/events.ts";
+export { events } from "./orchestration/events/events.ts";
+export type { Emitter, EventHandler, EventMeta } from "./orchestration/events/events.ts";
 
 // ── Child processes ────────────────────────────────────────────────────────
-export { createProc } from "./core/process.ts";
-export type { Proc } from "./core/process.ts";
+export { createProc } from "./system/process/process.ts";
+export type { Proc } from "./system/process/process.ts";
 
 // ── The log ────────────────────────────────────────────────────────────────
-export { LogsCollector } from "./core/log-collector/LogsCollector.ts";
-export type {
-  Logger,
-  LogEntry,
-  LogInput,
-  SubscribeOptions,
-} from "./core/log-collector/LogsCollector.ts";
-export { log } from "./core/log-collector/global.ts";
+export { LogsCollector } from "./output/log/LogsCollector.ts";
+export type { Logger, LogEntry, LogInput, SubscribeOptions } from "./output/log/LogsCollector.ts";
 
-// ── Snapshots ──────────────────────────────────────────────────────────────
-export { snapshot, captureSnapshot } from "./core/output.ts";
-export type { SnapshotRef } from "./core/output.ts";
-
-// ── Artifacts ────────────────────────────────────────────────────────────────
-// This run's output folder (absolute) — also on the `spin`/action `ctx`. Import
-// it directly for artifact-writing helpers that aren't inside an action.
-export { artifactsFolder } from "./core/output.ts";
+// ── Snapshots & artifacts ────────────────────────────────────────────────────
+// The output subsystem is owned per-run by the spin and reached through context —
+// `ctx.output` (folder / snapshots / runLog) inside an action, `ctx.snapshot` and
+// `ctx.artifactsFolder` inside a spin body. The classes are exported for typing and
+// advanced use; there is no process-global singleton or free-function form.
+export { Output } from "./output/index.ts";
+export type { SnapshotRef } from "./output/index.ts";
 
 // ── Folder cache ─────────────────────────────────────────────────────────────
 // Backs the `.withCache(...inputs)` method on instances (fingerprints an
-// action's input files/folders, not its outputs); exported for scripts that
-// want to inspect or manually invalidate the cache.
-export { fingerprint, cacheDir } from "./core/folder-cache.ts";
+// action's input files/folders, not its outputs); exposed for scripts that want
+// to inspect or manually invalidate the cache — `FolderCache.fingerprint(...)`,
+// `FolderCache.dir`.
+export { FolderCache } from "./system/fs/FolderCache.ts";

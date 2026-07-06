@@ -1,5 +1,5 @@
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
-import { action } from "../core/action.ts";
+import { action } from "../orchestration/action/action.ts";
 
 // Re-export the handle's type so consumers can name it without depending on
 // playwright-core directly — tswm owns that dependency on their behalf.

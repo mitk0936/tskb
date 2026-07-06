@@ -1,7 +1,7 @@
 import { watch as fsWatch, type Stats } from "node:fs";
 import { stat } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
-import { action } from "../core/action.ts";
+import { action } from "../orchestration/action/action.ts";
 
 export interface FileEvent {
   /** Absolute path of the watched file. */

@@ -54,9 +54,8 @@ const inspectExplorer = inspectPage(explorerPage.ref);
 // The whole pipeline as one linear spin. A failing action never tears the spin
 // down (its Outcome is recorded in the verdict), so a browser/gate problem can't
 // kill the dev servers — the browser is an add-on, not a reason to stop watching.
-// drain:false so the live log doesn't write over the prompt — we start it by hand
-// once the prompt is answered.
-spin({ drain: false }, async ({ nod }) => {
+// The spin auto-drains the live log to the console for the whole run.
+spin(async ({ nod }) => {
   const answer = await nod(askToRunTests).done;
 
   if (answer.ok && answer.value === "yes") await nod(runTests).done;

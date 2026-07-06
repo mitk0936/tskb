@@ -1,8 +1,9 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
-import { action, type AnyActionInstance } from "../core/action.ts";
-import { killTree } from "../core/process.ts";
-import { captureSnapshot } from "../core/output.ts";
+import { action } from "../orchestration/action/action.ts";
+import type { AnyActionInstance } from "../orchestration/action/types.ts";
+import { killTree } from "../system/process/process.ts";
+import type { SnapshotStore } from "../output/snapshot/SnapshotStore.ts";
 
 /** Tunes an action built with {@link command}. */
 export interface CommandOptions {
@@ -80,7 +81,15 @@ export function command(
 
   if (direct) {
     return action(name).run((ctx) =>
-      spawnDirect(ctx.logs, ctx.signal, name, cmdOrFile, argsOrOptions, options)
+      spawnDirect(
+        ctx.output.snapshots,
+        ctx.logs,
+        ctx.signal,
+        name,
+        cmdOrFile,
+        argsOrOptions,
+        options
+      )
     )();
   }
 
@@ -104,7 +113,8 @@ export function command(
  * unless the run is tearing down, where the abort-kill is the reason).
  */
 const spawnDirect = (
-  logs: import("../core/log-collector/LogsCollector.ts").Logger,
+  snapshots: SnapshotStore,
+  logs: import("../output/log/LogsCollector.ts").Logger,
   signal: AbortSignal,
   name: string,
   file: string,
@@ -120,7 +130,7 @@ const spawnDirect = (
 
   // Mirror proc's launch line: a filterable milestone on the timeline, with the
   // structured args snapshotted and linked (see process.ts for the rationale).
-  const snap = captureSnapshot(`proc-${name}-start`, { cmd: file, args, cwd });
+  const snap = snapshots.captureJson(`proc-${name}-start`, { cmd: file, args, cwd });
   logs.append({
     source: name,
     level: "event",

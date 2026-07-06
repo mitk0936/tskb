@@ -2,7 +2,7 @@ import { watch as fsWatch } from "node:fs";
 import { open, stat } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import { StringDecoder } from "node:string_decoder";
-import { action } from "../core/action.ts";
+import { action } from "../orchestration/action/action.ts";
 
 export interface TailLogOptions {
   /** Label the lines are logged under. Default: the file's basename. */

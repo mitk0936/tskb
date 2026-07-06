@@ -1,7 +1,7 @@
 import { existsSync, watch as fsWatch, type FSWatcher, type WatchEventType } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
-import { action } from "../core/action.ts";
+import { action } from "../orchestration/action/action.ts";
 
 export interface WatchDirOptions {
   /** Coalesce rapid events within this window. Default 50ms. */

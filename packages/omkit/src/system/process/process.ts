@@ -1,8 +1,8 @@
 import { execFileSync } from "node:child_process";
 import os from "node:os";
 import { $, kill, usePowerShell, type Options, type ProcessPromise } from "zx";
-import type { Logger } from "./log-collector/LogsCollector.ts";
-import { captureSnapshot } from "./output.ts";
+import type { Logger } from "../../output/log/LogsCollector.ts";
+import type { SnapshotStore } from "../../output/snapshot/SnapshotStore.ts";
 
 // zx defaults to bash, which isn't present on a stock Windows box.
 // Use Windows PowerShell there so zx spawns and quotes for the right shell.
@@ -47,15 +47,15 @@ export type Proc = (
 ) => (pieces: TemplateStringsArray, ...args: unknown[]) => ProcessPromise;
 
 /**
- * Builds a {@link Proc} bound to a specific log sink and abort signal. The action
- * pipeline injects one per action as `ctx.proc`, wired to that action's logger
- * and the run's signal — so actions just describe the command, with no ambient
- * lookup and nothing threaded through. A custom source (e.g. a CDP connection)
- * follows the same shape: take the action's `logs`/`signal`, push into the log,
- * and hook teardown.
+ * Builds a {@link Proc} bound to a specific log sink, abort signal, and the run's
+ * snapshot store. The action pipeline injects one per action as `ctx.proc`, wired
+ * to that action's logger, the run's signal, and the run's `output.snapshots` — so
+ * actions just describe the command, with no ambient lookup and nothing threaded
+ * through. A custom source (e.g. a CDP connection) follows the same shape: take the
+ * action's `logs`/`signal`, push into the log, and hook teardown.
  */
 export const createProc =
-  (logs: Logger, signal: AbortSignal): Proc =>
+  (logs: Logger, signal: AbortSignal, snapshots: SnapshotStore): Proc =>
   (name, opts) => {
     // quiet: zx must not echo the child's output to our terminal — the collector
     // owns all output (otherwise every line prints twice: raw from zx, formatted
@@ -83,7 +83,11 @@ export const createProc =
       // spread sits before `cwd` so this resolved value wins even when opts omits
       // it). This is the "where" that makes a launch line reproducible.
       const cwd = opts?.cwd ?? process.cwd();
-      const snap = captureSnapshot(`proc-${name}-start`, { cmd: child.cmd, ...safeOpts, cwd });
+      const snap = snapshots.captureJson(`proc-${name}-start`, {
+        cmd: child.cmd,
+        ...safeOpts,
+        cwd,
+      });
       logs.append({
         source: name,
         level: "event",

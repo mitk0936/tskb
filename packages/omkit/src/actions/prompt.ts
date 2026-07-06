@@ -1,5 +1,5 @@
 import { createInterface } from "node:readline/promises";
-import { action } from "../core/action.ts";
+import { action } from "../orchestration/action/action.ts";
 
 /** A selectable option: a bare string (its own value), or a labelled value. */
 export type PromptChoice = string | { label: string; value: string };

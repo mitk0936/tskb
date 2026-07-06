@@ -1,6 +1,3 @@
-import { log } from "./log-collector/global.ts";
-import { captureSnapshot } from "./output.ts";
-
 /** Passed to every handler so it can tell a replayed snapshot from a live emit. */
 export interface EventMeta {
   /** True when called with the retained last value on subscribe; false for a live emit. */
@@ -24,33 +21,29 @@ export interface Emitter<Events extends object> {
   listen<K extends keyof Events>(key: K, handler: EventHandler<Events[K]>): () => void;
   /** Like {@link Emitter.listen} but auto-unsubscribes after the first delivery (snapshot counts). */
   listenOnce<K extends keyof Events>(key: K, handler: EventHandler<Events[K]>): () => void;
+  /**
+   * Observe **every** live emit on this bus, whatever the key — the cross-cutting
+   * hook the bus itself stays out of. Used by the action engine to log each emit
+   * onto the run timeline (through the action's scoped logger), so the bus is pure
+   * pub/sub and logging is layered on top. Fires only for live emits, not snapshot
+   * replays. Returns an unsubscribe.
+   */
+  onAny(handler: (key: keyof Events, payload: unknown) => void): () => void;
 }
 
-export const events = <Events extends object>(namespace?: string): Emitter<Events> => {
+export const events = <Events extends object>(_namespace?: string): Emitter<Events> => {
   const handlers = new Map<keyof Events, Set<EventHandler<unknown>>>();
   const snapshots = new Map<keyof Events, unknown>();
+  const anyHandlers = new Set<(key: keyof Events, payload: unknown) => void>();
 
   const emit = <K extends keyof Events>(key: K, ...args: EmitArgs<Events[K]>): void => {
     const payload = args[0] as Events[K];
     snapshots.set(key, payload);
 
-    // Every emit also lands in the global log, so events share the timeline with
-    // process output and end up in the drained log file. Fields are `·`-delimited
-    // — namespace (the emitting action) · key · payload. String payloads show
-    // inline; richer payloads are no longer dropped — they're written to a
-    // snapshot file and linked (`→ <path>`), so the durable record keeps them.
-    const fields = [namespace, String(key)];
-    if (typeof payload === "string") {
-      fields.push(payload);
-    } else if (payload !== undefined) {
-      const name = `event-${[namespace, String(key)].filter(Boolean).join("-")}`;
-      fields.push(`→ ${captureSnapshot(name, payload).rel}`);
-    }
-    log.append({
-      source: "event",
-      level: "event",
-      message: fields.filter(Boolean).join(" · "),
-    });
+    // Notify the cross-cutting observers first (they log the emit onto the
+    // timeline), then the keyed handlers — the bus does no logging of its own.
+    // Copy so an observer unsubscribing mid-emit doesn't disturb iteration.
+    for (const handler of [...anyHandlers]) handler(key, payload);
 
     const set = handlers.get(key);
     if (!set) return;
@@ -94,5 +87,12 @@ export const events = <Events extends object>(namespace?: string): Emitter<Event
     return off;
   };
 
-  return { emit, listen, listenOnce };
+  const onAny = (handler: (key: keyof Events, payload: unknown) => void): (() => void) => {
+    anyHandlers.add(handler);
+    return () => {
+      anyHandlers.delete(handler);
+    };
+  };
+
+  return { emit, listen, listenOnce, onAny };
 };

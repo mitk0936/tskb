@@ -1,4 +1,4 @@
-import { action } from "../core/action.ts";
+import { action } from "../orchestration/action/action.ts";
 
 /** How a probe's HTTP status is judged healthy: an exact code, a set, or a predicate. */
 export type StatusMatcher = number | number[] | ((status: number) => boolean);
