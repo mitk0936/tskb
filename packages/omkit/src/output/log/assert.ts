@@ -1,4 +1,5 @@
-import type { Logger } from "../output/log/LogsCollector.ts";
+import { LogRenderer } from "./LogRenderer.ts";
+import type { Logger } from "./LogsCollector.ts";
 
 /**
  * An inline check injected into every action's `ctx` and the `spin` body. Passes
@@ -34,8 +35,7 @@ export function createAssert(
 ): Assert {
   return (value, what): boolean => {
     const pass = value;
-    const glyph = pass ? "✓" : "✗";
-    const message = `${name} · ${glyph} ${what}`;
+    const message = LogRenderer.assertion(name, pass, what);
     logs.append({ source: "assert", level: "assert", message });
     onResult(pass, pass ? undefined : new AssertionError(`${name}: ${what}`));
     return pass;

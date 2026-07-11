@@ -1,11 +1,11 @@
 import { relative } from "node:path";
-import { producerOfRef } from "../action/action.ts";
+import { producerOfRef } from "../action/refRegistry.ts";
 import type { ActionInstance, AnyActionInstance, Nod } from "../action/types.ts";
 import { LogsCollector, ScopedLogger } from "../../output/log/LogsCollector.ts";
 import { LogRenderer } from "../../output/log/LogRenderer.ts";
 import { actionScope, captureConsole } from "../../output/log/console-capture.ts";
 import { Output } from "../../output/Output.ts";
-import { createAssert } from "../assert.ts";
+import { createAssert } from "../../output/log/assert.ts";
 import type { ActionFailure, SpinResult, SpinState } from "./types.ts";
 
 /** The entry script, relative to where node was invoked (so the log says what produced it). */

@@ -1,7 +1,11 @@
 import type { LogEntry } from "./LogsCollector.ts";
 
-/** The special "title" log lines that get a distinguishing prefix. */
-export type MarkerKind = "event" | "action" | "run" | "snapshot" | "assert";
+/**
+ * The distinguishing glyphs. `event`…`assert` prefix "title" log lines; `pass`/`fail`
+ * are the inline assertion-result glyphs the assert factory stamps into its message.
+ * One registry so every symbol the output layer draws lives in a single place.
+ */
+export type MarkerKind = "event" | "action" | "run" | "snapshot" | "assert" | "pass" | "fail";
 
 const PREFIX: Record<MarkerKind, string> = {
   event: "⚡",
@@ -9,6 +13,8 @@ const PREFIX: Record<MarkerKind, string> = {
   run: "●",
   snapshot: "📎",
   assert: "⊨",
+  pass: "✓",
+  fail: "✗",
 };
 
 /**
@@ -62,6 +68,16 @@ export class LogRenderer {
   /** Prefix a milestone/header line with its marker (`● run`, `▸ action`, …). */
   static marker(kind: MarkerKind, text: string): string {
     return `${PREFIX[kind]} ${text}`;
+  }
+
+  /**
+   * Compose an assertion entry's message body — `<name> · ✓|✗ <what>`. The pass/fail
+   * glyph lives in the marker registry; the leading `⊨` is added when the entry is
+   * later rendered as a milestone (see {@link render}) or written to `assertions.log`.
+   * Kept here so assertion presentation stays in the output layer, not the orchestrator.
+   */
+  static assertion(name: string, pass: boolean, what: string): string {
+    return `${name} · ${LogRenderer.marker(pass ? "pass" : "fail", what)}`;
   }
 
   /**

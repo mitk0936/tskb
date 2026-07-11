@@ -2,7 +2,7 @@ import type { Logger } from "../../output/log/LogsCollector.ts";
 import type { Output } from "../../output/Output.ts";
 import type { Emitter, EventHandler } from "../events/events.ts";
 import type { Proc } from "../../system/process/process.ts";
-import type { Assert } from "../assert.ts";
+import type { Assert } from "../../output/log/assert.ts";
 
 /** An action that declares no events. */
 export type NoEvents = Record<never, never>;

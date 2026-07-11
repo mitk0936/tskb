@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { createAssert, AssertionError } from "../../src/orchestration/assert.js";
+import { createAssert, AssertionError } from "../../src/output/log/assert.js";
 import type { Logger, LogInput, LogEntry } from "../../src/output/log/LogsCollector.js";
 
 /** A Logger that records appends; attach/subscribe are unused no-ops. */

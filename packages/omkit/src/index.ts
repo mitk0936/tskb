@@ -24,8 +24,8 @@ export type {
   Awaitable,
   Outcome,
 } from "./orchestration/action/types.ts";
-export { AssertionError } from "./orchestration/assert.ts";
-export type { Assert } from "./orchestration/assert.ts";
+export { AssertionError } from "./output/log/assert.ts";
+export type { Assert } from "./output/log/assert.ts";
 
 // ── Spin (linear orchestration) ──────────────────────────────────────────────
 export { spin } from "./orchestration/spin/spin.ts";

@@ -23,6 +23,7 @@ const watchDocs = command(
   'npx --no -- tskb "./docs/**/*.tskb.tsx" --tsconfig ./docs/tsconfig.json --project "TSKB Monorepo Watch Dev" --watch --watch-path ./packages/tskb/dist',
   { cwd: repoRoot }
 );
+
 const watchLib = command("TSKB:lib:dev", "npm run dev", { cwd: tskbPath });
 const serveExplorer = command("TSKB:dev", "npm run dev:explorer", { cwd: tskbPath });
 // A failing suite no longer aborts the pipeline — `nod(x).done` yields an Outcome

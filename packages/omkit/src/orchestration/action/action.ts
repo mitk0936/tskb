@@ -1,6 +1,6 @@
 import { events, type Emitter, type EventHandler } from "../events/events.ts";
-import { createProc } from "../../system/process/process.ts";
 import { FolderCache } from "../../system/fs/FolderCache.ts";
+import { defer, type Deferred } from "../../utils/Deferred.ts";
 import type {
   Action,
   ActionBuilder,
@@ -13,26 +13,12 @@ import type {
   Outcome,
   SystemGlobal,
 } from "./types.ts";
-
-/** A promise paired with its settlers, for a set-once value (the handle / the Outcome). */
-interface Deferred<T> {
-  promise: Promise<T>;
-  resolve: (value: T) => void;
-  reject: (reason: unknown) => void;
-}
-
-// Maps an instance's `.ref` promise back to the instance that produces it, so the
-// run can catch a consumer launched before (or without) its `.ref` producer —
-// which would otherwise await a handle that never arrives and hang silently.
-const refOwners = new WeakMap<object, AnyActionInstance>();
-
-/**
- * If `value` is some action instance's `.ref` promise, the instance that owns it
- * (the producer of that handle); otherwise `undefined`. Used by the run to verify
- * a `.ref` dependency was launched before the action that consumes it.
- */
-export const producerOfRef = (value: unknown): AnyActionInstance | undefined =>
-  typeof value === "object" && value !== null ? refOwners.get(value) : undefined;
+import { registerRef } from "./refRegistry.ts";
+import { awaitEvent } from "./awaitEvent.ts";
+import { failureOutcome } from "./outcome.ts";
+import { logEmit } from "./logEmit.ts";
+import { buildContext } from "./context.ts";
+import { cachedRun } from "./withCache.ts";
 
 /** The implementation the exec is given: `ctx` plus the captured args (types erased here). */
 type Exec<Events extends object, Handle, Result> = (
@@ -79,8 +65,8 @@ class ActionRun<Result, Events extends object, Handle> implements ActionInstance
     this.exec = exec;
     this.args = args;
     this.emitter = events<InstanceEvents<Events, Result>>(name);
-    this.handle = ActionRun.defer<Handle>();
-    this.settled = ActionRun.defer<Outcome<Result>>();
+    this.handle = defer<Handle>();
+    this.settled = defer<Outcome<Result>>();
     this.ref = this.handle.promise;
     this.done = this.settled.promise;
     // Most actions have a `void` handle and no one awaits `ref`; mark the promise
@@ -89,7 +75,7 @@ class ActionRun<Result, Events extends object, Handle> implements ActionInstance
     void this.handle.promise.catch(() => {});
     // Register this instance as the producer of its `.ref`, so the run can catch a
     // consumer built with this `.ref` that gets launched before this instance.
-    refOwners.set(this.ref, this as AnyActionInstance);
+    registerRef(this as AnyActionInstance);
   }
 
   start(system: SystemGlobal): Promise<Outcome<Result>> {
@@ -99,22 +85,13 @@ class ActionRun<Result, Events extends object, Handle> implements ActionInstance
     // through this action's *scoped* logger — so an emit's line inherits the action's
     // path (`parent › child › event`) just like its other output, and the bus stays
     // free of any global. Registered once per run of this instance.
-    this.emitter.onAny((key, payload) =>
-      ActionRun.logEmit(system, this.name, String(key), payload)
-    );
+    this.emitter.onAny((key, payload) => logEmit(system, this.name, String(key), payload));
     // `Promise.resolve().then` normalizes a sync result and routes a sync throw to
     // the `error` path, so exec may be sync or async.
     return Promise.resolve()
       .then(() =>
         this.exec(
-          {
-            ...system,
-            emit,
-            attach: (value) => this.attach(value),
-            proc: createProc(system.logs, system.signal, system.output.snapshots),
-            artifactsFolder: system.output.folder.artifacts(),
-            snapshot: (name, value) => system.output.snapshots.snapshot(name, value),
-          },
+          buildContext(system, emit, (value) => this.attach(value)),
           ...this.args
         )
       )
@@ -130,9 +107,7 @@ class ActionRun<Result, Events extends object, Handle> implements ActionInstance
           return outcome;
         },
         (error: unknown): Outcome<Result> => {
-          const exitCode = ActionRun.exitCodeOf(error);
-          const outcome: Outcome<Result> =
-            exitCode === undefined ? { ok: false, error } : { ok: false, error, exitCode };
+          const outcome = failureOutcome(error);
           // Emit `error` (for `.on("error")` handlers), then settle `done` with the
           // Outcome — the canonical failure signal that `.done`/`once` read.
           this.systemEmit("error", error);
@@ -160,9 +135,9 @@ class ActionRun<Result, Events extends object, Handle> implements ActionInstance
     // `done` always fires with the Outcome and never "fails" the await, so it reads
     // straight from the settled promise; other keys race via awaitEvent (which
     // resolves `undefined` if the action settles before the event).
-    return (
-      key === "done" ? this.settled.promise : ActionRun.awaitEvent(this.emitter, key)
-    ) as Promise<InstanceEvents<Events, Result>[K] | undefined>;
+    return (key === "done" ? this.settled.promise : awaitEvent(this.emitter, key)) as Promise<
+      InstanceEvents<Events, Result>[K] | undefined
+    >;
   }
 
   withCache(...paths: string[]): AnyActionInstance {
@@ -171,30 +146,10 @@ class ActionRun<Result, Events extends object, Handle> implements ActionInstance
     // give a stable cache key regardless of spelling.
     const targets = FolderCache.resolvePaths(paths);
     const { name } = this;
-    // Wrap this instance in a fresh one (reusing the engine for its own
-    // emitter/ref/on/once) that fingerprints `paths` and either skips or
-    // runs+records. The wrapper keeps this action's `name`, so log lines and the
-    // `launch <name>` line are unchanged; it forwards its injected logs/signal
-    // straight into this inner instance's `start`.
-    return action(name).run(async (ctx): Promise<Result | undefined> => {
-      const fp = await FolderCache.fingerprint(targets);
-      if ((await FolderCache.read(targets)) === fp) {
-        ctx.logs.append({ source: name, level: "info", message: "cached, skipping" });
-        return undefined;
-      }
-      const outcome = await this.start({
-        logs: ctx.logs,
-        signal: ctx.signal,
-        nod: ctx.nod,
-        output: ctx.output,
-        assert: ctx.assert,
-      });
-      // Re-throw the inner failure so the wrapper fails too (the framework re-wraps
-      // it into this wrapper's own Outcome); only record on success.
-      if (!outcome.ok) throw outcome.error;
-      await FolderCache.write(targets, fp);
-      return outcome.value;
-    })();
+    // Wrap this instance in a fresh one that keeps this action's `name` (so log lines
+    // and the `launch <name>` line are unchanged) and delegates to `cachedRun`, which
+    // fingerprints `targets` and either skips or runs+records this inner instance.
+    return action(name).run((ctx) => cachedRun(this, name, targets, ctx))();
   }
 
   /** One-time lifecycle moment: resolve `ref` and emit `attached`. Guarded (second attach no-ops). */
@@ -208,78 +163,6 @@ class ActionRun<Result, Events extends object, Handle> implements ActionInstance
   /** The framework's own emits (loosely typed — sidesteps EmitArgs for void results). */
   private systemEmit(key: "attached" | "done" | "error", payload?: unknown): void {
     (this.emitter.emit as (k: "attached" | "done" | "error", p?: unknown) => void)(key, payload);
-  }
-
-  private static defer<T>(): Deferred<T> {
-    let resolve!: (value: T) => void;
-    let reject!: (reason: unknown) => void;
-    const promise = new Promise<T>((res, rej) => {
-      resolve = res;
-      reject = rej;
-    });
-    return { promise, resolve, reject };
-  }
-
-  /** Duck-type an exit code off a thrown error (zx's ProcessOutput, command's exit error). */
-  private static exitCodeOf(error: unknown): number | undefined {
-    const code = (error as { exitCode?: unknown } | null | undefined)?.exitCode;
-    return typeof code === "number" ? code : undefined;
-  }
-
-  /**
-   * Log one emit onto the run timeline, through the action's scoped `logs` so the
-   * line carries its path. Fields are `·`-delimited — action name · key · payload.
-   * A string payload rides inline; a richer one is written to a snapshot file and
-   * linked (`→ <rel>`) so the durable record keeps it without bloating the line.
-   * This is the sole place emits become log lines — the bus itself does no logging.
-   */
-  private static logEmit(system: SystemGlobal, name: string, key: string, payload: unknown): void {
-    const fields = [name, key];
-    if (typeof payload === "string") {
-      fields.push(payload);
-    } else if (payload !== undefined) {
-      fields.push(`→ ${system.output.snapshots.captureJson(`event-${name}-${key}`, payload).rel}`);
-    }
-    system.logs.append({ source: "event", level: "event", message: fields.join(" · ") });
-  }
-
-  /**
-   * A promise for the next emit of `key`. It **never rejects**: it resolves with
-   * the event's payload, or with `undefined` if the action settles (`done` — which
-   * always fires) before `key` ever does. A retained snapshot resolves it
-   * immediately. (Not used for `key === "done"`, which reads the settled Outcome.)
-   */
-  private static awaitEvent<E extends object, K extends keyof E>(
-    emitter: Emitter<E>,
-    key: K
-  ): Promise<E[K] | undefined> {
-    return new Promise<E[K] | undefined>((resolve) => {
-      const offs: Array<() => void> = [];
-      let settled = false;
-      // First of [the event | done] to fire wins; the rest are unsubscribed.
-      const settle = (act: () => void): void => {
-        if (settled) return;
-        settled = true;
-        for (const off of offs) off();
-        act();
-      };
-      // listenOnce is keyed by E; the system `done` key is always present on an
-      // instance's event map, so reach it through a loosened view.
-      const listen = emitter.listenOnce as (
-        k: PropertyKey,
-        h: (payload: unknown) => void
-      ) => () => void;
-
-      offs.push(listen(key, (payload) => settle(() => resolve(payload as E[K]))));
-      // `done` fires once on any settle (success or failure); if it beats `key`,
-      // the event will never come — resolve `undefined` rather than reject.
-      if ((key as PropertyKey) !== "done") {
-        offs.push(listen("done", () => settle(() => resolve(undefined))));
-      }
-      // A retained snapshot fires a listen synchronously during registration; if
-      // that already settled us, drop any listeners registered afterwards.
-      if (settled) for (const off of offs) off();
-    });
   }
 }
 

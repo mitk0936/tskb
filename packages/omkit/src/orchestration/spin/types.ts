@@ -2,7 +2,7 @@
 // so `spin`'s public surface (SpinContext, the `omkit` barrel) keeps exposing it.
 export type { Nod } from "../action/types.ts";
 import type { Nod } from "../action/types.ts";
-import type { Assert } from "../assert.ts";
+import type { Assert } from "../../output/log/assert.ts";
 
 /** What a {@link spin} body receives. */
 export interface SpinContext {
