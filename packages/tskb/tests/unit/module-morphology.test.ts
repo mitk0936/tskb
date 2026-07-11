@@ -7,7 +7,7 @@ import {
   extractModuleMorphology,
   extractExportMorphology,
   extractModuleImports,
-} from "../../packages/tskb/src/core/extraction/module-morphology.js";
+} from "../../src/core/extraction/module-morphology.js";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

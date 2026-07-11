@@ -12,8 +12,6 @@ export interface CommandOptions {
    * node was executed from (process.cwd()). Default ".".
    */
   cwd?: string;
-  /** Label the child's output is logged under. Defaults to the action's name. */
-  label?: string;
   /**
    * Environment for the child. Pass the full set you want (e.g.
    * `{ ...process.env, NODE_ENV: "development" }`) — it's handed to the child
@@ -98,7 +96,7 @@ export function command(
     // against process.cwd() — exactly the "absolute from where node runs" rule.
     const cwd = path.resolve(options.cwd ?? ".");
     // proc sources the LogsCollector from async context and streams output into it.
-    return proc(options.label ?? name, {
+    return proc(name, {
       cwd,
       ...(options.env ? { env: options.env } : {}),
     })(verbatim(cmdOrFile));
@@ -122,7 +120,7 @@ const spawnDirect = (
   options: CommandOptions
 ): Promise<void> => {
   const cwd = path.resolve(options.cwd ?? ".");
-  const source = options.label ?? name;
+  const source = name;
 
   // windowsHide keeps a stray console window from flashing for the child.
   // env omitted -> spawn inherits the parent's process.env (Node's default).

@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { watchPaths } from "../../packages/tskb/src/cli/utils/watcher.js";
+import { watchPaths } from "../../src/cli/utils/watcher.js";
 
 /** Poll until `predicate()` is true or timeout elapses. */
 async function waitFor(predicate: () => boolean, timeoutMs = 5000): Promise<void> {

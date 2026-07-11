@@ -187,6 +187,7 @@ class ActionRun<Result, Events extends object, Handle> implements ActionInstance
         signal: ctx.signal,
         nod: ctx.nod,
         output: ctx.output,
+        assert: ctx.assert,
       });
       // Re-throw the inner failure so the wrapper fails too (the framework re-wraps
       // it into this wrapper's own Outcome); only record on success.

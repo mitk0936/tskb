@@ -51,13 +51,17 @@ const pageOf = (context: BrowserContext, fresh: boolean): Promise<Page> | Page =
  * from whatever {@link ChromePageSource} is given — a CDP endpoint to connect to,
  * or an already-owned Playwright handle (an Electron `BrowserWindow` page, a
  * `BrowserContext`, or a `Browser`). The source may be a promise, so it wires
- * straight from another action's `.ref` (e.g. `chromePage(chromedriver.ref)` or
- * `chromePage(electronApp.ref)`).
+ * straight from another action's `.ref` (e.g. `chromePage("Explorer",
+ * chromedriver.ref)` or `chromePage("App", electronApp.ref)`).
  *
  * Daemon-shaped like the watch actions: acquire the page, attach it, then stay
  * alive on a promise that only resolves when the run's `signal` aborts. On
  * teardown it closes the CDP connection *only* when it opened one — a handed-in
  * browser or window is left untouched for its owner to close.
+ *
+ * `label` names this page in the log (its `source`), so several `chromePage`
+ * instances in one run stay distinguishable — e.g. `chromePage("Explorer",
+ * chrome.ref)` logs its lines under `Explorer` rather than a shared default.
  */
 export const chromePage = action("Chrome Page")
   .emits<ChromePageEvents>()
@@ -65,6 +69,7 @@ export const chromePage = action("Chrome Page")
   .run(
     async (
       { logs, signal, emit, attach },
+      label: string,
       source: ChromePageSource | Promise<ChromePageSource>,
       opts: ChromePageOptions = {}
     ) => {
@@ -102,24 +107,24 @@ export const chromePage = action("Chrome Page")
       }
 
       page.on("console", (msg) => {
-        logs.append({ source: "Chrome Page", level: "info", message: `console: ${msg.text()}` });
-        emit("console", msg.text());
+        logs.append({ source: label, level: "info", message: `console: ${msg.text()}` });
+        emit("console", `from: ${label}:  ${msg.text()}`);
       });
       page.on("pageerror", (err) => {
-        logs.append({ source: "Chrome Page", level: "error", message: err.message });
-        emit("pageerror", err.message);
+        logs.append({ source: label, level: "error", message: err.message });
+        emit("pageerror", `from: ${label}:  ${err.message}`);
       });
       page.on("framenavigated", (frame) => {
-        if (frame === page.mainFrame()) emit("navigated", frame.url());
+        if (frame === page.mainFrame()) emit("navigated", `${label}: ${frame.url()}`);
       });
 
       if (url) {
         await page.goto(url);
-        logs.append({ source: "Chrome Page", level: "info", message: `navigated ${url}` });
+        logs.append({ source: label, level: "info", message: `navigated ${url}` });
       }
 
       attach(page); // resolves instance.ref for every downstream action
-      logs.append({ source: "Chrome Page", level: "info", message: `attached ${from}` });
+      logs.append({ source: label, level: "info", message: `attached ${from}` });
 
       // Daemon: hold the page open until teardown, then drop the CDP session if it
       // was ours; never close a handed-in browser/window.

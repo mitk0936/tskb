@@ -8,8 +8,8 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { generateSkillFiles } from "../../packages/tskb/src/cli/utils/skill-generator.js";
-import type { KnowledgeGraph } from "../../packages/tskb/src/core/graph/types.js";
+import { generateSkillFiles } from "../../src/cli/utils/skill-generator.js";
+import type { KnowledgeGraph } from "../../src/core/graph/types.js";
 
 // ---------------------------------------------------------------------------
 // Helpers

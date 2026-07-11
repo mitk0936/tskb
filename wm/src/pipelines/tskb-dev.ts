@@ -48,7 +48,7 @@ const explorerReady = healthcheck({ url: explorerUrl });
 // over CDP to it; inspectPage reads from the live page. Data deps flow through
 // `.ref`, so the chain wires up here and self-sequences at run time.
 const explorerChrome = chromedriver({ url: explorerUrl });
-const explorerPage = chromePage(explorerChrome.ref);
+const explorerPage = chromePage("Explorer", explorerChrome.ref);
 const inspectExplorer = inspectPage(explorerPage.ref);
 
 // The whole pipeline as one linear spin. A failing action never tears the spin
@@ -68,5 +68,5 @@ spin(async ({ nod }) => {
 
   nod(explorerChrome);
   nod(explorerPage);
-  nod(inspectExplorer);
+  const a = nod(inspectExplorer);
 });

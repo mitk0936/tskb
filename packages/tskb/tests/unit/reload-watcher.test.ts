@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { startReloadWatcher } from "../../packages/tskb/explorer-app/src/ui/ReloadWatcher.js";
+import { startReloadWatcher } from "../../explorer-app/src/ui/ReloadWatcher.js";
 
 const stops: Array<() => void> = [];
 afterEach(() => {

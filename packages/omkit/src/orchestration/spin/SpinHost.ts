@@ -3,7 +3,9 @@ import { producerOfRef } from "../action/action.ts";
 import type { ActionInstance, AnyActionInstance, Nod } from "../action/types.ts";
 import { LogsCollector, ScopedLogger } from "../../output/log/LogsCollector.ts";
 import { LogRenderer } from "../../output/log/LogRenderer.ts";
+import { actionScope, captureConsole } from "../../output/log/console-capture.ts";
 import { Output } from "../../output/Output.ts";
+import { createAssert } from "../assert.ts";
 import type { ActionFailure, SpinResult, SpinState } from "./types.ts";
 
 /** The entry script, relative to where node was invoked (so the log says what produced it). */
@@ -70,6 +72,12 @@ export class SpinHost {
   /** Settles once the spin reaches `closed`, carrying the terminal verdict. Never rejects. */
   readonly done: Promise<SpinResult>;
 
+  /** The original `console.log`, captured before patching — the run's terminal writer. */
+  private readonly term: (message?: unknown, ...rest: unknown[]) => void;
+
+  /** Reinstalls the pre-run console methods; called once at finalize. */
+  private readonly restoreConsole: () => void;
+
   private readonly controller = new AbortController();
 
   // ── Lifecycle state ──────────────────────────────────────────────────────
@@ -87,6 +95,11 @@ export class SpinHost {
 
   // Genuine failures (not teardown cascade). Frozen into the verdict at close.
   private readonly failures: ActionFailure[] = [];
+
+  // Running tally of every assertion this run made, for the run.log summary footer.
+  private assertionsPassed = 0;
+
+  private assertionsFailed = 0;
 
   // Every launched action's promise lives here until it settles; the drive loop
   // empties this set. Daemons keep it non-empty until the controller aborts.
@@ -111,6 +124,13 @@ export class SpinHost {
     for (const instance of actions) assertInstance(instance);
 
     this.signal = this.controller.signal;
+
+    // Capture the ORIGINAL console.log as this run's terminal writer BEFORE patching,
+    // or `drain`/finalize would re-enter the patched method and feedback-loop. Then
+    // patch console so every console.* during the run folds into this run's log,
+    // attributed via `actionScope` (see `launch`).
+    this.term = console.log.bind(console);
+    this.restoreConsole = captureConsole(this.logs);
 
     process.once("SIGINT", this.onSigint);
     process.on("uncaughtException", this.onUncaught);
@@ -182,7 +202,7 @@ export class SpinHost {
     void (async () => {
       const renderer = new LogRenderer();
       for await (const entry of this.logs.subscribe({ replay: true }))
-        console.log(renderer.render(entry));
+        this.term(renderer.render(entry));
     })().catch(() => {});
   }
 
@@ -241,7 +261,7 @@ export class SpinHost {
   }
 
   private launch(instance: AnyActionInstance, parentPath: string | undefined): void {
-    // A consumer built with another action's `.ref` (e.g. `chromePage(driver.ref)`)
+    // A consumer built with another action's `.ref` (e.g. `chromePage("Explorer", driver.ref)`)
     // must be launched *after* that producer — otherwise it awaits a handle that
     // never arrives and the spin hangs silently. Catch it and say how to fix it.
     for (const arg of instance.args) {
@@ -267,6 +287,20 @@ export class SpinHost {
       return child;
     };
 
+    // A boolean check bound to this action's path: it logs a `⊨` milestone, tallies
+    // the result for the run.log summary, and on failure records a verdict failure
+    // the same way an action's own failure does — skipped during teardown (cascade,
+    // not a fault). Uses `this.logs` (not `scoped`) the same way `record` below does:
+    // the path is already embedded in the message via `name`, so routing through
+    // `scoped` would double-prefix the `source` field for a nodded child.
+    const assert = createAssert(path, this.logs, (pass, error) => {
+      if (pass) this.assertionsPassed++;
+      else {
+        this.assertionsFailed++;
+        if (!this.controller.signal.aborted && error) this.recordFailure(path, error);
+      }
+    });
+
     this.narrate(`launch ${path}`);
     // The action logs into this run's shared store (entries carry their `source`;
     // grouping is applied at render time) and gets the spin's signal directly; the
@@ -285,8 +319,16 @@ export class SpinHost {
       // action (a cascade), not its own fault — so it must not pollute the verdict.
       if (!this.controller.signal.aborted) this.recordFailure(path, error);
     };
-    const promise = instance
-      .start({ logs: scoped, signal: this.controller.signal, nod, output: this.output })
+    const promise = actionScope
+      .run(path, () =>
+        instance.start({
+          logs: scoped,
+          signal: this.controller.signal,
+          nod,
+          output: this.output,
+          assert,
+        })
+      )
       .then((outcome) => {
         if (!outcome.ok) record(outcome.error);
       })
@@ -320,6 +362,7 @@ export class SpinHost {
     process.off("SIGINT", this.onSigint);
     process.off("uncaughtException", this.onUncaught);
     process.off("unhandledRejection", this.onUnhandled);
+    this.restoreConsole();
     this.narrate("finished");
     // Close the log now (after the last entry) so `streamLog` drains and finishes
     // writing the complete run.jsonl, then wait for it to fully close its files —
@@ -327,9 +370,14 @@ export class SpinHost {
     // before `writeLog` streams it into the final collapsed run.log.
     this.logs.close();
     await this.streaming;
-    const file = await this.output.runLog.write();
+    // Hand the assertion tally to `write`, which bubbles a summary + the
+    // `assertions.log` link into the run.log footer (only when there were any).
+    const file = await this.output.runLog.write({
+      passed: this.assertionsPassed,
+      failed: this.assertionsFailed,
+    });
     // Direct to the terminal — the file's already written, so this line isn't in it.
-    console.log(LogRenderer.marker("run", `log → ${file}`));
+    this.term(LogRenderer.marker("run", `log → ${file}`));
 
     const result: SpinResult = { ok: this.failures.length === 0, failures: this.failures };
     // One process = one run = one verdict; reflect pass/fail in the exit code so

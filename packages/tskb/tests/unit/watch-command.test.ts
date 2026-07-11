@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { watch } from "../../packages/tskb/src/cli/commands/watch.js";
-import type { ExtractConfig } from "../../packages/tskb/src/cli/commands/build.js";
+import { watch } from "../../src/cli/commands/watch.js";
+import type { ExtractConfig } from "../../src/cli/commands/build.js";
 
 const config: ExtractConfig = {
   pattern: "docs/**/*.tskb.tsx",

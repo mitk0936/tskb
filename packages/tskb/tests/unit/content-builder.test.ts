@@ -10,8 +10,8 @@ import {
   buildQueryBody,
   buildUpdateBody,
   buildUpdateSyntaxBody,
-} from "../../packages/tskb/src/cli/utils/content-builder.js";
-import type { KnowledgeGraph } from "../../packages/tskb/src/core/graph/types.js";
+} from "../../src/cli/utils/content-builder.js";
+import type { KnowledgeGraph } from "../../src/core/graph/types.js";
 
 function emptyGraph(overrides: Partial<KnowledgeGraph["nodes"]> = {}): KnowledgeGraph {
   return {

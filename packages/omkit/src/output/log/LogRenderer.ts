@@ -1,13 +1,14 @@
 import type { LogEntry } from "./LogsCollector.ts";
 
 /** The special "title" log lines that get a distinguishing prefix. */
-export type MarkerKind = "event" | "action" | "run" | "snapshot";
+export type MarkerKind = "event" | "action" | "run" | "snapshot" | "assert";
 
 const PREFIX: Record<MarkerKind, string> = {
   event: "⚡",
   action: "▸",
   run: "●",
   snapshot: "📎",
+  assert: "⊨",
 };
 
 /**
@@ -19,6 +20,7 @@ const MILESTONE: Record<string, MarkerKind> = {
   run: "run",
   event: "event",
   snapshot: "snapshot",
+  assert: "assert",
 };
 
 /** Only runs *longer than* this collapse, so a trigger always hides a meaningful amount. */

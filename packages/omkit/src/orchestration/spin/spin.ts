@@ -19,7 +19,7 @@ import type { Nod, SpinBody } from "./types.ts";
  *     if (ans.ok && ans.value === "yes") await nod(test).done;
  *     nod(devServer);                                   // fire-and-forget daemon
  *     const chrome = nod(chromedriver({ … }));
- *     nod(chromePage(chrome.ref));                      // data deps via .ref
+ *     nod(chromePage("Explorer", chrome.ref));          // data deps via .ref
  *   });
  *
  * Auto-drains by default;
@@ -45,6 +45,7 @@ export function spin(body: SpinBody) {
       // the body from there rather than reaching for a module singleton.
       artifactsFolder: ctx.artifactsFolder,
       snapshot: (name, value) => ctx.output.snapshots.snapshot(name, value),
+      assert: ctx.assert,
     });
   });
 

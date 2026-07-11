@@ -2,6 +2,7 @@ import type { Logger } from "../../output/log/LogsCollector.ts";
 import type { Output } from "../../output/Output.ts";
 import type { Emitter, EventHandler } from "../events/events.ts";
 import type { Proc } from "../../system/process/process.ts";
+import type { Assert } from "../assert.ts";
 
 /** An action that declares no events. */
 export type NoEvents = Record<never, never>;
@@ -69,6 +70,12 @@ export interface SystemGlobal {
    * capture their own artifacts.
    */
   readonly output: Output;
+  /**
+   * Assert a boolean invariant for this action. Logs a `⊨` line every call; a
+   * mismatch is recorded into the run's verdict (never throws, never stops the
+   * run). Bound to this action's path for attribution.
+   */
+  readonly assert: Assert;
 }
 
 /** What an action's implementation receives: the system bag, plus `emit`, `attach`, and `proc`. */
@@ -117,7 +124,7 @@ export interface ActionInstance<Result = unknown, Events extends object = NoEven
   readonly done: Promise<Outcome<Result>>;
   /**
    * Resolves with the handle the action attached via `ctx.attach` (set once).
-   * Used to thread a handle into another action (`chromePage(driver.ref)`). If
+   * Used to thread a handle into another action (`chromePage("Explorer", driver.ref)`). If
    * the action settles *without* attaching, this resolves (`undefined` for the
    * default `void` handle) on success and **rejects on failure** — so, unlike
    * `done`, awaiting `ref` in a body can throw. It's meant to be consumed as a

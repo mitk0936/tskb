@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { transformGraph } from "../../packages/tskb/src/core/explorer/transform.js";
-import type { KnowledgeGraph } from "../../packages/tskb/src/core/graph/types.js";
+import { transformGraph } from "../../src/core/explorer/transform.js";
+import type { KnowledgeGraph } from "../../src/core/graph/types.js";
 
 const ROOT = "__TSKB.ROOT__";
 

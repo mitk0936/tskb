@@ -21,9 +21,19 @@ export class RunLog {
 
   private readonly snapshots: SnapshotStore;
 
+  // Path of `assertions.log`, set the first time an assertion is streamed (lazily
+  // created). Stays `undefined` for a run with no assertions, so the finalize step
+  // links it only when it exists. See {@link assertionsLog}.
+  private assertionsPath: string | undefined;
+
   constructor(folder: RunFolder, snapshots: SnapshotStore) {
     this.folder = folder;
     this.snapshots = snapshots;
+  }
+
+  /** The `assertions.log` path if any assertion was logged this run, else `undefined`. */
+  get assertionsLog(): string | undefined {
+    return this.assertionsPath;
   }
 
   /**
@@ -47,10 +57,22 @@ export class RunLog {
 
     pretty.write(this.header() + "\n");
 
+    // The dedicated assertions file is a filtered projection of the same stream:
+    // opened lazily on the first `assert` entry (so runs with none produce no file),
+    // one `⊨ …` line each. Assertions still ride the main run.jsonl / run.log too.
+    let assertions: ReturnType<typeof createWriteStream> | undefined;
+
     try {
       for await (const entry of entries) {
         jsonl.write(JSON.stringify(entry) + "\n");
         pretty.write(renderer.render(entry) + "\n");
+        if (entry.level === "assert") {
+          if (!assertions) {
+            this.assertionsPath = this.folder.resolve("assertions.log");
+            assertions = createWriteStream(this.assertionsPath);
+          }
+          assertions.write(LogRenderer.marker("assert", entry.message) + "\n");
+        }
       }
     } finally {
       // End AND wait for both streams to fully close before resolving. {@link write}
@@ -58,7 +80,11 @@ export class RunLog {
       // this stream landed *after* write() truncated run.log, the OS would zero-fill the
       // gap — a multi-MB run of NUL bytes. `run` awaits this promise before calling
       // write(), so this writer is guaranteed done first (and run.jsonl is complete).
-      await Promise.all([closeStream(jsonl), closeStream(pretty)]);
+      await Promise.all([
+        closeStream(jsonl),
+        closeStream(pretty),
+        ...(assertions ? [closeStream(assertions)] : []),
+      ]);
     }
   }
 
@@ -73,8 +99,12 @@ export class RunLog {
    *
    * Call only after {@link stream} has closed (the run's log is ended), so `run.jsonl`
    * is complete and no longer being written.
+   *
+   * When this run logged any assertions, `summary` bubbles a footer into `run.log`
+   * (only) — the pass/fail tally and a link to `assertions.log` — so results surface
+   * in the persistent log rather than the live process output.
    */
-  async write(): Promise<string> {
+  async write(summary?: { passed: number; failed: number }): Promise<string> {
     await this.folder.ensure();
     const jsonlFile = this.folder.resolve("run.jsonl");
     const file = this.folder.resolve("run.log");
@@ -111,6 +141,18 @@ export class RunLog {
     }
     for (const item of renderer.end()) emit(item);
 
+    // Bubble the assertion summary + the dedicated-log link into the run.log footer —
+    // only when this run logged assertions (`assertionsPath` is set on the first one).
+    if (this.assertionsPath && summary) {
+      out.write(
+        LogRenderer.marker(
+          "assert",
+          `assertions · ${summary.passed} passed · ${summary.failed} failed`
+        ) + "\n"
+      );
+      out.write(LogRenderer.marker("assert", `assertions → ${this.assertionsPath}`) + "\n");
+    }
+
     await closeStream(out); // flush + close run.log before reporting it written
     await Promise.all(writes); // ensure every off-loaded run is on disk
     return file;
@@ -121,7 +163,7 @@ export class RunLog {
     const now = new Date();
     return [
       `─── ${this.folder.name()} · ${ymd(now)} ${hms(now)} ───`,
-      `● run  ⚡ event  ▸ action  📎 snapshot  ⇥ output`,
+      `● run  ⚡ event  ▸ action  📎 snapshot  ⇥ output  ⊨ assert`,
       "",
     ].join("\n");
   }

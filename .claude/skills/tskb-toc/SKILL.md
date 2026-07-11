@@ -15,7 +15,7 @@ The big-picture index of this repo. Load this whenever you start a task — it t
 - **__TSKB.ROOT__** (`.`) — The root directory (automatically added by tskb)
   - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [2 folders, 2 files]
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [2 folders]
-    - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [2 folders, 5 files]
+    - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [3 folders, 5 files]
   - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [4 files]
   - **tests** (`tests`) — End-to-end tests for the tskb CLI. [2 folders]
     - **tests.e2e** (`tests/e2e`) — E2E test files that run the CLI and check its output. [1 folder, 9 files]

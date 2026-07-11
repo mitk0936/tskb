@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { writeSplitGraph } from "../../packages/tskb/src/core/graph/writer.js";
+import { writeSplitGraph } from "../../src/core/graph/writer.js";
 
 const dirs: string[] = [];
 afterEach(() => {

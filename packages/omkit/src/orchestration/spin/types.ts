@@ -2,6 +2,7 @@
 // so `spin`'s public surface (SpinContext, the `omkit` barrel) keeps exposing it.
 export type { Nod } from "../action/types.ts";
 import type { Nod } from "../action/types.ts";
+import type { Assert } from "../assert.ts";
 
 /** What a {@link spin} body receives. */
 export interface SpinContext {
@@ -30,6 +31,12 @@ export interface SpinContext {
    * run-scoped counterpart to the action `ctx.output.snapshots`.
    */
   readonly snapshot: (name: string, value: unknown) => Promise<string>;
+  /**
+   * Assert a boolean invariant from the spin body. Same semantics as the action
+   * `ctx.assert`; body assertions are attributed to the host action path
+   * (`omkit:Spin`).
+   */
+  readonly assert: Assert;
 }
 
 /** The body of a {@link spin}: any (async) function — it isn't named or wrapped by you. */

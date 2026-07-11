@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import fs from "node:fs";
 import childProcess from "node:child_process";
-import { extractFolderSummary } from "../../packages/tskb/src/core/extraction/folder-summary.js";
+import { extractFolderSummary } from "../../src/core/extraction/folder-summary.js";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
