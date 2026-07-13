@@ -1,16 +1,13 @@
-import { action } from "../orchestration/action/action.ts";
-import type { LogEntry } from "../output/log/LogsCollector.ts";
+import { action } from "../core/action.ts";
+import type { LogEntry } from "../foundation/LogEntry.ts";
 
 /** Predicate over a log entry — return `true` for the entry to wait for. */
 export type LogMatcher = (entry: LogEntry) => boolean;
 
 export interface UntilLogOptions {
-  /**
-   * Reject if no entry matches within this many milliseconds. Omit to wait
-   * indefinitely (the caller is then responsible for guaranteeing a match).
-   */
+  /** Reject if no entry matches within this many ms. Omit to wait indefinitely. */
   timeoutMs?: number;
-  /** Replay the buffered history before live entries (catch already-logged matches). */
+  /** Replay buffered history before live entries (catch already-logged matches). */
   replay?: boolean;
 }
 
@@ -22,11 +19,11 @@ export interface UntilLogEvents {
 
 /**
  * Gate: resolves with the first log entry the `matcher` accepts (and emits
- * `match`). Subscribes to the injected collector and races each read against the
+ * `match`). Subscribes to the readable run log and races each read against the
  * run's abort signal (and an optional timeout), so teardown unblocks a pending
  * wait instead of hanging.
  */
-export const untilLog = action("Until Log")
+export const untilLog = action("untilLog")
   .emits<UntilLogEvents>()
   .run(
     (
@@ -50,7 +47,7 @@ export const untilLog = action("Until Log")
       let onAbort: (() => void) | undefined;
       const aborted = new Promise<never>((_, reject) => {
         if (signal.aborted) return reject(new Error("untilLog: aborted"));
-        onAbort = () => reject(new Error("untilLog: aborted"));
+        onAbort = (): void => reject(new Error("untilLog: aborted"));
         signal.addEventListener("abort", onAbort, { once: true });
       });
 

@@ -24,6 +24,7 @@
     "dev": "tsc --watch",
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "author": "Dimitar Mihaylov",
@@ -48,6 +49,7 @@
     "developer-tools"
   ],
   "dependencies": {
+    "patch-console": "^2.0.0",
     "playwright-core": "^1.49.0",
     "zx": "^8.8.5"
   },

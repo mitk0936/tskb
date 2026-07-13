@@ -38,7 +38,7 @@ interface NewSessionResponse {
  */
 export const chromedriver = action("ChromeDriver")
   .ref<string>()
-  .run(async ({ logs, signal, proc, attach }, opts: ChromedriverOptions = {}) => {
+  .run(async ({ signal, proc, attach }, opts: ChromedriverOptions = {}) => {
     const { port = 9515, host = "127.0.0.1", url, headless = false, startTimeoutMs = 30000 } = opts;
     const base = `http://${host}:${port}`;
 
@@ -48,10 +48,29 @@ export const chromedriver = action("ChromeDriver")
     const server = proc("chromedriver", {})`npx --no -- chromedriver --port=${String(port)}`;
     void server.catch(() => {});
 
+    // chromedriver's HTTP server races with Chrome startup and readily drops a
+    // pooled keep-alive connection right after a response, which surfaces on the
+    // *next* request as `TypeError: fetch failed`. We ask it to close each
+    // connection (`Connection: close`, so nothing is pooled to go stale) and retry
+    // those transient network errors a few times. A real HTTP error or an abort is
+    // never retried.
     const fetchJson = async <T>(path: string, init?: RequestInit): Promise<T> => {
-      const res = await fetch(`${base}${path}`, { signal, ...init });
-      if (!res.ok) throw new Error(`chromedriver ${path} → ${res.status} ${await res.text()}`);
-      return (await res.json()) as T;
+      for (let attempt = 0; ; attempt++) {
+        try {
+          const res = await fetch(`${base}${path}`, {
+            signal,
+            ...init,
+            headers: { connection: "close", ...(init?.headers as Record<string, string>) },
+          });
+          if (!res.ok) throw new Error(`chromedriver ${path} → ${res.status} ${await res.text()}`);
+          return (await res.json()) as T;
+        } catch (err) {
+          // `TypeError` is fetch's network-layer failure (connection reset/refused);
+          // anything else is a genuine result and must propagate.
+          if (signal.aborted || !(err instanceof TypeError) || attempt >= 4) throw err;
+          await new Promise((r) => setTimeout(r, 100 * (attempt + 1)));
+        }
+      }
     };
 
     // Poll /status until the driver reports ready (it accepts connections before
@@ -86,33 +105,43 @@ export const chromedriver = action("ChromeDriver")
     });
 
     const sessionId = session.value.sessionId;
-    const debuggerAddress = session.value.capabilities["goog:chromeOptions"]?.debuggerAddress;
-    if (!debuggerAddress) {
-      throw new Error("chromedriver: session created but no debuggerAddress was reported");
-    }
-    logs.append({ source: "ChromeDriver", level: "info", message: `session ${sessionId}` });
+    console.log(`session ${sessionId}`);
 
-    if (url) {
-      await fetchJson(`/session/${sessionId}/url`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url }),
+    // A session means Chrome is running — and it re-parents out of the driver's
+    // process tree, so it can outlive a tree-kill. Guarantee it's quit on *every*
+    // exit (success-then-teardown, a failure below, or cancel) with a fresh,
+    // un-signalled DELETE (the run's signal is already aborting during teardown).
+    // Bounded so teardown can't wedge here: if the driver is already being killed,
+    // this DELETE would otherwise hang with no response.
+    const quitChrome = (): Promise<unknown> =>
+      fetch(`${base}/session/${sessionId}`, {
+        method: "DELETE",
+        signal: AbortSignal.timeout(2000),
+      }).catch(() => {});
+    try {
+      const debuggerAddress = session.value.capabilities["goog:chromeOptions"]?.debuggerAddress;
+      if (!debuggerAddress) {
+        throw new Error("chromedriver: session created but no debuggerAddress was reported");
+      }
+
+      if (url) {
+        await fetchJson(`/session/${sessionId}/url`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+        console.log(`opened ${url}`);
+      }
+
+      attach(debuggerAddress); // resolves instance.ref → the CDP endpoint
+      console.log(`cdp ${debuggerAddress}`);
+
+      // Daemon: hold the browser open until teardown aborts the signal.
+      await new Promise<void>((resolve) => {
+        if (signal.aborted) resolve();
+        else signal.addEventListener("abort", () => resolve(), { once: true });
       });
-      logs.append({ source: "ChromeDriver", level: "info", message: `opened ${url}` });
+    } finally {
+      await quitChrome();
     }
-
-    attach(debuggerAddress); // resolves instance.ref → the CDP endpoint
-    logs.append({ source: "ChromeDriver", level: "info", message: `cdp ${debuggerAddress}` });
-
-    // Daemon: hold the browser open until teardown, then quit the session (best
-    // effort — a fresh, un-signalled fetch, since the run's signal is aborting).
-    return new Promise<void>((resolveRun) => {
-      const stop = (): void => {
-        void fetch(`${base}/session/${sessionId}`, { method: "DELETE" })
-          .catch(() => {})
-          .finally(resolveRun);
-      };
-      if (signal.aborted) stop();
-      else signal.addEventListener("abort", stop, { once: true });
-    });
   });

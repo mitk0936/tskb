@@ -1,23 +1,17 @@
 import { existsSync, watch as fsWatch, type FSWatcher, type WatchEventType } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
-import { action } from "../orchestration/action/action.ts";
+import { action } from "../core/action.ts";
 
 export interface WatchDirOptions {
   /** Coalesce rapid events within this window. Default 50ms. */
   debounceMs?: number;
 }
 
-/**
- * Events emitted by {@link watchDir}. Each payload is the absolute path of the
- * entry — a file for create/update/delete, the folder itself for ready/removed.
- */
+/** Events emitted by {@link watchDir}. Each payload is the absolute path of the entry. */
 export interface WatchDirEvents {
-  /** A file appeared during the run. */
   create: string;
-  /** A file's contents changed (its mtime moved). */
   update: string;
-  /** A file was removed. */
   delete: string;
   /** The folder appeared (or existed at startup); fires again on recreation. */
   ready: string;
@@ -26,20 +20,12 @@ export interface WatchDirEvents {
 }
 
 /**
- * Watches a directory and emits per-file events on changes, surviving the folder
- * being deleted and recreated (e.g. a build that `rm -rf`s it first).
- *
- * It watches the existing ancestor chain (target recursively, ancestors
- * non-recursively) so a stable ancestor keeps firing when the target reappears.
- * Per-file changes are derived by re-`stat`ing and diffing mtimes.
- *
- * The folder's own removal/recreation can't be seen by stat: a wipe+recreate is
- * atomic (never observed absent), and on NTFS the recreated dir even keeps the
- * old `ino`/`birthtime` (tunneling). So that's detected from the raw `rename`
- * event the *parent* fires for the target's name — when it does and the target
- * still exists, it was replaced (`removed` + `ready`).
+ * Watches a directory and emits per-file events, surviving the folder being
+ * deleted and recreated (e.g. a build that `rm -rf`s it first). Watches the
+ * existing ancestor chain so a stable ancestor keeps firing when the target
+ * reappears; per-file changes are derived by re-`stat`ing and diffing mtimes.
  */
-export const watchDir = action("Watch Dir")
+export const watchDir = action("watchDir")
   .emits<WatchDirEvents>()
   .run(({ signal, emit }, target: string, opts: WatchDirOptions = {}) => {
     const { debounceMs = 50 } = opts;
@@ -48,8 +34,8 @@ export const watchDir = action("Watch Dir")
     const targetParent = dirname(root);
 
     let seen = new Map<string, number>(); // abs path -> mtimeMs
-    let rootPresent = false; // believed existence of the folder itself
-    let churned = false; // the parent reported a rename for the target since last tick
+    let rootPresent = false;
+    let churned = false;
 
     const scan = async (): Promise<Map<string, number>> => {
       const next = new Map<string, number>();
@@ -73,8 +59,6 @@ export const watchDir = action("Watch Dir")
 
     const recheck = async (isInitial: boolean): Promise<void> => {
       const next = await scan();
-      // Startup seeds the snapshot silently — so onCreate means "created during
-      // this run", not "already there when we started" (last run's leftovers).
       if (!isInitial) {
         for (const [path, mtime] of next) {
           const prev = seen.get(path);
@@ -88,8 +72,6 @@ export const watchDir = action("Watch Dir")
       seen = next;
     };
 
-    // Derive the folder's own create/remove/recreate from existence + the churn
-    // signal (a parent `rename` for the target's name).
     const detectDir = (isInitial: boolean, didChurn: boolean): void => {
       const present = existsSync(root);
       if (isInitial) {
@@ -98,8 +80,8 @@ export const watchDir = action("Watch Dir")
         return;
       }
       if (didChurn) {
-        if (rootPresent) emit("removed", root); // replaced or removed
-        if (present) emit("ready", root); // created or recreated
+        if (rootPresent) emit("removed", root);
+        if (present) emit("ready", root);
       } else if (present !== rootPresent) {
         emit(present ? "ready" : "removed", root);
       }
@@ -121,8 +103,6 @@ export const watchDir = action("Watch Dir")
     const onEvent =
       (dir: string) =>
       (eventType: WatchEventType, filename: string | null): void => {
-        // A rename of the target's own name, seen from its parent = the folder
-        // was created / removed / replaced.
         if (dir === targetParent && filename === targetName && eventType === "rename") {
           churned = true;
         }
@@ -132,7 +112,7 @@ export const watchDir = action("Watch Dir")
     const arm = (force: boolean): void => {
       const chain = existingChain();
       const same = chain.length === armed.length && chain.every((d, i) => d === armed[i]);
-      if (same && !force) return; // re-arm only when structure changed (or forced after a churn)
+      if (same && !force) return;
 
       for (const w of watchers) w.close();
       watchers.length = 0;
@@ -155,18 +135,17 @@ export const watchDir = action("Watch Dir")
     const tick = async (isInitial: boolean): Promise<void> => {
       const didChurn = churned;
       churned = false;
-      arm(didChurn); // re-arm (force after a churn — the old target handle is dead)
+      arm(didChurn);
       detectDir(isInitial, didChurn);
       await recheck(isInitial);
     };
 
     void tick(true); // initial state + arm the chain
 
-    // Daemon: stay alive until torn down, then flush once more and close.
     return new Promise<void>((resolveRun) => {
       const stop = async (): Promise<void> => {
         if (timer) clearTimeout(timer);
-        await tick(false); // final flush — capture changes right before teardown
+        await tick(false); // final flush before teardown
         for (const w of watchers) w.close();
         watchers.length = 0;
         resolveRun();

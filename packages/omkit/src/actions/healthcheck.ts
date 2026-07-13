@@ -1,4 +1,4 @@
-import { action } from "../orchestration/action/action.ts";
+import { action } from "../core/action.ts";
 
 /** How a probe's HTTP status is judged healthy: an exact code, a set, or a predicate. */
 export type StatusMatcher = number | number[] | ((status: number) => boolean);
@@ -7,7 +7,6 @@ export type StatusMatcher = number | number[] | ((status: number) => boolean);
 export type BodyMatcher = string | RegExp | ((body: string) => boolean);
 
 export interface HealthcheckOptions {
-  // ── Target — give a full `url`, or a `port` (with optional host/path/scheme) ──
   /** Full URL to probe. Overrides host/port/path/protocol when set. */
   url?: string;
   /** Host to probe when building from parts. Default "localhost". */
@@ -18,14 +17,10 @@ export interface HealthcheckOptions {
   path?: string;
   /** Scheme when building from parts. Default "http". */
   protocol?: "http" | "https";
-
-  // ── Matchers — a probe is healthy when every provided matcher passes ──
   /** Acceptable status. Default: any 2xx. */
   status?: StatusMatcher;
   /** Optional body match against the response text. Omit to ignore the body. */
   body?: BodyMatcher;
-
-  // ── Polling ──
   /** Delay between probes. Default 250ms. */
   intervalMs?: number;
   /** Abort a single probe that hasn't responded within this long. Default 5000ms. */
@@ -38,11 +33,8 @@ export interface HealthcheckOptions {
 
 /** The passing probe — also this action's result and `healthy` event payload. */
 export interface HealthcheckResult {
-  /** The URL that was probed. */
   url: string;
-  /** Status of the passing probe. */
   status: number;
-  /** Probes made, counting the passing one. */
   attempts: number;
 }
 
@@ -54,19 +46,14 @@ export interface HealthcheckEvents {
 
 /**
  * Gate: polls an HTTP endpoint until it answers in a healthy way (status and,
- * optionally, body), then resolves with that probe and emits `healthy`. The
- * counterpart to {@link import("./until-log.ts").untilLog} for "wait until a
- * service is up" — robust where log-scraping is brittle (no output format to
- * track, no ANSI to strip).
- *
- * Connection refusals and slow probes during startup are expected and simply
- * retried; each request is bounded by `requestTimeoutMs` (so a hung socket can't
- * stall the loop) and the whole wait by the run's abort signal and an optional
+ * optionally, body), then resolves with that probe and emits `healthy`. Refusals
+ * and slow probes during startup are retried; each request is bounded by
+ * `requestTimeoutMs` and the whole wait by the run's abort signal and optional
  * `timeoutMs`, so teardown unblocks a pending probe instead of hanging.
  */
-export const healthcheck = action("Healthcheck")
+export const healthcheck = action("healthcheck")
   .emits<HealthcheckEvents>()
-  .run(async ({ logs, signal, emit }, opts: HealthcheckOptions = {}) => {
+  .run(async ({ signal, emit }, opts: HealthcheckOptions = {}) => {
     const {
       url: rawUrl,
       host = "localhost",
@@ -115,7 +102,7 @@ export const healthcheck = action("Healthcheck")
       });
 
     const deadline = timeoutMs === undefined ? undefined : Date.now() + timeoutMs;
-    logs.append({ source: "Healthcheck", level: "info", message: `probing ${url}` });
+    console.log(`probing ${url}`);
 
     let attempts = 0;
     for (;;) {
@@ -124,22 +111,15 @@ export const healthcheck = action("Healthcheck")
       try {
         const res = await fetch(url, {
           ...request,
-          // Per-probe timeout combined with teardown — either aborts the request.
           signal: AbortSignal.any([signal, AbortSignal.timeout(requestTimeoutMs)]),
         });
         if (statusOk(res.status)) {
-          // Read the body only when a matcher needs it; otherwise drain it so the
-          // connection is released rather than left dangling.
           const text = body === undefined ? "" : await res.text();
           if (body === undefined) await res.body?.cancel().catch(() => {});
           if (bodyOk(text)) {
             const result: HealthcheckResult = { url, status: res.status, attempts };
             const probes = `${attempts} ${attempts === 1 ? "probe" : "probes"}`;
-            logs.append({
-              source: "Healthcheck",
-              level: "info",
-              message: `healthy ${url} → ${res.status} (${probes})`,
-            });
+            console.log(`healthy ${url} → ${res.status} (${probes})`);
             emit("healthy", result);
             return result;
           }
@@ -147,8 +127,6 @@ export const healthcheck = action("Healthcheck")
           await res.body?.cancel().catch(() => {});
         }
       } catch {
-        // Teardown surfaces here too — stop cleanly. Otherwise it's a refusal or
-        // probe timeout while the service starts up: expected, so keep polling.
         if (signal.aborted) throw new Error("healthcheck: aborted");
       }
 

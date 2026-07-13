@@ -1,4 +1,4 @@
-import { spin } from "omkit";
+import { om } from "omkit";
 import { watchDir } from "omkit/actions";
 import { buildDocs } from "../actions/build-docs.ts";
 
@@ -16,15 +16,16 @@ const buildConfig = {
 const buildRepoDocs = buildDocs(buildConfig);
 
 // Watch the graph dir while the build regenerates it, then stop once the build
-// process exits. Auto-drains (the spin default).
-spin(async ({ nod, cancel, snapshot }) => {
+// process exits. The run tears down when the body returns (or throws).
+om(async ({ cancel, snapshot }) => {
   // Capture the run's inputs as a snapshot — part of the world model the log
   // narrates. Taken inside the body so it lands in this run's own output folder.
   void snapshot("build-config", buildConfig);
+
   // Watch the graph the build rewrites; each change lands in the log as an event.
-  nod(watchBuildDir);
-  // Run the build to completion (its proc exiting resolves `.done` with an Outcome)…
-  await nod(buildRepoDocs).done;
+  watchBuildDir.tag("daemon").exec();
+  // Run the build to completion (its proc exiting resolves `.done`)…
+  await buildRepoDocs.tag("build").exec().done;
   // …then tear everything down — build's done, so the watcher's job is too.
   cancel();
 });

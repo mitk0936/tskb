@@ -1,43 +1,34 @@
 import { chromium, type Browser, type BrowserContext, type Page } from "playwright-core";
-import { action } from "../orchestration/action/action.ts";
+import { action } from "../core/action.ts";
 
-// Re-export the handle's type so consumers can name it without depending on
-// playwright-core directly — tswm owns that dependency on their behalf.
+// Re-export so consumers can name the handle without depending on playwright-core.
 export type { Page, Browser, BrowserContext } from "playwright-core";
 
 /**
- * Where {@link chromePage} gets its page from:
- * - a **CDP endpoint** (`host:port` or `http://host:port`) — it connects, and
- *   owns (closes) that connection on teardown;
- * - an existing **`Page`** — e.g. an Electron `BrowserWindow`, used as-is;
+ * Where {@link chromePage} gets its page:
+ * - a **CDP endpoint** (`host:port` or `http://host:port`) — connected and owned
+ *   (closed on teardown);
+ * - an existing **`Page`** (e.g. an Electron window) — used as-is;
  * - a **`BrowserContext`** or **`Browser`** — a page is taken (or opened) from it.
  *
- * Handle sources aren't owned: teardown never closes a browser/window the action
- * didn't open, leaving its lifecycle to whoever launched it.
+ * Handles aren't owned: teardown never closes a browser/window the action didn't open.
  */
 export type ChromePageSource = string | Page | BrowserContext | Browser;
 
-/** Events {@link chromePage} pushes to the global log (and exposes via `.on`). */
+/** Events {@link chromePage} emits. */
 export interface ChromePageEvents {
-  /** A `console.*` call in the page; payload is the rendered text. */
   console: string;
-  /** An uncaught error in the page; payload is its message. */
   pageerror: string;
-  /** A top-level navigation settled; payload is the new URL. */
   navigated: string;
 }
 
 export interface ChromePageOptions {
-  /**
-   * Navigate the attached page here once acquired. Omit to drive the page as-is
-   * (the existing window, or the first page of a connected/handed-in browser).
-   */
+  /** Navigate the attached page here once acquired. Omit to drive it as-is. */
   url?: string;
 }
 
-// Playwright's classes are structurally distinct by these methods; only Browser
-// has `contexts()`, only Page has `mainFrame()`, and a BrowserContext has
-// `newPage()` without either — enough to tell a handed-in handle apart.
+const delay = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
 const isPage = (x: object): x is Page => typeof (x as Page).mainFrame === "function";
 const isBrowser = (x: object): x is Browser => typeof (x as Browser).contexts === "function";
 
@@ -47,37 +38,27 @@ const pageOf = (context: BrowserContext, fresh: boolean): Promise<Page> | Page =
 
 /**
  * Publishes a Chrome/Chromium {@link Page} as this action's handle, so downstream
- * actions can await `instance.ref` and drive the same live page. The page comes
- * from whatever {@link ChromePageSource} is given — a CDP endpoint to connect to,
- * or an already-owned Playwright handle (an Electron `BrowserWindow` page, a
- * `BrowserContext`, or a `Browser`). The source may be a promise, so it wires
- * straight from another action's `.ref` (e.g. `chromePage("Explorer",
- * chromedriver.ref)` or `chromePage("App", electronApp.ref)`).
- *
- * Daemon-shaped like the watch actions: acquire the page, attach it, then stay
- * alive on a promise that only resolves when the run's `signal` aborts. On
- * teardown it closes the CDP connection *only* when it opened one — a handed-in
- * browser or window is left untouched for its owner to close.
- *
- * `label` names this page in the log (its `source`), so several `chromePage`
- * instances in one run stay distinguishable — e.g. `chromePage("Explorer",
- * chrome.ref)` logs its lines under `Explorer` rather than a shared default.
+ * actions can await `instance.ref` and drive the same live page. The source may be
+ * a promise, so it wires straight from another action's `.ref` (e.g.
+ * `chromePage("Explorer", chromedriver.ref)`). `label` tags this run so several
+ * pages in one run stay distinguishable. Daemon: acquire + attach, stay alive
+ * until teardown, then close the CDP connection only when it opened one.
  */
-export const chromePage = action("Chrome Page")
+export const chromePage = action("chromePage")
   .emits<ChromePageEvents>()
   .ref<Page>()
   .run(
     async (
-      { logs, signal, emit, attach },
+      { signal, emit, attach, tag },
       label: string,
       source: ChromePageSource | Promise<ChromePageSource>,
       opts: ChromePageOptions = {}
     ) => {
+      tag(label);
       const { url } = opts;
       const resolved = await source;
 
-      // Resolve the source to a Page, recording what (if anything) we own. Only a
-      // CDP connection we open here is ours to close; handles belong to callers.
+      // Only a CDP connection we open here is ours to close; handles belong to callers.
       let owned: Browser | undefined;
       let page: Page;
       let from: string;
@@ -86,8 +67,6 @@ export const chromePage = action("Chrome Page")
         const cdpUrl = resolved.includes("://") ? resolved : `http://${resolved}`;
         from = cdpUrl;
         try {
-          // connectOverCDP resolves the ws endpoint from /json/version under the
-          // hood, so the plain http URL is what to hand it.
           owned = await chromium.connectOverCDP(cdpUrl);
         } catch (cause) {
           throw new Error(`could not connect to Chrome over CDP at ${cdpUrl}`, { cause });
@@ -107,11 +86,11 @@ export const chromePage = action("Chrome Page")
       }
 
       page.on("console", (msg) => {
-        logs.append({ source: label, level: "info", message: `console: ${msg.text()}` });
+        console.log(`console: ${msg.text()}`);
         emit("console", `from: ${label}:  ${msg.text()}`);
       });
       page.on("pageerror", (err) => {
-        logs.append({ source: label, level: "error", message: err.message });
+        console.error(err.message);
         emit("pageerror", `from: ${label}:  ${err.message}`);
       });
       page.on("framenavigated", (frame) => {
@@ -120,17 +99,18 @@ export const chromePage = action("Chrome Page")
 
       if (url) {
         await page.goto(url);
-        logs.append({ source: label, level: "info", message: `navigated ${url}` });
+        console.log(`navigated ${url}`);
       }
 
       attach(page); // resolves instance.ref for every downstream action
-      logs.append({ source: label, level: "info", message: `attached ${from}` });
+      console.log(`attached ${from}`);
 
-      // Daemon: hold the page open until teardown, then drop the CDP session if it
-      // was ours; never close a handed-in browser/window.
+      // Daemon: hold the page open until teardown, then drop the CDP session if ours.
       return new Promise<void>((resolveRun) => {
         const stop = (): void => {
-          if (owned) void owned.close().finally(resolveRun);
+          // Bound the close: on a broken CDP connection `close()` can hang, which
+          // would wedge teardown — settle after a short race regardless.
+          if (owned) void Promise.race([owned.close(), delay(2000)]).finally(resolveRun);
           else resolveRun();
         };
         if (signal.aborted) stop();

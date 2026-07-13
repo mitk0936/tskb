@@ -8,9 +8,9 @@ import type { Page } from "omkit/actions";
  * live page another action attached is what gets inspected here. The seed of
  * richer simulate/assert steps.
  */
-export const inspectPage = action("Inspect").run(async ({ logs }, pageRef: Promise<Page>) => {
+export const inspectPage = action("inspectPage").run(async (_ctx, pageRef: Promise<Page>) => {
   const page = await pageRef;
   const title = await page.title();
-  logs.append({ source: "Inspect", level: "info", message: `title: ${title}` });
-  logs.append({ source: "Inspect", level: "info", message: `url:   ${page.url()}` });
+  console.log(`title: ${title}`);
+  console.log(`url:   ${page.url()}`);
 });
