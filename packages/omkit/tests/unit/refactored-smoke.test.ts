@@ -15,22 +15,20 @@ describe("refactored core", () => {
     let got: number | undefined;
     await om(async () => {
       const add = action("add").run(async (_ctx, a: number, b: number) => a + b);
-      got = await add(2, 3).exec().done;
+      const r = await add(2, 3).exec().result;
+      got = r.ok ? r.value : undefined;
     });
     expect(got).toBe(5);
   });
 
-  test("a failing action's .done rejects with its error", async () => {
+  test("a failing action's .result resolves { ok: false } with its error", async () => {
     let err: unknown;
     await om(async () => {
       const boom = action("boom").run(async () => {
         throw new Error("nope");
       });
-      try {
-        await boom().exec().done;
-      } catch (e) {
-        err = e;
-      }
+      const r = await boom().exec().result;
+      if (!r.ok) err = r.error;
     });
     expect((err as Error).message).toBe("nope");
   });
@@ -51,7 +49,7 @@ describe("refactored core", () => {
   test("parent log bubbles a child's launch ref and completion", async () => {
     await om(async () => {
       const kid = action("kid").run(async () => "v");
-      await kid().exec().done;
+      await kid().exec().result;
     });
     const entries = ExecutionTree.last!.store.entries();
     const bubbled = entries.filter((e) => e.nodeId === "main" && e.level === "child");
@@ -103,8 +101,8 @@ describe("refactored core", () => {
     expect(ended).toBe(true);
   });
 
-  test("cancelling a node rejects .done with CancelledError and marks it cancelled", async () => {
-    let caught: unknown;
+  test("cancelling a node's .result resolves CancelledError and marks it cancelled", async () => {
+    let outcome: unknown;
     await om(async () => {
       const hang = action("hang").run(async (ctx) => {
         await new Promise<void>((_resolve, reject) => {
@@ -114,13 +112,10 @@ describe("refactored core", () => {
       });
       const h = hang().exec();
       h.cancel();
-      try {
-        await h.done;
-      } catch (e) {
-        caught = e;
-      }
+      outcome = await h.result;
     });
-    expect(caught).toBeInstanceOf(CancelledError);
+    expect(outcome).toMatchObject({ ok: false });
+    expect((outcome as { error: unknown }).error).toBeInstanceOf(CancelledError);
     const node = ExecutionTree.last!.root.children.find((c) => c.name === "hang");
     expect(node?.status).toBe("cancelled");
   });
@@ -132,7 +127,7 @@ describe("refactored core", () => {
         .run(async (ctx) => {
           ctx.emit("ping", "hi");
         });
-      await emitter().exec().done;
+      await emitter().exec().result;
     });
     const events = ExecutionTree.last!.store.entries().filter(
       (e) => e.level === "event" && e.message.startsWith("ping")

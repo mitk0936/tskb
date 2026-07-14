@@ -23,9 +23,10 @@ om(async ({ cancel, snapshot }) => {
   void snapshot("build-config", buildConfig);
 
   // Watch the graph the build rewrites; each change lands in the log as an event.
-  watchBuildDir.tag("daemon").exec();
-  // Run the build to completion (its proc exiting resolves `.done`)…
-  await buildRepoDocs.tag("build").exec().done;
+  const watchBuild = watchBuildDir.exec().tag("watch:build:daemon");
+  // Run the build to completion (its proc exiting settles `.result`)…
+  const built = await buildRepoDocs.exec().tag("build").result;
+  if (!built.ok) throw built.error; // build failed → fault the run (exit 1)
   // …then tear everything down — build's done, so the watcher's job is too.
-  cancel();
+  watchBuild.cancel();
 });

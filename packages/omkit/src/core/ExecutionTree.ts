@@ -13,6 +13,7 @@ import { writeRollup } from "../output/writers/RollupWriter.ts";
 import { writeResult } from "../output/writers/ResultWriter.ts";
 import type { NodeView, RunView } from "../output/writers/views.ts";
 import { ActionRun, type NodeInit } from "./ActionRun.ts";
+import { procRegistry } from "../system/proc.ts";
 import { currentNode } from "./context.ts";
 import type { Exec, LaunchSpec } from "./types.ts";
 
@@ -55,19 +56,21 @@ export class ExecutionTree {
   private liveRendering: Promise<void> | undefined;
   private assertionsPassed = 0;
   private assertionsFailed = 0;
-  private readonly extraFailures: Array<{ action: string; error: string }> = [];
-  private phase: "open" | "closing" | "closed" = "open";
+  private readonly faults: Array<{ action: string; error: string }> = [];
 
-  // Teardown escape: `forced` makes drive() stop waiting on a node that won't settle
-  // (its proc is already killed by killTree on abort) so the run can never hang. Set
-  // by a 2nd Ctrl+C or, automatically, by the grace timer armed at teardown.
-  private sigints = 0;
-  private forced = false;
-  private readonly forcedWake: Deferred<void> = defer<void>();
+  static graceMs = 5000; // teardown waits this long for nodes to settle, then finalizes anyway
+
+  private phase: "open" | "closing" | "closed" = "open";
+  // Memoizes the in-flight finalize work so the grace timer's fire-and-forget call
+  // and runRoot's awaited call share (and both wait on) the same execution — a plain
+  // boolean guard would let the second caller return early while the first is still
+  // mid-flight (writes/uninstall not yet done), resolving `om()` too soon.
+  private finalizing: Promise<void> | undefined;
   private graceTimer: NodeJS.Timeout | undefined;
+  private readonly teardownGrace: Deferred<void> = defer<void>();
+  private readonly onSigint = (): void => this.teardown("interrupted (SIGINT)");
 
   // Process hooks — installed at run start, removed at finalize (they must not outlive the run).
-  private readonly onSigint = (): void => this.handleSigint();
   private readonly onUncaught = (e: unknown): void => this.onFatal("uncaughtException", e);
   private readonly onUnhandled = (e: unknown): void => this.onFatal("unhandledRejection", e);
 
@@ -118,7 +121,7 @@ export class ExecutionTree {
     this.append(parent, "child", "launch", `→ ${id} · ${this.logFile(nodePath)}`);
     for (const t of spec.tags) node.tag(t);
     const promise = currentNode.run(node, () => node.run(spec.body, spec.args));
-    this.trackNode(node, promise);
+    this.trackNode(promise);
     return node;
   }
 
@@ -131,12 +134,21 @@ export class ExecutionTree {
     store: LogStore;
     snapshots: SnapshotStore;
     onAssert: NodeInit["onAssert"];
+    onUnhandledFailure: NodeInit["onUnhandledFailure"];
   } {
     return {
       store: this.store,
       snapshots: this.snapshotStore,
       onAssert: (pass, actionPath, message) => this.recordAssert(pass, actionPath, message),
+      onUnhandledFailure: (actionPath, error) => {
+        this.recordFault(actionPath, error);
+        this.teardown(`${actionPath} failed`);
+      },
     };
+  }
+
+  private recordFault(action: string, error: unknown): void {
+    this.faults.push({ action, error: messageOf(error) });
   }
 
   private recordAssert(pass: boolean, actionPath: string, message: string): void {
@@ -147,57 +159,31 @@ export class ExecutionTree {
     this.assertionsFailed++;
     // A failure during teardown is cascade, not a real fault.
     if (!this.root.signal.aborted) {
-      this.extraFailures.push({ action: actionPath, error: `assertion failed: ${message}` });
+      this.recordFault(actionPath, `assertion failed: ${message}`);
     }
-  }
-
-  /**
-   * Ctrl+C, kept caught (`process.on`, not `once`) so a second press can't fall
-   * through to Node's hard-kill default. 1st → begin teardown; 2nd → force finalize
-   * now (don't wait on a node whose cleanup is wedged — its proc is already killed);
-   * 3rd → give up and exit hard.
-   */
-  private handleSigint(): void {
-    this.sigints += 1;
-    if (this.sigints === 1) {
-      this.beginTeardown("interrupted (SIGINT)");
-      this.originalLog("  ↳ stopping… (Ctrl+C again to force)");
-      return;
-    }
-    if (this.sigints === 2) {
-      this.originalLog("  ↳ forcing shutdown…");
-      this.force();
-      return;
-    }
-    process.exit(130);
   }
 
   /** Tear the whole run down (aborts the root, cascading to every node). Idempotent. */
   cancel(): void {
-    this.beginTeardown("cancelled");
+    this.teardown("cancelled");
   }
 
   /**
-   * The sole abort path: `open → closing`, narrate the reason once, and abort the
-   * root controller (cascading to every node — procs killed, waits unblocked,
-   * daemons stopped). Later triggers are no-ops. Arms a grace timer so a node whose
-   * cleanup wedges after its proc is already dead can't hang the run forever.
+   * The sole teardown path: `open → closing`, narrate the reason once, abort the root
+   * (cascading to every node — procs killed, waits unblocked, daemons stopped). Later
+   * calls are no-ops. A single grace timer guarantees finalize even if a node's cleanup
+   * wedges after its proc is already dead, so the run always writes its log.
    */
-  private beginTeardown(reason: string): void {
+  teardown(reason: string): void {
     if (this.phase !== "open") return;
     this.phase = "closing";
     this.narrate(`tearing down · ${reason}`);
     this.root.cancel();
-    // Not unref'd: during teardown this timer must hold the process alive long
-    // enough to force finalize (and write the artifacts) if a node's cleanup wedges.
-    // Cleared in finalize the moment the run drains on its own.
-    this.graceTimer = setTimeout(() => this.force(), TEARDOWN_GRACE_MS);
-  }
-
-  /** Stop waiting on unsettled nodes and let finalize run now. Idempotent. */
-  private force(): void {
-    this.forced = true;
-    this.forcedWake.resolve();
+    // Not unref'd: it must hold the process alive long enough to finalize.
+    this.graceTimer = setTimeout(() => {
+      this.teardownGrace.resolve(); // break drive()'s wait on a node that won't settle
+      void this.finalize(); // …and finalize even if drive() was never reached (hung body)
+    }, ExecutionTree.graceMs);
   }
 
   /** An escaped throw/rejection: log it, record it (unless already tearing down), tear down. */
@@ -209,17 +195,16 @@ export class ExecutionTree {
       source: kind,
       message: messageOf(error),
     });
-    if (!this.root.signal.aborted)
-      this.extraFailures.push({ action: kind, error: messageOf(error) });
-    this.beginTeardown(kind);
+    if (!this.root.signal.aborted) this.recordFault(kind, error);
+    this.teardown(kind);
   }
 
   /** Run the `om` body as the root node, then drive to finalize. */
   async runRoot(body: Exec<object, unknown, unknown>): Promise<void> {
     this.narrate(`run started · ${this.folder.name()}`);
     this.consoleCapture.install();
-    // `on`, not `once`: we must keep catching SIGINT so a second Ctrl+C escalates
-    // through handleSigint instead of falling through to Node's hard-kill default.
+    // `on`, not `once`: SIGINT must stay caught for the life of the run so it can't
+    // fall through to Node's hard-kill default before finalize writes the log.
     process.on("SIGINT", this.onSigint);
     process.on("uncaughtException", this.onUncaught);
     process.on("unhandledRejection", this.onUnhandled);
@@ -228,40 +213,49 @@ export class ExecutionTree {
     this.liveRendering = new LiveRenderer(this.originalLog).run(this.store);
 
     const rootPromise = currentNode.run(this.root, () => this.root.run(body, []));
-    this.trackNode(this.root, rootPromise);
+    this.trackNode(rootPromise);
     await rootPromise;
-    // Orchestrator crash ⇒ tear the whole run down so a daemon it launched can't hang.
-    if (this.root.status === "failed") this.beginTeardown("body error");
 
     await this.drive();
     await this.finalize();
   }
 
-  private trackNode(node: ActionRun, promise: Promise<void>): void {
+  /**
+   * Track a launched node's `run()` promise until it settles (drives `drive()`'s
+   * wait). `run()` itself never rejects — the node's own constructor already
+   * swallows its settled rejection (via the private field, not the `.result` getter,
+   * so it doesn't mark the node observed and defeat the unobserved-failure check).
+   */
+  private trackNode(promise: Promise<void>): void {
     const tracked = promise.finally(() => this.unsettled.delete(tracked));
     this.unsettled.add(tracked);
-    // Absorb an un-awaited failure/cancel so it can't surface as an unhandled rejection.
-    void node.done.catch(() => {});
   }
 
   private async drive(): Promise<void> {
-    // Drain every launched node. Teardown aborts them (killTree reaps the procs,
-    // waits unblock, daemons stop), so they settle and this returns. `force` (2nd
-    // Ctrl+C or the grace timer) breaks the wait if a node's *own* cleanup wedges —
-    // the OS process is already dead by then, so nothing is orphaned, only the log
-    // records the node as unsettled.
-    while (this.unsettled.size > 0 && !this.forced) {
-      await Promise.race([Promise.allSettled([...this.unsettled]), this.forcedWake.promise]);
+    // Drain every launched node. Teardown aborts them (procs reaped, waits unblocked),
+    // so they settle and this returns. The grace timer resolves `teardownGrace` if a
+    // node's own cleanup wedges — the OS process is already dead by then.
+    while (this.unsettled.size > 0) {
+      const graced = await Promise.race([
+        Promise.allSettled([...this.unsettled]).then(() => false),
+        this.teardownGrace.promise.then(() => true),
+      ]);
+      if (graced) break;
     }
   }
 
-  private async finalize(): Promise<void> {
-    if (this.phase === "open") this.beginTeardown("completed");
+  private finalize(): Promise<void> {
+    if (!this.finalizing) this.finalizing = this.finalizeOnce();
+    return this.finalizing;
+  }
+
+  private async finalizeOnce(): Promise<void> {
+    if (this.phase === "open") this.teardown("completed");
     this.phase = "closed";
     if (this.graceTimer) clearTimeout(this.graceTimer);
-    process.off("SIGINT", this.onSigint);
-    process.off("uncaughtException", this.onUncaught);
-    process.off("unhandledRejection", this.onUnhandled);
+    // Reap any Windows grandchild a mashed Ctrl+C orphaned before killTree could reach it
+    // (no-op elsewhere, and when nothing was tracked).
+    procRegistry.sweep();
     this.narrate("finished");
     this.store.close();
     await this.streaming;
@@ -277,13 +271,15 @@ export class ExecutionTree {
     await writeRollup(at("snapshots.log"), flat, entries, (e) => e.level === "snapshot");
     await writeResult(at("result.json"), this.runView());
 
+    // Only now let go of the process hooks — a Ctrl+C during the writes must still be
+    // caught (as a no-op) so it can't fall through to Node's kill-without-log default.
+    process.off("SIGINT", this.onSigint);
+    process.off("uncaughtException", this.onUncaught);
+    process.off("unhandledRejection", this.onUnhandled);
     this.consoleCapture.uninstall();
     ExecutionTree.current = null;
     this.printSummary(at, assertSummary);
     if (!this.verdictOk()) process.exitCode = 1;
-    // A forced finalize means a node's cleanup is still wedged (its proc already
-    // dead) — a pending handle could hold the loop open, so exit rather than hang.
-    if (this.forced) process.exit(process.exitCode ?? 0);
   }
 
   /** The end-of-run links + assert summary, to the terminal (files are already written). */
@@ -298,7 +294,7 @@ export class ExecutionTree {
   }
 
   private verdictOk(): boolean {
-    return !this.registry.some((n) => n.status === "failed") && this.extraFailures.length === 0;
+    return this.faults.length === 0;
   }
 
   private nodeView(node: ActionRun): NodeView {
@@ -319,16 +315,15 @@ export class ExecutionTree {
     };
   }
 
+  /** Test seam: the projected run view (same object written to result.json). */
+  runViewForTest(): RunView {
+    return this.runView();
+  }
+
   private runView(): RunView {
-    const failures = [
-      ...this.registry
-        .filter((node) => node.status === "failed")
-        .map((node) => ({ action: node.path, error: messageOf(node.error) })),
-      ...this.extraFailures,
-    ];
     return {
-      ok: failures.length === 0,
-      failures,
+      ok: this.faults.length === 0,
+      failures: [...this.faults],
       assertions: { passed: this.assertionsPassed, failed: this.assertionsFailed },
       startedAt: this.root.startedAt,
       endedAt: this.root.endedAt,
@@ -357,9 +352,6 @@ export class ExecutionTree {
     this.store.append({ nodeId: "run", path: "run", level: "run", source: "run", message });
   }
 }
-
-/** How long teardown waits for nodes to settle before forcing finalize (ms). */
-const TEARDOWN_GRACE_MS = 8000;
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? (error.stack ?? error.message) : String(error);

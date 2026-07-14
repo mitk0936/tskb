@@ -6,7 +6,14 @@ import type { ActionRef } from "../foundation/ActionRef.ts";
 import { createProc } from "../system/proc.ts";
 import type { LogStore } from "../output/log/LogStore.ts";
 import type { SnapshotStore } from "../output/snapshot/SnapshotStore.ts";
-import type { ActionContext, Exec, InstanceEvents, NodeStatus, RunHandle } from "./types.ts";
+import type {
+  ActionContext,
+  Exec,
+  InstanceEvents,
+  NodeStatus,
+  Outcome,
+  RunHandle,
+} from "./types.ts";
 
 /** Everything a node needs to exist, minus its behavior. */
 export interface NodeInit {
@@ -24,15 +31,17 @@ export interface NodeInit {
   readonly snapshots: SnapshotStore;
   /** Report an assertion outcome to the run verdict. */
   readonly onAssert: (pass: boolean, path: string, message: string) => void;
+  /** Called when this node fails while unobserved — the tree tears down + records a fault. */
+  readonly onUnhandledFailure: (path: string, error: unknown) => void;
   /** Bubble a milestone line into this node's parent log (no-op for the root). */
   readonly bubble: (message: string) => void;
 }
 
 /**
  * One node in the {@link ExecutionTree}: its identity, tags, timing, and terminal
- * state, plus the run handle (`done`/`ref`/`once`/`tag`/`cancel`). Self-contained —
+ * state, plus the run handle (`result`/`ref`/`once`/`tag`/`cancel`). Self-contained —
  * `run(exec, args)` executes the body inside the error boundary and settles the
- * node; it never throws (the failure is delivered through `.done`).
+ * node; it never throws (the failure is delivered through `.result`).
  */
 export class ActionRun<
   Result = unknown,
@@ -60,11 +69,19 @@ export class ActionRun<
   private readonly store: LogStore;
   private readonly snapshots: SnapshotStore;
   private readonly onAssert: (pass: boolean, path: string, message: string) => void;
+  private readonly onUnhandledFailure: (path: string, error: unknown) => void;
   private readonly bubble: (message: string) => void;
   private readonly emitter: Emitter<InstanceEvents<Events, Result>> = events();
   private readonly settled: Deferred<Result> = defer<Result>();
   private readonly handle: Deferred<Handle> = defer<Handle>();
+  private failureHandler: ((error: unknown) => void) | undefined;
   private attached = false;
+  private observed = false;
+  private refObserved = false;
+  // Set only by the parent-signal abort listener (an ANCESTOR cancelling this node).
+  // Distinguishes a run/ancestor teardown from this node's own subtree-abort on failure,
+  // so the unobserved-failure check below isn't fooled by our own controller.abort().
+  private cascadeCancelled = false;
 
   constructor(init: NodeInit) {
     this.id = init.id;
@@ -75,16 +92,25 @@ export class ActionRun<
     this.store = init.store;
     this.snapshots = init.snapshots;
     this.onAssert = init.onAssert;
+    this.onUnhandledFailure = init.onUnhandledFailure;
     this.bubble = init.bubble;
 
-    // Chain cancellation: parent abort ⇒ this subtree aborts.
+    // Chain cancellation: an ancestor's abort ⇒ this subtree aborts (and is flagged as a
+    // cascade, so a concurrent own-failure isn't misread as a fresh unhandled fault).
     const parent = init.parentSignal;
+    const onAncestorAbort = (): void => {
+      this.cascadeCancelled = true;
+      this.controller.abort();
+    };
     if (parent) {
-      if (parent.aborted) this.controller.abort();
-      else parent.addEventListener("abort", () => this.controller.abort(), { once: true });
+      if (parent.aborted) onAncestorAbort();
+      else parent.addEventListener("abort", onAncestorAbort, { once: true });
     }
     // A void-handle awaiter shouldn't surface an unhandled rejection at settle.
     void this.handle.promise.catch(() => {});
+    // An unobserved failure is routed to teardown explicitly; swallow the raw rejection
+    // here (via the field, not the `done` getter) so it isn't also an unhandledRejection.
+    void this.settled.promise.catch(() => {});
   }
 
   /** A stable reference for headers/attribution (tags are the accumulated set now). */
@@ -99,12 +125,17 @@ export class ActionRun<
 
   // ── Run handle surface ─────────────────────────────────────────────────────
 
-  get done(): Promise<Result> {
-    return this.settled.promise;
+  get result(): Promise<Outcome<Result>> {
+    this.observed = true;
+    return this.settled.promise.then(
+      (value): Outcome<Result> => ({ ok: true, value }),
+      (error): Outcome<Result> => ({ ok: false, error })
+    );
   }
 
   /** The attached handle; rejects on failure/cancel. */
   get ref(): Promise<Handle> {
+    this.refObserved = true;
     return this.handle.promise;
   }
 
@@ -112,12 +143,17 @@ export class ActionRun<
     key: K,
     handler: EventHandler<InstanceEvents<Events, Result>[K]>
   ): void {
+    // A late `on("error")` (e.g. attached after a synchronously-throwing body already
+    // failed inline during `.exec()`) still receives the failure: the emitter snapshots
+    // the last "error" payload and replays it to a new listener.
+    if (key === "error") this.observed = true;
     this.emitter.listen(key, handler);
   }
 
   once<K extends keyof InstanceEvents<Events, Result>>(
     key: K
   ): Promise<InstanceEvents<Events, Result>[K] | undefined> {
+    if (key === "error") this.observed = true;
     if (key === "done") {
       return this.settled.promise.then(
         (v) => v as InstanceEvents<Events, Result>[K],
@@ -141,6 +177,16 @@ export class ActionRun<
   tag(name: string): this {
     this.tags.push(name);
     this.log("tag", "tag", name);
+    return this;
+  }
+
+  handleFailure(handler: (error: unknown) => void): this {
+    this.failureHandler = handler;
+    this.observed = true;
+    // A synchronously-throwing body fails inline during `.exec()`, before this attaches:
+    // deliver the already-recorded failure now (it won't fail again). Cancellation is
+    // status "cancelled", not "failed", so a cancelled node never runs the handler.
+    if (this.status === "failed") handler(this.error);
     return this;
   }
 
@@ -244,6 +290,21 @@ export class ActionRun<
     this.sysEmit("done", undefined);
     this.settled.reject(error);
     this.handle.reject(error);
+    // A failed action's work is over: abort its OWN subtree (children → CancelledError,
+    // procs killed). This is local cleanup, independent of the run verdict. It sets our
+    // signal.aborted, which is why the check below uses `cascadeCancelled`, not
+    // `signal.aborted`, to tell an unhandled fault from a run/ancestor teardown.
+    this.controller.abort();
+    // A registered handler owns a fire-and-forget failure (side effect only; not on cancel).
+    this.failureHandler?.(error);
+    // If, one microtask on, no one is positioned to receive this error (no `.result`/`.ref`
+    // read, no `on("error")`) and we weren't caught in an ancestor's teardown, it's
+    // unhandled — tell the tree to tear the run down and record the fault.
+    // `sysEmit("error")` above already ran, so a live error handler has set `observed`.
+    queueMicrotask(() => {
+      const observed = this.observed || (this.refObserved && !this.attached);
+      if (!observed && !this.cascadeCancelled) this.onUnhandledFailure(this.path, error);
+    });
   }
 
   /** The framework's own emits (loosely typed — sidesteps EmitArgs for void payloads). */

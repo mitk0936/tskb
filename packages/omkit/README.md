@@ -2,142 +2,155 @@
 
 **The operational-model kit.** _Typed actions. One run. One log._
 
-A runtime for the workflows around your code — build, watch, spawn, probe, drive
-a browser, inspect state, tear it all down together. `omkit` is the running,
-typed model of your system in motion. Where
-[tskb](https://www.npmjs.com/package/tskb) is the _knowledge_ layer, `omkit` is
-the _operational_ one.
+A tiny runtime for the workflows _around_ your code — build, watch, spawn, probe, drive a browser, read state back, and tear it all down together. Where [tskb](https://www.npmjs.com/package/tskb) is the _knowledge_ layer, `omkit` is the _operational_ one: the running, typed model of your system in motion.
 
 ## The problem
 
-Real developer workflows aren't linear. They start processes, wait for health
-checks, connect a browser, read state back, watch files, react to events — and
-shut everything down as one. Most teams glue this together with shell scripts,
-npm scripts, and ad-hoc Node.
+Real developer workflows aren't linear. They start processes, wait for health checks, connect a browser, read state back, watch files, react to events — and shut everything down as one. Most teams glue this together with shell scripts, npm scripts, and ad-hoc Node, and get back a pile of opaque process output.
 
-`omkit` models the workflow instead. Each step is a typed **action** running
-inside one runtime, and actions don't share globals — they hand each other typed
-runtime **capabilities** (a port, a client, a live browser page) and emit typed
-**events**. So a running system exposes structured handoffs and observations
-rather than a pile of opaque process output — which makes the whole thing
-observable, reproducible, and scriptable.
+`omkit` models the workflow instead. Each step is a typed **action** running inside one runtime. Actions don't share globals — they hand each other typed runtime **capabilities** (a port, a client, a live browser page) and emit typed **events**, all onto one log. So a running system exposes structured handoffs and observations, which makes it observable, reproducible, and scriptable.
 
 ```ts
-import { spin } from "omkit";
-import { command, healthcheck, chromedriver, chromePage } from "omkit/actions";
+import { om } from "omkit";
+import { command, healthcheck, chromePage } from "omkit/actions";
 
-spin(async ({ nod }) => {
-  nod(command("api", "npm run dev:api")); // start a daemon…
-  await nod(healthcheck({ port: 3000 })).once("healthy"); // …gate on it…
+om(async () => {
+  command("api", "npm run dev:api").exec().tag("api:daemon"); // start a daemon…
 
-  const chrome = nod(chromedriver({ url: "http://localhost:3000" }));
-  nod(chromePage(chrome.ref)); // …then hand the live page downstream
+  const ready = await healthcheck({ port: 3000 }).exec().result; // …gate on it…
+  if (!ready.ok) return;
+
+  // …then hand the live page downstream — typed, not scraped from a log.
+  const page = chromePage("app", "localhost:9222", { url: "http://localhost:3000" }).exec();
+  await inspect(page.ref); // whatever drives the app receives the live Page
+
+  console.log("up — press Ctrl+C to stop");
 });
 ```
 
-That last line is the point. `chrome.ref` isn't a URL scraped from a log — it's a
-typed capability the next action receives and drives. Few workflow tools pass
-anything but strings between steps.
+`page.ref` isn't a URL scraped from stdout — it's a typed capability the next step receives and drives. Few workflow tools pass anything but strings between steps.
 
 ```
-                    spin()
-                      │
-        ┌─────────────┼─────────────┐
-        ▼             ▼             ▼
-     command      healthcheck   chromedriver
-                                     │ .ref
+                      om()
+                       │
+        ┌──────────────┼──────────────┐
+        ▼              ▼              ▼
+     command       healthcheck    chromePage
+    (daemon)         (gate)          │ .ref
                                      ▼
-                                 chromePage
-                                     │ .ref
-                                     ▼
-                                inspectPage
+                                 your driver
 ```
 
-## Five concepts
+## Core concepts
 
-- **Action** — a named, typed unit of work; optionally declares events and an
-  imperative handle. Calling it constructs an instance (deferred — the run
-  executes it).
+### Actions & Activities
 
-  ```ts
-  const build = action("Build").run(({ proc }) => proc("tsc")`tsc -b`);
-  ```
+An **Action** is an immutable description of work — named, typed, optionally declaring events and an imperative handle. An **Activity** is a live execution of one, created synchronously by `.exec()`. Everything _before_ `exec()` configures the Action; everything _after_ configures or observes the Activity.
 
-- **Spin** — hosts an async orchestration _inside_ the runtime. You write normal
-  `await` / `if` / loops / variables, while the actions you launch keep running
-  in parallel. omkit runs your function as one in-flight action and hands it
-  `nod`; because that host stays in-flight while you `await`, the run never idles
-  shut between steps. `nod(instance)` launches an action and returns it, so you
-  can `await` its `.once(...)` or its `.ref`:
+```ts
+import { action } from "omkit";
 
-  ```ts
-  spin({ failFast: false }, async ({ nod }) => {
-    if ((await nod(prompt({ … })).once("done")) === "yes") await nod(test).once("done");
-    nod(devServer); // daemon: keeps the run alive
-    const chrome = nod(chromedriver({ … }));
-    nod(chromePage(chrome.ref));
+const Build = action("Build").run(({ proc }) => proc("tsc")`tsc -b`);
+
+const activity = Build().exec(); // launch; returns the live Activity
+```
+
+`om(async (ctx) => …)` hosts a linear orchestration as the root of a run. You write normal `await` / `if` / loops / variables; the Activities you launch keep running in parallel. Because the body stays in-flight while you `await`, the run never idles shut between steps. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+
+### Typed capabilities
+
+An action can `attach` a value — a port, a client, a page — that downstream actions receive by awaiting `activity.ref`. Not a file descriptor: a typed runtime handoff, so actions chain without globals or string-scraping.
+
+```ts
+const Server = action("Server")
+  .ref<number>()
+  .run(async ({ attach, signal }) => {
+    attach(await listen()); // publish the capability…
+    await until(signal); // …and stay alive until teardown
   });
-  ```
 
-- **Handle — a typed capability** — an action can `attach` a value (a port, a
-  client, a page) that others `await` via `instance.ref`. Not a file descriptor:
-  a typed runtime handoff, so actions chain without globals or string-scraping:
+const Probe = action("Probe").run((_ctx, port: Promise<number>) => drive(port));
 
-  ```ts
-  const Server = action("Server")
-    .ref<number>()
-    .run(async ({ attach, signal }) => {
-      attach(await listen()); // publish the capability…
-      await until(signal); // …and stay alive
-    });
+om(async () => {
+  const server = Server().exec();
+  Probe(server.ref).exec(); // Probe receives Server's port, typed
+});
+```
 
-  const Probe = action("Probe").run((_ctx, port: Promise<number>) => drive(port));
+### Outcomes — a result that doesn't throw
 
-  spin(async ({ nod }) => {
-    const server = nod(Server());
-    nod(Probe(server.ref)); // Probe receives Server's port, typed
-  });
-  ```
+Every Activity settles to a typed **`Outcome`**, read via `activity.result` — which **never throws**:
 
-- **Log** — every action's output, events, and lifecycle land on one timeline. It
-  streams live and is written to disk. (A spin auto-drains; pass `drain: false`
-  to start the stream yourself — e.g. after a `prompt` so it doesn't write over
-  the question.)
+```ts
+type Outcome<T> = { ok: true; value: T } | { ok: false; error: unknown };
 
-- **Run** — the runtime a spin sits on: actions in parallel under one abort
-  controller and the process-wide log, one run per process. `spin` is the usual
-  entry point; drop to `run(...)` directly when you just want to launch a fixed
-  set and `await r.done`. Ctrl-C, a failure, or natural completion tears it all
-  down.
+const r = await runTests().exec().result;
+if (!r.ok) {
+  // an expected, operational failure — inspect it and carry on
+}
+```
+
+Awaiting `.result` also _observes_ the Activity (see teardown, below). A cancelled Activity resolves `{ ok: false, error: CancelledError }`.
+
+### Failure & teardown
+
+omkit uses **structured supervision**: a failure that **nobody is watching** tears the whole run down and marks it failed. An Activity is "watched" if — before it fails — you awaited its `.result` (or `.ref`), attached an `on("error")` listener, or attached `.handleFailure`.
+
+- **Await it** (`await x.exec().result`) → the failure is yours to inspect as `{ ok: false }`; the run stays green.
+- **Fire-and-forget it** (`x.exec()`, never awaited) → an unobserved failure tears the run down. This is the guardrail for daemons: a crashed daemon fails the run instead of leaving it wedged.
+- **`.handleFailure(fn)`** → own a fire-and-forget Activity's failure: `fn(error)` runs instead of tearing down.
+
+```ts
+watchDir(".build").exec().tag("watch:daemon"); // crash here → run tears down
+someFlakyDaemon()
+  .exec()
+  .handleFailure((e) => log(e)); // …unless you own it
+```
+
+**Ctrl+C** and **`ctx.cancel()`** tear everything down gracefully — the log is always written. And **success is keep-alive**: when your `om` body returns, daemons it launched keep running until Ctrl+C or `cancel()`, so a body that finishes wiring things up doesn't kill the servers it started.
+
+### One log, on disk
+
+Every action's output, events, asserts, snapshots, and lifecycle land on **one timeline**. It streams live to the terminal (curated milestones) and is written to a per-run folder:
+
+- `result.json` — the run's tree, per-node status, and verdict.
+- `raw.jsonl` — every entry, machine-readable.
+- `main.log` + one `.log` per node — the human-readable timelines.
+- `events.log` / `asserts.log` / `snapshots.log` — cross-cutting rollups.
+
+`ctx` also gives each action `assert(...)` (tallies into the verdict) and `snapshot(name, value)` (captures JSON state to the run folder) — so a run is an inspectable artifact, not just exit codes.
 
 ## Events
 
-An instance exposes its declared events plus the lifecycle ones (`done`,
-`error`, `attached`):
+An Activity exposes its declared events plus the lifecycle ones (`done`, `error`, `attached`):
 
-- **`instance.on(event, handler)`** — subscribe with a handler for every emit.
-- **`instance.once(event)`** — a **promise** for the next emit: resolves with the
-  payload, or rejects if the action settles first (so an `await` never hangs).
-  `await instance.once("done")` is the action's result; a retained snapshot (like
-  `healthy`) resolves immediately even if you subscribe late.
+- **`activity.on(event, handler)`** — subscribe to every emit.
+- **`activity.once(event)`** — a **promise** for the next emit; resolves `undefined` if the Activity settles first, so an `await` never hangs. A retained snapshot (like `healthy`) is replayed immediately even if you subscribe late.
+
+```ts
+const probe = healthcheck({ port: 3000 }).exec();
+probe.on("healthy", (r) => console.log(`up after ${r.attempts} tries`));
+```
 
 ## Batteries — `omkit/actions`
 
-- **`command`** — wrap a shell command (output streams to the log, killed on teardown).
+Reusable actions built on the core engine. For anything beyond these, drop down to `action(...).run(...)`.
+
+- **`command`** — run a shell command; output streams to the log, killed on teardown.
 - **`watch`** / **`watchDir`** — watch a file or directory for changes (survives wipe + recreate).
 - **`untilLog`** — gate on the first log entry matching a predicate.
-- **`tailLog`** — tail a file another process writes, streaming its lines into the combined log.
-- **`healthcheck`** — poll a URL/port until status (and optionally body) matches.
+- **`tailLog`** — tail a file another process writes, folding its lines into the combined log.
+- **`healthcheck`** — poll a URL/port until the status (and optionally body) matches.
 - **`prompt`** — ask the terminal for input or a choice, with a timeout that falls back to a default; the answer is its handle.
-- **`chromePage`** — attach to Chrome over CDP — or to an existing Playwright
-  `Page`/`Browser`/`Context` (including Electron windows) — and expose the live
-  `Page` as a handle.
+- **`chromePage`** — attach to Chrome over CDP — or to an existing Playwright `Page`/`Browser`/`Context`, including Electron windows — and expose the live `Page` as a handle.
 
 ## Install
 
 ```sh
 npm install omkit
 ```
+
+Requires Node ≥ 20.11. ESM only.
 
 ## License
 

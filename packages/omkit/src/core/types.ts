@@ -8,6 +8,9 @@ export type Awaitable<T> = T | Promise<T>;
 /** An action that declares no events. */
 export type NoEvents = Record<never, never>;
 
+/** An activity's terminal outcome: a value on success, an error on failure/cancel. Never thrown. */
+export type Outcome<T> = { ok: true; value: T } | { ok: false; error: unknown };
+
 /** A node's lifecycle state, mirrored into `result.json`. */
 export type NodeStatus = "running" | "ok" | "failed" | "cancelled";
 
@@ -61,15 +64,21 @@ export interface OmContext {
 }
 
 /**
- * A launched action: the live node's awaitable/observable surface. `.done`/`.ref`
- * **reject** on failure (and with a `CancelledError` on cancel).
+ * A launched action: the live node's awaitable/observable surface. `.result` always
+ * resolves an {@link Outcome} (never throws); `.ref` rejects on failure/cancel.
  */
 export interface RunHandle<Result = unknown, Events extends object = NoEvents, Handle = void> {
   readonly id: string;
-  /** The result; rejects on failure/cancel. */
-  readonly done: Promise<Result>;
+  /** The terminal outcome; always resolves (never rejects). Reading it observes the failure. */
+  readonly result: Promise<Outcome<Result>>;
   /** The attached handle; rejects on failure/cancel. */
   readonly ref: Promise<Handle>;
+  /**
+   * Handle a fire-and-forget activity's failure: attach a handler so a crash runs it
+   * instead of tearing the run down. Observes the failure; chainable; attach in the
+   * same tick as `.exec()`. Not called on cancellation.
+   */
+  handleFailure(handler: (error: unknown) => void): this;
   /** Subscribe to every emit of a declared/system event (`done`/`error`/`attached`). */
   on<K extends keyof InstanceEvents<Events, Result>>(
     key: K,

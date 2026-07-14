@@ -40,7 +40,7 @@ An **observed** failure does not directly teardown — its error is delivered to
 A node is **observed** if something is positioned to receive its **error**:
 
 - its `.done` getter was accessed (an `await …​.done`, or `step(...)` internally), **or**
-- its `.ref` getter was accessed (a downstream action awaiting the handle), **or**
+- its `.ref` getter was accessed **and the handle has not yet been attached** — once `attach()` resolves the handle, the `.ref` reader already has its value and is no longer positioned to receive a _later_ error, so a post-attach failure counts as unobserved (and tears down), **or**
 - an `on("error")` / `once("error")` handler was attached.
 
 Event-only listeners do **not** count as observing, because they never deliver the error:
@@ -158,6 +158,7 @@ From `ActionRun.ts`:
 | `await foo().done` uncaught                          | Rejects → body throws → root fault → teardown. Verdict **red**.                                                                                           |
 | `try { await foo().done } catch {}`                  | Observed + caught → handled, no run teardown, **no fault**. Verdict **green**. But `foo`'s own children are cancelled + its procs killed (subtree abort). |
 | A fails with fire-and-forget children                | `A`'s children get `CancelledError`, `A`'s procs killed — whether or not the run tears down.                                                              |
+| A daemon attaches its handle, then fails later       | `.ref`-observation is stale once attached → unobserved → teardown + fault.                                                                                |
 | Saved handle, awaited later, fails before the await  | Unobserved at fail-time → teardown + fault. Red.                                                                                                          |
 | Healthcheck awaited via `once("healthy")` then fails | `once` doesn't observe the error → teardown + fault. Red.                                                                                                 |
 | `ctx.cancel()` / Ctrl+C with no other fault          | Clean teardown, no fault. Verdict **green**, exit 0.                                                                                                      |
