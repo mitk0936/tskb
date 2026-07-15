@@ -43,6 +43,8 @@ export interface ActionContext<Events extends object = NoEvents, Handle = void> 
   readonly assert: (condition: boolean, message: string) => void;
   /** Capture a JSON snapshot; drops a timeline line and resolves the file's absolute path. */
   readonly snapshot: (name: string, value: unknown) => Promise<string>;
+  /** Absolute path to this run's output folder — write artifacts (screenshots, dumps, …) here. */
+  readonly artifactsFolder: string;
   /** Spawn child processes bound to this action (output → this node's log, killed on teardown). */
   readonly proc: Proc;
 }
@@ -61,6 +63,8 @@ export interface OmContext {
   readonly assert: (condition: boolean, message: string) => void;
   /** Capture a run-level JSON snapshot; resolves the file's absolute path. */
   readonly snapshot: (name: string, value: unknown) => Promise<string>;
+  /** Absolute path to this run's output folder — write run-level artifacts here. */
+  readonly artifactsFolder: string;
 }
 
 /**
@@ -122,6 +126,8 @@ export interface Action<
 > {
   (...args: Args): ActionInstance<Result, Events, Handle>;
   readonly actionName: string;
+  /** `file:line` where this action was defined (the `.run(...)` site), for the log header. */
+  readonly definedAt: string | undefined;
 }
 
 /** Intermediate step from `action(name)`: declare events/handle, then provide the impl. */
@@ -145,4 +151,6 @@ export interface LaunchSpec {
   readonly args: readonly unknown[];
   readonly tags: readonly string[];
   readonly body: Exec<object, unknown, unknown>;
+  /** `file:line` where the action was defined; carried onto the node for its log header. */
+  readonly definedAt: string | undefined;
 }

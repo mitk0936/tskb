@@ -1,4 +1,5 @@
 import { ExecutionTree } from "./ExecutionTree.ts";
+import { callerSite } from "../foundation/callsite.ts";
 import type { Awaitable, Exec, OmContext } from "./types.ts";
 
 /**
@@ -12,7 +13,7 @@ export function om(body: (ctx: OmContext) => Awaitable<void>): Promise<void> {
   if (ExecutionTree.current) {
     throw new Error("an om() run is already active in this process");
   }
-  const tree = new ExecutionTree();
+  const tree = new ExecutionTree(callerSite()); // where om() was called — the run's script
   ExecutionTree.current = tree;
 
   const rootBody: Exec<object, unknown, unknown> = (ctx) =>
@@ -23,6 +24,7 @@ export function om(body: (ctx: OmContext) => Awaitable<void>): Promise<void> {
       cancel: () => tree.cancel(),
       assert: ctx.assert,
       snapshot: ctx.snapshot,
+      artifactsFolder: ctx.artifactsFolder,
     });
 
   return tree.runRoot(rootBody);

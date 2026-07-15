@@ -154,7 +154,7 @@ export const createProc =
   };
 
 /** Split a byte/string stream into lines, calling `onLine` for each non-empty one. */
-async function streamLines(
+export async function streamLines(
   stream: AsyncIterable<unknown>,
   onLine: (line: string) => void
 ): Promise<void> {

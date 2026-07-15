@@ -19,6 +19,8 @@ import type {
 export interface NodeInit {
   readonly store: LogStore;
   readonly name: string;
+  /** `file:line` where the action was defined (the `.run(...)` site) — for the log header. */
+  readonly definedAt: string | undefined;
   readonly uuid: string;
   /** `${name}_${shortId}`, or `main` for the root. */
   readonly id: string;
@@ -29,6 +31,8 @@ export interface NodeInit {
   readonly parentSignal: AbortSignal | null;
   /** The run's snapshot store — backs `ctx.snapshot`. */
   readonly snapshots: SnapshotStore;
+  /** Absolute path to the run's output folder — backs `ctx.artifactsFolder`. */
+  readonly artifactsFolder: string;
   /** Report an assertion outcome to the run verdict. */
   readonly onAssert: (pass: boolean, path: string, message: string) => void;
   /** Called when this node fails while unobserved — the tree tears down + records a fault. */
@@ -51,6 +55,7 @@ export class ActionRun<
   readonly id: string;
   readonly uuid: string;
   readonly name: string;
+  readonly definedAt: string | undefined;
   readonly path: string;
   readonly parentId: string | null;
   readonly tags: string[] = [];
@@ -68,6 +73,7 @@ export class ActionRun<
 
   private readonly store: LogStore;
   private readonly snapshots: SnapshotStore;
+  private readonly artifactsFolder: string;
   private readonly onAssert: (pass: boolean, path: string, message: string) => void;
   private readonly onUnhandledFailure: (path: string, error: unknown) => void;
   private readonly bubble: (message: string) => void;
@@ -78,6 +84,7 @@ export class ActionRun<
   private attached = false;
   private observed = false;
   private refObserved = false;
+  private cancelLogged = false;
   // Set only by the parent-signal abort listener (an ANCESTOR cancelling this node).
   // Distinguishes a run/ancestor teardown from this node's own subtree-abort on failure,
   // so the unobserved-failure check below isn't fooled by our own controller.abort().
@@ -87,10 +94,12 @@ export class ActionRun<
     this.id = init.id;
     this.uuid = init.uuid;
     this.name = init.name;
+    this.definedAt = init.definedAt;
     this.path = init.path;
     this.parentId = init.parentId;
     this.store = init.store;
     this.snapshots = init.snapshots;
+    this.artifactsFolder = init.artifactsFolder;
     this.onAssert = init.onAssert;
     this.onUnhandledFailure = init.onUnhandledFailure;
     this.bubble = init.bubble;
@@ -100,6 +109,7 @@ export class ActionRun<
     const parent = init.parentSignal;
     const onAncestorAbort = (): void => {
       this.cascadeCancelled = true;
+      this.noteCancelled(); // this node is being cancelled by an ancestor's teardown
       this.controller.abort();
     };
     if (parent) {
@@ -191,7 +201,21 @@ export class ActionRun<
   }
 
   cancel(): void {
+    this.noteCancelled(); // a direct cancel of this activity
     this.controller.abort();
+  }
+
+  /**
+   * Log a cancellation milestone on this node (once) and bubble it to the parent, so a
+   * cancellation is visible per-action and up the tree into `main`. Only while the node is
+   * still running — a node that already settled isn't "cancelled" by a later teardown — and
+   * never for the root, whose cancellation is the run-level `tearing down · …` narration.
+   */
+  private noteCancelled(): void {
+    if (this.cancelLogged || this.parentId === null || this.status !== "running") return;
+    this.cancelLogged = true;
+    this.log("event", "cancel", "cancelled");
+    this.bubble("⊘ cancelled");
   }
 
   // ── Execution ──────────────────────────────────────────────────────────────
@@ -223,6 +247,7 @@ export class ActionRun<
       tag: (name: string) => void this.tag(name),
       assert: (condition: boolean, message: string) => this.assertInvariant(condition, message),
       snapshot: (name: string, value: unknown) => this.captureSnapshot(name, value),
+      artifactsFolder: this.artifactsFolder,
       proc: createProc(
         (source, level, message) =>
           this.store.append({ nodeId: this.id, path: this.path, level, source, message }),

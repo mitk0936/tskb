@@ -20,3 +20,11 @@ export const renderRef = (ref: ActionRef): string => {
   const tags = ref.tags.length ? ` · [${ref.tags.join(", ")}]` : "";
   return `${ref.name} · ${ref.path}${tags}`;
 };
+
+/**
+ * A compact inline label — the action **name with its tags**, `name [a, b]` — used
+ * wherever an action is referenced within a timeline line (a bubbled child milestone,
+ * a live status line) so its tags are always visible right next to the name.
+ */
+export const label = (ref: { readonly name: string; readonly tags: readonly string[] }): string =>
+  ref.tags.length ? `${ref.name} [${ref.tags.join(", ")}]` : ref.name;

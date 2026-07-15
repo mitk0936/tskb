@@ -1,17 +1,27 @@
+import { label, type ActionRef } from "../../foundation/ActionRef.ts";
 import type { LogEntry } from "../../foundation/LogEntry.ts";
+
+/** Resolve a node's reference (name + tags) by id, for naming a bubbled child. */
+export type RefOf = (nodeId: string) => ActionRef | undefined;
 
 /**
  * The shared human-readable row: `[<seq>] <body>`. Only the run-global sequence
  * prefixes the line (date/path live in the file header + `raw.jsonl`). Event,
- * snapshot, and assert lines carry a leading icon; everything else keeps its
- * `source` (proc name, child id, `console`, …).
+ * snapshot, and assert lines carry a leading icon; a **bubbled child milestone** names
+ * the child by its {@link label} (name + tags) via `refOf`; everything else keeps its
+ * `source` (proc name, `console`, …).
  */
-export const entryLine = (e: LogEntry): string => `[${e.sequence}] ${bodyOf(e)}`;
+export const entryLine = (e: LogEntry, refOf?: RefOf): string => {
+  // Bubbled child rows are nested a level in — the whole row, `[seq]` included.
+  const indent = e.level === "child" ? "    " : "";
+  return `${indent}[${e.sequence}] ${bodyOf(e, refOf)}`;
+};
 
-const bodyOf = (e: LogEntry): string => {
+const bodyOf = (e: LogEntry, refOf?: RefOf): string => {
   switch (e.level) {
     case "event":
-      return `⚡ ${e.message}`;
+      // A cancellation milestone reads ⊘; other emitted events keep ⚡.
+      return e.source === "cancel" ? `⊘ ${e.message}` : `⚡ ${e.message}`;
     case "snapshot":
       return `📸 ${e.message}`;
     case "assert":
@@ -23,7 +33,15 @@ const bodyOf = (e: LogEntry): string => {
       // An action's *own* failure keeps a ✗; proc stderr / console.error is plain
       // output. (Cancellation no longer logs at this level — it's a clean stop.)
       return e.source === "error" ? `✗ ${e.message}` : `▪ ${e.message}`;
-    // run/done milestones, tags, and bubbled child lines keep their `source` label.
+    case "child": {
+      // A bubbled child line (indented at the row level by `entryLine`). The launch pointer
+      // (`source === "launch"`) keeps its `→ id · logfile` message; a milestone names the
+      // child by its label (name + tags) via `refOf`.
+      if (e.source === "launch") return `${e.source} · ${e.message}`;
+      const ref = refOf?.(e.source);
+      return `${ref ? label(ref) : e.source} · ${e.message}`;
+    }
+    // run/done milestones, tags, … keep their `source` label.
     default:
       return `${e.source} · ${e.message}`;
   }

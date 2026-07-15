@@ -74,11 +74,12 @@ export class ExecutionTree {
   private readonly onUncaught = (e: unknown): void => this.onFatal("uncaughtException", e);
   private readonly onUnhandled = (e: unknown): void => this.onFatal("unhandledRejection", e);
 
-  constructor() {
+  constructor(definedAt?: string) {
     this.folder.ensure();
     this.root = new ActionRun({
       ...this.nodeDeps(),
       name: "main",
+      definedAt, // where om() was called — the run's script
       uuid: newUuid(),
       id: "main",
       path: "main",
@@ -106,6 +107,7 @@ export class ExecutionTree {
     const node = new ActionRun({
       ...this.nodeDeps(),
       name: spec.name,
+      definedAt: spec.definedAt,
       uuid,
       id,
       path: nodePath,
@@ -117,8 +119,10 @@ export class ExecutionTree {
     });
     parent.children.push(node);
     this.registry.push(node);
-    // Launch reference — the parent's pointer to the child's own (absolute) log.
-    this.append(parent, "child", "launch", `→ ${id} · ${this.logFile(nodePath)}`);
+    // Launch reference — the parent's pointer to the child's own (absolute) log, plus where
+    // the action is defined, so `main` (and any parent) shows each child's script.
+    const defined = spec.definedAt ? ` · defined ${spec.definedAt}` : "";
+    this.append(parent, "child", "launch", `→ ${id} · ${this.logFile(nodePath)}${defined}`);
     for (const t of spec.tags) node.tag(t);
     const promise = currentNode.run(node, () => node.run(spec.body, spec.args));
     this.trackNode(promise);
@@ -133,12 +137,14 @@ export class ExecutionTree {
   private nodeDeps(): {
     store: LogStore;
     snapshots: SnapshotStore;
+    artifactsFolder: string;
     onAssert: NodeInit["onAssert"];
     onUnhandledFailure: NodeInit["onUnhandledFailure"];
   } {
     return {
       store: this.store,
       snapshots: this.snapshotStore,
+      artifactsFolder: this.folder.path(),
       onAssert: (pass, actionPath, message) => this.recordAssert(pass, actionPath, message),
       onUnhandledFailure: (actionPath, error) => {
         this.recordFault(actionPath, error);
@@ -209,8 +215,9 @@ export class ExecutionTree {
     process.on("uncaughtException", this.onUncaught);
     process.on("unhandledRejection", this.onUnhandled);
     this.streaming = this.rawStream.run(this.store);
-    // Live, curated milestones to the terminal, through the pre-patch writer.
-    this.liveRendering = new LiveRenderer(this.originalLog).run(this.store);
+    // Live, curated milestones to the terminal — a single in-place status line on a TTY.
+    // Straight to process.stdout, which patch-console doesn't intercept (no capture feedback).
+    this.liveRendering = new LiveRenderer(process.stdout).run(this.store);
 
     const rootPromise = currentNode.run(this.root, () => this.root.run(body, []));
     this.trackNode(rootPromise);
@@ -265,7 +272,8 @@ export class ExecutionTree {
     const entries = this.store.entries();
     const at = (name: string): string => path.join(this.folder.path(), name);
     const assertSummary = `⊨ ${this.assertionsPassed} passed · ⊭ ${this.assertionsFailed} failed`;
-    await writeNodeLogs(flat, entries);
+    const summary = this.summaryLines(at, assertSummary);
+    await writeNodeLogs(flat, entries, summary);
     await writeRollup(at("events.log"), flat, entries, (e) => e.level === "event");
     await writeRollup(at("asserts.log"), flat, entries, (e) => e.level === "assert", assertSummary);
     await writeRollup(at("snapshots.log"), flat, entries, (e) => e.level === "snapshot");
@@ -278,19 +286,30 @@ export class ExecutionTree {
     process.off("unhandledRejection", this.onUnhandled);
     this.consoleCapture.uninstall();
     ExecutionTree.current = null;
-    this.printSummary(at, assertSummary);
+    this.printSummary(summary);
     if (!this.verdictOk()) process.exitCode = 1;
   }
 
-  /** The end-of-run links + assert summary, to the terminal (files are already written). */
-  private printSummary(at: (name: string) => string, assertSummary: string): void {
+  /**
+   * The end-of-run recap: the run folder, sibling log paths, and the assert tally.
+   * Shared verbatim between the terminal (via {@link printSummary}) and the tail of
+   * `main.log` (as the footer passed to `writeNodeLogs`), so both close the same way.
+   */
+  private summaryLines(at: (name: string) => string, assertSummary: string): string[] {
+    return [
+      `om → ${this.folder.path()}`,
+      `  main log  → ${at("main.log")}`,
+      `  events    → ${at("events.log")}`,
+      `  asserts   → ${at("asserts.log")}   ${assertSummary}`,
+      `  snapshots → ${at("snapshots.log")}`,
+    ];
+  }
+
+  /** The recap to the terminal (files are already written). */
+  private printSummary(lines: readonly string[]): void {
     const term = this.originalLog;
     term("");
-    term(`om → ${this.folder.path()}`);
-    term(`  main log  → ${at("main.log")}`);
-    term(`  events    → ${at("events.log")}`);
-    term(`  asserts   → ${at("asserts.log")}   ${assertSummary}`);
-    term(`  snapshots → ${at("snapshots.log")}`);
+    for (const line of lines) term(line);
   }
 
   private verdictOk(): boolean {
@@ -302,6 +321,7 @@ export class ExecutionTree {
       id: node.id,
       uuid: node.uuid,
       name: node.name,
+      definedAt: node.definedAt,
       path: node.path,
       parentId: node.parentId,
       tags: [...node.tags],

@@ -1,5 +1,6 @@
 import { ExecutionTree } from "./ExecutionTree.ts";
 import { FolderCache } from "../system/fs/FolderCache.ts";
+import { callerSite } from "../foundation/callsite.ts";
 import type {
   Action,
   ActionBuilderEvents,
@@ -25,7 +26,8 @@ class Instance<Result, Events extends object, Handle>
   constructor(
     readonly name: string,
     readonly body: Exec<object, unknown, unknown>,
-    readonly args: readonly unknown[]
+    readonly args: readonly unknown[],
+    readonly definedAt: string | undefined
   ) {}
 
   tag(name: string): this {
@@ -51,7 +53,12 @@ class Instance<Result, Events extends object, Handle>
       await FolderCache.write(targets, fp);
       return result;
     }) as Exec<object, unknown, unknown>;
-    const cached = new Instance<Result | undefined, Events, Handle>(this.name, body, innerArgs);
+    const cached = new Instance<Result | undefined, Events, Handle>(
+      this.name,
+      body,
+      innerArgs,
+      this.definedAt
+    );
     cached.tags.push(...this.tags);
     return cached;
   }
@@ -77,13 +84,15 @@ class Builder<Events extends object, Handle> implements ActionBuilderEvents<Even
     body: (ctx: ActionContext<Events, Handle>, ...args: Args) => Awaitable<Result>
   ): Action<Args, Result, Events, Handle> {
     const name = this.name;
+    const definedAt = callerSite(); // the `.run(...)` call site — where this action lives
     const create = (...args: Args): ActionInstance<Result, Events, Handle> =>
       new Instance<Result, Events, Handle>(
         name,
         body as unknown as Exec<object, unknown, unknown>,
-        args
+        args,
+        definedAt
       );
-    return Object.assign(create, { actionName: name });
+    return Object.assign(create, { actionName: name, definedAt });
   }
 }
 

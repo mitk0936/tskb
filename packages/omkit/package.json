@@ -1,6 +1,6 @@
 {
   "name": "omkit",
-  "version": "0.0.15",
+  "version": "0.1.8",
   "description": "A tiny runtime for developer workflows: typed actions that pass runtime capabilities and emit typed events, under one run and one shared log. The operational/runtime layer to tskb's knowledge layer.",
   "type": "module",
   "main": "./dist/index.js",

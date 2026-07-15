@@ -8,6 +8,8 @@ export interface NodeView {
   readonly id: string;
   readonly uuid: string;
   readonly name: string;
+  /** `file:line` where the action was defined (the `.run(...)` site); absent for the root. */
+  readonly definedAt?: string;
   readonly path: string;
   readonly parentId: string | null;
   readonly tags: readonly string[];

@@ -53,7 +53,7 @@ om(async () => {
   const answer = await promptAskToRunTests.result;
 
   if (answer.ok && answer.value === "yes") {
-    await runTests.exec().tag("test").handleFailure(console.error);
+    await runTests.exec().tag("test").handleFailure(console.error).once("done");
   }
 
   watchDocs.exec().tag("watch:docs:daemon");

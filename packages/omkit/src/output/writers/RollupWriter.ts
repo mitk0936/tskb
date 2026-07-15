@@ -18,6 +18,7 @@ export async function writeRollup(
   footer?: string
 ): Promise<void> {
   const refByNode = new Map(nodes.map((n) => [n.id, n]));
+  const refOf = (id: string): NodeView | undefined => refByNode.get(id);
   const chunks: string[] = [];
   let lastNode: string | null = null;
 
@@ -29,7 +30,7 @@ export async function writeRollup(
       chunks.push(`# ${ref ? renderRef(ref) : e.path}`);
       lastNode = e.nodeId;
     }
-    chunks.push(entryLine(e));
+    chunks.push(entryLine(e, refOf));
   }
   if (footer) chunks.push("", footer);
   await writeFile(file, `${chunks.join("\n")}\n`, "utf8");
