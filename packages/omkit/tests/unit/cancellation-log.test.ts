@@ -21,7 +21,7 @@ const daemon = () =>
 describe("cancellation logging", () => {
   test("a running daemon cancelled by run teardown logs a cancellation event", async () => {
     await om(async ({ cancel }) => {
-      daemon().exec();
+      daemon();
       await new Promise((r) => setTimeout(r, 10)); // let it start
       cancel();
     });
@@ -32,7 +32,7 @@ describe("cancellation logging", () => {
 
   test("a directly-cancelled activity logs cancellation and bubbles ⊘ into the parent", async () => {
     await om(async ({ cancel }) => {
-      const h = daemon().exec();
+      const h = daemon();
       await new Promise((r) => setTimeout(r, 10));
       h.cancel(); // targeted — the run keeps going
       await new Promise((r) => setTimeout(r, 10));
@@ -53,9 +53,7 @@ describe("cancellation logging", () => {
 
   test("an already-finished action is not marked cancelled by a later teardown", async () => {
     await om(async ({ cancel }) => {
-      await action("quick")
-        .run(async () => 1)()
-        .exec().result; // settles ok before teardown
+      await action("quick").run(async () => 1)().result; // settles ok before teardown
       cancel();
     });
     expect(cancelEvents().some((e) => /quick_/.test(e.path))).toBe(false);

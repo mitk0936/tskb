@@ -15,7 +15,7 @@ describe("refactored core", () => {
     let got: number | undefined;
     await om(async () => {
       const add = action("add").run(async (_ctx, a: number, b: number) => a + b);
-      const r = await add(2, 3).exec().result;
+      const r = await add(2, 3).result;
       got = r.ok ? r.value : undefined;
     });
     expect(got).toBe(5);
@@ -27,7 +27,7 @@ describe("refactored core", () => {
       const boom = action("boom").run(async () => {
         throw new Error("nope");
       });
-      const r = await boom().exec().result;
+      const r = await boom().result;
       if (!r.ok) err = r.error;
     });
     expect((err as Error).message).toBe("nope");
@@ -43,13 +43,13 @@ describe("refactored core", () => {
 
   test("exec outside a root om throws", () => {
     const x = action("x").run(async () => 1);
-    expect(() => x().exec()).toThrow(/only run inside a root om/);
+    expect(() => x()).toThrow(/only run inside a root om/);
   });
 
   test("parent log bubbles a child's launch ref and completion", async () => {
     await om(async () => {
       const kid = action("kid").run(async () => "v");
-      await kid().exec().result;
+      await kid().result;
     });
     const entries = ExecutionTree.last!.store.entries();
     const bubbled = entries.filter((e) => e.nodeId === "main" && e.level === "child");
@@ -94,7 +94,8 @@ describe("refactored core", () => {
         });
         ended = true;
       });
-      daemon().exec(); // not awaited — keeps the run alive
+      daemon(); // not awaited — keeps the run alive
+      await new Promise((r) => setTimeout(r, 10)); // let the daemon body start
       cancel();
     });
     // If keep-alive/teardown were broken this would hang; reaching here proves it drained.
@@ -110,7 +111,7 @@ describe("refactored core", () => {
           ctx.signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
         });
       });
-      const h = hang().exec();
+      const h = hang();
       h.cancel();
       outcome = await h.result;
     });
@@ -127,7 +128,7 @@ describe("refactored core", () => {
         .run(async (ctx) => {
           ctx.emit("ping", "hi");
         });
-      await emitter().exec().result;
+      await emitter().result;
     });
     const events = ExecutionTree.last!.store.entries().filter(
       (e) => e.level === "event" && e.message.startsWith("ping")

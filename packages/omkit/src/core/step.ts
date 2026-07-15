@@ -14,7 +14,6 @@ export function step<Result>(
 ): Promise<Result> {
   return action(name)
     .run(fn as (ctx: ActionContext) => Awaitable<Result>)()
-    .exec()
     .result.then((r) => {
       if (!r.ok) throw r.error;
       return r.value;

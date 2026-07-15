@@ -31,9 +31,8 @@ describe("teardown mechanics", () => {
     let reached = false;
     await om(async ({ cancel }) => {
       // Fire-and-forget daemon that never honors the signal (never settles).
-      action("stubborn")
-        .run(() => new Promise<void>(() => {}))()
-        .exec();
+      action("stubborn").run(() => new Promise<void>(() => {}))();
+      await new Promise((r) => setTimeout(r, 5)); // let the daemon body start running
       cancel(); // teardown starts; the daemon won't settle, so the grace timer must finalize
     });
     reached = true; // if teardown could not force-finalize, om() would hang and we'd never get here
@@ -62,22 +61,18 @@ describe("failure model", () => {
   test("a fire-and-forget failure tears down a sibling daemon and is a fault (exit 1)", async () => {
     let daemonTornDown = false;
     await om(async () => {
-      action("daemon")
-        .run(
-          (ctx) =>
-            new Promise<void>((resolve) => {
-              ctx.signal.addEventListener("abort", () => {
-                daemonTornDown = true;
-                resolve();
-              });
-            })
-        )()
-        .exec(); // fire-and-forget daemon
-      action("boom")
-        .run(async () => {
-          throw new Error("kaboom");
-        })()
-        .exec(); // fire-and-forget failure → unobserved → teardown
+      action("daemon").run(
+        (ctx) =>
+          new Promise<void>((resolve) => {
+            ctx.signal.addEventListener("abort", () => {
+              daemonTornDown = true;
+              resolve();
+            });
+          })
+      )(); // fire-and-forget daemon
+      action("boom").run(async () => {
+        throw new Error("kaboom");
+      })(); // fire-and-forget failure → unobserved → teardown
     });
     expect(daemonTornDown).toBe(true);
     expect(process.exitCode).toBe(1);
@@ -88,9 +83,7 @@ describe("failure model", () => {
   test("a successful activity's .result resolves { ok: true, value }", async () => {
     let outcome: unknown;
     await om(async () => {
-      outcome = await action("compute")
-        .run(async () => 42)()
-        .exec().result;
+      outcome = await action("compute").run(async () => 42)().result;
     });
     expect(outcome).toEqual({ ok: true, value: 42 });
     expect(process.exitCode).toBe(0);
@@ -100,22 +93,18 @@ describe("failure model", () => {
     let daemonTornDown = false;
     let outcome: unknown;
     await om(async ({ cancel }) => {
-      action("daemon")
-        .run(
-          (ctx) =>
-            new Promise<void>((resolve) => {
-              ctx.signal.addEventListener("abort", () => {
-                daemonTornDown = true;
-                resolve();
-              });
-            })
-        )()
-        .exec();
-      outcome = await action("boom")
-        .run(async () => {
-          throw new Error("handled");
-        })()
-        .exec().result; // reading .result observes → green
+      action("daemon").run(
+        (ctx) =>
+          new Promise<void>((resolve) => {
+            ctx.signal.addEventListener("abort", () => {
+              daemonTornDown = true;
+              resolve();
+            });
+          })
+      )();
+      outcome = await action("boom").run(async () => {
+        throw new Error("handled");
+      })().result; // reading .result observes → green
       cancel(); // we end the run ourselves
     });
     expect(outcome).toMatchObject({ ok: false });
@@ -132,7 +121,6 @@ describe("failure model", () => {
         .run(async () => {
           throw new Error("nope");
         })()
-        .exec()
         .result.then(
           (o) => o,
           () => {
@@ -151,22 +139,19 @@ describe("failure model", () => {
     let seen: unknown;
     let daemonTornDown = false;
     await om(async ({ cancel }) => {
-      action("daemon")
-        .run(
-          (ctx) =>
-            new Promise<void>((res) =>
-              ctx.signal.addEventListener("abort", () => {
-                daemonTornDown = true;
-                res();
-              })
-            )
-        )()
-        .exec();
+      action("daemon").run(
+        (ctx) =>
+          new Promise<void>((res) =>
+            ctx.signal.addEventListener("abort", () => {
+              daemonTornDown = true;
+              res();
+            })
+          )
+      )();
       action("boom")
         .run(async () => {
           throw new Error("owned");
         })()
-        .exec()
         .handleFailure((e) => {
           seen = e;
         });
@@ -178,37 +163,34 @@ describe("failure model", () => {
     expect(process.exitCode).toBe(0);
   });
 
-  test("a synchronously-throwing body still runs its fluent handleFailure (green)", async () => {
+  test("a synchronously-throwing body delivers to its fluent handleFailure (green)", async () => {
     let seen: unknown;
-    await om(async ({ cancel }) => {
+    await om(async () => {
       action("sync-boom")
         .run(() => {
           throw new Error("sync");
         })()
-        .exec()
-        // The body throws inline during exec(); this handler attaches right after and is
-        // delivered the already-recorded failure (no silent swallow).
+        // The handler is attached (fluent) before the deferred body runs; when the body
+        // throws on its commit microtask, handleFailure owns the failure (no teardown).
         .handleFailure((e) => {
           seen = e;
         });
-      cancel();
+      await new Promise((r) => setTimeout(r, 10)); // let the body run and fail
     });
     expect((seen as Error).message).toBe("sync");
     expect(process.exitCode).toBe(0);
   });
 
-  test("a synchronously-throwing body still delivers to a fluent on('error') (green)", async () => {
+  test("a synchronously-throwing body delivers to a fluent on('error') (green)", async () => {
     let seen: unknown;
-    await om(async ({ cancel }) => {
-      const h = action("sync-boom")
-        .run(() => {
-          throw new Error("sync-on");
-        })()
-        .exec();
+    await om(async () => {
+      const h = action("sync-boom").run(() => {
+        throw new Error("sync-on");
+      })();
       h.on("error", (e) => {
-        seen = e; // attached after the inline throw; must still receive the error
+        seen = e; // on('error') observes the failure, so the run stays green
       });
-      cancel();
+      await new Promise((r) => setTimeout(r, 10)); // let the body run and fail
     });
     expect((seen as Error).message).toBe("sync-on");
     expect(process.exitCode).toBe(0);
@@ -216,11 +198,9 @@ describe("failure model", () => {
 
   test("re-throwing an outcome error faults the run (exit 1)", async () => {
     await om(async () => {
-      const r = await action("boom")
-        .run(async () => {
-          throw new Error("rethrown");
-        })()
-        .exec().result;
+      const r = await action("boom").run(async () => {
+        throw new Error("rethrown");
+      })().result;
       if (!r.ok) throw r.error; // body throws → root fault
     });
     expect(process.exitCode).toBe(1);
@@ -228,11 +208,9 @@ describe("failure model", () => {
 
   test("a saved handle read only after it fails still tears down (exit 1)", async () => {
     await om(async () => {
-      const h = action("boom")
-        .run(async () => {
-          throw new Error("late");
-        })()
-        .exec(); // .result not yet read → unobserved at fail-time
+      const h = action("boom").run(async () => {
+        throw new Error("late");
+      })(); // .result not yet read → unobserved at fail-time
       await new Promise((r) => setTimeout(r, 20)); // boom fails here → teardown
       await h.result; // too late; resolves { ok: false } but the fault is recorded
     });
@@ -243,11 +221,9 @@ describe("failure model", () => {
 
   test("ctx.cancel() with no other fault is green (exit 0)", async () => {
     await om(async ({ cancel }) => {
-      action("daemon")
-        .run(
-          (ctx) => new Promise<void>((res) => ctx.signal.addEventListener("abort", () => res()))
-        )()
-        .exec();
+      action("daemon").run(
+        (ctx) => new Promise<void>((res) => ctx.signal.addEventListener("abort", () => res()))
+      )();
       cancel();
     });
     expect(process.exitCode).toBe(0);
@@ -264,7 +240,6 @@ describe("failure model", () => {
               ctx.signal.addEventListener("abort", () => rej(new Error("aborted")))
             )
         )()
-        .exec()
         .handleFailure(() => {
           handlerRan = true;
         });
@@ -294,7 +269,7 @@ describe("failure model", () => {
         .run(async () => {
           throw new Error("never healthy");
         })();
-      await probe.exec().once("healthy"); // resolves undefined on settle; does NOT observe the error
+      await probe.once("healthy"); // resolves undefined on settle; does NOT observe the error
     });
     expect(process.exitCode).toBe(1);
   });
@@ -302,11 +277,9 @@ describe("failure model", () => {
   test("on('error') observes the failure — no teardown, green", async () => {
     let seen: unknown;
     await om(async ({ cancel }) => {
-      const h = action("boom")
-        .run(async () => {
-          throw new Error("handled via on-error");
-        })()
-        .exec();
+      const h = action("boom").run(async () => {
+        throw new Error("handled via on-error");
+      })();
       h.on("error", (e) => {
         seen = e;
       });
@@ -321,21 +294,19 @@ describe("failure model", () => {
     let childCancelled = false;
     await om(async () => {
       const parent = action("parent").run(async (ctx) => {
-        action("child")
-          .run(
-            (c) =>
-              new Promise<void>((resolve) => {
-                c.signal.addEventListener("abort", () => {
-                  childCancelled = true;
-                  resolve();
-                });
-              })
-          )()
-          .exec();
+        action("child").run(
+          (c) =>
+            new Promise<void>((resolve) => {
+              c.signal.addEventListener("abort", () => {
+                childCancelled = true;
+                resolve();
+              });
+            })
+        )();
         await new Promise((r) => setTimeout(r, 10)); // let the child start
         throw new Error("parent boom");
       });
-      const r = await parent().exec().result; // observed → run keeps going
+      const r = await parent().result; // observed → run keeps going
       expect(r.ok).toBe(false);
     });
     expect(childCancelled).toBe(true); // subtree aborted by parent's failure…
@@ -351,7 +322,7 @@ describe("failure model", () => {
           await new Promise((r) => setTimeout(r, 10));
           throw new Error("post-attach boom"); // …then it fails
         })();
-      const h = daemon.exec();
+      const h = daemon;
       await h.ref; // downstream reads the handle (refObserved), then moves on
       await new Promise((r) => setTimeout(r, 40)); // daemon fails here → must tear down
     });

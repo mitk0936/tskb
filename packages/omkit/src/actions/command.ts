@@ -28,38 +28,39 @@ const verbatim = (cmd: string): TemplateStringsArray =>
   Object.assign([cmd], { raw: [cmd] }) as unknown as TemplateStringsArray;
 
 /**
- * Runs a command as an action instance.
+ * Defines a command action, named after the command itself (add a semantic label with
+ * `.tag(...)`). Call the returned action to launch it.
  *
  * By default the command is executed through the shell.
  *
  * If `options.args` is provided, `cmdOrFile` is treated as an executable and
  * launched directly without a shell.
  */
-export function command(name: string, cmdOrFile: string, options: CommandOptions = {}) {
+export function command(cmdOrFile: string, options: CommandOptions = {}) {
   const cwd = path.resolve(options.cwd ?? ".");
 
-  // Shell command.
+  // Shell command — the command string is the action (and proc) name.
   if (options.args === undefined) {
-    return action(name).run((ctx) =>
-      ctx.proc(name, {
+    return action(cmdOrFile).run((ctx) =>
+      ctx.proc(cmdOrFile, {
         cwd,
         ...(options.env && { env: options.env }),
         ...(options.inheritDebugger && {
           inheritDebugger: true,
         }),
       })(verbatim(cmdOrFile))
-    )();
+    );
   }
 
-  // Direct executable.
+  // Direct executable — the file plus its args form the action name.
+  const args = options.args;
+  const name = [cmdOrFile, ...args].join(" ");
   return action(name).run(async (ctx) => {
     const inherit = options.inheritDebugger ?? Boolean(process.env.OMKIT_INHERIT_DEBUGGER);
 
     const env = inherit
       ? (options.env ?? process.env)
       : debuggerFreeEnv(options.env ?? process.env);
-
-    const args = options.args ?? [];
 
     const child = spawn(cmdOrFile, args, {
       cwd,
@@ -115,5 +116,5 @@ export function command(name: string, cmdOrFile: string, options: CommandOptions
       finished = true;
       ctx.signal.removeEventListener("abort", onAbort);
     }
-  })();
+  });
 }

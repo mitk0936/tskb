@@ -10,62 +10,44 @@ const tskbPath = path.resolve(repoRoot, "packages/tskb");
 const explorerPort = 9876;
 const explorerUrl = `http://localhost:${explorerPort}/`;
 
-// ── Dev processes ────────────────────────────────────────────────────────────
+// ── Dev processes (command is a factory: these are actions, launched by calling) ──────
 
 const watchDocs = command(
-  "TSKB:root:watch:docs",
   'npx --no -- tskb "./docs/**/*.tskb.tsx" --tsconfig ./docs/tsconfig.json --project "TSKB Monorepo Watch Dev" --watch --watch-path ./packages/tskb/dist',
   { cwd: repoRoot }
 );
 
-const watchLib = command("TSKB:lib:dev", "npm run dev", {
-  cwd: tskbPath,
-});
-
-const serveExplorer = command("TSKB:dev", "npm run dev:explorer", {
-  cwd: tskbPath,
-});
-
-const runTests = command("TSKB:test", "npm test", {
-  cwd: repoRoot,
-});
-
-const askToRunTests = prompt({
-  kind: "choice",
-  message: "Run tests?",
-  choices: [
-    { label: "no", value: "no" },
-    { label: "yes", value: "yes" },
-  ],
-  default: "no",
-  timeoutMs: 10_000,
-});
-
-const explorerReady = healthcheck({
-  url: explorerUrl,
-  timeoutMs: 7000,
-});
+const watchLib = command("npm run dev", { cwd: tskbPath });
+const serveExplorer = command("npm run dev:explorer", { cwd: tskbPath });
+const runTests = command("npm test", { cwd: repoRoot });
 
 om(async () => {
-  const promptAskToRunTests = askToRunTests.exec();
-  promptAskToRunTests.tag("prompt:run:tests");
-
-  const answer = await promptAskToRunTests.result;
+  const answer = await prompt({
+    kind: "choice",
+    message: "Run tests?",
+    choices: [
+      { label: "no", value: "no" },
+      { label: "yes", value: "yes" },
+    ],
+    default: "no",
+    timeoutMs: 10_000,
+  }).tag("prompt:run:tests").result;
 
   if (answer.ok && answer.value === "yes") {
-    await runTests.exec().tag("test").handleFailure(console.error).once("done");
+    await runTests().tag("test").handleFailure(console.error).once("done");
   }
 
-  watchDocs.exec().tag("watch:docs:daemon");
-  watchLib.exec().tag("watch:tskb:lib:daemon");
-  serveExplorer.exec().tag("server:explorer:daemon");
+  watchDocs().tag("watch:docs:daemon");
+  watchLib().tag("watch:tskb:lib:daemon");
+  serveExplorer().tag("server:explorer:daemon");
 
-  const ready = await explorerReady.exec().tag("explorer:ready:gate").result;
+  const ready = await healthcheck({ url: explorerUrl, timeoutMs: 7000 }).tag("explorer:ready:gate")
+    .result;
   if (!ready.ok) return;
 
-  const chrome = chromedriver({ url: explorerUrl }).exec().tag("chromedriver:browser");
-  const page = chromePage("Explorer", chrome.ref).exec().tag("browser:explorer");
-  const inspected = await inspectPage(page.ref).exec().tag("explorer:inspect").result;
+  const chrome = chromedriver({ url: explorerUrl }).tag("chromedriver:browser");
+  const page = chromePage("Explorer", chrome.ref).tag("browser:explorer");
+  const inspected = await inspectPage(page.ref).tag("explorer:inspect").result;
 
   if (!inspected.ok) {
     console.log("Explorer inspection failed — servers are still up.");

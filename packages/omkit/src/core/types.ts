@@ -68,19 +68,29 @@ export interface OmContext {
 }
 
 /**
- * A launched action: the live node's awaitable/observable surface. `.result` always
- * resolves an {@link Outcome} (never throws); `.ref` rejects on failure/cancel.
+ * A launched action: the live node's awaitable/observable surface, returned by
+ * **invoking an {@link Action}**. `.result` always resolves an {@link Outcome} (never
+ * throws); `.ref` rejects on failure/cancel. The body is committed one microtask after
+ * the launching call, so pre-body config (`withCache`) chained before the first `await`
+ * still applies.
  */
-export interface RunHandle<Result = unknown, Events extends object = NoEvents, Handle = void> {
+export interface Activity<Result = unknown, Events extends object = NoEvents, Handle = void> {
   readonly id: string;
   /** The terminal outcome; always resolves (never rejects). Reading it observes the failure. */
   readonly result: Promise<Outcome<Result>>;
   /** The attached handle; rejects on failure/cancel. */
   readonly ref: Promise<Handle>;
   /**
+   * Gate this activity on its **input** files/folders (absolute paths): skip running the
+   * body when they're unchanged since the last successful run (a hit resolves `undefined`
+   * and logs `cached, skipping`). **Pre-body only** — chain it before the first `await`
+   * after the launching call; calling it once the body has started throws.
+   */
+  withCache(...paths: string[]): Activity<Result | undefined, Events, Handle>;
+  /**
    * Handle a fire-and-forget activity's failure: attach a handler so a crash runs it
    * instead of tearing the run down. Observes the failure; chainable; attach in the
-   * same tick as `.exec()`. Not called on cancellation.
+   * same tick as the launching call. Not called on cancellation.
    */
   handleFailure(handler: (error: unknown) => void): this;
   /** Subscribe to every emit of a declared/system event (`done`/`error`/`attached`). */
@@ -98,33 +108,14 @@ export interface RunHandle<Result = unknown, Events extends object = NoEvents, H
   cancel(): void;
 }
 
-/** A constructed-but-not-yet-run action: what calling an `Action` produces. */
-export interface ActionInstance<Result = unknown, Events extends object = NoEvents, Handle = void> {
-  readonly name: string;
-  readonly args: readonly unknown[];
-  /** Buffer a tag before launch; applied onto the node at creation. Chainable. */
-  tag(name: string): this;
-  /**
-   * Gate this action on its **input** files/folders (absolute paths): skip running
-   * when they're unchanged since the last successful run (a hit resolves
-   * `undefined` and logs `cached, skipping`). Chain before launching.
-   */
-  withCache(...paths: string[]): ActionInstance<Result | undefined, Events, Handle>;
-  /** Launch under the ambient current node; returns the live {@link RunHandle}. */
-  exec(): RunHandle<Result, Events, Handle>;
-}
-
-/** Any constructed instance, whatever its result/events/handle. */
-export type AnyActionInstance = ActionInstance<unknown, object, unknown>;
-
-/** A callable produced by `action`: invoking it builds an {@link ActionInstance}. */
+/** A callable produced by `action`: **invoking it launches** the action and returns the live {@link Activity}. */
 export interface Action<
   Args extends unknown[],
   Result,
   Events extends object = NoEvents,
   Handle = void,
 > {
-  (...args: Args): ActionInstance<Result, Events, Handle>;
+  (...args: Args): Activity<Result, Events, Handle>;
   readonly actionName: string;
   /** `file:line` where this action was defined (the `.run(...)` site), for the log header. */
   readonly definedAt: string | undefined;

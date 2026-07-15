@@ -15,9 +15,7 @@ describe("action definedAt", () => {
 
   test("the defining site flows onto the node view (its log header)", async () => {
     await om(async () => {
-      await action("probe")
-        .run(async () => {})()
-        .exec().result;
+      await action("probe").run(async () => {})().result;
     });
     const child = ExecutionTree.last!.runViewForTest().root.children[0];
     expect(child.definedAt).toMatch(/defined-at\.test\.ts:\d+$/);

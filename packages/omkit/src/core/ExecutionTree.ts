@@ -124,8 +124,16 @@ export class ExecutionTree {
     const defined = spec.definedAt ? ` · defined ${spec.definedAt}` : "";
     this.append(parent, "child", "launch", `→ ${id} · ${this.logFile(nodePath)}${defined}`);
     for (const t of spec.tags) node.tag(t);
-    const promise = currentNode.run(node, () => node.run(spec.body, spec.args));
-    this.trackNode(promise);
+    // Arm the body now, but commit it on a microtask: this lets `withCache`/`tag` chained on
+    // the returned handle (before the caller's first await) apply before the body starts.
+    // The tracked promise is registered synchronously (so `drive()` waits on it), and the
+    // microtask is scheduled unconditionally so a fire-and-forget launch still commits.
+    node.arm(spec.body, spec.args);
+    const settled = defer<void>();
+    this.trackNode(settled.promise);
+    queueMicrotask(() => {
+      void currentNode.run(node, () => node.commit()).then(() => settled.resolve());
+    });
     return node;
   }
 

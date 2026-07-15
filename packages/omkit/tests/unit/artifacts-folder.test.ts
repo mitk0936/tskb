@@ -14,11 +14,9 @@ describe("artifactsFolder", () => {
     let actionFolder: string | undefined;
     await om(async (ctx) => {
       omFolder = ctx.artifactsFolder;
-      await action("probe")
-        .run(async (c) => {
-          actionFolder = c.artifactsFolder;
-        })()
-        .exec().result;
+      await action("probe").run(async (c) => {
+        actionFolder = c.artifactsFolder;
+      })().result;
     });
     const runFolder = ExecutionTree.last!.folder.path();
     expect(omFolder).toBe(runFolder);

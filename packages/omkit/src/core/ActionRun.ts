@@ -4,15 +4,16 @@ import { CancelledError } from "../foundation/CancelledError.ts";
 import { renderValue } from "../foundation/format.ts";
 import type { ActionRef } from "../foundation/ActionRef.ts";
 import { createProc } from "../system/proc.ts";
+import { FolderCache } from "../system/fs/FolderCache.ts";
 import type { LogStore } from "../output/log/LogStore.ts";
 import type { SnapshotStore } from "../output/snapshot/SnapshotStore.ts";
 import type {
   ActionContext,
+  Activity,
   Exec,
   InstanceEvents,
   NodeStatus,
   Outcome,
-  RunHandle,
 } from "./types.ts";
 
 /** Everything a node needs to exist, minus its behavior. */
@@ -51,7 +52,7 @@ export class ActionRun<
   Result = unknown,
   Events extends object = object,
   Handle = unknown,
-> implements RunHandle<Result, Events, Handle> {
+> implements Activity<Result, Events, Handle> {
   readonly id: string;
   readonly uuid: string;
   readonly name: string;
@@ -85,6 +86,11 @@ export class ActionRun<
   private observed = false;
   private refObserved = false;
   private cancelLogged = false;
+  // The armed body + args, set at launch and run once by `commit()` on a microtask — the
+  // window during which `withCache` may still wrap the body. `committed` closes that window.
+  private armedExec: Exec<Events, Handle, Result> | undefined;
+  private armedArgs: readonly unknown[] = [];
+  private committed = false;
   // Set only by the parent-signal abort listener (an ANCESTOR cancelling this node).
   // Distinguishes a run/ancestor teardown from this node's own subtree-abort on failure,
   // so the unobserved-failure check below isn't fooled by our own controller.abort().
@@ -153,9 +159,9 @@ export class ActionRun<
     key: K,
     handler: EventHandler<InstanceEvents<Events, Result>[K]>
   ): void {
-    // A late `on("error")` (e.g. attached after a synchronously-throwing body already
-    // failed inline during `.exec()`) still receives the failure: the emitter snapshots
-    // the last "error" payload and replays it to a new listener.
+    // A late `on("error")` (e.g. attached after an `await`, once the body has already
+    // failed) still receives the failure: the emitter snapshots the last "error" payload
+    // and replays it to a new listener.
     if (key === "error") this.observed = true;
     this.emitter.listen(key, handler);
   }
@@ -190,12 +196,24 @@ export class ActionRun<
     return this;
   }
 
+  withCache(...paths: string[]): Activity<Result | undefined, Events, Handle> {
+    if (this.committed) {
+      throw new Error("withCache: already launched — chain it before the first await");
+    }
+    // Validate + canonicalize eagerly (fails fast on a relative path), then wrap the armed
+    // body so a fingerprint hit skips it. Applied before `commit()` runs the body.
+    const targets = FolderCache.resolvePaths(paths);
+    const inner = this.armedExec;
+    if (inner) this.armedExec = cacheGate(inner, targets) as Exec<Events, Handle, Result>;
+    return this as unknown as Activity<Result | undefined, Events, Handle>;
+  }
+
   handleFailure(handler: (error: unknown) => void): this {
     this.failureHandler = handler;
     this.observed = true;
-    // A synchronously-throwing body fails inline during `.exec()`, before this attaches:
-    // deliver the already-recorded failure now (it won't fail again). Cancellation is
-    // status "cancelled", not "failed", so a cancelled node never runs the handler.
+    // Attached after an `await` on a body that has already failed: deliver the
+    // already-recorded failure now (it won't fail again). Cancellation is status
+    // "cancelled", not "failed", so a cancelled node never runs the handler.
     if (this.status === "failed") handler(this.error);
     return this;
   }
@@ -220,11 +238,37 @@ export class ActionRun<
 
   // ── Execution ──────────────────────────────────────────────────────────────
 
+  /**
+   * Arm the node with its body + args. The body is not run here — {@link commit} runs it
+   * one microtask later, leaving a window in which `withCache` can still wrap it.
+   */
+  arm(exec: Exec<Events, Handle, Result>, args: readonly unknown[]): void {
+    this.armedExec = exec;
+    this.armedArgs = args;
+  }
+
+  /** Run the armed body once (idempotent). Called on a microtask after the launching call. */
+  commit(): Promise<void> {
+    if (this.committed) return Promise.resolve();
+    this.committed = true;
+    const exec = this.armedExec;
+    this.armedExec = undefined;
+    return exec ? this.run(exec, this.armedArgs) : Promise.resolve();
+  }
+
   /** Run the body inside the error boundary, settling the node. Never rejects. */
   async run(exec: Exec<Events, Handle, Result>, args: readonly unknown[]): Promise<void> {
     this.args = args;
     this.startedAt = Date.now();
     this.lifecycle("launched");
+    // Cancelled before the body could start — the run tore down between the launching call
+    // and this microtask. Record a clean stop without invoking the body, so a daemon that
+    // only listens for `abort` (its listener would never fire, the abort having already
+    // happened) can't wedge teardown.
+    if (this.controller.signal.aborted) {
+      this.fail(new CancelledError());
+      return;
+    }
     try {
       const result = await exec(this.context(), ...(args as never[]));
       this.succeed(result);
@@ -360,3 +404,23 @@ const messageOf = (error: unknown): string =>
   error instanceof Error ? (error.stack ?? error.message) : String(error);
 
 const firstLine = (message: string): string => message.split("\n", 1)[0] ?? message;
+
+/**
+ * Wrap an exec so it skips (returns `undefined`, logging `cached, skipping`) when the
+ * input `targets` are unchanged since the last successful run, else runs the inner body
+ * and records the fresh fingerprint. Backs {@link ActionRun.withCache}.
+ */
+const cacheGate = <E extends object, H, R>(
+  inner: Exec<E, H, R>,
+  targets: string[]
+): Exec<E, H, R | undefined> =>
+  (async (ctx, ...args): Promise<R | undefined> => {
+    const fp = await FolderCache.fingerprint(targets);
+    if ((await FolderCache.read(targets)) === fp) {
+      console.log("cached, skipping");
+      return undefined;
+    }
+    const result = await inner(ctx, ...(args as never[]));
+    await FolderCache.write(targets, fp);
+    return result;
+  }) as Exec<E, H, R | undefined>;

@@ -2,7 +2,7 @@
  * omkit (refactored core) — the ExecutionTree model.
  *
  * A curated public surface. `om(body)` runs a linear orchestration as the root of
- * one run; `action(...)` defines typed units you launch with `.exec()`;
+ * one run; `action(...)` defines typed units you launch by **calling** them;
  * `step(name, fn)` is the inline anonymous action. The run's introspectable output
  * is the on-disk `result.json` / `raw.jsonl` / `.log` files — the ExecutionTree
  * engine itself is internal and intentionally not exported.
@@ -12,11 +12,4 @@ export { action } from "./core/action.ts";
 export { step } from "./core/step.ts";
 export { CancelledError, isCancelled } from "./foundation/CancelledError.ts";
 
-export type {
-  Action,
-  ActionInstance,
-  ActionContext,
-  OmContext,
-  RunHandle,
-  Outcome,
-} from "./core/types.ts";
+export type { Action, Activity, ActionContext, OmContext, Outcome } from "./core/types.ts";
