@@ -13,7 +13,7 @@ afterEach(() => {
 describe("refactored core", () => {
   test("om runs a child action and resolves its value", async () => {
     let got: number | undefined;
-    await om(async () => {
+    await om("smoke", async () => {
       const add = action("add").run(async (_ctx, a: number, b: number) => a + b);
       const r = await add(2, 3).result;
       got = r.ok ? r.value : undefined;
@@ -23,7 +23,7 @@ describe("refactored core", () => {
 
   test("a failing action's .result resolves { ok: false } with its error", async () => {
     let err: unknown;
-    await om(async () => {
+    await om("smoke", async () => {
       const boom = action("boom").run(async () => {
         throw new Error("nope");
       });
@@ -35,7 +35,7 @@ describe("refactored core", () => {
 
   test("step produces a value under its own node", async () => {
     let v: number | undefined;
-    await om(async () => {
+    await om("smoke", async () => {
       v = await step("compute", async () => 21 * 2);
     });
     expect(v).toBe(42);
@@ -47,7 +47,7 @@ describe("refactored core", () => {
   });
 
   test("parent log bubbles a child's launch ref and completion", async () => {
-    await om(async () => {
+    await om("smoke", async () => {
       const kid = action("kid").run(async () => "v");
       await kid().result;
     });
@@ -58,7 +58,7 @@ describe("refactored core", () => {
   });
 
   test("assert tallies and a failure sets the verdict", async () => {
-    await om(async ({ assert }) => {
+    await om("smoke", async ({ assert }) => {
       assert(1 + 1 === 2, "math works");
       assert(1 + 1 === 3, "math broken");
     });
@@ -73,7 +73,7 @@ describe("refactored core", () => {
 
   test("snapshot writes a file and logs a snapshot line", async () => {
     let file: string | undefined;
-    await om(async ({ snapshot }) => {
+    await om("smoke", async ({ snapshot }) => {
       file = await snapshot("config", { port: 3000 });
     });
     expect(file).toMatch(/snapshots[\\/].*config\.json$/);
@@ -86,7 +86,7 @@ describe("refactored core", () => {
 
   test("a daemon keeps the run alive until cancel() tears it down", async () => {
     let ended = false;
-    await om(async ({ cancel }) => {
+    await om("smoke", async ({ cancel }) => {
       const daemon = action("daemon").run(async (ctx) => {
         await new Promise<void>((resolve) => {
           if (ctx.signal.aborted) return resolve();
@@ -104,7 +104,7 @@ describe("refactored core", () => {
 
   test("cancelling a node's .result resolves CancelledError and marks it cancelled", async () => {
     let outcome: unknown;
-    await om(async () => {
+    await om("smoke", async () => {
       const hang = action("hang").run(async (ctx) => {
         await new Promise<void>((_resolve, reject) => {
           if (ctx.signal.aborted) return reject(new Error("aborted"));
@@ -122,7 +122,7 @@ describe("refactored core", () => {
   });
 
   test("a declared event lands as an event entry on its node", async () => {
-    await om(async () => {
+    await om("smoke", async () => {
       const emitter = action("emitter")
         .emits<{ ping: string }>()
         .run(async (ctx) => {

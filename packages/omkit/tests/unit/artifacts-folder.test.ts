@@ -12,7 +12,7 @@ describe("artifactsFolder", () => {
   test("the om body and an action body both receive the absolute run-folder path", async () => {
     let omFolder: string | undefined;
     let actionFolder: string | undefined;
-    await om(async (ctx) => {
+    await om("artifacts", async (ctx) => {
       omFolder = ctx.artifactsFolder;
       await action("probe").run(async (c) => {
         actionFolder = c.artifactsFolder;

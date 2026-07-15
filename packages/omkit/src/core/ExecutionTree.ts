@@ -1,6 +1,7 @@
 import path from "node:path";
-import { newUuid, makeId } from "../foundation/ids.ts";
+import { newUuid, makeId, omHash } from "../foundation/ids.ts";
 import { fsSafe } from "../foundation/fsSafe.ts";
+import { siteFile } from "../foundation/callsite.ts";
 import { defer, type Deferred } from "../foundation/Deferred.ts";
 import { LogStore } from "../output/log/LogStore.ts";
 import { RunFolder } from "../output/folder/RunFolder.ts";
@@ -43,12 +44,12 @@ export class ExecutionTree {
   }
 
   readonly store = new LogStore();
-  readonly folder = new RunFolder();
+  readonly folder: RunFolder;
   readonly root: ActionRun;
 
   private readonly rawStream: RawStream;
   private readonly consoleCapture: ConsoleCapture;
-  private readonly snapshotStore = new SnapshotStore(this.folder);
+  private readonly snapshotStore: SnapshotStore;
   private readonly registry: ActionRun[] = [];
   private readonly unsettled = new Set<Promise<unknown>>();
   private readonly originalLog = console.log.bind(console);
@@ -74,7 +75,11 @@ export class ExecutionTree {
   private readonly onUncaught = (e: unknown): void => this.onFatal("uncaughtException", e);
   private readonly onUnhandled = (e: unknown): void => this.onFatal("unhandledRejection", e);
 
-  constructor(definedAt?: string) {
+  constructor(name: string, definedAt?: string) {
+    // The run's identity: its name + where om() is written (not how it was launched),
+    // so same-named oms in different files get distinct log folders.
+    this.folder = new RunFolder(name, omHash(name, siteFile(definedAt)));
+    this.snapshotStore = new SnapshotStore(this.folder);
     this.folder.ensure();
     this.root = new ActionRun({
       ...this.nodeDeps(),

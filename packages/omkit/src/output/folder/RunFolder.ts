@@ -1,21 +1,26 @@
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { ymd, hms } from "../../foundation/format.ts";
+import { fsSafe } from "../../foundation/fsSafe.ts";
 
 /**
- * Owns this run's single output directory — `logs/<name>/<date>/<time>/` — where
- * `raw.jsonl`, the per-action `.log` files, rollups, and `result.json` all live.
- * The path is computed once, lazily, and always returned absolute so links written
- * into logs resolve regardless of cwd.
+ * Owns this run's single output directory — `logs/<name>-<hash>/<date>/<time>/` —
+ * where `raw.jsonl`, the per-action `.log` files, rollups, and `result.json` all
+ * live. The path is computed once, lazily, and always returned absolute so links
+ * written into logs resolve regardless of cwd.
  */
 export class RunFolder {
   private dir: string | undefined;
   private ensured = false;
 
-  /** The entry script's base name — the run's folder name. */
+  constructor(
+    private readonly runName: string,
+    private readonly hash: string
+  ) {}
+
+  /** `<name>-<hash8>` — the run's folder name, unique per (defining file, name). */
   name(): string {
-    const entry = process.argv[1];
-    return entry ? path.basename(entry, path.extname(entry)) : "om";
+    return `${fsSafe(this.runName)}-${this.hash}`;
   }
 
   /** The absolute run directory, computed once and created on first access. */

@@ -18,7 +18,7 @@ const teardownLines = (): string[] =>
 
 describe("teardown mechanics", () => {
   test("cancel() is idempotent — a second cancel does not narrate teardown twice", async () => {
-    await om(async ({ cancel }) => {
+    await om("teardown", async ({ cancel }) => {
       cancel();
       cancel();
     });
@@ -29,7 +29,7 @@ describe("teardown mechanics", () => {
   test("a daemon that ignores its abort signal is force-finalized after graceMs", async () => {
     ExecutionTree.graceMs = 40; // short real timer instead of the 5s default
     let reached = false;
-    await om(async ({ cancel }) => {
+    await om("teardown", async ({ cancel }) => {
       // Fire-and-forget daemon that never honors the signal (never settles).
       action("stubborn").run(() => new Promise<void>(() => {}))();
       await new Promise((r) => setTimeout(r, 5)); // let the daemon body start running
@@ -43,7 +43,7 @@ describe("teardown mechanics", () => {
 
   test("SIGINT handler tears down once and is idempotent", async () => {
     const before = process.listeners("SIGINT");
-    await om(async () => {
+    await om("teardown", async () => {
       const added = process.listeners("SIGINT").filter((l) => !before.includes(l));
       expect(added).toHaveLength(1); // omkit installed exactly one handler
       (added[0] as () => void)(); // simulate Ctrl+C
@@ -60,7 +60,7 @@ describe("teardown mechanics", () => {
 describe("failure model", () => {
   test("a fire-and-forget failure tears down a sibling daemon and is a fault (exit 1)", async () => {
     let daemonTornDown = false;
-    await om(async () => {
+    await om("teardown", async () => {
       action("daemon").run(
         (ctx) =>
           new Promise<void>((resolve) => {
@@ -82,7 +82,7 @@ describe("failure model", () => {
 
   test("a successful activity's .result resolves { ok: true, value }", async () => {
     let outcome: unknown;
-    await om(async () => {
+    await om("teardown", async () => {
       outcome = await action("compute").run(async () => 42)().result;
     });
     expect(outcome).toEqual({ ok: true, value: 42 });
@@ -92,7 +92,7 @@ describe("failure model", () => {
   test("an awaited failure resolves { ok: false } — observed, green, sibling untouched", async () => {
     let daemonTornDown = false;
     let outcome: unknown;
-    await om(async ({ cancel }) => {
+    await om("teardown", async ({ cancel }) => {
       action("daemon").run(
         (ctx) =>
           new Promise<void>((resolve) => {
@@ -116,7 +116,7 @@ describe("failure model", () => {
   test(".result never rejects — resolves { ok: false } even with nothing else attached", async () => {
     let rejected = false;
     let resolvedOk: boolean | undefined;
-    await om(async ({ cancel }) => {
+    await om("teardown", async ({ cancel }) => {
       const outcome = await action("boom")
         .run(async () => {
           throw new Error("nope");
@@ -138,7 +138,7 @@ describe("failure model", () => {
   test("handleFailure runs on a fire-and-forget failure — green, sibling untouched", async () => {
     let seen: unknown;
     let daemonTornDown = false;
-    await om(async ({ cancel }) => {
+    await om("teardown", async ({ cancel }) => {
       action("daemon").run(
         (ctx) =>
           new Promise<void>((res) =>
@@ -165,7 +165,7 @@ describe("failure model", () => {
 
   test("a synchronously-throwing body delivers to its fluent handleFailure (green)", async () => {
     let seen: unknown;
-    await om(async () => {
+    await om("teardown", async () => {
       action("sync-boom")
         .run(() => {
           throw new Error("sync");
@@ -183,7 +183,7 @@ describe("failure model", () => {
 
   test("a synchronously-throwing body delivers to a fluent on('error') (green)", async () => {
     let seen: unknown;
-    await om(async () => {
+    await om("teardown", async () => {
       const h = action("sync-boom").run(() => {
         throw new Error("sync-on");
       })();
@@ -197,7 +197,7 @@ describe("failure model", () => {
   });
 
   test("re-throwing an outcome error faults the run (exit 1)", async () => {
-    await om(async () => {
+    await om("teardown", async () => {
       const r = await action("boom").run(async () => {
         throw new Error("rethrown");
       })().result;
@@ -207,7 +207,7 @@ describe("failure model", () => {
   });
 
   test("a saved handle read only after it fails still tears down (exit 1)", async () => {
-    await om(async () => {
+    await om("teardown", async () => {
       const h = action("boom").run(async () => {
         throw new Error("late");
       })(); // .result not yet read → unobserved at fail-time
@@ -220,7 +220,7 @@ describe("failure model", () => {
   });
 
   test("ctx.cancel() with no other fault is green (exit 0)", async () => {
-    await om(async ({ cancel }) => {
+    await om("teardown", async ({ cancel }) => {
       action("daemon").run(
         (ctx) => new Promise<void>((res) => ctx.signal.addEventListener("abort", () => res()))
       )();
@@ -232,7 +232,7 @@ describe("failure model", () => {
   test("a cancelled activity's .result is CancelledError and handleFailure did not run", async () => {
     let handlerRan = false;
     let outcome: unknown;
-    await om(async ({ cancel }) => {
+    await om("teardown", async ({ cancel }) => {
       const h = action("daemon")
         .run(
           (ctx) =>
@@ -256,14 +256,14 @@ describe("failure model", () => {
   });
 
   test("a failed assert remains a fault (exit 1) — regression guard", async () => {
-    await om(async ({ assert }) => {
+    await om("teardown", async ({ assert }) => {
       assert(false, "nope");
     });
     expect(process.exitCode).toBe(1);
   });
 
   test("a node awaited only via once('healthy') tears down when it fails", async () => {
-    await om(async () => {
+    await om("teardown", async () => {
       const probe = action("probe")
         .emits<{ healthy: void }>()
         .run(async () => {
@@ -276,7 +276,7 @@ describe("failure model", () => {
 
   test("on('error') observes the failure — no teardown, green", async () => {
     let seen: unknown;
-    await om(async ({ cancel }) => {
+    await om("teardown", async ({ cancel }) => {
       const h = action("boom").run(async () => {
         throw new Error("handled via on-error");
       })();
@@ -292,7 +292,7 @@ describe("failure model", () => {
 
   test("a failed action cancels its own children even when the failure is observed", async () => {
     let childCancelled = false;
-    await om(async () => {
+    await om("teardown", async () => {
       const parent = action("parent").run(async (ctx) => {
         action("child").run(
           (c) =>
@@ -314,7 +314,7 @@ describe("failure model", () => {
   });
 
   test("a daemon that fails AFTER attaching tears down (stale .ref is not observed)", async () => {
-    await om(async () => {
+    await om("teardown", async () => {
       const daemon = action("daemon")
         .ref<number>()
         .run(async (ctx) => {

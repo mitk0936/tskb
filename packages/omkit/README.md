@@ -1,14 +1,16 @@
 # omkit
 
-**The operational-model kit.** _Typed actions. One run. One log._
+**The operational-model kit.** _Humans orchestrate. Runs narrate. AI assistants follow along._
 
-A tiny runtime for the workflows _around_ your code — start servers, wait for health checks, build, watch, drive a browser, read state back, and tear it all down together. Where [tskb](https://www.npmjs.com/package/tskb) is the _knowledge_ layer, `omkit` is the _operational_ one: the running, typed model of your system in motion.
+A tiny runtime for the workflows _around_ your code — start servers, wait for health checks, build, watch, drive a browser, read state back, and tear it all down together. You write the orchestration as ordinary TypeScript; the run **narrates itself** into a structured, on-disk record — what launched, what came up, what attached, what failed, what the world actually looked like — that an AI assistant can read instead of guessing from terminal scrollback. Where [tskb](https://www.npmjs.com/package/tskb) is the _knowledge_ layer (what your system **is**), `omkit` is the _operational_ one (what it's **doing right now**).
 
 ## The problem
 
 You know the script. Start the API, start the web server, wait until they're _actually_ serving, open the app, maybe run a smoke check — then Ctrl+C and hope everything shut down. Most of us glue this together with `concurrently`, `wait-on`, a shell script, and a pile of opaque interleaved output. When it breaks, you're grepping stdout to find out which process died.
 
-`omkit` models the workflow instead. Each step is a typed **action** in one run. Actions don't share globals — they hand each other typed **capabilities** (a port, a client, a live browser page), emit typed **events**, and land on **one log**. Bring the whole thing down together, and get a structured record of what happened.
+Now hand that same script to an AI assistant. It has it even worse: interleaved stdout is all it can see, so it _infers_ — "the server probably started", "the build likely passed" — and acts on guesses. The productivity you wanted from the assistant leaks away into re-running things, misreading logs, and asserting success that never happened.
+
+`omkit` models the workflow instead. Each step is a typed **action** in one run. Actions don't share globals — they hand each other typed **capabilities** (a port, a client, a live browser page), emit typed **events**, and land on **one log**. Bring the whole thing down together, and get a structured record of what happened — one a human can skim and an assistant can verify against.
 
 ```ts
 import { om } from "omkit";
@@ -18,7 +20,7 @@ import { command, healthcheck, chromePage } from "omkit/actions";
 const api = command("npm run dev", { cwd: "api" });
 const web = command("npm run dev", { cwd: "web" });
 
-om(async () => {
+om("dev", async () => {
   api().tag("api"); // start both dev servers as daemons…
   web().tag("web");
 
@@ -47,6 +49,12 @@ om(async () => {
                                   your smoke test
 ```
 
+## Who it's for
+
+- **Humans orchestrate.** Pipelines are ordinary TypeScript — `await`, `if`, loops, variables — not YAML, not a DSL. Define an action once; launch it by calling it.
+- **AI assistants follow runs.** The run folder (`result.json`, `raw.jsonl`, per-action logs, snapshots) is a machine-readable account of what really happened — an assistant can verify outcomes, cite evidence, and pick up where a run left off.
+- **Together, faster.** You express intent; the run records ground truth; the assistant acts on the record instead of re-running things to guess. Fewer cycles lost to "did that actually work?".
+
 ## Core concepts
 
 ### Actions & Activities
@@ -61,7 +69,7 @@ const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 const activity = build(); // calling launches; returns the live Activity
 ```
 
-`om(async (ctx) => …)` hosts the orchestration as the root of a run. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained on an Activity before your first `await` (like `withCache`) applies before its body runs. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+`om(name, async (ctx) => …)` hosts the orchestration as the root of a run. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained on an Activity before your first `await` (like `withCache`) applies before its body runs. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
 
 ### Typed capabilities
 
@@ -78,7 +86,7 @@ const server = action("server")
 
 const migrate = action("migrate").run((_ctx, port: Promise<number>) => runMigrations(port));
 
-om(async () => {
+om("migrate", async () => {
   const s = server();
   migrate(s.ref); // migrate receives the port the moment the server attaches it — typed
 });
@@ -114,7 +122,7 @@ flakyBackgroundJob().handleFailure((e) => console.warn("job failed, carrying on"
 
 **Ctrl+C** and **`ctx.cancel()`** tear everything down gracefully — procs are killed, waits unblock, the log is always written. And **success is keep-alive**: when your `om` body returns, the daemons it started keep running until Ctrl+C or `cancel()`, so wiring things up doesn't kill the servers you just started.
 
-### One log, on disk
+### One log, on disk — a run an assistant can follow
 
 Every action's output, events, asserts, snapshots, and lifecycle land on **one timeline** — streamed live to the terminal (curated milestones) and written to a per-run folder:
 
@@ -125,6 +133,12 @@ Every action's output, events, asserts, snapshots, and lifecycle land on **one t
 
 `ctx` also gives each action `assert(cond, msg)` (tallies into the run's verdict) and `snapshot(name, value)` (captures JSON state to the run folder) — so a run is an inspectable artifact, not just an exit code.
 
+Run folders have a **stable identity**: `logs/<name>-<hash8>/<date>/<time>/`, keyed by the om's name and the file that defines it. An assistant (or a script) can always find "the latest `tskb-dev` run" without parsing scrollback, diff two runs of the same pipeline, or answer questions with evidence instead of inference: _did the server actually pass its healthcheck? which process died first? what config did the build run with?_ It's all in the folder — attributed per action, timestamped, with a verdict.
+
+### Observing the real world, not assuming it
+
+The batteries are built around **ground truth**. `healthcheck` gates on the service actually answering, not on "process started". `chromePage` hands downstream steps a live browser page — real DOM, real network — so a smoke check inspects the app a user would see. `snapshot` freezes the inputs and state a run saw, and `assert` turns observations into a tallied verdict. For a human, that means less babysitting; for an AI assistant, it means the run folder **is** its view of the world — it follows what happened rather than imagining it.
+
 ## Common recipes
 
 **Skip work that's already done.** `withCache` fingerprints inputs and skips the body when nothing changed since the last successful run (a hit resolves `undefined`):
@@ -132,7 +146,7 @@ Every action's output, events, asserts, snapshots, and lifecycle land on **one t
 ```ts
 const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 
-om(async () => {
+om("build", async () => {
   const out = await build().withCache(`${process.cwd()}/src`).result;
   if (out.ok && out.value === undefined) console.log("no changes — skipped the build");
 });
@@ -143,7 +157,7 @@ om(async () => {
 ```ts
 import { watchDir } from "omkit/actions";
 
-om(async () => {
+om("watch", async () => {
   const watcher = watchDir("src").tag("watch");
   watcher.on("update", (file) => console.log(`changed: ${file}`));
   // body returns, but the watcher keeps the run alive until Ctrl+C
@@ -153,19 +167,19 @@ om(async () => {
 **Gate a deploy on green tests.** Observe the outcome and branch — no try/catch:
 
 ```ts
-om(async () => {
+om("ship", async () => {
   const tests = await command("npm test")().result;
   if (!tests.ok) return; // red → stop; the run stays green because you observed it
   await command("./deploy.sh")().result;
 });
 ```
 
-**Ask before doing something risky.** `prompt` falls back to a default when unattended, so it never blocks CI:
+**Keep a human in the loop.** `prompt` asks the terminal and falls back to a default when unattended, so it never blocks CI or an agent-driven run:
 
 ```ts
 import { prompt } from "omkit/actions";
 
-om(async () => {
+om("deploy", async () => {
   const answer = await prompt({
     kind: "choice",
     message: "Deploy to production?",

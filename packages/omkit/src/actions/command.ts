@@ -56,7 +56,7 @@ export function command(cmdOrFile: string, options: CommandOptions = {}) {
   const args = options.args;
   const name = [cmdOrFile, ...args].join(" ");
   return action(name).run(async (ctx) => {
-    const inherit = options.inheritDebugger ?? Boolean(process.env.OMKIT_INHERIT_DEBUGGER);
+    const inherit = options.inheritDebugger;
 
     const env = inherit
       ? (options.env ?? process.env)

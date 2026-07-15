@@ -14,7 +14,7 @@ afterEach(() => {
 describe("call-to-run model", () => {
   test("calling an action launches it and returns the live activity", async () => {
     let got: number | undefined;
-    await om(async () => {
+    await om("call-to-run", async () => {
       const r = await action("add").run(async (_c, a: number, b: number) => a + b)(2, 3).result;
       got = r.ok ? r.value : undefined;
     });
@@ -22,7 +22,7 @@ describe("call-to-run model", () => {
   });
 
   test("a tag chained on the returned handle (before the first await) is applied", async () => {
-    await om(async () => {
+    await om("call-to-run", async () => {
       const h = action("probe").run(async () => 1)();
       h.tag("chained"); // cross-statement, still before the commit microtask
       await h.result;
@@ -32,7 +32,7 @@ describe("call-to-run model", () => {
   });
 
   test("withCache after the first await throws (the config window has closed)", async () => {
-    await om(async () => {
+    await om("call-to-run", async () => {
       const h = action("x").run(async () => 1)();
       await Promise.resolve(); // the commit microtask runs here — the body has started
       expect(() => h.withCache(process.cwd())).toThrow(/already launched/);
@@ -54,7 +54,7 @@ describe("withCache on the handle", () => {
 
     // First run: cache miss → body runs and records the fingerprint.
     let r1: unknown;
-    await om(async () => {
+    await om("call-to-run", async () => {
       r1 = await build().withCache(dir).result;
     });
     expect(runs).toBe(1);
@@ -62,7 +62,7 @@ describe("withCache on the handle", () => {
 
     // Second run: inputs unchanged → cache hit → body skipped, resolves undefined.
     let r2: unknown;
-    await om(async () => {
+    await om("call-to-run", async () => {
       r2 = await build().withCache(dir).result;
     });
     expect(runs).toBe(1); // not re-run
@@ -79,12 +79,12 @@ describe("withCache on the handle", () => {
       runs++;
     });
     // Prime the cache.
-    await om(async () => {
+    await om("call-to-run", async () => {
       await build().withCache(dir).result;
     });
     expect(runs).toBe(1);
     // Cross-statement config, before the first await: the gate still applies.
-    await om(async () => {
+    await om("call-to-run", async () => {
       const h = build();
       h.withCache(dir);
       await h.result;

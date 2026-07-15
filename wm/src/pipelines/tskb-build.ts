@@ -12,7 +12,7 @@ const buildConfig = {
 
 // Watch the graph dir while the build regenerates it, then stop once the build
 // process exits. The run tears down when the body returns (or throws).
-om(async ({ snapshot }) => {
+om("tskb-build", async ({ snapshot }) => {
   // Capture the run's inputs as a snapshot — part of the world model the log
   // narrates. Taken inside the body so it lands in this run's own output folder.
   void snapshot("build-config", buildConfig);

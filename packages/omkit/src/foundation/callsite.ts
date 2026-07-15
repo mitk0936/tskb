@@ -23,6 +23,13 @@ const nativePath = (file: string): string => {
  * where `.run(...)` was written, and `om(...)` records where the run was launched from. At
  * runtime that's the built file (e.g. `dist/actions/chrome-page.js`). `undefined` with no stack.
  */
+/**
+ * The file part of a `file:line` site — the run-identity input (the line is dropped
+ * so moving a call within its file doesn't change the run's identity).
+ */
+export const siteFile = (site: string | undefined): string | undefined =>
+  site?.replace(/:\d+$/, "");
+
 export const callerSite = (): string | undefined => {
   const stack = new Error().stack;
   if (!stack) return undefined;

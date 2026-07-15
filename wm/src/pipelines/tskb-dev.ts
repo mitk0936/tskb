@@ -21,7 +21,7 @@ const watchLib = command("npm run dev", { cwd: tskbPath });
 const serveExplorer = command("npm run dev:explorer", { cwd: tskbPath });
 const runTests = command("npm test", { cwd: repoRoot });
 
-om(async () => {
+om("tskb-dev", async () => {
   const answer = await prompt({
     kind: "choice",
     message: "Run tests?",
