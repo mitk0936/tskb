@@ -98,7 +98,12 @@ export interface Activity<Result = unknown, Events extends object = NoEvents, Ha
     key: K,
     handler: EventHandler<InstanceEvents<Events, Result>[K]>
   ): void;
-  /** Next emit of `key`; resolves `undefined` if the node settles first (never rejects). */
+  /**
+   * Next emit of `key`; resolves `undefined` if the node settles first (never rejects).
+   * Exception — `once("done")` awaits the outcome itself: it resolves the result on
+   * success and **rejects** on failure/cancellation (observing the failure), so
+   * `await activity.once("done")` is a hard step-gate the body cannot sail past.
+   */
   once<K extends keyof InstanceEvents<Events, Result>>(
     key: K
   ): Promise<InstanceEvents<Events, Result>[K] | undefined>;

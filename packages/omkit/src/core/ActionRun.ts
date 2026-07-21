@@ -171,10 +171,11 @@ export class ActionRun<
   ): Promise<InstanceEvents<Events, Result>[K] | undefined> {
     if (key === "error") this.observed = true;
     if (key === "done") {
-      return this.settled.promise.then(
-        (v) => v as InstanceEvents<Events, Result>[K],
-        () => undefined
-      );
+      // Awaiting completion IS observing the outcome: deliver a failure to the awaiter
+      // (reject, like `.ref`) instead of resolving `undefined` and letting the body
+      // sail past a failed step while the unobserved-failure teardown races it.
+      this.observed = true;
+      return this.settled.promise as Promise<InstanceEvents<Events, Result>[K]>;
     }
     return new Promise((resolve) => {
       let done = false;

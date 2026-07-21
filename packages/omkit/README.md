@@ -197,6 +197,7 @@ An Activity exposes its declared events plus the lifecycle ones (`done`, `error`
 
 - **`activity.on(event, handler)`** — subscribe to every emit.
 - **`activity.once(event)`** — a **promise** for the next emit; resolves `undefined` if the Activity settles first, so an `await` never hangs. A retained snapshot (like `healthy`) is replayed immediately even if you subscribe late.
+- **`activity.once("done")`** is the exception — it awaits the outcome itself: resolves the result on success, **rejects** on failure or cancellation (and observes the failure). That makes `await step().once("done")` a hard gate: a failed step throws at the `await`, in your body, instead of letting the orchestration sail past it. Use `.result` when a failure is an outcome you want to branch on rather than a stop.
 
 ```ts
 const probe = healthcheck({ url: "http://localhost:3000" });
