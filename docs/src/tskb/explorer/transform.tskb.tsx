@@ -112,26 +112,11 @@ export default (
       name="graph-to-chunks-transform"
       desc="The explorer asks transformGraph to chunk a KnowledgeGraph for delivery: edges are indexed, the meta chunk is built, folder chunks are walked, ghosts are filled in, then counts and ordering are finalised"
     >
-      <Step
-        node={TransformGraphExport}
-        label="entry point: instantiates the transformer, indexes edges by source and target, then runs the phases below"
-      />
-      <Step
-        node={TransformModule}
-        label="builds the meta chunk: root folder, top folders, docs, flows, terms, externals, and cross-lane edges"
-      />
-      <Step
-        node={TransformModule}
-        label="recursively builds one folder chunk per folder with its direct modules, exports, sub-folders, and import edges (split into internal vs external)"
-      />
-      <Step
-        node={TransformModule}
-        label="fills in ghost intermediary folders for path gaps between a declared folder and its modules, then injects ghost nodes for undeclared files and folders found by the scanner"
-      />
-      <Step
-        node={TransformModule}
-        label="patches folder child counts so the SPA can show expand affordances, sorts chunk contents alphabetically, and builds the parent-of map"
-      />
+      <Step node={TransformGraphExport} label="indexes the edges, then runs the phases below" />
+      <Step node={TransformModule} label="builds the meta chunk" />
+      <Step node={TransformModule} label="builds one folder chunk per folder" />
+      <Step node={TransformModule} label="injects ghost nodes for undeclared files and folders" />
+      <Step node={TransformModule} label="patches child counts and finalises ordering" />
     </Flow>
   </Doc>
 );

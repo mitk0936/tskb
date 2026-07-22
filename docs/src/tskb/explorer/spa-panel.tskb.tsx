@@ -225,28 +225,16 @@ export default (
     >
       <Step
         node={MountExport}
-        label="ExplorerApp.mount() runs the panel-router setup block after canvas and renderer are ready"
+        label="sets up the panel router after canvas and renderer are ready"
       />
       <Step
         node={DocPanelExport}
-        label="new DocPanel(router): shell subscribes so every stack change re-renders the panel"
+        label="the panel shell subscribes so every stack change re-renders it"
       />
-      <Step
-        node={RegisterViewExport}
-        label="registerView(RefsView, deps): binds deps into a factory closure keyed by RefsView.prefix"
-      />
-      <Step
-        node={InitExport}
-        label="init({ syncHash: true }): starts hashchange listening and restores any view in the current hash"
-      />
-      <Step
-        node={RouterModule}
-        label="If location.hash is non-empty, restoreFromHash() calls the factory to rebuild the view"
-      />
-      <Step
-        node={DocPanelExport}
-        label="onViewChange fires; header and body are rendered by the restored view"
-      />
+      <Step node={RegisterViewExport} label="registers the view factory for hash restore" />
+      <Step node={InitExport} label="starts hash sync and restores any view in the current hash" />
+      <Step node={RouterModule} label="rebuilds the view from the current hash, if any" />
+      <Step node={DocPanelExport} label="renders the restored view's header and body" />
     </Flow>
 
     <Flow
@@ -254,29 +242,14 @@ export default (
       desc="Forward navigation: a chip click constructs a view, pushes it, the shell renders it, and the URL hash is updated"
       priority="essential"
     >
-      <Step
-        node={ExplorerAppExport}
-        label="onChipClick(node, 'docs' | 'flows'): constructs new RefsView(nodeId, kind, deps)"
-      />
-      <Step
-        node={PushExport}
-        label="router.push(view): identical-route guard skips dupes; otherwise appends to the stack"
-      />
+      <Step node={ExplorerAppExport} label="a chip click constructs a refs view" />
+      <Step node={PushExport} label="pushes the view onto the stack, skipping duplicate routes" />
+      <Step node={RouterModule} label="notifies subscribers of the new top-of-stack" />
+      <Step node={DocPanelExport} label="renders the pushed view's header and body" />
+      <Step node={RefsViewExport} label="writes its HTML and wires its ref links" />
       <Step
         node={RouterModule}
-        label="notify() fans out the new top-of-stack and canGoBack to every subscriber"
-      />
-      <Step
-        node={DocPanelExport}
-        label="onViewChange clears title/body, calls view.renderHeader(title, ctx) then view.renderBody(body)"
-      />
-      <Step
-        node={RefsViewExport}
-        label="renderHeader and renderBody write HTML then call wireRefs on their own elements"
-      />
-      <Step
-        node={RouterModule}
-        label="writeHash() writes #/<route> to location.hash; the writingHash flag suppresses the echoed hashchange"
+        label="writes the route to the URL hash, suppressing its own echo"
       />
     </Flow>
 
@@ -285,29 +258,20 @@ export default (
       desc="Browser back/forward or external hash change rebuilds the view from the URL"
       priority="essential"
     >
-      <Step
-        node={RouterModule}
-        label="hashchange fires; if writingHash is set the event is our own echo and is ignored"
-      />
-      <Step
-        node={RouterModule}
-        label="restoreFromHash() strips the leading '#/'; an empty hash empties the stack and notifies"
-      />
-      <Step
-        node={RouterModule}
-        label="parseRoute(raw) splits the prefix, looks up the registered factory, and calls it with the rest"
-      />
+      <Step node={RouterModule} label="a hash change fires, ignoring the router's own echo" />
+      <Step node={RouterModule} label="restores from the hash; an empty hash clears the stack" />
+      <Step node={RouterModule} label="parses the route and looks up the registered factory" />
       <Step
         node={RefsViewExport}
-        label="RefsView.parse(rest, deps) decodes the route and returns a fresh view instance (or null for malformed routes)"
+        label="decodes the route into a fresh view, or null if malformed"
       />
       <Step
         node={RouterModule}
-        label="Existing stack is drained (each onLeave fired) and replaced with the single restored view"
+        label="drains the existing stack and replaces it with the restored view"
       />
       <Step
         node={DocPanelExport}
-        label="onViewChange paints the restored view; getNode may return undefined if the chunk hasn't loaded yet"
+        label="paints the restored view, even if its chunk hasn't loaded yet"
       />
     </Flow>
 
@@ -318,20 +282,11 @@ export default (
     >
       <Step
         node={LoadInitialDataExport}
-        label="loadInitialData() awaits the meta chunk and writes it to the store"
+        label="the meta chunk arrives and is written to the store"
       />
-      <Step
-        node={RefreshExport}
-        label="router.refresh() re-notifies subscribers without changing the stack"
-      />
-      <Step
-        node={RouterModule}
-        label="notify() fans out the same top-of-stack view to every subscriber"
-      />
-      <Step
-        node={DocPanelExport}
-        label="onViewChange runs again; the view re-queries deps.getNode() and now resolves real labels"
-      />
+      <Step node={RefreshExport} label="re-notifies subscribers without changing the stack" />
+      <Step node={RouterModule} label="fans the same top-of-stack view out to subscribers" />
+      <Step node={DocPanelExport} label="repaints the view, now resolving real labels" />
     </Flow>
   </Doc>
 );

@@ -112,10 +112,10 @@ export default (
       <code>pointer-events: none</code>.
     </P>
 
-    <Relation from={NodeBaseModule} to={LaneEngineModule} label="reads NODE_SIZES from" />
-    <Relation from={EdgeRendererModule} to={LaneEngineModule} label="reads LaneLayout from" />
-    <Relation from={MainModule} to={NodeBaseModule} label="calls enter/update on node selections" />
-    <Relation from={MainModule} to={EdgeRendererModule} label="calls renderStructureEdges" />
-    <Relation from={MainModule} to={BoundaryRendererModule} label="calls renderBoundaryGroups" />
+    <Relation from={NodeBaseModule} to={LaneEngineModule} label="sizes its cards from" />
+    <Relation from={EdgeRendererModule} to={LaneEngineModule} label="positions edges from" />
+    <Relation from={MainModule} to={NodeBaseModule} label="renders node cards with" />
+    <Relation from={MainModule} to={EdgeRendererModule} label="renders structure edges with" />
+    <Relation from={MainModule} to={BoundaryRendererModule} label="renders boundaries with" />
   </Doc>
 );

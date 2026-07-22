@@ -57,6 +57,6 @@ export default (
       D3 selection with enter/update/exit.
     </P>
 
-    <Relation from={MainModule} to={LaneEngineModule} label="calls computeLayout on each render" />
+    <Relation from={MainModule} to={LaneEngineModule} label="positions nodes on each render" />
   </Doc>
 );

@@ -9,6 +9,7 @@ import {
   P,
   List,
   Li,
+  Relation,
   ref,
 } from "tskb";
 
@@ -187,60 +188,50 @@ const ResolveNodeModule = ref as tskb.Modules["cli.utils.resolve-node"];
 const ResolveNodeFn = ref as tskb.Exports["cli.utils.resolve-node.resolveNode"];
 
 export default (
-  <Doc explains="CLI structure: commands (init, build, search, pick, context, ls, docs, flows) and utils (output generators, content builder, logger)">
+  <Doc explains="How is the tskb CLI organized into commands and utils?">
     <H1>CLI</H1>
     <P>
-      Located in {CliFolder}. Entry point: {IndexModule} — parses arguments, routes to command
-      handlers.
+      {CliFolder} holds the command-line tool. {IndexModule} is the entry point: it parses arguments
+      and routes to one command handler. Each command and util below carries its own{" "}
+      <code>desc</code>— <code>pick</code> any of them for detail. This doc only shows how they
+      group.
     </P>
 
     <H2>Commands</H2>
-    <P>In {CommandsFolder}:</P>
+    <P>One file per command in {CommandsFolder}:</P>
     <List>
+      <Li>{InitModule} scaffolds a new docs folder.</Li>
+      <Li>{BuildModule} runs the full build pipeline.</Li>
       <Li>
-        {InitModule}: Interactive scaffolder — creates docs folder, tsconfig, starter doc, build
-        script
-      </Li>
-      <Li>
-        {BuildModule}: Full pipeline — files → TypeScript program → extraction → graph → outputs.
-        Its <code>--watch</code> flag hands off to {WatchModule}.
-      </Li>
-      <Li>{SearchModule}: Fuzzy search across all node types, returns ranked JSON results</Li>
-      <Li>{PickModule}: Resolve any node by ID or path, returns type-specific context</Li>
-      <Li>{LsModule}: List folder hierarchy with depth control, includes essential docs</Li>
-      <Li>
-        {FlowsModule}: List or search flows sorted by priority (constraint → essential →
-        supplementary)
+        {SearchModule}, {PickModule}, {LsModule}, and {FlowsModule} are the read-only queries over a
+        built graph.
       </Li>
     </List>
+    <Relation from={BuildModule} to={WatchModule} label="hands its --watch flag off to" />
 
     <H2>Utils</H2>
-    <P>In {UtilsFolder}:</P>
+    <P>Shared helpers in {UtilsFolder}, grouped by what they serve:</P>
     <List>
       <Li>
-        {ContentBuilderModule}: Produces two markdown bodies — query body and update body (syntax +
-        session triggers) — consumed by skill and instructions generators
-      </Li>
-      <Li>{SkillGenModule}: Generates two Claude Code skills — tskb and tskb-update</Li>
-      <Li>{CopilotGenModule}: Generates two Copilot instructions — tskb and tskb-update</Li>
-      <Li>{GraphFinderModule}: Finds the .tskb/graph/ directory from cwd</Li>
-      <Li>
-        {GraphLoaderModule}: {LoadGraphExport} reads only the requested node-type files from the
-        split graph — each command lists what it needs so unrelated files are never parsed
+        <strong>Graph access</strong> — {GraphFinderModule} locates the graph directory,{" "}
+        {GraphLoaderModule} ({LoadGraphExport}) loads only the node types a command asks for, and{" "}
+        {ResolveNodeModule} ({ResolveNodeFn}) turns an ID or path into a node and walks its edges.
       </Li>
       <Li>
-        {LoggerModule}: Stderr-only logger with info/verbose/error/time — configured once at startup
-        via --verbose flag
+        <strong>Doc generation</strong> — {ContentBuilderModule} is the shared source of skill and
+        instruction markdown.
       </Li>
       <Li>
-        {WatcherModule}: Watches files and folders for the build {WatchModule}, collapsing rapid
-        changes into one callback
-      </Li>
-      <Li>
-        {ResolveNodeModule}: Resolves any identifier to a graph node via {ResolveNodeFn} (exact ID →
-        path → nearest parent folder). Also provides edge helpers: getNodeEdges,
-        findReferencingDocs, findParent, findAllNodesById.
+        <strong>Build support</strong> — {WatcherModule} reports settled file changes;{" "}
+        {LoggerModule} routes CLI output.
       </Li>
     </List>
+    <Relation from={ContentBuilderModule} to={SkillGenModule} label="provides skill markdown to" />
+    <Relation
+      from={ContentBuilderModule}
+      to={CopilotGenModule}
+      label="provides instruction markdown to"
+    />
+    <Relation from={WatcherModule} to={WatchModule} label="reports file changes to" />
   </Doc>
 );

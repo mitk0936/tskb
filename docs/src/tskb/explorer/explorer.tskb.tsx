@@ -123,6 +123,9 @@ const TransformGraphExport = ref as tskb.Exports["explorer.transformGraph"];
 const ServeExplorerExport = ref as tskb.Exports["explorer.serveExplorer"];
 const ExportExplorerExport = ref as tskb.Exports["explorer.exportExplorer"];
 const ViteConfigModule = ref as tskb.Modules["explorer.app.vite-config"];
+const KnowledgeChunk = ref as tskb.Terms["knowledgeChunk"];
+const SearchIndexChunk = ref as tskb.Terms["searchIndexChunk"];
+const ExplorerStaticExport = ref as tskb.Terms["explorerStaticExport"];
 
 // ─── Documentation ────────────────────────────────────────────────────────────
 
@@ -144,49 +147,27 @@ export default (
     </P>
 
     <H2>CLI layer</H2>
-    <P>The CLI layer has three focused modules — see their dedicated docs for details:</P>
     <P>
-      {TransformModule} ({TransformGraphExport}) — converts a flat <code>KnowledgeGraph</code> into{" "}
-      <code>ExplorerChunks</code>: a <code>MetaChunk</code> plus one <code>FolderChunk</code> per
-      folder that has modules or sub-folders, plus a flat <code>searchIndex</code> array used by the
-      browser search worker. Ghost nodes are injected for filesystem files not declared in the
-      graph.
+      The CLI layer has three focused modules, each with its own doc. In short: {TransformModule} (
+      {TransformGraphExport}) turns the graph into {KnowledgeChunk}s plus a {SearchIndexChunk};{" "}
+      {ServerModule} ({ServeExplorerExport}) serves those chunks over HTTP; {ExportModule} (
+      {ExportExplorerExport}) writes them next to the SPA assets as an {ExplorerStaticExport}.
     </P>
-    <P>
-      {ServerModule} ({ServeExplorerExport}) — Node built-in <code>http</code> server that caches
-      all chunk JSON strings in memory after the first transform and serves them at{" "}
-      <code>/chunks/*.json</code>. No external server dependency.
-    </P>
-    <P>
-      {ExportModule} ({ExportExplorerExport}) — copies the pre-built SPA assets to an output
-      directory and writes all chunk JSON files alongside them, producing a fully self-contained
-      static explorer.
-    </P>
+    <Relation from={TransformModule} to={KnowledgeChunk} label="produces" />
+    <Relation from={ServerModule} to={KnowledgeChunk} label="serves over HTTP" />
+    <Relation from={ExportModule} to={ExplorerStaticExport} label="writes" />
 
     <H2>Browser search</H2>
     <P>
-      {SearchWorkerModule} runs in a Web Worker so search never blocks the UI. On init it fetches{" "}
-      <code>/chunks/search-index.json</code> and builds a Fuse.js index over all node labels,
-      descriptions, IDs, and paths. When the user clicks the search button the main thread posts a
-      query; the worker replies with a ranked list of matching node IDs that the render loop uses to
-      dim non-matching nodes.
+      {SearchWorkerModule} runs in a Web Worker so search never blocks the UI: it loads the{" "}
+      {SearchIndexChunk}, then answers queries the main thread posts with a ranked list of matching
+      node IDs that the render loop uses to dim the rest.
     </P>
+    <Relation from={SearchWorkerModule} to={SearchIndexChunk} label="searches" />
 
-    <Relation
-      from={LayoutFolder}
-      to={D3External}
-      label="d3.hierarchy + d3.tree for left-to-right layout"
-    />
-    <Relation
-      from={ComponentsFolder}
-      to={D3External}
-      label="D3 enter/update/exit, d3.polygonHull, curveBasisClosed"
-    />
-    <Relation
-      from={ExplorerAppFolder}
-      to={ViteExternal}
-      label="bundled by Vite into dist/explorer/"
-    />
+    <Relation from={LayoutFolder} to={D3External} label="positions nodes with" />
+    <Relation from={ComponentsFolder} to={D3External} label="renders nodes and edges with" />
+    <Relation from={ExplorerAppFolder} to={ViteExternal} label="bundled by" />
 
     <H2>Build integration</H2>
     <P>

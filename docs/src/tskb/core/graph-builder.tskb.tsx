@@ -99,6 +99,6 @@ export default (
         per node type into <code>.tskb/graph/</code>, plus a lightweight search index.
       </Li>
     </List>
-    <Relation from={BuildGraphExport} to={KnowledgeGraphExport} />
+    <Relation from={BuildGraphExport} to={KnowledgeGraphExport} label="assembles" />
   </Doc>
 );

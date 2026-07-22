@@ -74,10 +74,7 @@ export default (
         node={ExploreExport}
         label="reads the graph file and resolves the output directory from the export flag"
       />
-      <Step
-        node={TransformGraphExport}
-        label="converts KnowledgeGraph into a MetaChunk plus one FolderChunk per folder, held in memory"
-      />
+      <Step node={TransformGraphExport} label="turns the graph into chunks, held in memory" />
       <Step
         node={ExportExplorerExport}
         label="copies the pre-built SPA into the output directory and writes all chunk JSON files alongside it"
