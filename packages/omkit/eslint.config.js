@@ -43,8 +43,17 @@ export default [
     "actions build on core/system/foundation — not output directly"
   ),
 
+  // The client SDK is the headless, UI-free engine — it must not reach into the CLI
+  // frontends (commands, Ink app). Keeps it reusable by the future MCP server unchanged.
+  boundary(
+    "cli/client",
+    ["**/cli/commands/**", "**/cli/ui/**"],
+    "the client SDK is UI-free — it must not import CLI commands or the Ink app"
+  ),
+
   // These own the real console (terminal writer / capture / live render); actions
-  // emit via `console.*` by design (their only output path). So `no-console` is expected.
+  // emit via `console.*` by design, and the CLI/bin writes results to the terminal.
+  // So `no-console` is expected.
   {
     files: [
       "src/core/ExecutionTree.ts",
@@ -52,6 +61,7 @@ export default [
       "src/output/console/ConsoleCapture.ts",
       "src/output/LiveRenderer.ts",
       "src/actions/**/*.ts",
+      "src/cli/**/*.ts",
     ],
     rules: { "no-console": "off" },
   },

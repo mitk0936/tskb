@@ -24,6 +24,7 @@ The big-picture index of this repo. Load this whenever you start a task — it t
 ## Boundaries
 
 - **E2E tests** — `tests` — End-to-end tests for the tskb CLI.
+- **omkit CLI** — `packages/omkit/src/cli` — The omkit command-line binary: the supervisor process that discovers oms, spawns each run as its own child process, and drives them (run, list, typecheck, and the interactive app).
 - **omkit runtime** — `packages/omkit` — The operational-model kit: a Node runtime for the workflows around your code (start servers, wait, watch, drive a browser, tear down) that narrates each run to disk.
 - **test-fixtures** — `tests/e2e/fixture` — A small sample project used as the test subject — like a real repo that adopted tskb.
 - **TSKB Explorer server** — `packages/tskb/src/core/explorer` — Server side of the explorer: turns the graph into chunks and serves them.
@@ -53,7 +54,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — What does the runtime module provide and what does it not do?
 - `docs/src/tskb/usage.tskb.tsx` — What's the typical workflow for setting up tskb in a repo?
 
-_Plus 26 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 27 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 ## Externals
 
