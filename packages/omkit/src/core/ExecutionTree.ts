@@ -16,6 +16,7 @@ import type { NodeView, RunView } from "../output/writers/views.ts";
 import { ActionRun, type NodeInit } from "./ActionRun.ts";
 import { procRegistry } from "../system/proc.ts";
 import { currentNode } from "./context.ts";
+import { activeSupervisor } from "./interaction.ts";
 import type { Exec, LaunchSpec } from "./types.ts";
 
 /**
@@ -55,6 +56,7 @@ export class ExecutionTree {
   private readonly originalLog = console.log.bind(console);
   private streaming: Promise<void> | undefined;
   private liveRendering: Promise<void> | undefined;
+  private forwarding: Promise<void> | undefined;
   private assertionsPassed = 0;
   private assertionsFailed = 0;
   private readonly faults: Array<{ action: string; error: string }> = [];
@@ -228,9 +230,19 @@ export class ExecutionTree {
     process.on("uncaughtException", this.onUncaught);
     process.on("unhandledRejection", this.onUnhandled);
     this.streaming = this.rawStream.run(this.store);
-    // Live, curated milestones to the terminal — a single in-place status line on a TTY.
-    // Straight to process.stdout, which patch-console doesn't intercept (no capture feedback).
-    this.liveRendering = new LiveRenderer(process.stdout).run(this.store);
+    const supervisor = activeSupervisor();
+    if (supervisor) {
+      // Supervised: the supervisor owns the terminal. Forward every entry up the channel
+      // instead of rendering, and tear down on its cancel request.
+      supervisor.onCancel(() => this.cancel());
+      this.forwarding = (async () => {
+        for await (const entry of this.store.subscribe({ replay: true })) supervisor.log(entry);
+      })();
+    } else {
+      // Bare: live, curated milestones to the terminal — a single in-place status line on a TTY.
+      // Straight to process.stdout, which patch-console doesn't intercept (no capture feedback).
+      this.liveRendering = new LiveRenderer(process.stdout).run(this.store);
+    }
 
     const rootPromise = currentNode.run(this.root, () => this.root.run(body, []));
     this.trackNode(rootPromise);
@@ -280,6 +292,7 @@ export class ExecutionTree {
     this.store.close();
     await this.streaming;
     await this.liveRendering;
+    await this.forwarding;
 
     const flat = this.registry.map((node) => this.nodeView(node));
     const entries = this.store.entries();
@@ -299,7 +312,9 @@ export class ExecutionTree {
     process.off("unhandledRejection", this.onUnhandled);
     this.consoleCapture.uninstall();
     ExecutionTree.current = null;
-    this.printSummary(summary);
+    const supervisor = activeSupervisor();
+    if (supervisor) supervisor.settled(this.verdictOk(), this.folder.path());
+    else this.printSummary(summary);
     if (!this.verdictOk()) process.exitCode = 1;
   }
 

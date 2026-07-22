@@ -1,5 +1,8 @@
 # omkit
 
+[![npm version](https://badge.fury.io/js/omkit.svg)](https://www.npmjs.com/package/omkit)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 **The operational-model kit.** _Humans orchestrate. Runs narrate. AI assistants follow along._
 
 A tiny runtime for the workflows _around_ your code — start servers, wait for health checks, build, watch, drive a browser, read state back, and tear it all down together. You write the orchestration as ordinary TypeScript; the run **narrates itself** into a structured, on-disk record — what launched, what came up, what attached, what failed, what the world actually looked like — that an AI assistant can read instead of guessing from terminal scrollback. Where [tskb](https://www.npmjs.com/package/tskb) is the _knowledge_ layer (what your system **is**), `omkit` is the _operational_ one (what it's **doing right now**).
@@ -69,11 +72,11 @@ const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 const activity = build(); // calling launches; returns the live Activity
 ```
 
-`om(name, async (ctx) => …)` hosts the orchestration as the root of a run. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained on an Activity before your first `await` (like `withCache`) applies before its body runs. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+`om(name, async (ctx) => …)` hosts the orchestration as the root of a run. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
 
 ### Typed capabilities
 
-An action can `attach` a value — a port, a client, a page — that downstream actions receive by awaiting `activity.ref`. Not a file descriptor scraped from a log: a typed runtime handoff, so steps chain without globals or string-parsing.
+An action can `attach` a value — a port, a client, a page — that downstream actions receive by awaiting `activity.ref`. Not a file descriptor scraped from a log: a typed runtime handoff, so steps chain without globals or string-parsing. The first `attach` wins; later ones are ignored. Unlike `.result`, `.ref` **rejects** on failure or cancellation — a consumer waiting on a capability that never arrives fails instead of hanging — and an action that publishes nothing still resolves its `.ref` with `undefined` on success, so awaiting it never wedges.
 
 ```ts
 const server = action("server")
@@ -109,7 +112,7 @@ Awaiting `.result` also _observes_ the Activity (see teardown). A cancelled Acti
 
 ### Failure & teardown
 
-omkit uses **structured supervision**: a failure that **nobody is watching** tears the whole run down and marks it failed. An Activity is "watched" if — before it fails — you awaited its `.result` (or `.ref`), added an `on("error")` listener, or attached `.handleFailure`.
+omkit uses **structured supervision**: a failure that **nobody is watching** tears the whole run down and marks it failed. An Activity is "watched" if — before it fails — you awaited its `.result`, added an `on("error")` listener, or attached `.handleFailure`.
 
 - **Await it** (`await task().result`) → the failure is yours to inspect as `{ ok: false }`; the run stays green.
 - **Fire-and-forget it** (`task()`, never awaited) → an unobserved crash tears the run down. This is the guardrail for daemons: a dev server that dies fails the run instead of leaving it wedged.

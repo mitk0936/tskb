@@ -1,5 +1,6 @@
 import { createInterface } from "node:readline/promises";
 import { action } from "../core/action.ts";
+import { activeSupervisor, type PromptSpec, type Supervisor } from "../core/interaction.ts";
 
 /** A selectable option: a bare string (its own value), or a labelled value. */
 export type PromptChoice = string | { label: string; value: string };
@@ -36,6 +37,56 @@ export interface PromptEvents {
 
 const asChoices = (choices: PromptChoice[]): { label: string; value: string }[] =>
   choices.map((c) => (typeof c === "string" ? { label: c, value: c } : c));
+
+/** A settled answer: the resolved value and how it was decided. */
+interface Answer {
+  value: string;
+  via: PromptVia;
+}
+
+/** Route the request over the supervisor channel, resolving the raw answer against the choices. */
+async function askSupervisor(
+  supervisor: Supervisor,
+  ctx: {
+    opts: PromptOptions;
+    message: string;
+    defaultValue: string;
+    resolveRaw: (raw: string) => string | undefined;
+  },
+  waitSignal: AbortSignal
+): Promise<Answer> {
+  const { opts, message, defaultValue, resolveRaw } = ctx;
+  const spec: PromptSpec = {
+    kind: opts.kind === "choice" ? "choice" : "input",
+    message,
+    default: defaultValue,
+    ...(opts.kind === "choice" ? { choices: asChoices(opts.choices) } : {}),
+  };
+  const answer = await supervisor.request(spec, waitSignal);
+  const resolved = resolveRaw(answer.value);
+  if (resolved === undefined) return { value: defaultValue, via: "default" };
+  return { value: resolved, via: (answer.via as PromptVia) ?? "input" };
+}
+
+/** Read the answer straight from the terminal (the bare, unsupervised path). */
+async function askTerminal(
+  query: string,
+  resolveRaw: (raw: string) => string | undefined,
+  defaultValue: string,
+  waitSignal: AbortSignal
+): Promise<Answer> {
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    const raw = (await rl.question(query, { signal: waitSignal })).trim();
+    if (raw === "") return { value: defaultValue, via: "default" };
+    const resolved = resolveRaw(raw);
+    if (resolved !== undefined) return { value: resolved, via: "input" };
+    console.log(`invalid answer "${raw}", using default`);
+    return { value: defaultValue, via: "default" };
+  } finally {
+    rl.close();
+  }
+}
 
 /**
  * Asks the terminal a question — free-text **input** or a **choice** — and resolves
@@ -86,31 +137,24 @@ export const prompt = action("prompt")
 
     const onTimeout = new AbortController();
     const timer = finite ? setTimeout(() => onTimeout.abort(), timeoutMs) : undefined;
-    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    const waitSignal = AbortSignal.any([signal, onTimeout.signal]);
 
     let value = defaultValue;
     let via: PromptVia = "default";
+    const supervisor = activeSupervisor();
     try {
-      const raw = (
-        await rl.question(query, { signal: AbortSignal.any([signal, onTimeout.signal]) })
-      ).trim();
-      if (raw === "") {
-        via = "default";
-      } else {
-        const resolved = resolveRaw(raw);
-        if (resolved !== undefined) {
-          value = resolved;
-          via = "input";
-        } else {
-          console.log(`invalid answer "${raw}", using default`);
-          via = "default";
-        }
-      }
+      // Supervised: hand off to whoever owns the terminal (Ink app / MCP client). Bare: read
+      // the terminal directly. Either way the child keeps the timeout via `waitSignal`, so a
+      // silent supervisor (or nobody) can't wedge the run.
+      const outcome = supervisor
+        ? await askSupervisor(supervisor, { opts, message, defaultValue, resolveRaw }, waitSignal)
+        : await askTerminal(query, resolveRaw, defaultValue, waitSignal);
+      value = outcome.value;
+      via = outcome.via;
     } catch {
       via = onTimeout.signal.aborted ? "timeout" : "default";
     } finally {
       if (timer) clearTimeout(timer);
-      rl.close();
     }
 
     console.log(via === "timeout" ? `timed out → ${value}` : `${value} (${via})`);
