@@ -1,4 +1,4 @@
-import { type Export, type Module, Doc, H1, H2, P, Flow, Step, ref } from "tskb";
+import { type Export, type Module, Doc, H1, P, Flow, Step, Relation, ref } from "tskb";
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -125,138 +125,71 @@ export default (
     <H1>ExplorerApp</H1>
     <P>
       {ExplorerAppExport} in {MainModule} is the single top-level controller for the explorer SPA.
-      All canvas layers, UI state, and callbacks are owned by the class instance. The only public
-      surface is {MountExport} — everything else is private, wired internally via callbacks.
+      It owns every canvas layer, all UI state, and every callback. {MountExport} is its only public
+      method — everything else is private.
     </P>
-
-    <H2>Boot sequence</H2>
     <P>
-      {MountExport} runs four synchronous setup methods then awaits data. {SetupCanvasExport}{" "}
-      creates the SVG layer stack and wires zoom/pan. {SetupTooltipsExport} mounts hover and code
-      tooltips. {SetupRendererExport} constructs the node renderer with bound interaction callbacks.{" "}
-      {SetupSearchExport} wires the search input. {LoadInitialDataExport} fetches{" "}
-      <code>meta.json</code> and calls <code>store.loadMeta()</code>, which notifies the render
-      subscriber and triggers the first {RenderExport}.
+      The one seam worth knowing: {RenderExport} computes nothing itself. It hands all application
+      logic to {ComputeRenderStateExport}, then passes the result to the D3 drawing functions.{" "}
+      {RenderStateModule} is that boundary between logic and rendering.
     </P>
-
-    <H2>Render loop</H2>
+    <Relation from={RenderExport} to={ComputeRenderStateExport} label="delegates all logic to" />
+    <Relation from={OnExpandExport} to={CollapseDescendantsExport} label="delegates collapse to" />
     <P>
-      {RenderExport} is a pure coordinator: it recomputes the layout when dirty, delegates all
-      application logic to {ComputeRenderStateExport} in {RenderStateModule}, then passes the result
-      straight to the D3 rendering functions. No computation happens inside {RenderExport} itself —
-      the boundary between logic and rendering is {RenderStateModule}.
-    </P>
-
-    <H2>Interaction handlers</H2>
-    <P>
-      {OnExpandExport} handles folder and module expand/collapse. For folder expand it calls{" "}
-      {ShowNodeSpinnerExport}, fetches via the loader, calls {RemoveNodeSpinnerExport} in{" "}
-      <code>finally</code>, then updates the expanded set and calls {RenderExport}. Collapse
-      delegates to {CollapseDescendantsExport} to recursively clear all descendants from the
-      expanded set.
+      Three ordered paths run through the class, one flow each below. The per-step detail lives in
+      each method's <code>desc</code> — <code>pick</code> a step to read it.
     </P>
 
     <Flow
       name="explorer-app-boot"
-      desc="ExplorerApp.mount(): four setup phases then meta fetch that triggers the first render"
+      desc="mount() runs its setup phases, then fetches the meta chunk and triggers the first render"
     >
-      <Step node={ExplorerAppExport} label="new ExplorerApp().mount() called on page load" />
-      <Step
-        node={SetupCanvasExport}
-        label="Appends zoom-layer → lane-bg-layer / boundary-layer / edge-layer / node-layer; configures d3.zoom with tooltip transform propagation"
-      />
-      <Step
-        node={SetupTooltipsExport}
-        label="mountNodeTooltip() and mountCodeTooltip() attach DOM tooltip elements anchored to the SVG"
-      />
-      <Step
-        node={SetupRendererExport}
-        label="createNodeRenderer() wires onExpand / onSelect / onTraceLinks / hasChildren / code preview callbacks to ExplorerApp instance methods"
-      />
-      <Step
-        node={SetupSearchExport}
-        label="Creates search Web Worker; button click posts query to worker; worker results update matchIds and call render()"
-      />
-      <Step
-        node={LoadInitialDataExport}
-        label="loader.load('meta') fetches /chunks/meta.json; global spinner shown while pending"
-      />
-      <Step
-        node={StoreModule}
-        label="store.loadMeta() stores the chunk and notifies the render subscriber"
-      />
-      <Step
-        node={LaneEngineModule}
-        label="First render(): computeLayout positions top-folder nodes across the Structure lane"
-      />
+      <Step node={ExplorerAppExport} label="mounted on page load" />
+      <Step node={SetupCanvasExport} label="builds the SVG layer stack and wires zoom and pan" />
+      <Step node={SetupTooltipsExport} label="mounts the hover and code-preview tooltips" />
+      <Step node={SetupRendererExport} label="builds the node renderer and binds its callbacks" />
+      <Step node={SetupSearchExport} label="creates the search worker and wires the search input" />
+      <Step node={LoadInitialDataExport} label="loads the meta chunk behind the global spinner" />
+      <Step node={StoreModule} label="stores the meta chunk and notifies the render subscriber" />
+      <Step node={LaneEngineModule} label="first render positions the top-level nodes" />
     </Flow>
 
     <Flow
       name="explorer-app-render"
-      desc="A store update or interaction calls ExplorerApp.render(): layout, edges, D3 join, search dim"
+      desc="A store update or an interaction calls render(): recompute layout and state, then draw"
     >
-      <Step
-        node={RenderExport}
-        label="triggered by store subscription or a direct call from an interaction handler"
-      />
+      <Step node={RenderExport} label="runs on a store update or an interaction" />
       <Step
         node={ComputeLayoutExport}
-        label="computeLayout(store, isExpanded): builds d3.hierarchy from visible tree, runs d3.tree for left-to-right positions. Result cached until layoutDirty is set."
+        label="positions the visible tree; result cached until it changes"
       />
       <Step
         node={ComputeRenderStateExport}
-        label="computeRenderState(store, layout, matchIds): derives allNodes, canvasW, structureLinks, relationLinks. matchIds comes from the search worker. Pure — no D3."
+        label="derives the pure render state from store, layout, and search matches"
       />
-      <Step
-        node={EdgeRendererModule}
-        label="renderLaneBands(): draws labeled background bands for Structure and Externals lanes"
-      />
-      <Step
-        node={BuildStructureLinksExport}
-        label="buildStructureLinks(structureNodes): derives parent→child StructureLink pairs from parentId fields"
-      />
-      <Step
-        node={RenderStructureEdgesExport}
-        label="renderStructureEdges(): redraws cubic-bezier SVG paths; ghost links get dashed stroke"
-      />
-      <Step
-        node={NodeBaseModule}
-        label="D3 enter/update/exit: new node cards appended, merged nodes repositioned, removed nodes fade out; search dim sets 0.15 on non-matching nodes"
-      />
+      <Step node={EdgeRendererModule} label="draws the lane background bands" />
+      <Step node={BuildStructureLinksExport} label="derives the parent–child link pairs" />
+      <Step node={RenderStructureEdgesExport} label="redraws the structure edges" />
+      <Step node={NodeBaseModule} label="draws node cards and dims non-matching nodes on search" />
     </Flow>
 
     <Flow
       name="explorer-app-expand"
-      desc="ExplorerApp.onExpand(): fetch chunk if needed, update expanded set, re-render"
+      desc="onExpand() fetches the chunk if needed, updates the expanded set, and re-renders"
     >
       <Step
         node={NodeBaseModule}
-        label="User clicks + button; BaseNodeRenderer fires the onExpand callback"
+        label="user clicks expand; the node fires the onExpand callback"
       />
-      <Step
-        node={OnExpandExport}
-        label="If already expanded: collapseDescendants() clears the subtree, calls render()"
-      />
-      <Step
-        node={ShowNodeSpinnerExport}
-        label="If chunk not cached: showNodeSpinner() appends animated SVG ring next to the node"
-      />
-      <Step
-        node={LoaderModule}
-        label="loader.load('folder', id): cache hit or fetches /chunks/folder-{sanitizedId}.json"
-      />
+      <Step node={OnExpandExport} label="handles the expand, or delegates a collapse" />
+      <Step node={ShowNodeSpinnerExport} label="shows a per-node spinner while the chunk loads" />
+      <Step node={LoaderModule} label="returns the folder chunk from cache or fetches it" />
       <Step
         node={RemoveNodeSpinnerExport}
-        label="removeNodeSpinner() called in finally — always removes spinner whether fetch succeeded or failed"
+        label="removes the spinner whether the load succeeds or fails"
       />
-      <Step
-        node={StoreModule}
-        label="store.loadFolderChunk() stores chunk and notifies subscribers"
-      />
-      <Step
-        node={RenderExport}
-        label="render() called after expanded set update — new nodes enter, layout recomputed"
-      />
+      <Step node={StoreModule} label="stores the folder chunk and notifies subscribers" />
+      <Step node={RenderExport} label="re-renders with the newly expanded nodes" />
     </Flow>
   </Doc>
 );

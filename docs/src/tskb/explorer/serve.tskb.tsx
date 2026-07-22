@@ -112,20 +112,14 @@ export default (
       priority="essential"
     >
       <Step node={ExploreExport} label="loads the graph file and routes to the serve path" />
-      <Step
-        node={TransformGraphExport}
-        label="converts the KnowledgeGraph into a MetaChunk and one FolderChunk per folder, held in memory"
-      />
+      <Step node={TransformGraphExport} label="turns the graph into chunks, held in memory" />
       <Step
         node={ServeExplorerExport}
-        label="starts the HTTP server: chunk routes serve the in-memory chunks as JSON; everything else serves the SPA assets"
+        label="starts the HTTP server; serves the chunks and the SPA assets"
       />
-      <Step
-        node={MainModule}
-        label="ExplorerApp mounts on page load: sets up canvas, renderer, and search, then fetches the meta chunk"
-      />
+      <Step node={MainModule} label="the SPA mounts and fetches the meta chunk" />
       <Step node={LaneEngineModule} label="positions all visible nodes across the three lanes" />
-      <Step node={NodeBaseModule} label="D3 enter/update renders node cards into SVG groups" />
+      <Step node={NodeBaseModule} label="renders the node cards" />
     </Flow>
   </Doc>
 );

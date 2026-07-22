@@ -18,6 +18,7 @@ Update the docs when:
 - An architectural decision needs to be recorded (use `<Adr>`).
 - A rule must be followed for the system to keep working (use `priority="constraint"`).
 - A multi-step process spans several modules — capture it as a `<Flow>`, not prose.
+- Two parts of the codebase are connected in a way the folder tree and imports don't show — capture it as a `<Relation>`, not a sentence buried in a doc.
 - The dev asks for it.
 
 Don't update for fixes that don't change structure (renames inside a function, off-by-one fixes, log tweaks), purely internal refactors, or temporary code. **Do** update if a fix reveals a missing constraint or surfaces an undocumented invariant — that's not "routine".
@@ -97,9 +98,10 @@ This rule applies to **new docs**. Older statement-form docs are fine where they
 
 Declare any new modules, exports, and Terms in the **closest** area's `main.tskb.tsx` — the one that owns the related code. The registry merges across files so any placement compiles, but locality keeps each area's entry point honest. See "Where things go" below for the rule. Small or specialized docs can live in their own file alongside `main.tskb.tsx`.
 
-- A few sentences plus references is usually enough.
+- **Prefer structure over prose.** Before you write a paragraph, ask what it actually says. If it says "X depends on / owns / feeds / guards Y", declare that as a `<Relation from={X} to={Y} label="..." />` — one edge the graph can hold and query — instead of spelling it out in sentences a reader has to parse back into structure. Keep prose for the one question the doc answers and the "why" behind it.
+- A few sentences plus references is usually enough — a doc is not an essay.
 - Use `{NodeRef}` to link to other things instead of restating them.
-- For multi-step processes, use `<Flow>` instead of prose.
+- For a single link between two nodes, reach for `<Relation>`; for a multi-step process, reach for `<Flow>`. Both beat prose that hides the structure.
 - For code examples, use `<Snippet>` — they're type-checked. Always include a short comment or sentence (above the snippet or as a leading code comment) explaining what the snippet demonstrates, so the example isn't left to speak for itself.
 
 For full syntax (registry primitives, JSX components, snippets), load the **`tskb-update-syntax`** skill.
@@ -111,6 +113,7 @@ Run `npm run build:docs`. The build fails if any import path, export name, or fo
 ## Key Rules
 
 - **Map the structure, don't explain the code.** Describe *what* exists, *where* it lives, *why* it matters. Never *how* it works internally.
+- **Describe relations, don't narrate them.** A link between two nodes is a `<Relation>`; a process is a `<Flow>`. Prose that restates a connection the graph could hold as an edge is text bloat — cut it. Save sentences for the question the doc answers and the reasoning a reader can't get from the edges.
 - **Use types, not strings.** Prefer `Module<{ type: typeof import("...") }>` and `Export<{ type: typeof import("...").Name }>` over plain descriptions. The compiler catches drift. Only use `Term` and `File` (string-only primitives) for things that have no importable type.
 - **Import, don't hardcode.** If a type or class exists in the codebase, import it. Imports are validated by the compiler.
 - **Rebuild after editing.** The build throws if any path or reference doesn't resolve.

@@ -1,4 +1,4 @@
-import { Doc, H1, H2, P, List, Li, ref } from "tskb";
+import { Doc, H1, H2, P, List, Li, Relation, ref } from "tskb";
 
 const LoggerModule = ref as tskb.Modules["cli.utils.logger"];
 const IndexModule = ref as tskb.Modules["cli.index"];
@@ -14,14 +14,12 @@ export default (
       {LoggerModule} is a module-level singleton that routes all CLI output to stderr, keeping
       stdout clean for query command results.
     </P>
+    <Relation from={IndexModule} to={LoggerModule} label="configures once at startup" />
 
     <H2>Design</H2>
     <List>
       <Li>All log output goes to stderr via process.stderr.write — never stdout</Li>
-      <Li>
-        Configured once at startup in {IndexModule} via configure({"{ verbose }"}), driven by the
-        --verbose CLI flag
-      </Li>
+      <Li>The --verbose CLI flag is the single input to configure()</Li>
       <Li>
         Log functions: info() always prints, verbose() only when --verbose is set, error() for
         errors, time() prints a label then returns a closure that logs elapsed ms at verbose level
