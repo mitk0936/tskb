@@ -219,17 +219,15 @@ export default (
         {ResolveNodeModule} ({ResolveNodeFn}) turns an ID or path into a node and walks its edges.
       </Li>
       <Li>
-<<<<<<< HEAD
-        <strong>Doc generation</strong> — {ContentBuilderModule} is the shared source of skill and
-        instruction markdown.
-=======
-        {LoggerModule}: Stdout output helpers (jsonOut/plainOut) for command results — separate from
-        logging, which lives in {LogModule}
->>>>>>> 3689aea (Initial Experimentation)
+        <strong>Output</strong> — {LoggerModule} holds the stdout helpers (jsonOut / plainOut) that
+        print command results. It is separate from logging, which lives in {LogModule}.
       </Li>
       <Li>
-        <strong>Build support</strong> — {WatcherModule} reports settled file changes;{" "}
-        {LoggerModule} routes CLI output.
+        <strong>Doc generation</strong> — {ContentBuilderModule} is the shared source of skill and
+        instruction markdown.
+      </Li>
+      <Li>
+        <strong>Build support</strong> — {WatcherModule} reports settled file changes.
       </Li>
     </List>
     <Relation from={ContentBuilderModule} to={SkillGenModule} label="provides skill markdown to" />
