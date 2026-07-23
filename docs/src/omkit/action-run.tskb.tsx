@@ -40,7 +40,6 @@ const CommitExport = ref as tskb.Exports["omkit.ActionRun.commit"];
 const RunExport = ref as tskb.Exports["omkit.ActionRun.run"];
 
 const ActivityExport = ref as tskb.Exports["omkit.Activity"];
-const OutcomeExport = ref as tskb.Exports["omkit.Outcome"];
 const ExecutionTreeModule = ref as tskb.Modules["omkit.core.execution-tree"];
 const SupervisionTerm = ref as tskb.Terms["structured-supervision"];
 
@@ -68,13 +67,13 @@ export default (
       has started and it throws — the window has closed.
     </P>
 
-    <H2>Settling, without throwing</H2>
+    <H2>The error boundary</H2>
     <P>
       {RunExport} wraps the body in a try/catch: a normal return settles the node ok, a throw
-      settles it failed. It never rejects — a failure is delivered through <code>result</code> as an{" "}
-      {OutcomeExport}, and only surfaces as a thrown error at an <code>await</code> if you asked for
-      that with <code>once("done")</code>. Settling also classifies the ending: if the node's signal
-      was already aborted (a teardown in progress), it settles <em>cancelled</em> with a{" "}
+      settles it failed — the internal method itself never rejects. The failure is then delivered to
+      callers through <code>result</code>, <code>ref</code>, and <code>once</code>, which{" "}
+      <strong>reject</strong> with the error. Settling also classifies the ending: if the node's
+      signal was already aborted (a teardown in progress), it settles <em>cancelled</em> with a{" "}
       <code>CancelledError</code> rather than failed, so an intentional stop is never recorded as a
       fault.
     </P>
@@ -83,17 +82,17 @@ export default (
     <P>
       This node is where {SupervisionTerm} is enforced. When it fails, it flips no global switch;
       instead, one microtask later, it asks whether anyone was watching. Reading <code>result</code>{" "}
-      or <code>ref</code>, adding an <code>on("error")</code> listener, awaiting{" "}
-      <code>once("done")</code>, or attaching <code>handleFailure</code> each mark the node
-      observed. If nothing did — and the failure was this node's own, not an ancestor tearing its
-      subtree down — the node reports the fault upward and the whole run tears down.
+      or <code>ref</code>, awaiting <code>once</code>, or adding an <code>on("error")</code>{" "}
+      listener each mark the node observed. If nothing did — and the failure was this node's own,
+      not an ancestor tearing its subtree down — the node reports the fault upward and the whole run
+      tears down.
     </P>
     <P>
       The one-microtask delay before that check is what makes it usable: a same-tick{" "}
-      <code>await task().result</code> or a chained <code>.handleFailure(…)</code> marks the node
-      observed before the check runs, so ordinary code never trips the guard. One wrinkle the
-      overview glosses: reading <code>ref</code> counts as watching only if the handle never
-      attached — once an action has published its capability, a later failure is a separate event.
+      <code>await task().result</code> or a <code>.result.catch(…)</code> marks the node observed
+      before the check runs, so ordinary code never trips the guard. One wrinkle the overview
+      glosses: reading <code>ref</code> counts as watching only if the handle never attached — once
+      an action has published its capability, a later failure is a separate event.
     </P>
 
     <Relation

@@ -12,10 +12,6 @@ export function step<Result>(
   name: string,
   fn: (ctx: ActionContext) => Awaitable<Result>
 ): Promise<Result> {
-  return action(name)
-    .run(fn as (ctx: ActionContext) => Awaitable<Result>)()
-    .result.then((r) => {
-      if (!r.ok) throw r.error;
-      return r.value;
-    });
+  // `.result` already resolves the value and rejects on failure/cancel — exactly step's contract.
+  return action(name).run(fn as (ctx: ActionContext) => Awaitable<Result>)().result;
 }

@@ -15,20 +15,18 @@ describe("refactored core", () => {
     let got: number | undefined;
     await om("smoke", async () => {
       const add = action("add").run(async (_ctx, a: number, b: number) => a + b);
-      const r = await add(2, 3).result;
-      got = r.ok ? r.value : undefined;
+      got = await add(2, 3).result;
     });
     expect(got).toBe(5);
   });
 
-  test("a failing action's .result resolves { ok: false } with its error", async () => {
+  test("a failing action's .result rejects with its error", async () => {
     let err: unknown;
     await om("smoke", async () => {
       const boom = action("boom").run(async () => {
         throw new Error("nope");
       });
-      const r = await boom().result;
-      if (!r.ok) err = r.error;
+      err = await boom().result.catch((e) => e);
     });
     expect((err as Error).message).toBe("nope");
   });
@@ -102,8 +100,8 @@ describe("refactored core", () => {
     expect(ended).toBe(true);
   });
 
-  test("cancelling a node's .result resolves CancelledError and marks it cancelled", async () => {
-    let outcome: unknown;
+  test("cancelling a node's .result rejects with CancelledError and marks it cancelled", async () => {
+    let caught: unknown;
     await om("smoke", async () => {
       const hang = action("hang").run(async (ctx) => {
         await new Promise<void>((_resolve, reject) => {
@@ -113,10 +111,9 @@ describe("refactored core", () => {
       });
       const h = hang();
       h.cancel();
-      outcome = await h.result;
+      caught = await h.result.catch((e) => e);
     });
-    expect(outcome).toMatchObject({ ok: false });
-    expect((outcome as { error: unknown }).error).toBeInstanceOf(CancelledError);
+    expect(caught).toBeInstanceOf(CancelledError);
     const node = ExecutionTree.last!.root.children.find((c) => c.name === "hang");
     expect(node?.status).toBe("cancelled");
   });

@@ -41,7 +41,7 @@ describe("prompt under a supervisor", () => {
         message: "Deploy?",
         choices: ["no", "yes"],
         default: "no",
-      }).result.then((o) => (o.ok ? o.value : "ERR"));
+      }).result.catch(() => "ERR");
     });
 
     expect(picked).toBe("yes");
@@ -69,8 +69,8 @@ describe("prompt under a supervisor", () => {
 
     let picked: string | undefined;
     await om("ask-timeout", async () => {
-      picked = await prompt({ message: "Name?", default: "anon", timeoutMs: 20 }).result.then(
-        (o) => (o.ok ? o.value : "ERR")
+      picked = await prompt({ message: "Name?", default: "anon", timeoutMs: 20 }).result.catch(
+        () => "ERR"
       );
     });
 

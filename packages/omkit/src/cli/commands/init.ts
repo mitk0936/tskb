@@ -8,7 +8,8 @@ const TSCONFIG = `{
     "moduleResolution": "nodenext",
     "strict": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["oms/**/*.ts", "actions/**/*.ts"]
 }
@@ -18,7 +19,7 @@ const DEV_OM = `import { om } from "omkit";
 import { command, healthcheck } from "omkit/actions";
 
 om("dev", async () => {
-  command("npm run dev", { cwd: "api" })().tag("api");
+  command("npm run dev", { cwd: "api" }).tag("api");
   const up = await healthcheck({ url: "http://localhost:3000" }).result;
   if (!up.ok) return;
   console.log("stack is up — press Ctrl+C to stop");

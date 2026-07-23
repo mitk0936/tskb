@@ -5,6 +5,7 @@
     "target": "ES2023",
     "lib": ["ES2023"],
     "types": ["node"],
+    "jsx": "react-jsx",
 
     "rootDir": "src",
     "outDir": "dist",

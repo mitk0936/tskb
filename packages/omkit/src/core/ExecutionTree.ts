@@ -313,7 +313,9 @@ export class ExecutionTree {
     this.consoleCapture.uninstall();
     ExecutionTree.current = null;
     const supervisor = activeSupervisor();
-    if (supervisor) supervisor.settled(this.verdictOk(), this.folder.path());
+    // Forward the same recap block the bare run prints to its terminal, so a supervising
+    // frontend (the ink console) can show it verbatim — see printSummary.
+    if (supervisor) supervisor.settled(this.verdictOk(), this.folder.path(), summary);
     else this.printSummary(summary);
     if (!this.verdictOk()) process.exitCode = 1;
   }

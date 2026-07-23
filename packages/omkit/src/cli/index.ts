@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
+import { realpathSync } from "node:fs";
 import { createOmkitClient } from "./client/index.ts";
 
 export interface Cli {
@@ -22,7 +23,7 @@ export function parseCli(argv: string[]): Cli {
     allowPositionals: true,
   });
   return {
-    command: positionals[0] ?? "ui",
+    command: positionals[0] ?? "run",
     target: positionals[1],
     json: Boolean(values.json),
     tsconfig: values.tsconfig as string,
@@ -54,9 +55,11 @@ async function main(): Promise<void> {
     return;
   }
   if (cli.command === "run") {
+    // No target → open the interactive picker (browse/search oms, run one with live output).
+    // A bare `omkit` lands here too, since `run` is the default command.
     if (!cli.target) {
-      console.error("usage: omkit run <om file | om name>");
-      process.exitCode = 1;
+      const { launchUi } = await import("./commands/ui.tsx");
+      launchUi(client);
       return;
     }
     const { resolveOm } = await import("./commands/run.ts");
@@ -73,12 +76,23 @@ async function main(): Promise<void> {
     process.exitCode = await spawnBare(omFile, { cwd: path.dirname(omFile) });
     return;
   }
-  // "ui" (and bare `omkit`) is delivered in Plan C.
-  console.error(`the "${cli.command}" command is not available yet`);
+  console.error(`unknown command "${cli.command}"`);
   process.exitCode = 1;
 }
 
-// Run main() only when executed as the bin, not when imported by tests.
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  void main();
+/**
+ * True when this module is the process entry point — not when a test imports `parseCli`.
+ * Compares real paths so it holds even when invoked through the `.bin` symlink (where
+ * `process.argv[1]` is the link, not the resolved file).
+ */
+function isEntryPoint(): boolean {
+  const argv1 = process.argv[1];
+  if (!argv1) return false;
+  try {
+    return realpathSync(argv1) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
 }
+
+if (isEntryPoint()) void main();

@@ -41,11 +41,15 @@ describe("createChannel", () => {
 
     f.emit({ kind: "log", entry });
     f.emit({ kind: "prompt", id: "p1", spec: { kind: "input", message: "Name?", default: "" } });
-    f.emit({ kind: "settled", ok: true, folder: "/runs/dev-abc" });
+    f.emit({ kind: "settled", ok: true, folder: "/runs/dev-abc", summary: ["om → /runs/dev-abc"] });
 
     expect(logs).toHaveLength(1);
     expect(prompts).toEqual(["p1"]);
-    await expect(session.result).resolves.toEqual({ ok: true, folder: "/runs/dev-abc" });
+    await expect(session.result).resolves.toEqual({
+      ok: true,
+      folder: "/runs/dev-abc",
+      summary: ["om → /runs/dev-abc"],
+    });
   });
 
   test("answer and cancel send the right supervisor messages", () => {
@@ -65,6 +69,6 @@ describe("createChannel", () => {
     const f = fakeTransport();
     const session = createChannel(f.transport);
     f.close(1);
-    await expect(session.result).resolves.toEqual({ ok: false, folder: "" });
+    await expect(session.result).resolves.toEqual({ ok: false, folder: "", summary: [] });
   });
 });

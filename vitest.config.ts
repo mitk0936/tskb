@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     // Unit tests are colocated with their package; e2e stays at the repo root
     // (shared fixture + global setup, exercising the tskb CLI end-to-end).
-    include: ["packages/*/tests/**/*.test.ts", "tests/e2e/**/*.test.ts"],
+    include: ["packages/*/tests/**/*.test.{ts,tsx}", "tests/e2e/**/*.test.ts"],
     testTimeout: 60_000,
     globalSetup: ["tests/e2e/global-setup.ts"],
     coverage: {

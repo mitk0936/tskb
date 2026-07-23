@@ -30,14 +30,14 @@ export function createChannel(transport: Transport): RunSession {
       for (const h of handlers.prompt) h({ id: message.id, spec: message.spec });
     } else if (message.kind === "settled") {
       settled = true;
-      const verdict: Verdict = { ok: message.ok, folder: message.folder };
+      const verdict: Verdict = { ok: message.ok, folder: message.folder, summary: message.summary };
       for (const h of handlers.settled) h(verdict);
       resolveResult(verdict);
     }
   });
 
   transport.onClose(() => {
-    if (!settled) resolveResult({ ok: false, folder: "" });
+    if (!settled) resolveResult({ ok: false, folder: "", summary: [] });
   });
 
   return {

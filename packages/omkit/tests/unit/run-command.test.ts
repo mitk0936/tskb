@@ -43,4 +43,18 @@ describe("spawnBare", () => {
     const code = await spawnBare(path.join(runDir, "hello.ts"), { cwd: workdir });
     expect(code).toBe(0);
   }, 20_000);
+
+  test("stays bare even when OMKIT_SUPERVISED leaked into the parent env (regression)", async () => {
+    // A supervised run that spawns a bare run (or a test runner) must not pass the flag down —
+    // otherwise the forked child sees OMKIT_SUPERVISED=1 + its own IPC and wrongly goes supervised.
+    const prev = process.env.OMKIT_SUPERVISED;
+    process.env.OMKIT_SUPERVISED = "1";
+    try {
+      const code = await spawnBare(path.join(runDir, "hello.ts"), { cwd: workdir });
+      expect(code).toBe(0);
+    } finally {
+      if (prev === undefined) delete process.env.OMKIT_SUPERVISED;
+      else process.env.OMKIT_SUPERVISED = prev;
+    }
+  }, 20_000);
 });

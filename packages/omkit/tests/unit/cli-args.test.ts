@@ -9,9 +9,10 @@ describe("parseCli", () => {
     expect(p.json).toBe(true);
   });
 
-  test("defaults command to ui and tsconfig to tsconfig.omkit.json", () => {
+  test("defaults command to run (no target → interactive) and tsconfig to tsconfig.omkit.json", () => {
     const p = parseCli([]);
-    expect(p.command).toBe("ui");
+    expect(p.command).toBe("run");
+    expect(p.target).toBeUndefined();
     expect(p.tsconfig).toBe("tsconfig.omkit.json");
   });
 });

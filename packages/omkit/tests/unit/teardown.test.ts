@@ -80,18 +80,18 @@ describe("failure model", () => {
     expect(failures.some((f) => f.error.includes("kaboom"))).toBe(true);
   });
 
-  test("a successful activity's .result resolves { ok: true, value }", async () => {
+  test("a successful activity's .result resolves the value", async () => {
     let outcome: unknown;
     await om("teardown", async () => {
       outcome = await action("compute").run(async () => 42)().result;
     });
-    expect(outcome).toEqual({ ok: true, value: 42 });
+    expect(outcome).toBe(42);
     expect(process.exitCode).toBe(0);
   });
 
-  test("an awaited failure resolves { ok: false } — observed, green, sibling untouched", async () => {
+  test("an awaited failure, caught, is observed → green, sibling untouched", async () => {
     let daemonTornDown = false;
-    let outcome: unknown;
+    let caught: unknown;
     await om("teardown", async ({ cancel }) => {
       action("daemon").run(
         (ctx) =>
@@ -102,40 +102,35 @@ describe("failure model", () => {
             });
           })
       )();
-      outcome = await action("boom").run(async () => {
-        throw new Error("handled");
-      })().result; // reading .result observes → green
+      caught = await action("boom")
+        .run(async () => {
+          throw new Error("handled");
+        })()
+        .result.catch((e) => e); // catching .result observes → green
       cancel(); // we end the run ourselves
     });
-    expect(outcome).toMatchObject({ ok: false });
-    expect((outcome as { error: Error }).error.message).toBe("handled");
+    expect((caught as Error).message).toBe("handled");
     expect(daemonTornDown).toBe(true); // torn down by OUR cancel(), not the failure
     expect(process.exitCode).toBe(0);
   });
 
-  test(".result never rejects — resolves { ok: false } even with nothing else attached", async () => {
+  test(".result rejects on failure; catching it observes and keeps the run green", async () => {
     let rejected = false;
-    let resolvedOk: boolean | undefined;
     await om("teardown", async ({ cancel }) => {
-      const outcome = await action("boom")
+      await action("boom")
         .run(async () => {
           throw new Error("nope");
         })()
-        .result.then(
-          (o) => o,
-          () => {
-            rejected = true;
-            return { ok: true as const, value: undefined };
-          }
-        );
-      resolvedOk = outcome.ok;
+        .result.catch(() => {
+          rejected = true;
+        });
       cancel();
     });
-    expect(rejected).toBe(false); // .result resolved, did not reject
-    expect(resolvedOk).toBe(false);
+    expect(rejected).toBe(true); // .result rejected; .catch handled it
+    expect(process.exitCode).toBe(0);
   });
 
-  test("handleFailure runs on a fire-and-forget failure — green, sibling untouched", async () => {
+  test(".result.catch owns a fire-and-forget failure — green, sibling untouched", async () => {
     let seen: unknown;
     let daemonTornDown = false;
     await om("teardown", async ({ cancel }) => {
@@ -148,14 +143,15 @@ describe("failure model", () => {
             })
           )
       )();
+      // Accessing .result observes the activity; .catch handles the crash — no teardown.
       action("boom")
         .run(async () => {
           throw new Error("owned");
         })()
-        .handleFailure((e) => {
+        .result.catch((e) => {
           seen = e;
         });
-      await new Promise((r) => setTimeout(r, 20)); // boom fails here; handler owns it
+      await new Promise((r) => setTimeout(r, 20)); // boom fails here; the catch owns it
       cancel();
     });
     expect((seen as Error).message).toBe("owned");
@@ -163,16 +159,16 @@ describe("failure model", () => {
     expect(process.exitCode).toBe(0);
   });
 
-  test("a synchronously-throwing body delivers to its fluent handleFailure (green)", async () => {
+  test(".result.catch on a synchronously-throwing body owns the failure (green)", async () => {
     let seen: unknown;
     await om("teardown", async () => {
+      // .result is read (observes) in the same tick as the launch, before the deferred body
+      // runs; when the body throws on its commit microtask, the catch owns it (no teardown).
       action("sync-boom")
         .run(() => {
           throw new Error("sync");
         })()
-        // The handler is attached (fluent) before the deferred body runs; when the body
-        // throws on its commit microtask, handleFailure owns the failure (no teardown).
-        .handleFailure((e) => {
+        .result.catch((e) => {
           seen = e;
         });
       await new Promise((r) => setTimeout(r, 10)); // let the body run and fail
@@ -196,12 +192,12 @@ describe("failure model", () => {
     expect(process.exitCode).toBe(0);
   });
 
-  test("re-throwing an outcome error faults the run (exit 1)", async () => {
+  test("an uncaught .result rejection propagates and faults the run (exit 1)", async () => {
     await om("teardown", async () => {
-      const r = await action("boom").run(async () => {
+      // .result rejects → the await throws in the body → root fault.
+      await action("boom").run(async () => {
         throw new Error("rethrown");
       })().result;
-      if (!r.ok) throw r.error; // body throws → root fault
     });
     expect(process.exitCode).toBe(1);
   });
@@ -212,7 +208,7 @@ describe("failure model", () => {
         throw new Error("late");
       })(); // .result not yet read → unobserved at fail-time
       await new Promise((r) => setTimeout(r, 20)); // boom fails here → teardown
-      await h.result; // too late; resolves { ok: false } but the fault is recorded
+      await h.result.catch(() => {}); // too late; the fault was already recorded at fail-time
     });
     expect(process.exitCode).toBe(1);
     const failures = ExecutionTree.last!.runViewForTest().failures;
@@ -229,29 +225,22 @@ describe("failure model", () => {
     expect(process.exitCode).toBe(0);
   });
 
-  test("a cancelled activity's .result is CancelledError and handleFailure did not run", async () => {
-    let handlerRan = false;
-    let outcome: unknown;
+  test("a cancelled activity's .result rejects with CancelledError (cancel is not a fault)", async () => {
+    let caught: unknown;
     await om("teardown", async ({ cancel }) => {
-      const h = action("daemon")
-        .run(
-          (ctx) =>
-            new Promise<void>((_res, rej) =>
-              ctx.signal.addEventListener("abort", () => rej(new Error("aborted")))
-            )
-        )()
-        .handleFailure(() => {
-          handlerRan = true;
-        });
-      const read = h.result.then((o) => {
-        outcome = o;
+      const h = action("daemon").run(
+        (ctx) =>
+          new Promise<void>((_res, rej) =>
+            ctx.signal.addEventListener("abort", () => rej(new Error("aborted")))
+          )
+      )();
+      const read = h.result.catch((e) => {
+        caught = e;
       });
       cancel();
       await read;
     });
-    expect(handlerRan).toBe(false);
-    expect(outcome).toMatchObject({ ok: false });
-    expect((outcome as { error: unknown }).error).toBeInstanceOf(CancelledError);
+    expect(caught).toBeInstanceOf(CancelledError);
     expect(process.exitCode).toBe(0);
   });
 
@@ -306,8 +295,8 @@ describe("failure model", () => {
         await new Promise((r) => setTimeout(r, 10)); // let the child start
         throw new Error("parent boom");
       });
-      const r = await parent().result; // observed → run keeps going
-      expect(r.ok).toBe(false);
+      const r = await parent().result.catch((e) => e); // caught → observed → run keeps going
+      expect((r as Error).message).toBe("parent boom");
     });
     expect(childCancelled).toBe(true); // subtree aborted by parent's failure…
     expect(process.exitCode).toBe(0); // …but the observed failure is not a fault

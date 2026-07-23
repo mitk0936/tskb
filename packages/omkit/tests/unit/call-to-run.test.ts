@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { action, om } from "../../src/index.ts";
-import { command } from "../../src/actions/command.ts";
+import { commandName } from "../../src/actions/command.ts";
 import { ExecutionTree } from "../../src/core/ExecutionTree.ts";
 
 afterEach(() => {
@@ -15,8 +15,7 @@ describe("call-to-run model", () => {
   test("calling an action launches it and returns the live activity", async () => {
     let got: number | undefined;
     await om("call-to-run", async () => {
-      const r = await action("add").run(async (_c, a: number, b: number) => a + b)(2, 3).result;
-      got = r.ok ? r.value : undefined;
+      got = await action("add").run(async (_c, a: number, b: number) => a + b)(2, 3).result;
     });
     expect(got).toBe(5);
   });
@@ -58,7 +57,7 @@ describe("withCache on the handle", () => {
       r1 = await build().withCache(dir).result;
     });
     expect(runs).toBe(1);
-    expect(r1).toEqual({ ok: true, value: "built" });
+    expect(r1).toBe("built");
 
     // Second run: inputs unchanged → cache hit → body skipped, resolves undefined.
     let r2: unknown;
@@ -66,7 +65,7 @@ describe("withCache on the handle", () => {
       r2 = await build().withCache(dir).result;
     });
     expect(runs).toBe(1); // not re-run
-    expect(r2).toEqual({ ok: true, value: undefined });
+    expect(r2).toBeUndefined(); // cache hit → resolves undefined
 
     rmSync(dir, { recursive: true, force: true });
   });
@@ -95,14 +94,12 @@ describe("withCache on the handle", () => {
   });
 });
 
-describe("command", () => {
+describe("commandName", () => {
   test("derives the action name from the command string (shell form)", () => {
-    expect(command("npm run dev").actionName).toBe("npm run dev");
+    expect(commandName("npm run dev")).toBe("npm run dev");
   });
 
   test("derives the action name from file + args (direct-exec form)", () => {
-    expect(command("node", { args: ["script.js", "--flag"] }).actionName).toBe(
-      "node script.js --flag"
-    );
+    expect(commandName("node", { args: ["script.js", "--flag"] })).toBe("node script.js --flag");
   });
 });

@@ -7,14 +7,7 @@ import { createProc } from "../system/proc.ts";
 import { FolderCache } from "../system/fs/FolderCache.ts";
 import type { LogStore } from "../output/log/LogStore.ts";
 import type { SnapshotStore } from "../output/snapshot/SnapshotStore.ts";
-import type {
-  ActionContext,
-  Activity,
-  Exec,
-  InstanceEvents,
-  NodeStatus,
-  Outcome,
-} from "./types.ts";
+import type { ActionContext, Activity, Exec, InstanceEvents, NodeStatus } from "./types.ts";
 
 /** Everything a node needs to exist, minus its behavior. */
 export interface NodeInit {
@@ -81,7 +74,6 @@ export class ActionRun<
   private readonly emitter: Emitter<InstanceEvents<Events, Result>> = events();
   private readonly settled: Deferred<Result> = defer<Result>();
   private readonly handle: Deferred<Handle> = defer<Handle>();
-  private failureHandler: ((error: unknown) => void) | undefined;
   private attached = false;
   private observed = false;
   private refObserved = false;
@@ -141,12 +133,12 @@ export class ActionRun<
 
   // ── Run handle surface ─────────────────────────────────────────────────────
 
-  get result(): Promise<Outcome<Result>> {
+  get result(): Promise<Result> {
     this.observed = true;
-    return this.settled.promise.then(
-      (value): Outcome<Result> => ({ ok: true, value }),
-      (error): Outcome<Result> => ({ ok: false, error })
-    );
+    // The outcome itself: resolves the value, rejects with the error (CancelledError on cancel).
+    // Reading it marks the failure observed, so a `.result.catch(fn)` handles a fire-and-forget
+    // crash without tearing the run down.
+    return this.settled.promise;
   }
 
   /** The attached handle; rejects on failure/cancel. */
@@ -169,25 +161,26 @@ export class ActionRun<
   once<K extends keyof InstanceEvents<Events, Result>>(
     key: K
   ): Promise<InstanceEvents<Events, Result>[K] | undefined> {
-    if (key === "error") this.observed = true;
-    if (key === "done") {
-      // Awaiting completion IS observing the outcome: deliver a failure to the awaiter
-      // (reject, like `.ref`) instead of resolving `undefined` and letting the body
-      // sail past a failed step while the unobserved-failure teardown races it.
-      this.observed = true;
-      return this.settled.promise as Promise<InstanceEvents<Events, Result>[K]>;
-    }
-    return new Promise((resolve) => {
+    // `done` is the outcome itself — identical to `.result` (resolve the value, reject on failure).
+    if (key === "done") return this.result as Promise<InstanceEvents<Events, Result>[K]>;
+    // Awaiting an event observes the activity: resolve the payload when it fires, but if the
+    // activity settles first, resolve `undefined` on success and **reject** on failure/cancel —
+    // so an event gate surfaces a failure instead of hanging (or, for `error`, hand back the error).
+    this.observed = true;
+    return new Promise((resolve, reject) => {
       let done = false;
-      const settle = (v: InstanceEvents<Events, Result>[K] | undefined): void => {
-        if (!done) {
-          done = true;
-          resolve(v);
+      const win = (): boolean => (done ? false : (done = true));
+      this.emitter.listenOnce(key, (p) => {
+        if (win()) resolve(p);
+      });
+      this.settled.promise.then(
+        () => {
+          if (win()) resolve(undefined);
+        },
+        (error: unknown) => {
+          if (win()) key === "error" ? resolve(error as never) : reject(error);
         }
-      };
-      const doneKey = "done" as keyof InstanceEvents<Events, Result>;
-      this.emitter.listenOnce(key, (p) => settle(p));
-      this.emitter.listenOnce(doneKey, () => settle(undefined));
+      );
     });
   }
 
@@ -207,16 +200,6 @@ export class ActionRun<
     const inner = this.armedExec;
     if (inner) this.armedExec = cacheGate(inner, targets) as Exec<Events, Handle, Result>;
     return this as unknown as Activity<Result | undefined, Events, Handle>;
-  }
-
-  handleFailure(handler: (error: unknown) => void): this {
-    this.failureHandler = handler;
-    this.observed = true;
-    // Attached after an `await` on a body that has already failed: deliver the
-    // already-recorded failure now (it won't fail again). Cancellation is status
-    // "cancelled", not "failed", so a cancelled node never runs the handler.
-    if (this.status === "failed") handler(this.error);
-    return this;
   }
 
   cancel(): void {
@@ -365,11 +348,9 @@ export class ActionRun<
     // signal.aborted, which is why the check below uses `cascadeCancelled`, not
     // `signal.aborted`, to tell an unhandled fault from a run/ancestor teardown.
     this.controller.abort();
-    // A registered handler owns a fire-and-forget failure (side effect only; not on cancel).
-    this.failureHandler?.(error);
-    // If, one microtask on, no one is positioned to receive this error (no `.result`/`.ref`
-    // read, no `on("error")`) and we weren't caught in an ancestor's teardown, it's
-    // unhandled — tell the tree to tear the run down and record the fault.
+    // If, one microtask on, no one is positioned to receive this error (no `.result`/`.ref`/
+    // `.once` read, no `on("error")`, no `.result.catch`) and we weren't caught in an ancestor's
+    // teardown, it's unhandled — tell the tree to tear the run down and record the fault.
     // `sysEmit("error")` above already ran, so a live error handler has set `observed`.
     queueMicrotask(() => {
       const observed = this.observed || (this.refObserved && !this.attached);

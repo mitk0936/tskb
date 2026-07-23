@@ -24,19 +24,22 @@ export function discover(tsconfigPath: string): Registry {
     warnings.push(ts.flattenDiagnosticMessageText(configFile.error.messageText, "\n"));
     return { oms, actions, warnings };
   }
+  // Resolve to an absolute base so `parsed.fileNames` are absolute. Otherwise root files stay
+  // relative while imported files (e.g. an action pulled in by an om) resolve to absolute paths,
+  // and the two never match in `fileSet`.
   const parsed = ts.parseJsonConfigFileContent(
     configFile.config,
     ts.sys,
-    path.dirname(tsconfigPath)
+    path.resolve(path.dirname(tsconfigPath))
   );
   const program = ts.createProgram({
     rootNames: parsed.fileNames,
     options: { ...parsed.options, noEmit: true },
   });
-  const fileSet = new Set(parsed.fileNames.map((f) => path.normalize(f)));
+  const fileSet = new Set(parsed.fileNames.map((f) => canonical(f)));
 
   for (const sf of program.getSourceFiles()) {
-    if (!fileSet.has(path.normalize(sf.fileName))) continue;
+    if (!fileSet.has(canonical(sf.fileName))) continue;
 
     for (const d of program.getSemanticDiagnostics(sf)) warnings.push(formatDiagnostic(d));
 
@@ -139,6 +142,16 @@ function actionChain(
 
 function isExported(stmt: ts.VariableStatement): boolean {
   return Boolean(stmt.modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword));
+}
+
+/**
+ * A canonical key for a file path. TypeScript resolves relative imports with a different
+ * drive-letter case than the tsconfig `include` glob does on Windows, so a plain
+ * `path.normalize` comparison misses files reached both ways. Fold case where the OS does.
+ */
+function canonical(file: string): string {
+  const normalized = path.normalize(file);
+  return ts.sys.useCaseSensitiveFileNames ? normalized : normalized.toLowerCase();
 }
 
 function lineOf(sf: ts.SourceFile, node: ts.Node): number {

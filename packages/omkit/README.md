@@ -17,22 +17,23 @@ Now hand that same script to an AI assistant. It has it even worse: interleaved 
 
 ```ts
 import { om } from "omkit";
-import { command, healthcheck, chromePage } from "omkit/actions";
-
-// Define once. `command` names the action after the command; calling it launches.
-const api = command("npm run dev", { cwd: "api" });
-const web = command("npm run dev", { cwd: "web" });
+import { command, healthcheck, browser, chromePage } from "omkit/actions";
 
 om("dev", async () => {
-  api().tag("api"); // start both dev servers as daemons…
-  web().tag("web");
+  // `command` names the action after the command and launches it — a normal action call.
+  command("npm run dev", { cwd: "api" }).tag("api"); // start both dev servers as daemons…
+  command("npm run dev", { cwd: "web" }).tag("web");
 
   // …wait until the app actually serves (not just "process started")…
-  const up = await healthcheck({ url: "http://localhost:3000" }).result;
-  if (!up.ok) return; // gave up — the servers stay up so you can debug them
+  try {
+    await healthcheck({ url: "http://localhost:3000" }).result;
+  } catch {
+    return; // never came up — the servers stay up so you can debug them
+  }
 
-  // …then open it in a real browser and hand the live page downstream — typed, not scraped.
-  const page = chromePage("app", "localhost:9222", { url: "http://localhost:3000" });
+  // …then launch a real browser and hand its live page downstream — typed, not scraped.
+  const chrome = browser({ headless: false }); // a visible Chromium, closed on teardown
+  const page = chromePage("app", chrome.ref, { url: "http://localhost:3000" });
   console.log(`opened ${(await page.ref).url()}`);
 
   console.log("stack is up — press Ctrl+C to stop");
@@ -44,12 +45,13 @@ om("dev", async () => {
 ```
                       om()
                        │
-      ┌────────────────┼────────────────┐
-      ▼                ▼                 ▼
-   command          healthcheck      chromePage
-  api · web           (gate)           │ .ref  → live Page
-  (daemons)                            ▼
-                                  your smoke test
+      ┌───────────┬────┴──────┬──────────────────┐
+      ▼           ▼           ▼                   ▼
+   command    healthcheck  browser  ──ref──▶  chromePage
+  api · web     (gate)     (launch)           .ref → live Page
+  (daemons)                                         │
+                                                    ▼
+                                            your smoke test
 ```
 
 ## Who it's for
@@ -95,32 +97,34 @@ om("migrate", async () => {
 });
 ```
 
-### Outcomes — a result that doesn't throw
+### Results — one promise that rejects on failure
 
-Every Activity settles to a typed **`Outcome`**, read via `activity.result`, which **never throws**. Operational failures are values you inspect, not exceptions you catch:
+An Activity's **`.result`** resolves the value on success and **rejects** on failure — the same reject-on-failure shape as `.ref` and `.once`. A failure you want to branch on is a `try/catch`; one you want to note without stopping is a `.catch`. Reading `.result` also _observes_ the Activity (see teardown), so a handled failure doesn't tear the run down:
 
 ```ts
-type Outcome<T> = { ok: true; value: T } | { ok: false; error: unknown };
-
-const tests = await command("npm test")().result;
-if (!tests.ok) {
-  // red tests are an expected outcome here — decide what to do, don't crash
+try {
+  await command("npm test").result; // resolves on green, throws on red
+} catch (err) {
+  // red tests are an expected outcome here — decide what to do
 }
+
+// …or handle it inline, without stopping:
+await command("npm test").result.catch((err) => report(err));
 ```
 
-Awaiting `.result` also _observes_ the Activity (see teardown). A cancelled Activity resolves `{ ok: false, error: CancelledError }`.
+A cancelled Activity rejects with `CancelledError` — `isCancelled(err)` tells an intentional stop apart from a real fault.
 
 ### Failure & teardown
 
-omkit uses **structured supervision**: a failure that **nobody is watching** tears the whole run down and marks it failed. An Activity is "watched" if — before it fails — you awaited its `.result`, added an `on("error")` listener, or attached `.handleFailure`.
+omkit uses **structured supervision**: a failure that **nobody is watching** tears the whole run down and marks it failed. An Activity is "watched" if — before it fails — you awaited its `.result`/`.ref`/`.once`, attached a `.result.catch`, or added an `on("error")` listener.
 
-- **Await it** (`await task().result`) → the failure is yours to inspect as `{ ok: false }`; the run stays green.
+- **Await it** (`await task().result`) → a failure throws at the `await`, in your body; wrap it in `try/catch` to branch. The run stays green because you observed it.
 - **Fire-and-forget it** (`task()`, never awaited) → an unobserved crash tears the run down. This is the guardrail for daemons: a dev server that dies fails the run instead of leaving it wedged.
-- **`.handleFailure(fn)`** → own a fire-and-forget Activity's failure: `fn(error)` runs instead of tearing down.
+- **`.result.catch(fn)`** → own a fire-and-forget Activity's failure: reading `.result` observes it, and `fn(error)` runs instead of tearing the run down (it also fires on cancel — guard with `isCancelled` if that matters).
 
 ```ts
-web().tag("web"); // if the web daemon crashes, the run tears down — you'll know
-flakyBackgroundJob().handleFailure((e) => console.warn("job failed, carrying on", e));
+command("npm run dev", { cwd: "web" }).tag("web"); // if it crashes, the run tears down — you'll know
+flakyBackgroundJob().result.catch((e) => console.warn("job failed, carrying on", e));
 ```
 
 **Ctrl+C** and **`ctx.cancel()`** tear everything down gracefully — procs are killed, waits unblock, the log is always written. And **success is keep-alive**: when your `om` body returns, the daemons it started keep running until Ctrl+C or `cancel()`, so wiring things up doesn't kill the servers you just started.
@@ -151,7 +155,7 @@ const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 
 om("build", async () => {
   const out = await build().withCache(`${process.cwd()}/src`).result;
-  if (out.ok && out.value === undefined) console.log("no changes — skipped the build");
+  if (out === undefined) console.log("no changes — skipped the build");
 });
 ```
 
@@ -167,13 +171,16 @@ om("watch", async () => {
 });
 ```
 
-**Gate a deploy on green tests.** Observe the outcome and branch — no try/catch:
+**Gate a deploy on green tests.** A red test rejects at the `await`; catch it to branch:
 
 ```ts
 om("ship", async () => {
-  const tests = await command("npm test")().result;
-  if (!tests.ok) return; // red → stop; the run stays green because you observed it
-  await command("./deploy.sh")().result;
+  try {
+    await command("npm test").result; // resolves on green, throws on red
+  } catch {
+    return; // red → stop; the run stays green because you observed the failure
+  }
+  await command("./deploy.sh").result;
 });
 ```
 
@@ -190,7 +197,7 @@ om("deploy", async () => {
     default: "no",
     timeoutMs: 10_000, // no answer in 10s → "no"
   }).result;
-  if (answer.ok && answer.value === "yes") await command("./deploy.sh")().result;
+  if (answer === "yes") await command("./deploy.sh").result;
 });
 ```
 
@@ -199,8 +206,8 @@ om("deploy", async () => {
 An Activity exposes its declared events plus the lifecycle ones (`done`, `error`, `attached`):
 
 - **`activity.on(event, handler)`** — subscribe to every emit.
-- **`activity.once(event)`** — a **promise** for the next emit; resolves `undefined` if the Activity settles first, so an `await` never hangs. A retained snapshot (like `healthy`) is replayed immediately even if you subscribe late.
-- **`activity.once("done")`** is the exception — it awaits the outcome itself: resolves the result on success, **rejects** on failure or cancellation (and observes the failure). That makes `await step().once("done")` a hard gate: a failed step throws at the `await`, in your body, instead of letting the orchestration sail past it. Use `.result` when a failure is an outcome you want to branch on rather than a stop.
+- **`activity.once(event)`** — a **promise** for the next emit. Resolves the payload when it fires; if the Activity settles first it resolves `undefined` on success and **rejects** on failure/cancel — so a gate on an event surfaces a failure instead of hanging. A retained snapshot (like `healthy`) is replayed immediately even if you subscribe late.
+- **`activity.once("done")`** is the outcome itself — identical to `.result` (resolve the value, reject on failure). `await step().once("done")` and `await step().result` are the same hard gate.
 
 ```ts
 const probe = healthcheck({ url: "http://localhost:3000" });
@@ -211,13 +218,26 @@ probe.on("healthy", (r) => console.log(`up after ${r.attempts} tries`));
 
 Reusable actions built on the core engine. For anything beyond these, drop down to `action(...).run(...)`.
 
-- **`command`** — define a shell-command action, named after the command; output streams to the log, killed on teardown.
+- **`command`** — run a shell command (or, with `args`, an executable) as an action named after it; output streams to the log, killed on teardown.
 - **`watch`** / **`watchDir`** — watch a file or directory for changes (survives wipe + recreate).
 - **`untilLog`** — gate on the first log entry matching a predicate.
 - **`tailLog`** — tail a file another process writes, folding its lines into the combined log.
 - **`healthcheck`** — poll a URL/port until the status (and optionally body) matches.
 - **`prompt`** — ask the terminal for input or a choice, with a timeout that falls back to a default; the answer is its handle.
-- **`chromePage`** — attach to Chrome over CDP — or to an existing Playwright `Page`/`Browser`/`Context`, including Electron windows — and expose the live `Page` as a handle.
+- **`browser`** — launch a Chromium browser with Playwright and expose the live `Browser` as a handle (defaults to the installed Chrome); closed on teardown. Feed its `.ref` to `chromePage`.
+- **`chromePage`** — attach to Chrome over CDP, or to an existing Playwright `Page`/`Browser`/`Context` (including a `browser` handle or an Electron window), and expose the live `Page` as a handle.
+
+## CLI
+
+Point the `omkit` bin at a project — a `tsconfig.omkit.json` that lists your `oms/` and `actions/` — and it discovers, typechecks, and runs them. (Override the config path with `--tsconfig`.)
+
+- **`omkit init`** — scaffold a starter project: `tsconfig.omkit.json`, a sample `oms/dev.ts`, and `actions/hello.ts`.
+- **`omkit run`** — with no argument, open the interactive picker: browse and search your oms, run one, and watch its milestones stream live — answering any `prompt` in-console. A bare `omkit` does the same (`run` is the default command).
+- **`omkit run <om>`** — run one om directly by name or file path, inheriting the terminal.
+- **`omkit ls`** — list the discovered oms and actions.
+- **`omkit check`** — typecheck the project (`tsc --noEmit`) and report diagnostics.
+
+Each run is supervised in its own child process and narrated to a run folder (see above), whether you launch it from the picker or with `run <om>`.
 
 ## Install
 

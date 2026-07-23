@@ -16,7 +16,7 @@ export interface PromptSpec {
 export type ChildMessage =
   | { kind: "prompt"; id: string; spec: PromptSpec }
   | { kind: "log"; entry: LogEntry }
-  | { kind: "settled"; ok: boolean; folder: string };
+  | { kind: "settled"; ok: boolean; folder: string; summary: string[] };
 
 // supervisor → child
 export type AnswerMessage = { kind: "answer"; id: string; value: string; via: string };
@@ -74,8 +74,8 @@ export class Supervisor {
     this.send({ kind: "log", entry });
   }
 
-  settled(ok: boolean, folder: string): void {
-    this.send({ kind: "settled", ok, folder });
+  settled(ok: boolean, folder: string, summary: string[]): void {
+    this.send({ kind: "settled", ok, folder, summary });
   }
 
   onCancel(handler: () => void): void {
@@ -93,7 +93,12 @@ export function createSupervisor(send: Send, onMessage: OnMessage): Supervisor {
  * supervised (`OMKIT_SUPERVISED=1`), else `null`. Detected once at import.
  */
 function detect(): Supervisor | null {
-  if (process.env.OMKIT_SUPERVISED !== "1" || typeof process.send !== "function") return null;
+  const supervised = process.env.OMKIT_SUPERVISED === "1" && typeof process.send === "function";
+  // Read the flag once, then clear it from the environment so any subprocess this run spawns
+  // (a shell command, a nested `npm test`, …) does not inherit it and spuriously enter
+  // supervised mode. Each omkit child's status is set explicitly by whoever forks it.
+  delete process.env.OMKIT_SUPERVISED;
+  if (!supervised) return null;
   const send: Send = (message) => void process.send!(message);
   const onMessage: OnMessage = (handler) =>
     process.on("message", (m) => handler(m as SupervisorMessage));

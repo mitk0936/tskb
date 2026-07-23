@@ -28,20 +28,28 @@ const verbatim = (cmd: string): TemplateStringsArray =>
   Object.assign([cmd], { raw: [cmd] }) as unknown as TemplateStringsArray;
 
 /**
- * Defines a command action, named after the command itself (add a semantic label with
- * `.tag(...)`). Call the returned action to launch it.
+ * The action name a command runs under: the shell string itself, or `file arg1 arg2`
+ * for the direct-exec form. Exposed so the naming rule stays independently checkable.
+ */
+export function commandName(cmdOrFile: string, options: CommandOptions = {}): string {
+  return options.args === undefined ? cmdOrFile : [cmdOrFile, ...options.args].join(" ");
+}
+
+/**
+ * Launches a command as an action, named after the command itself (add a semantic label
+ * with `.tag(...)`), and returns the live instance — a normal action call, no extra `()`.
+ * Must run inside an `om(...)` body, like any other action.
  *
- * By default the command is executed through the shell.
- *
- * If `options.args` is provided, `cmdOrFile` is treated as an executable and
- * launched directly without a shell.
+ * By default the command is executed through the shell. If `options.args` is provided,
+ * `cmdOrFile` is treated as an executable and launched directly without a shell.
  */
 export function command(cmdOrFile: string, options: CommandOptions = {}) {
   const cwd = path.resolve(options.cwd ?? ".");
+  const name = commandName(cmdOrFile, options);
 
   // Shell command — the command string is the action (and proc) name.
   if (options.args === undefined) {
-    return action(cmdOrFile).run((ctx) =>
+    return action(name).run((ctx) =>
       ctx.proc(cmdOrFile, {
         cwd,
         ...(options.env && { env: options.env }),
@@ -49,12 +57,11 @@ export function command(cmdOrFile: string, options: CommandOptions = {}) {
           inheritDebugger: true,
         }),
       })(verbatim(cmdOrFile))
-    );
+    )();
   }
 
   // Direct executable — the file plus its args form the action name.
   const args = options.args;
-  const name = [cmdOrFile, ...args].join(" ");
   return action(name).run(async (ctx) => {
     const inherit = options.inheritDebugger;
 
@@ -116,5 +123,5 @@ export function command(cmdOrFile: string, options: CommandOptions = {}) {
       finished = true;
       ctx.signal.removeEventListener("abort", onAbort);
     }
-  });
+  })();
 }

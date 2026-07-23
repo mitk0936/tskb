@@ -12,4 +12,4 @@ export { action } from "./core/action.ts";
 export { step } from "./core/step.ts";
 export { CancelledError, isCancelled } from "./foundation/CancelledError.ts";
 
-export type { Action, Activity, ActionContext, OmContext, Outcome } from "./core/types.ts";
+export type { Action, Activity, ActionContext, OmContext } from "./core/types.ts";

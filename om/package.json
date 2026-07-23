@@ -1,0 +1,16 @@
+{
+  "name": "om",
+  "version": "1.0.0",
+  "description": "POC consumer of omkit: tskb's build/dev pipelines expressed as actions and runs.",
+  "license": "MIT",
+  "author": "Dimitar Mihaylov",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "omkit",
+    "dev": "omkit run tskb:dev",
+    "build:tskb": "omkit run tskb:build",
+    "ls": "omkit ls",
+    "check": "omkit check"
+  }
+}

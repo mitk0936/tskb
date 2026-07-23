@@ -11,16 +11,18 @@ export function runCheck(tsconfigPath: string): Diagnostic[] {
   const parsed = ts.parseJsonConfigFileContent(
     configFile.config,
     ts.sys,
-    path.dirname(tsconfigPath)
+    path.resolve(path.dirname(tsconfigPath))
   );
   const program = ts.createProgram({
     rootNames: parsed.fileNames,
     options: { ...parsed.options, noEmit: true },
   });
-  const fileSet = new Set(parsed.fileNames.map((f) => path.normalize(f)));
+  const canonical = (f: string): string =>
+    ts.sys.useCaseSensitiveFileNames ? path.normalize(f) : path.normalize(f).toLowerCase();
+  const fileSet = new Set(parsed.fileNames.map((f) => canonical(f)));
   const out: Diagnostic[] = [];
   for (const sf of program.getSourceFiles()) {
-    if (!fileSet.has(path.normalize(sf.fileName))) continue;
+    if (!fileSet.has(canonical(sf.fileName))) continue;
     for (const d of [
       ...program.getSyntacticDiagnostics(sf),
       ...program.getSemanticDiagnostics(sf),

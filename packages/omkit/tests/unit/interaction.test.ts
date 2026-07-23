@@ -77,10 +77,10 @@ describe("interaction channel — child side", () => {
       message: "done · ok",
     };
     sup.log(entry);
-    sup.settled(true, "/runs/dev-abc");
+    sup.settled(true, "/runs/dev-abc", ["om → /runs/dev-abc"]);
     expect(ch.sent).toEqual([
       { kind: "log", entry },
-      { kind: "settled", ok: true, folder: "/runs/dev-abc" },
+      { kind: "settled", ok: true, folder: "/runs/dev-abc", summary: ["om → /runs/dev-abc"] },
     ]);
   });
 

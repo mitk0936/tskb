@@ -15,6 +15,16 @@ declare global {
         desc: "The headless client SDK: discovery, run supervision, and the supervisor side of the interaction channel — the UI-free engine every frontend drives.";
         path: "packages/omkit/src/cli/client";
       }>;
+
+      "omkit.cli.commands": Folder<{
+        desc: "The CLI command adapters — init, ls, check, and run — thin frontends over the client SDK; run with no om opens the interactive app.";
+        path: "packages/omkit/src/cli/commands";
+      }>;
+
+      "omkit.cli.ui": Folder<{
+        desc: "The interactive Ink app: search oms, run one, stream live milestones, and answer prompts in-console.";
+        path: "packages/omkit/src/cli/ui";
+      }>;
     }
 
     interface Modules {
@@ -36,6 +46,11 @@ declare global {
       "omkit.cli.client.channel": Module<{
         desc: "Supervisor side of the interaction protocol: turns a child's messages into a run session of live logs, prompts, and a verdict.";
         type: typeof import("packages/omkit/src/cli/client/channel.js");
+      }>;
+
+      "omkit.cli.ui.app": Module<{
+        desc: "The interactive app's state machine: discover → list → run → live view.";
+        type: typeof import("packages/omkit/src/cli/ui/app.js");
       }>;
     }
 
@@ -63,6 +78,7 @@ declare global {
 const OmkitFolder = ref as tskb.Folders["omkit"];
 const CliFolder = ref as tskb.Folders["omkit.cli"];
 const ClientFolder = ref as tskb.Folders["omkit.cli.client"];
+const UiFolder = ref as tskb.Folders["omkit.cli.ui"];
 
 const RunnerModule = ref as tskb.Modules["omkit.cli.client.runner"];
 const ExecutionTreeModule = ref as tskb.Modules["omkit.core.execution-tree"];
@@ -96,5 +112,6 @@ export default (
 
     <Relation from={CliFolder} to={OmkitFolder} label="forks and supervises" />
     <Relation from={RunnerModule} to={ExecutionTreeModule} label="spawns as a child process" />
+    <Relation from={UiFolder} to={RunSessionExport} label="renders live from" />
   </Doc>
 );

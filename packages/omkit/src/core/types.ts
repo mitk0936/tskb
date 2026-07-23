@@ -8,9 +8,6 @@ export type Awaitable<T> = T | Promise<T>;
 /** An action that declares no events. */
 export type NoEvents = Record<never, never>;
 
-/** An activity's terminal outcome: a value on success, an error on failure/cancel. Never thrown. */
-export type Outcome<T> = { ok: true; value: T } | { ok: false; error: unknown };
-
 /** A node's lifecycle state, mirrored into `result.json`. */
 export type NodeStatus = "running" | "ok" | "failed" | "cancelled";
 
@@ -76,8 +73,12 @@ export interface OmContext {
  */
 export interface Activity<Result = unknown, Events extends object = NoEvents, Handle = void> {
   readonly id: string;
-  /** The terminal outcome; always resolves (never rejects). Reading it observes the failure. */
-  readonly result: Promise<Outcome<Result>>;
+  /**
+   * The terminal outcome: resolves the value on success, **rejects** with the action's error on
+   * failure (or `CancelledError` on cancel). Reading it observes the activity — a handled failure,
+   * so it won't tear the run down. For fire-and-forget handling, `activity.result.catch(fn)`.
+   */
+  readonly result: Promise<Result>;
   /** The attached handle; rejects on failure/cancel. */
   readonly ref: Promise<Handle>;
   /**
@@ -87,22 +88,16 @@ export interface Activity<Result = unknown, Events extends object = NoEvents, Ha
    * after the launching call; calling it once the body has started throws.
    */
   withCache(...paths: string[]): Activity<Result | undefined, Events, Handle>;
-  /**
-   * Handle a fire-and-forget activity's failure: attach a handler so a crash runs it
-   * instead of tearing the run down. Observes the failure; chainable; attach in the
-   * same tick as the launching call. Not called on cancellation.
-   */
-  handleFailure(handler: (error: unknown) => void): this;
   /** Subscribe to every emit of a declared/system event (`done`/`error`/`attached`). */
   on<K extends keyof InstanceEvents<Events, Result>>(
     key: K,
     handler: EventHandler<InstanceEvents<Events, Result>[K]>
   ): void;
   /**
-   * Next emit of `key`; resolves `undefined` if the node settles first (never rejects).
-   * Exception — `once("done")` awaits the outcome itself: it resolves the result on
-   * success and **rejects** on failure/cancellation (observing the failure), so
-   * `await activity.once("done")` is a hard step-gate the body cannot sail past.
+   * Await the next emit of `key`. Resolves the event's payload when it fires; if the activity
+   * settles first, resolves `undefined` on success and **rejects** on failure/cancellation — so a
+   * gate on an event surfaces a failure instead of hanging or sailing past it. Observes the
+   * activity. `once("done")` is the outcome itself — identical to `.result`.
    */
   once<K extends keyof InstanceEvents<Events, Result>>(
     key: K

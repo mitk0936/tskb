@@ -33,4 +33,20 @@ describe("discover", () => {
     expect(actions.some((a) => a.name === "flaky")).toBe(true);
     expect(warnings.length).toBeGreaterThan(0);
   });
+
+  test("finds an action imported by an om, discovered via a relative tsconfig path (regression)", () => {
+    // The trigger: a relative tsconfig path makes `parsed.fileNames` relative while the action,
+    // pulled in via the om's relative import, resolves to an absolute path — they must still
+    // match. Run from the fixture dir so "tsconfig.omkit.json" is relative.
+    const dir = path.join(here, "../fixtures/crossimport");
+    const prev = process.cwd();
+    try {
+      process.chdir(dir);
+      const reg = discover("tsconfig.omkit.json");
+      expect(reg.oms.map((o) => o.name)).toContain("main");
+      expect(reg.actions.map((a) => a.name)).toContain("thing");
+    } finally {
+      process.chdir(prev);
+    }
+  });
 });

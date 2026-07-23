@@ -7,6 +7,9 @@ export interface Verdict {
   readonly ok: boolean;
   /** The absolute run-folder path the child reported. */
   readonly folder: string;
+  /** The end-of-run recap lines (run folder + sibling log paths + assert tally), the same
+   *  block a bare run prints to its terminal. Empty if the child closed without settling. */
+  readonly summary: readonly string[];
 }
 
 /** A typecheck diagnostic from `check()`. */

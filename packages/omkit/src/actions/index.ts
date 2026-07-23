@@ -45,3 +45,6 @@ export type {
   Browser,
   BrowserContext,
 } from "./chrome-page.ts";
+
+export { browser } from "./browser.ts";
+export type { BrowserOptions } from "./browser.ts";

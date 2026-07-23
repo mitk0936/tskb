@@ -61,7 +61,7 @@ export default [
       "src/output/console/ConsoleCapture.ts",
       "src/output/LiveRenderer.ts",
       "src/actions/**/*.ts",
-      "src/cli/**/*.ts",
+      "src/cli/**/*.{ts,tsx}",
     ],
     rules: { "no-console": "off" },
   },

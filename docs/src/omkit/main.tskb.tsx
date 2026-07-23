@@ -73,7 +73,7 @@ declare global {
       }>;
 
       "omkit.core.types": Module<{
-        desc: "The core type surface: Action, Activity, ActionContext, OmContext, Outcome.";
+        desc: "The core type surface: Action, Activity, ActionContext, OmContext.";
         type: typeof import("packages/omkit/src/core/types.js");
       }>;
 
@@ -113,11 +113,6 @@ declare global {
         desc: "The live handle returned by launching an action: configure it (withCache, tag) and observe it (result, ref, events).";
         type: import("packages/omkit/src/core/types.js").Activity;
       }>;
-
-      "omkit.Outcome": Export<{
-        desc: "An activity's terminal result, read via .result — a typed value that never throws.";
-        type: import("packages/omkit/src/core/types.js").Outcome<unknown>;
-      }>;
     }
 
     interface Externals {
@@ -137,7 +132,7 @@ declare global {
     interface Terms {
       capability: Term<"A typed value one action publishes with attach() and downstream actions receive by awaiting .ref — a runtime handoff (a port, a client, a live page), not a string scraped from a log.">;
       "run-folder": Term<"A run's on-disk record at logs/<name>-<hash8>/<date>/<time>/: result.json (the tree and verdict), raw.jsonl (every entry), and per-action .log files. Its identity is keyed by the om's name and the file that defines it.">;
-      "structured-supervision": Term<"omkit's failure model: an activity whose failure nobody observes tears the whole run down. Observing it — awaiting .result or .ref, adding an on('error') listener, or attaching .handleFailure — makes the failure yours to handle instead.">;
+      "structured-supervision": Term<"omkit's failure model: an activity whose failure nobody observes tears the whole run down. Observing it — awaiting .result/.ref/.once (which reject on failure), a .result.catch, or an on('error') listener — makes the failure yours to handle instead.">;
     }
   }
 }
@@ -158,7 +153,6 @@ const OmExport = ref as tskb.Exports["omkit.om"];
 const ActionExport = ref as tskb.Exports["omkit.action"];
 const StepExport = ref as tskb.Exports["omkit.step"];
 const ActivityExport = ref as tskb.Exports["omkit.Activity"];
-const OutcomeExport = ref as tskb.Exports["omkit.Outcome"];
 
 const CapabilityTerm = ref as tskb.Terms["capability"];
 const RunFolderTerm = ref as tskb.Terms["run-folder"];
@@ -190,9 +184,10 @@ export default (
       An action is a named, typed description of work; <em>calling</em> it launches it and returns a
       live {ActivityExport}. Actions don't share globals — one publishes a {CapabilityTerm} that the
       next receives by awaiting <code>.ref</code>, so steps chain by typed handoff rather than
-      string parsing. Every activity settles to an {OutcomeExport}, read via <code>.result</code>,
-      which never throws: an operational failure is a value you branch on, not an exception you
-      catch.
+      string parsing. An activity's <code>.result</code> resolves the value and <em>rejects</em> on
+      failure — the same reject-on-failure shape as <code>.ref</code> and <code>.once</code> — so a
+      single <code>try/catch</code> gates a step and a <code>.result.catch(…)</code> handles a
+      failure without stopping the run.
     </P>
     <P>
       Failure is governed by {SupervisionTerm}, and success is keep-alive — when the {OmExport} body
