@@ -24,7 +24,7 @@ om("tskb:dev", async () => {
     ],
     default: "no",
     timeoutMs: 10_000,
-  }).tag("prompt:run:tests").result;
+  }).result;
 
   if (answer === "yes") {
     // Red tests are reported but don't stop the dev stack from coming up: `.result.catch` observes
@@ -35,8 +35,13 @@ om("tskb:dev", async () => {
       .catch((e) => console.error("tests failed — bringing up the stack anyway:", e));
   }
 
+  // watches the lib build changes - rebuilds docs
   command(WATCH_DOCS_CMD, { cwd: repoRoot }).tag("watch:docs:daemon");
+
+  // dev watcher on tskb lib source
   command("npm run dev", { cwd: tskbPath }).tag("watch:tskb:lib:daemon");
+
+  // watches the explorer app source changes - vite dev server, inside watcher for docs change
   command("npm run dev:explorer", { cwd: tskbPath }).tag("server:explorer:daemon");
 
   await healthcheck({ url: EXPLORER_URL, timeoutMs: 7000 }).tag("explorer:ready:gate").once("done");

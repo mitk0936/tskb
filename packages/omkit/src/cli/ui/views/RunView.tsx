@@ -1,9 +1,10 @@
 import { useRef, useState, type ReactElement } from "react";
-import { Box, Text, useInput, type Key } from "ink";
+import { Box, Text, useInput } from "ink";
+import { SearchableList } from "./SearchableList.tsx";
 import type { PromptRequest, Verdict } from "../../client/types.ts";
 
-/** Answer one pending prompt — free-text input, or arrow-navigable choices. */
-export function PromptView({
+/** A choice prompt: searchable, arrow-navigable options, Enter picks the highlighted one. */
+function ChoicePrompt({
   request,
   onAnswer,
 }: {
@@ -12,27 +13,46 @@ export function PromptView({
 }): ReactElement {
   const { spec } = request;
   const choices = spec.choices ?? [];
-  // Refs hold the authoritative value: Ink can deliver several key events before React
-  // re-renders, so the Enter handler must read a ref, not a possibly-stale render closure.
-  // State mirrors the ref only to drive the display.
+  const defaultIndex = Math.max(
+    0,
+    choices.findIndex((c) => c.value === spec.default)
+  );
+
+  return (
+    <Box flexDirection="column" borderStyle="round" paddingX={1}>
+      <Text>{spec.message}</Text>
+      <SearchableList
+        items={choices}
+        getKey={(c) => c.value}
+        getSearchText={(c) => c.label}
+        initialIndex={defaultIndex}
+        onSelect={(c) => onAnswer(c.value)}
+        renderRow={(c, selected) => (
+          <Text inverse={selected}>
+            {c.value === spec.default ? "* " : "  "}
+            {c.label}
+          </Text>
+        )}
+      />
+    </Box>
+  );
+}
+
+/** A free-text prompt: a bordered field with a block cursor and a dim default/enter hint. */
+function InputPrompt({
+  request,
+  onAnswer,
+}: {
+  request: PromptRequest;
+  onAnswer: (value: string) => void;
+}): ReactElement {
+  const { spec } = request;
+  // Ref holds the authoritative text: Ink can deliver several key events before React re-renders,
+  // so the Enter handler must read a ref, not a possibly-stale render closure.
   const textRef = useRef("");
-  const indexRef = useRef(0);
   const [text, setText] = useState("");
-  const [index, setIndex] = useState(0);
 
-  const onChoiceKey = (key: Key): void => {
-    if (key.upArrow) {
-      indexRef.current = Math.max(0, indexRef.current - 1);
-      setIndex(indexRef.current);
-    } else if (key.downArrow) {
-      indexRef.current = Math.min(choices.length - 1, indexRef.current + 1);
-      setIndex(indexRef.current);
-    } else if (key.return) {
-      onAnswer(choices[indexRef.current]?.value ?? spec.default);
-    }
-  };
-
-  const onInputKey = (input: string, key: Key): void => {
+  useInput((input, key) => {
     if (key.return) {
       onAnswer(textRef.current === "" ? spec.default : textRef.current);
     } else if (key.backspace || key.delete) {
@@ -42,27 +62,33 @@ export function PromptView({
       textRef.current += input;
       setText(textRef.current);
     }
-  };
-
-  useInput((input, key) => (spec.kind === "choice" ? onChoiceKey(key) : onInputKey(input, key)));
+  });
 
   return (
     <Box flexDirection="column" borderStyle="round" paddingX={1}>
       <Text>{spec.message}</Text>
-      {spec.kind === "choice" ? (
-        choices.map((c, i) => (
-          <Text key={c.value} inverse={i === index}>
-            {c.value === spec.default ? "* " : "  "}
-            {c.label}
-          </Text>
-        ))
-      ) : (
-        <Text>
-          {"> "}
-          {text}
-        </Text>
-      )}
+      <Text>
+        {"› "}
+        {text}
+        <Text inverse> </Text>
+      </Text>
+      <Text dimColor>enter ⏎{spec.default ? ` · default: ${spec.default}` : ""}</Text>
     </Box>
+  );
+}
+
+/** Answer one pending prompt — free-text input, or searchable choices. */
+export function PromptView({
+  request,
+  onAnswer,
+}: {
+  request: PromptRequest;
+  onAnswer: (value: string) => void;
+}): ReactElement {
+  return request.spec.kind === "choice" ? (
+    <ChoicePrompt request={request} onAnswer={onAnswer} />
+  ) : (
+    <InputPrompt request={request} onAnswer={onAnswer} />
   );
 }
 

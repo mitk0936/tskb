@@ -34,16 +34,29 @@ function fakeClient(session: RunSession): OmkitClient {
   };
 }
 
+/**
+ * Poll until `predicate` holds. These tests drive async discovery → render → run over Ink, and
+ * several App instances stay mounted across the file (no unmount), so fixed sleeps race under
+ * load. Waiting on the actual observable state instead keeps them deterministic.
+ */
+async function waitFor(predicate: () => boolean, timeoutMs = 2000): Promise<void> {
+  const start = Date.now();
+  while (!predicate()) {
+    if (Date.now() - start > timeoutMs) throw new Error("waitFor: condition not met in time");
+    await new Promise((r) => setTimeout(r, 5));
+  }
+}
+
 describe("App", () => {
   test("lists discovered oms, then streams a run's milestones on select", async () => {
     const { session, fire } = fakeSession();
     const { lastFrame, stdin } = render(<App client={fakeClient(session)} />);
+    const frame = (): string => lastFrame() ?? "";
 
-    await new Promise((r) => setTimeout(r, 30)); // discover resolves
-    expect(lastFrame()).toContain("dev");
-
+    await waitFor(() => frame().includes("dev")); // discovery rendered the om list
     stdin.write("\r"); // select "dev" → client.run
-    await new Promise((r) => setTimeout(r, 20));
+    await waitFor(() => frame().includes("running")); // the run started
+
     // Feed a log milestone over the fake session.
     (fire.log as (e: unknown) => void)?.({
       sequence: 1,
@@ -54,8 +67,8 @@ describe("App", () => {
       source: "ev",
       message: "ping",
     });
-    await new Promise((r) => setTimeout(r, 20));
-    expect(lastFrame()).toContain("ping");
+    await waitFor(() => frame().includes("ping"));
+    expect(frame()).toContain("ping");
   });
 
   test("a run that finishes on its own reports the verdict and exits", async () => {
@@ -64,16 +77,17 @@ describe("App", () => {
     // on the verdict line.
     const { session, settle } = fakeSession();
     const onExit = vi.fn();
-    const { stdin } = render(<App client={fakeClient(session)} onExit={onExit} />);
+    const { lastFrame, stdin } = render(<App client={fakeClient(session)} onExit={onExit} />);
+    const frame = (): string => lastFrame() ?? "";
 
-    await new Promise((r) => setTimeout(r, 30));
+    await waitFor(() => frame().includes("dev"));
     stdin.write("\r"); // select the om → start the run
-    await new Promise((r) => setTimeout(r, 20));
+    await waitFor(() => frame().includes("running"));
     expect(onExit).not.toHaveBeenCalled(); // still running
 
     const summary = ["om → /runs/z"];
     settle({ ok: true, folder: "/runs/z", summary });
-    await new Promise((r) => setTimeout(r, 20));
+    await waitFor(() => onExit.mock.calls.length > 0);
     expect(onExit).toHaveBeenCalledWith({ ok: true, folder: "/runs/z", summary });
   });
 
@@ -83,15 +97,17 @@ describe("App", () => {
     const cancel = vi.fn(() => settle({ ok: false, folder: "/runs/x", summary: [] }));
     session.cancel = cancel;
     const onExit = vi.fn();
-    const { stdin } = render(<App client={fakeClient(session)} onExit={onExit} />);
+    const { lastFrame, stdin } = render(<App client={fakeClient(session)} onExit={onExit} />);
+    const frame = (): string => lastFrame() ?? "";
 
-    await new Promise((r) => setTimeout(r, 30));
+    await waitFor(() => frame().includes("dev"));
     stdin.write("\r"); // select the om → start the run
-    await new Promise((r) => setTimeout(r, 20));
+    await waitFor(() => frame().includes("running"));
     stdin.write("\x03"); // Ctrl+C
-    await new Promise((r) => setTimeout(r, 30));
+    await waitFor(() => cancel.mock.calls.length > 0);
 
     expect(cancel).toHaveBeenCalled();
+    await waitFor(() => onExit.mock.calls.length > 0);
     expect(onExit).toHaveBeenCalledWith({ ok: false, folder: "/runs/x", summary: [] });
   });
 
@@ -106,16 +122,17 @@ describe("App", () => {
     const cancel = vi.fn();
     const session: RunSession = { on: () => {}, answer: () => {}, cancel, result };
     const onExit = vi.fn();
-    const { stdin } = render(<App client={fakeClient(session)} onExit={onExit} />);
+    const { lastFrame, stdin } = render(<App client={fakeClient(session)} onExit={onExit} />);
+    const frame = (): string => lastFrame() ?? "";
 
-    await new Promise((r) => setTimeout(r, 30));
+    await waitFor(() => frame().includes("dev"));
     stdin.write("\r"); // select the om → start the run
-    await new Promise((r) => setTimeout(r, 20));
+    await waitFor(() => frame().includes("running"));
 
     stdin.write("\x03"); // Ctrl+C → begin teardown
     stdin.write("\x03"); // smash: second press
     stdin.write("\x03"); // …and a third
-    await new Promise((r) => setTimeout(r, 30));
+    await waitFor(() => cancel.mock.calls.length > 0);
 
     // Teardown was requested exactly once; the extra presses did nothing and the app is
     // still up, waiting on the child — no premature exit.
@@ -126,7 +143,7 @@ describe("App", () => {
     // recap summary through to the caller (which prints it after Ink unmounts).
     const summary = ["om → /runs/y", "  main log  → /runs/y/main.log"];
     settle({ ok: true, folder: "/runs/y", summary });
-    await new Promise((r) => setTimeout(r, 20));
+    await waitFor(() => onExit.mock.calls.length > 0);
     expect(onExit).toHaveBeenCalledWith({ ok: true, folder: "/runs/y", summary });
   });
 });

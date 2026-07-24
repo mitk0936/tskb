@@ -54,4 +54,37 @@ describe("PromptView", () => {
     await new Promise((r) => setTimeout(r, 20));
     expect(onAnswer).toHaveBeenCalledWith("Ada");
   });
+
+  test("input: shows the default hint, and empty Enter answers the default", async () => {
+    const req: PromptRequest = {
+      id: "p3",
+      spec: { kind: "input", message: "Name?", default: "anon" },
+    };
+    const onAnswer = vi.fn();
+    const { lastFrame, stdin } = render(<PromptView request={req} onAnswer={onAnswer} />);
+    expect(lastFrame()).toContain("default: anon");
+    await new Promise((r) => setTimeout(r, 20));
+    stdin.write("\r"); // no input → default
+    await new Promise((r) => setTimeout(r, 20));
+    expect(onAnswer).toHaveBeenCalledWith("anon");
+  });
+
+  test("choice: a long option list is searchable — typing filters, Enter picks the match", async () => {
+    const choices = Array.from({ length: 20 }, (_, i) => ({
+      label: `env-${i}`,
+      value: `env-${i}`,
+    }));
+    const req: PromptRequest = {
+      id: "p4",
+      spec: { kind: "choice", message: "Target?", default: "env-0", choices },
+    };
+    const onAnswer = vi.fn();
+    const { lastFrame, stdin } = render(<PromptView request={req} onAnswer={onAnswer} />);
+    expect(lastFrame()).toContain("+"); // "+N more" footer while overflowing
+    await new Promise((r) => setTimeout(r, 20));
+    stdin.write("env-13");
+    stdin.write("\r");
+    await new Promise((r) => setTimeout(r, 20));
+    expect(onAnswer).toHaveBeenCalledWith("env-13");
+  });
 });

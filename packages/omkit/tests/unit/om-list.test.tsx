@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { render } from "ink-testing-library";
-import { filterOms, OmList } from "../../src/cli/ui/views/OmList.tsx";
+import { OmList } from "../../src/cli/ui/views/OmList.tsx";
 import type { DiscoveredOm } from "../../src/cli/client/registry.ts";
 
 const oms: DiscoveredOm[] = [
@@ -9,19 +9,23 @@ const oms: DiscoveredOm[] = [
   { name: "build", file: "/p/oms/build.ts", line: 1 },
 ];
 
-describe("filterOms", () => {
-  test("case-insensitive name substring", () => {
-    expect(filterOms(oms, "DE").map((o) => o.name)).toEqual(["dev", "deploy"]);
-    expect(filterOms(oms, "").length).toBe(3);
-  });
-});
-
 describe("OmList", () => {
-  test("renders all om names initially", () => {
+  test("renders all om names and their paths initially", () => {
     const { lastFrame } = render(<OmList oms={oms} onSelect={() => {}} />);
     expect(lastFrame()).toContain("dev");
     expect(lastFrame()).toContain("deploy");
     expect(lastFrame()).toContain("build");
+    expect(lastFrame()).toContain("dev.ts"); // path column is shown
+  });
+
+  test("typing filters by name", async () => {
+    const { lastFrame, stdin } = render(<OmList oms={oms} onSelect={() => {}} />);
+    await new Promise((r) => setTimeout(r, 20));
+    stdin.write("de");
+    await new Promise((r) => setTimeout(r, 20));
+    expect(lastFrame()).toContain("dev");
+    expect(lastFrame()).toContain("deploy");
+    expect(lastFrame()).not.toContain("build");
   });
 
   test("Enter selects the highlighted om", async () => {
