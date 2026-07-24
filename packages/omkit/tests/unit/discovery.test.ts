@@ -34,6 +34,10 @@ describe("discover", () => {
     expect(warnings.length).toBeGreaterThan(0);
   });
 
+  test("throws on a missing tsconfig (a fatal config problem, not a warning)", () => {
+    expect(() => discover(path.join(here, "does-not-exist.json"))).toThrow(/could not read/);
+  });
+
   test("finds an action imported by an om, discovered via a relative tsconfig path (regression)", () => {
     // The trigger: a relative tsconfig path makes `parsed.fileNames` relative while the action,
     // pulled in via the om's relative import, resolves to an absolute path — they must still

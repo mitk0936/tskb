@@ -178,7 +178,10 @@ export class ActionRun<
           if (win()) resolve(undefined);
         },
         (error: unknown) => {
-          if (win()) key === "error" ? resolve(error as never) : reject(error);
+          if (!win()) return;
+          // Awaiting the `error` event hands back the error; any other gate rejects on failure.
+          if (key === "error") resolve(error as never);
+          else reject(error);
         }
       );
     });

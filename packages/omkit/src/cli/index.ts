@@ -44,13 +44,21 @@ async function main(): Promise<void> {
   }
   if (cli.command === "ls") {
     const { formatRegistry } = await import("./commands/ls.ts");
-    console.log(formatRegistry(await client.discover(), { json: cli.json }));
+    const { withSpinner } = await import("./ui/Report.tsx");
+    const registry = await withSpinner("discovering…", () => client.discover());
+    console.log(formatRegistry(registry, { json: cli.json }));
     return;
   }
   if (cli.command === "check") {
-    const { formatDiagnostics } = await import("./commands/check.ts");
-    const { text, code } = formatDiagnostics(await client.check());
-    console.log(text);
+    const { checkReport } = await import("./commands/check.ts");
+    const { renderDiagnostics, withSpinner } = await import("./ui/Report.tsx");
+    const diagnostics = await withSpinner("type-checking…", () => client.check());
+    const { title, items, code } = checkReport(diagnostics);
+    // Type errors fail the command (exit 1); a clean project reports ok and exits 0.
+    await renderDiagnostics(
+      { kind: code === 0 ? "ok" : "error", title, items },
+      code === 0 ? process.stdout : process.stderr
+    );
     process.exitCode = code;
     return;
   }
@@ -59,12 +67,18 @@ async function main(): Promise<void> {
     // A bare `omkit` lands here too, since `run` is the default command.
     if (!cli.target) {
       const { launchUi } = await import("./commands/ui.tsx");
-      launchUi(client);
+      await launchUi(client, cli.tsconfig);
       return;
     }
-    const { resolveOm } = await import("./commands/run.ts");
+    const { resolveOm, reportNoOms } = await import("./commands/run.ts");
     const { spawnBare } = await import("./client/runner.ts");
-    const registry = await client.discover();
+    const { withSpinner } = await import("./ui/Report.tsx");
+    const registry = await withSpinner("discovering…", () => client.discover());
+    if (registry.oms.length === 0) {
+      await reportNoOms(cli.tsconfig, registry);
+      process.exitCode = 1;
+      return;
+    }
     const omFile = resolveOm(cli.target, registry, process.cwd());
     if (!omFile) {
       const known = registry.oms.map((o) => o.name).join(", ");
@@ -95,4 +109,35 @@ function isEntryPoint(): boolean {
   }
 }
 
-if (isEntryPoint()) void main();
+/** Print a fatal error to stderr in one consistent shape, just before the process exits non-zero. */
+function reportFatal(err: unknown): void {
+  const detail = err instanceof Error ? (err.stack ?? err.message) : String(err);
+  process.stderr.write(`\nomkit: ${detail}\n`);
+}
+
+if (isEntryPoint()) {
+  // Nothing should fail silently. A fatal anywhere — a bad config, an uncaught throw, or a rejected
+  // promise in the interactive app — prints and crashes the CLI with a non-zero exit code.
+  //
+  // The controlled path (a rejection from `main`, e.g. a bad tsconfig) gets the pretty Ink panel;
+  // the last-resort sync handlers stay plain, since the process may be mid-crash and can't await.
+  process.on("uncaughtException", (err) => {
+    reportFatal(err);
+    process.exit(1);
+  });
+  process.on("unhandledRejection", (err) => {
+    reportFatal(err);
+    process.exit(1);
+  });
+  main().catch(async (err) => {
+    const { renderDiagnostics } = await import("./ui/Report.tsx");
+    const message = err instanceof Error ? err.message : String(err);
+    // Keep the panel clean by default (a bad tsconfig needs no stack); set OMKIT_DEBUG for the trace.
+    const stack =
+      process.env.OMKIT_DEBUG && err instanceof Error && err.stack
+        ? err.stack.split("\n").slice(1).join("\n")
+        : undefined;
+    await renderDiagnostics({ kind: "error", title: message, hint: stack });
+    process.exit(1);
+  });
+}

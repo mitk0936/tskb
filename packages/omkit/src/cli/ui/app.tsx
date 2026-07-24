@@ -11,14 +11,17 @@ import type { DiscoveredOm } from "../client/registry.ts";
 export function App({
   client,
   onExit,
+  oms: initialOms,
 }: {
   client: OmkitClient;
   /** Called with the run's verdict (if any) just before Ink unmounts, so the caller can print
    *  a durable summary — Ink erases its own frame on exit. */
   onExit?: (verdict: Verdict | undefined) => void;
+  /** Oms discovered by the caller (pre-flight). When given, the app skips its own discovery. */
+  oms?: DiscoveredOm[];
 }): ReactElement {
   const { exit } = useApp();
-  const [oms, setOms] = useState<DiscoveredOm[]>([]);
+  const [oms, setOms] = useState<DiscoveredOm[]>(initialOms ?? []);
   const [session, setSession] = useState<RunSession | null>(null);
   const [lines, setLines] = useState<string[]>([]);
   const [prompt, setPrompt] = useState<PromptRequest | undefined>();
@@ -31,6 +34,7 @@ export function App({
   const tearingRef = useRef(false);
 
   useEffect(() => {
+    if (initialOms) return; // provided by the caller's pre-flight discovery
     let live = true;
     void client.discover().then((r) => {
       if (live) setOms(r.oms);
@@ -38,7 +42,7 @@ export function App({
     return () => {
       live = false;
     };
-  }, [client]);
+  }, [client, initialOms]);
 
   const run = (om: DiscoveredOm): void => {
     const s = client.run(om.file);

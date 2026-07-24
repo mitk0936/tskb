@@ -102,6 +102,19 @@ export const chromePage = action("chromePage")
         console.log(`navigated ${url}`);
       }
 
+      // Oms run under tsx, which forces esbuild `keepNames`: every function serialized into
+      // page.evaluate() carries a bare `__name(...)` wrapper that is undefined in the page and
+      // throws `ReferenceError: __name is not defined`. Define a no-op __name so those bodies
+      // run. Scope it to the whole context, not just this page: downstream code often drives
+      // sibling windows via context.pages() (e.g. Electron windows), which never see a
+      // page-level shim. addInitScript covers documents created later; evaluate seeds the ones
+      // already open now (Electron windows exist before we attach). Passed as a string so tsx
+      // doesn't rewrite — and re-break — the shim itself.
+      const nameShim = "globalThis.__name = globalThis.__name || function (f) { return f; };";
+      const context = page.context();
+      await context.addInitScript(nameShim);
+      await Promise.all(context.pages().map((p) => p.evaluate(nameShim).catch(() => {})));
+
       attach(page); // resolves instance.ref for every downstream action
       console.log(`attached ${from}`);
 

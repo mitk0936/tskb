@@ -1,15 +1,16 @@
 import { describe, expect, test } from "vitest";
-import { formatDiagnostics } from "../../src/cli/commands/check.ts";
+import { checkReport } from "../../src/cli/commands/check.ts";
 
-describe("formatDiagnostics", () => {
-  test("clean project → code 0 and a success line", () => {
-    const { text, code } = formatDiagnostics([]);
+describe("checkReport", () => {
+  test("clean project → code 0, a success title, no items", () => {
+    const { title, items, code } = checkReport([]);
     expect(code).toBe(0);
-    expect(text.toLowerCase()).toContain("no type errors");
+    expect(title.toLowerCase()).toContain("no type errors");
+    expect(items).toEqual([]);
   });
 
-  test("errors → code 1 and each diagnostic listed", () => {
-    const { text, code } = formatDiagnostics([
+  test("errors → code 1 and each diagnostic as an item", () => {
+    const { title, items, code } = checkReport([
       {
         file: "/p/actions/broken.ts",
         line: 4,
@@ -17,7 +18,8 @@ describe("formatDiagnostics", () => {
       },
     ]);
     expect(code).toBe(1);
-    expect(text).toContain("broken.ts:4");
-    expect(text).toContain("not assignable");
+    expect(title).toContain("1 type error");
+    expect(items[0].head).toBe("broken.ts:4");
+    expect(items[0].detail).toContain("not assignable");
   });
 });

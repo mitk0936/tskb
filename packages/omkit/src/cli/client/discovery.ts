@@ -11,27 +11,17 @@ interface OmkitNames {
 
 /**
  * Statically scan the project described by `tsconfigPath` for runnable oms and inspectable
- * actions. Never throws for user-code problems — type errors become `warnings`, and whatever
- * parsed is still returned (so an editor-in-progress project stays useful).
+ * actions. Type errors in the user's oms/actions degrade to `warnings` (an editor-in-progress
+ * project stays useful), but a **fatal config problem** — a missing, unparseable, or invalid
+ * tsconfig — throws, so the CLI crashes visibly instead of silently returning an empty project.
  */
 export function discover(tsconfigPath: string): Registry {
   const oms: DiscoveredOm[] = [];
   const actions: DiscoveredAction[] = [];
   const warnings: string[] = [];
 
-  const configFile = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
-  if (configFile.error) {
-    warnings.push(ts.flattenDiagnosticMessageText(configFile.error.messageText, "\n"));
-    return { oms, actions, warnings };
-  }
-  // Resolve to an absolute base so `parsed.fileNames` are absolute. Otherwise root files stay
-  // relative while imported files (e.g. an action pulled in by an om) resolve to absolute paths,
-  // and the two never match in `fileSet`.
-  const parsed = ts.parseJsonConfigFileContent(
-    configFile.config,
-    ts.sys,
-    path.resolve(path.dirname(tsconfigPath))
-  );
+  const { parsed, warnings: configWarnings } = loadProject(tsconfigPath);
+  warnings.push(...configWarnings);
   const program = ts.createProgram({
     rootNames: parsed.fileNames,
     options: { ...parsed.options, noEmit: true },
@@ -79,6 +69,38 @@ export function discover(tsconfigPath: string): Registry {
   }
 
   return { oms, actions, warnings };
+}
+
+/**
+ * Load and validate the tsconfig, throwing on a fatal config problem — a missing/unparseable file,
+ * or a config-level error (bad compilerOptions, an unresolvable `extends`). The benign "no inputs
+ * found" (TS18003) is not fatal: an empty-but-valid project comes back as a warning instead.
+ *
+ * Parses against an absolute base dir so `parsed.fileNames` are absolute — otherwise root files
+ * stay relative while imported files (an action pulled in by an om) resolve absolute, and the two
+ * never match in the caller's `fileSet`.
+ */
+function loadProject(tsconfigPath: string): { parsed: ts.ParsedCommandLine; warnings: string[] } {
+  const flatten = (d: ts.Diagnostic): string =>
+    ts.flattenDiagnosticMessageText(d.messageText, "\n");
+
+  const configFile = ts.readConfigFile(tsconfigPath, ts.sys.readFile);
+  if (configFile.error)
+    throw new Error(`could not read ${tsconfigPath}: ${flatten(configFile.error)}`);
+
+  const parsed = ts.parseJsonConfigFileContent(
+    configFile.config,
+    ts.sys,
+    path.resolve(path.dirname(tsconfigPath))
+  );
+  const fatal = parsed.errors.filter(
+    (e) => e.category === ts.DiagnosticCategory.Error && e.code !== 18003
+  );
+  if (fatal.length) {
+    throw new Error(`invalid ${tsconfigPath}:\n${fatal.map((e) => `  ${flatten(e)}`).join("\n")}`);
+  }
+  const warnings = parsed.errors.filter((e) => e.code === 18003).map(flatten);
+  return { parsed, warnings };
 }
 
 /** Collect the local names bound to om/step/action from `import … from "omkit"`. */
