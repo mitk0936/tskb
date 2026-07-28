@@ -1,7 +1,10 @@
 import Fuse from "fuse.js";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
 import { loadGraph } from "../utils/graph-loader.js";
-import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
+import { jsonOut, plainOut } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
+
+const log = createLogger("cli:search");
 
 interface SearchableNode {
   id: string;
@@ -80,13 +83,13 @@ export async function search(
   optimized: boolean = false,
   plain: boolean = false
 ): Promise<void> {
-  const loadDone = time("Loading graph");
+  const loadDone = log.time("Loading graph");
   const graph = loadGraph();
   loadDone();
 
-  const searchDone = time("Searching");
+  const searchDone = log.time("Searching");
   const nodes = buildSearchableNodes(graph);
-  verbose(`   ${nodes.length} searchable nodes indexed`);
+  log.debug(`   ${nodes.length} searchable nodes indexed`);
 
   const fuse = new Fuse(nodes, {
     keys: [
@@ -187,7 +190,7 @@ export async function search(
   };
   searchDone();
 
-  verbose(`   ${fuseResults.length} raw matches, returning top ${result.results.length}`);
+  log.debug(`   ${fuseResults.length} raw matches, returning top ${result.results.length}`);
 
   if (plain) {
     plainOut(formatSearchPlain(result));

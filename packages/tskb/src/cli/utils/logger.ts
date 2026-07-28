@@ -1,57 +1,14 @@
-let isVerbose = false;
-
-export function configure(opts: { verbose: boolean }): void {
-  isVerbose = opts.verbose;
-}
-
-export function info(msg: string): void {
-  process.stderr.write(msg + "\n");
-}
-
-export function verbose(msg: string): void {
-  if (isVerbose) process.stderr.write(msg + "\n");
-}
-
-export function error(msg: string): void {
-  process.stderr.write(msg + "\n");
-}
-
 /**
- * Start a verbose-only timer. The label and elapsed time are only shown in verbose mode.
- * Use this in query commands (search, pick, ls, context, docs) to keep stdout JSON-clean.
+ * Stdout output helpers. NOT logging — these write command results to stdout.
+ * All diagnostic logging lives in src/log/. See logging.tskb.tsx.
  */
-export function time(label: string): () => void {
-  const start = performance.now();
-  verbose(`${label}...`);
-  return () => {
-    const ms = Math.round(performance.now() - start);
-    verbose(`${label} (${ms}ms)`);
-  };
-}
 
-/**
- * Write a JSON value to stdout, using compact format when optimized is true.
- */
+/** Write a JSON value to stdout, compact when optimized is true. */
 export function jsonOut(value: unknown, optimized: boolean): void {
   console.log(optimized ? JSON.stringify(value) : JSON.stringify(value, null, 2));
 }
 
-/**
- * Write plain text to stdout.
- */
+/** Write plain text to stdout. */
 export function plainOut(text: string): void {
   console.log(text);
-}
-
-/**
- * Start a timer that always logs the label via info, and elapsed time via verbose.
- * Use this in the build command where progress output is expected.
- */
-export function infoTime(label: string): () => void {
-  const start = performance.now();
-  info(`${label}...`);
-  return () => {
-    const ms = Math.round(performance.now() - start);
-    verbose(`${label} (${ms}ms)`);
-  };
 }

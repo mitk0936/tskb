@@ -1,7 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
-import { info, error } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
+
+const log = createLogger("cli:init");
 
 const TSCONFIG_TEMPLATE = `{
   "compilerOptions": {
@@ -83,10 +85,10 @@ export async function init(options: InitOptions = {}): Promise<void> {
     ? null
     : readline.createInterface({ input: process.stdin, output: process.stdout });
 
-  info("");
-  info("tskb init — set up architecture documentation in this repo");
-  info("──────────────────────────────────────────────────────────");
-  info("");
+  log.info("");
+  log.info("tskb init — set up architecture documentation in this repo");
+  log.info("──────────────────────────────────────────────────────────");
+  log.info("");
 
   try {
     const cwd = process.cwd();
@@ -118,14 +120,14 @@ export async function init(options: InitOptions = {}): Promise<void> {
       wantClaude = true;
       wantCopilot = true;
 
-      info("Using defaults (--yes):");
-      info(`  Docs folder: ${docsDir}`);
-      info(`  Glob pattern: ${pattern}`);
-      info(`  Tsconfig: ${tsconfigPath}`);
-      info(`  Project name: ${projectName}`);
-      info(`  Claude Code: yes`);
-      info(`  GitHub Copilot: yes`);
-      info("");
+      log.info("Using defaults (--yes):");
+      log.info(`  Docs folder: ${docsDir}`);
+      log.info(`  Glob pattern: ${pattern}`);
+      log.info(`  Tsconfig: ${tsconfigPath}`);
+      log.info(`  Project name: ${projectName}`);
+      log.info(`  Claude Code: yes`);
+      log.info(`  GitHub Copilot: yes`);
+      log.info("");
     } else {
       // 1. Docs folder
       const rawDocsDir = (await ask(rl!, "Docs folder [docs]: ")).trim();
@@ -146,7 +148,7 @@ export async function init(options: InitOptions = {}): Promise<void> {
       projectName = rawName || defaultProjectName;
 
       // 5. Integrations
-      info("");
+      log.info("");
       wantClaude = await askYesNo(rl!, "Enable Claude Code skill (creates .claude/skills/)?");
       wantCopilot = await askYesNo(
         rl!,
@@ -160,9 +162,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
     const absDocs = path.resolve(cwd, docsDir);
     if (!fs.existsSync(absDocs)) {
       fs.mkdirSync(absDocs, { recursive: true });
-      info(`Created ${docsDir}/`);
+      log.info(`Created ${docsDir}/`);
     } else {
-      info(`  ${docsDir}/ already exists, skipping`);
+      log.info(`  ${docsDir}/ already exists, skipping`);
     }
 
     // Write docs/tsconfig.json
@@ -170,18 +172,18 @@ export async function init(options: InitOptions = {}): Promise<void> {
     if (!fs.existsSync(absTsconfig)) {
       fs.mkdirSync(path.dirname(absTsconfig), { recursive: true });
       fs.writeFileSync(absTsconfig, TSCONFIG_TEMPLATE, "utf-8");
-      info(`Created ${tsconfigPath}`);
+      log.info(`Created ${tsconfigPath}`);
     } else {
-      info(`  ${tsconfigPath} already exists, skipping`);
+      log.info(`  ${tsconfigPath} already exists, skipping`);
     }
 
     // Write starter doc
     const starterPath = path.join(absDocs, "main.tskb.tsx");
     if (!fs.existsSync(starterPath)) {
       fs.writeFileSync(starterPath, STARTER_DOC_TEMPLATE(projectName), "utf-8");
-      info(`Created ${docsDir}/main.tskb.tsx`);
+      log.info(`Created ${docsDir}/main.tskb.tsx`);
     } else {
-      info(`  ${docsDir}/main.tskb.tsx already exists, skipping`);
+      log.info(`  ${docsDir}/main.tskb.tsx already exists, skipping`);
     }
 
     // Update package.json
@@ -193,14 +195,14 @@ export async function init(options: InitOptions = {}): Promise<void> {
       if (!scripts[scriptName]) {
         pkg.scripts = { ...scripts, [scriptName]: scriptValue };
         fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf-8");
-        info(`Added "docs" script to package.json`);
+        log.info(`Added "docs" script to package.json`);
       } else {
-        info(`  "docs" script already exists in package.json, skipping`);
-        info(`  To run tskb: ${scriptValue}`);
+        log.info(`  "docs" script already exists in package.json, skipping`);
+        log.info(`  To run tskb: ${scriptValue}`);
       }
     } else {
-      info(`  package.json not found — add the following script manually:`);
-      info(
+      log.info(`  package.json not found — add the following script manually:`);
+      log.info(
         `    "docs": "tskb \\"${pattern}\\" --tsconfig ${tsconfigPath} --project \\"${projectName}\\""`
       );
     }
@@ -210,9 +212,9 @@ export async function init(options: InitOptions = {}): Promise<void> {
       const claudeSkillsDir = path.resolve(cwd, ".claude", "skills");
       if (!fs.existsSync(claudeSkillsDir)) {
         fs.mkdirSync(claudeSkillsDir, { recursive: true });
-        info(`Created .claude/skills/ (run docs script to generate skill files)`);
+        log.info(`Created .claude/skills/ (run docs script to generate skill files)`);
       } else {
-        info(`  .claude/skills/ already exists`);
+        log.info(`  .claude/skills/ already exists`);
       }
     }
 
@@ -220,24 +222,24 @@ export async function init(options: InitOptions = {}): Promise<void> {
       const githubDir = path.resolve(cwd, ".github");
       if (!fs.existsSync(githubDir)) {
         fs.mkdirSync(githubDir, { recursive: true });
-        info(`Created .github/ (run docs script to generate instruction files)`);
+        log.info(`Created .github/ (run docs script to generate instruction files)`);
       } else {
-        info(`  .github/ already exists`);
+        log.info(`  .github/ already exists`);
       }
     }
 
-    info("");
-    info("✓ Done! Next steps:");
-    info("");
-    info("  1. Edit your starter doc:  " + path.join(docsDir, "main.tskb.tsx"));
-    info("  2. Build the knowledge graph:  npm run docs");
-    info("  3. Query the graph:  npx tskb ls --plain");
-    info("");
-    info("Tip: run `npm run docs` after any structural change to keep the graph fresh.");
-    info("");
+    log.info("");
+    log.info("✓ Done! Next steps:");
+    log.info("");
+    log.info("  1. Edit your starter doc:  " + path.join(docsDir, "main.tskb.tsx"));
+    log.info("  2. Build the knowledge graph:  npm run docs");
+    log.info("  3. Query the graph:  npx tskb ls --plain");
+    log.info("");
+    log.info("Tip: run `npm run docs` after any structural change to keep the graph fresh.");
+    log.info("");
   } catch (err) {
     rl?.close();
-    error("Init failed: " + (err instanceof Error ? err.message : String(err)));
+    log.error("Init failed: " + (err instanceof Error ? err.message : String(err)));
     process.exit(1);
   }
 }

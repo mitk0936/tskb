@@ -1,7 +1,10 @@
 import Fuse from "fuse.js";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
 import { loadGraph } from "../utils/graph-loader.js";
-import { verbose, time, jsonOut, plainOut, error } from "../utils/logger.js";
+import { jsonOut, plainOut } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
+
+const log = createLogger("cli:registry");
 
 type RegistryKind = "folder" | "module" | "export" | "file" | "external" | "term";
 
@@ -120,11 +123,11 @@ export async function registry(
   plain: boolean
 ): Promise<void> {
   if (options.type && !VALID_KINDS.includes(options.type as RegistryKind)) {
-    error(`Error: --type must be one of: ${VALID_KINDS.join(", ")}`);
+    log.error(`Error: --type must be one of: ${VALID_KINDS.join(", ")}`);
     process.exit(1);
   }
 
-  const loadDone = time("Loading graph");
+  const loadDone = log.time("Loading graph");
   const graph = loadGraph(["folders", "modules", "exports", "files", "externals", "terms"]);
   loadDone();
 
@@ -142,7 +145,7 @@ export async function registry(
     ) as Record<RegistryKind, RegistryEntry[]>;
 
     const result: RegistryOverviewResult = { counts, samples };
-    verbose(
+    log.debug(
       `   ${Object.values(counts).reduce((a, b) => a + b, 0)} nodes across ${VALID_KINDS.length} kinds`
     );
     if (plain) plainOut(formatOverviewPlain(result));
@@ -159,14 +162,14 @@ export async function registry(
       ...(kind ? { type: kind } : {}),
       nodes: pool.map(stripContent),
     };
-    verbose(`   ${pool.length} ${kind ?? "node"}${pool.length === 1 ? "" : "s"} listed`);
+    log.debug(`   ${pool.length} ${kind ?? "node"}${pool.length === 1 ? "" : "s"} listed`);
     if (plain) plainOut(formatListPlain(result));
     else jsonOut(result, optimized);
     return;
   }
 
   // Fuzzy search the pool
-  const searchDone = time("Searching registry");
+  const searchDone = log.time("Searching registry");
   const fuse = new Fuse(pool, {
     keys: [
       { name: "nodeId", weight: 0.4 },
@@ -209,7 +212,7 @@ export async function registry(
   };
   searchDone();
 
-  verbose(`   ${fuseResults.length} raw matches, returning ${result.nodes.length}`);
+  log.debug(`   ${fuseResults.length} raw matches, returning ${result.nodes.length}`);
 
   if (plain) plainOut(formatListPlain(result));
   else jsonOut(result, optimized);

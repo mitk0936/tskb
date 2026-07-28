@@ -1,6 +1,7 @@
 import type { KnowledgeGraph, GraphEdge, AnyNode } from "../../core/graph/types.js";
 import { loadGraph } from "../utils/graph-loader.js";
-import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
+import { jsonOut, plainOut } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
 import {
   resolveNode,
   getNodeEdges,
@@ -8,6 +9,8 @@ import {
   findAllNodesById,
   type ResolvedVia,
 } from "../utils/resolve-node.js";
+
+const log = createLogger("cli:context");
 
 // --- Result types ---
 
@@ -195,11 +198,11 @@ export async function context(
   optimized: boolean = false,
   plain: boolean = false
 ): Promise<void> {
-  const loadDone = time("Loading graph");
+  const loadDone = log.time("Loading graph");
   const graph = loadGraph();
   loadDone();
 
-  const traverseDone = time("Building context");
+  const traverseDone = log.time("Building context");
   const resolved = resolveNode(graph, identifier);
 
   if (!resolved) {
@@ -242,15 +245,15 @@ export async function context(
   };
   traverseDone();
 
-  verbose(
+  log.debug(
     `   Resolved "${identifier}" via ${resolved.resolvedVia} → ${resolved.node.type} "${resolved.id}"`
   );
   if (resolved.ambiguousTypes) {
-    verbose(
+    log.debug(
       `   ⚠ Ambiguous ID: "${resolved.id}" matches ${resolved.ambiguousTypes.join(", ")}. Showing ${resolved.node.type}.`
     );
   }
-  verbose(
+  log.debug(
     `   ${nodes.length} nodes, ${docs.length} docs, ${constraints.length} constraints (depth=${depth})`
   );
 

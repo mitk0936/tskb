@@ -1,7 +1,8 @@
 import path from "node:path";
 import type { KnowledgeGraph, AnyNode } from "../../core/graph/types.js";
 import { loadGraph } from "../utils/graph-loader.js";
-import { verbose, time, jsonOut, plainOut } from "../utils/logger.js";
+import { jsonOut, plainOut } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
 import {
   resolveNode,
   getNodeEdges,
@@ -14,6 +15,8 @@ import {
   type FlowRef,
   type ResolvedVia,
 } from "../utils/resolve-node.js";
+
+const log = createLogger("cli:pick");
 
 // --- Result types ---
 
@@ -572,11 +575,11 @@ export async function pick(
   optimized: boolean = false,
   plain: boolean = false
 ): Promise<void> {
-  const loadDone = time("Loading graph");
+  const loadDone = log.time("Loading graph");
   const graph = loadGraph();
   loadDone();
 
-  const resolveDone = time("Resolving node");
+  const resolveDone = log.time("Resolving node");
   const resolved = resolveNode(graph, identifier);
 
   if (!resolved) {
@@ -628,11 +631,11 @@ export async function pick(
 
   resolveDone();
 
-  verbose(
+  log.debug(
     `   Resolved "${identifier}" via ${resolved.resolvedVia} → ${resolved.node.type} "${resolved.id}"`
   );
   if (resolved.ambiguousTypes) {
-    verbose(
+    log.debug(
       `   ⚠ Ambiguous ID: "${resolved.id}" matches ${resolved.ambiguousTypes.join(", ")}. Showing ${resolved.node.type}.`
     );
   }

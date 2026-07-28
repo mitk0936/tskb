@@ -31,6 +31,10 @@ import { hasChildren } from "./types";
 import type { NodeComponent } from "./components/nodes/base";
 import { renderBoundaryGroups, applyBoundaryLabelTransforms } from "./components/BoundaryRenderer";
 import type { LaneLayout } from "./layout/lane-engine";
+import { configure, createLogger } from "./log";
+
+configure();
+const log = createLogger("app:render");
 
 type Layer = d3.Selection<SVGGElement, unknown, null, undefined>;
 
@@ -306,7 +310,7 @@ export class ExplorerApp {
       // rendered with placeholder data — refresh now that meta is loaded.
       this.router.refresh();
     } catch (e) {
-      console.error("Failed to load meta chunk:", e);
+      log.error("Failed to load meta chunk: %o", e);
       hideGlobalSpinner();
       showToast("⚠ Failed to load graph (meta.json)", "error");
       return;
@@ -319,7 +323,7 @@ export class ExplorerApp {
   private render(): void {
     if (!this.store.meta) return;
     const t0 = performance.now();
-    console.log("[render] start");
+    log.debug("start");
 
     if (this.layoutDirty || !this.cachedLayout) {
       const t = performance.now();
@@ -327,7 +331,7 @@ export class ExplorerApp {
         this.expanded.has(ExplorerApp.expandKey(node))
       );
       this.layoutDirty = false;
-      console.log(`[render] computeLayout (${(performance.now() - t).toFixed(1)}ms)`);
+      log.debug(`computeLayout (${(performance.now() - t).toFixed(1)}ms)`);
     }
 
     let t = performance.now();
@@ -336,8 +340,8 @@ export class ExplorerApp {
       this.cachedLayout,
       this.matchIds
     );
-    console.log(
-      `[render] computeRenderState — ${allNodes.length} nodes, ${structureLinks.length} struct, ${relationLinks.length} relation (${(performance.now() - t).toFixed(1)}ms)`
+    log.debug(
+      `computeRenderState — ${allNodes.length} nodes, ${structureLinks.length} struct, ${relationLinks.length} relation (${(performance.now() - t).toFixed(1)}ms)`
     );
 
     // Stats bar — show every node type that has at least one entry
@@ -360,26 +364,26 @@ export class ExplorerApp {
 
     t = performance.now();
     renderLaneBands(this.laneBgLayer, this.cachedLayout, canvasW);
-    console.log(`[render] renderLaneBands (${(performance.now() - t).toFixed(1)}ms)`);
+    log.debug(`renderLaneBands (${(performance.now() - t).toFixed(1)}ms)`);
 
     t = performance.now();
     renderBoundaryGroups(this.boundaryLayer, allNodes, this.store.meta.parentOf ?? {}, this.zoomK);
-    console.log(`[render] renderBoundaryGroups (${(performance.now() - t).toFixed(1)}ms)`);
+    log.debug(`renderBoundaryGroups (${(performance.now() - t).toFixed(1)}ms)`);
 
     t = performance.now();
     renderStructureEdges(this.edgeLayer, structureLinks);
-    console.log(`[render] renderStructureEdges (${(performance.now() - t).toFixed(1)}ms)`);
+    log.debug(`renderStructureEdges (${(performance.now() - t).toFixed(1)}ms)`);
 
     t = performance.now();
     renderRelationEdges(this.relationEdgeLayer, relationLinks);
-    console.log(`[render] renderRelationEdges (${(performance.now() - t).toFixed(1)}ms)`);
+    log.debug(`renderRelationEdges (${(performance.now() - t).toFixed(1)}ms)`);
 
     t = performance.now();
     renderRelationEndpoints(this.relationEndLayer, relationLinks);
-    console.log(`[render] renderRelationEndpoints (${(performance.now() - t).toFixed(1)}ms)`);
+    log.debug(`renderRelationEndpoints (${(performance.now() - t).toFixed(1)}ms)`);
 
     t = performance.now();
-    console.log(`[render] D3 nodes… (${(performance.now() - t0).toFixed(1)}ms total so far)`);
+    log.debug(`D3 nodes… (${(performance.now() - t0).toFixed(1)}ms total so far)`);
 
     // Node enter / update / exit
     const groups = this.nodeLayer
@@ -454,7 +458,7 @@ export class ExplorerApp {
             const chunk = await this.loader.load("folder", node.id);
             this.store.loadFolderChunk(chunk); // triggers subscriber → layoutDirty + render
           } catch (e) {
-            console.error("Failed to load chunk for", node.id, e);
+            log.error("Failed to load chunk for %s %o", node.id, e);
             showToast(`⚠ Failed to load ${node.label}`, "error");
             return;
           } finally {
@@ -595,7 +599,7 @@ export class ExplorerApp {
         try {
           return await this.loader.load("folder", id);
         } catch (e) {
-          console.error("Failed to load chunk for", id, e);
+          log.error("Failed to load chunk for %s %o", id, e);
           return null;
         }
       })
@@ -741,7 +745,7 @@ export class ExplorerApp {
 
   private onTraceLinks(node: PositionedNode): void {
     // MVP: log — future: animated edge tracer
-    console.info("[tskb explorer] trace links for:", node.id, `(${node.edgeCount} edges)`);
+    log.info("trace links for: %s (%d edges)", node.id, node.edgeCount);
   }
 }
 

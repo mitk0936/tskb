@@ -5,14 +5,14 @@
   "type": "module",
   "workspaces": [
     "packages/*",
-    "examples/*"
+    "om"
   ],
   "scripts": {
     "postinstall": "npm run build",
     "build": "npm run build --workspaces --if-present && npm run build:docs",
-    "build:docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json --project \"TSKB Monorepo\" && tskb explore --export ./docs-export",
-    "watch:docs": "tskb explore --export ./docs-export & tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json --project \"TSKB Monorepo\" --watch ./packages/tskb/dist",
-    "clean": "npx rimraf --glob node_modules **/node_modules **/dist **/.tskb",
+    "build:docs": "tskb \"./docs/**/*.tskb.tsx\" --tsconfig ./docs/tsconfig.json --project \"TSKB Monorepo\"",
+    "dev": "npm run dev --workspace om",
+    "clean": "npx rimraf --glob node_modules **/node_modules **/dist **/.tskb **/logs",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
@@ -23,7 +23,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "tskb": "workspace:*"
+    "tskb": "workspace:*",
+    "omkit": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",

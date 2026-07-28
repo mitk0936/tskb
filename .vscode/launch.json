@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Runs `npm run omkit:debug` (= omkit --inspect=9191). omkit itself is the npm/parent
+      // process; the om you pick runs in a forked child that opens the inspector on :9191.
+      // autoAttachChildProcesses lets VS Code detect that fork and attach to it automatically —
+      // no manual attach config, no port to keep in sync. skipFiles keeps the debugger in YOUR
+      // om code (run through tsx from source) and out of node_internals + omkit's own dist.
+      "type": "node",
+      "request": "launch",
+      "name": "Debug omkit:debug",
+      "preLaunchTask": "omkit: build",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "omkit:debug"],
+      "cwd": "${workspaceFolder}/om",
+      "console": "integratedTerminal",
+      "autoAttachChildProcesses": true,
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    }
+  ]
+}

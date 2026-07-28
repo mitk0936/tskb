@@ -15,7 +15,9 @@ import { context } from "./commands/context.js";
 import { docs } from "./commands/docs.js";
 import { init } from "./commands/init.js";
 import { printHelpAndExit } from "./utils/help.js";
-import { configure, error } from "./utils/logger.js";
+import { configure, createLogger } from "../log/index.js";
+
+const log = createLogger("cli");
 
 /** Parses argv into positionals + typed option values. */
 function parseCliArgs() {
@@ -54,7 +56,7 @@ type CommandHandler = (args: string[], values: CliValues) => Promise<void>;
  */
 function requireArg(value: string | undefined, ...errorLines: string[]): string {
   if (!value) {
-    for (const line of errorLines) error(line);
+    for (const line of errorLines) log.error(line);
     process.exit(1);
   }
   return value;
@@ -64,7 +66,7 @@ function requireArg(value: string | undefined, ...errorLines: string[]): string 
 async function runBuild(args: string[], values: CliValues): Promise<void> {
   const pattern = requireArg(args[0], "Error: build command requires a glob pattern");
   if (!values.project) {
-    error("Error: build command requires --project <name>");
+    log.error("Error: build command requires --project <name>");
     process.exit(1);
   }
   const config = { pattern, tsconfig: values.tsconfig!, projectName: values.project };
@@ -147,14 +149,14 @@ async function main() {
 
   const handler = COMMANDS[name];
   if (!handler) {
-    error(`Unknown command: ${command}`);
+    log.error(`Unknown command: ${command}`);
     process.exit(1);
   }
 
   try {
     await handler(args, values);
   } catch (err) {
-    error("❌ Error: " + (err instanceof Error ? err.message : String(err)));
+    log.error("❌ Error: " + (err instanceof Error ? err.message : String(err)));
     process.exit(1);
   }
 }

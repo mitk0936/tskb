@@ -45,7 +45,7 @@ export function startReloadWatcher(opts: ReloadWatcherOptions): ReloadWatcherHan
           return;
         }
         if (version !== baseline) {
-          baseline = version; // advance so we don't re-nag for the same change
+          baseline = version;
           opts.onUpdate();
         }
       } catch {

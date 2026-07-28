@@ -5,7 +5,9 @@ import { createProgram } from "../../core/typescript/index.js";
 import { extractRegistry, extractDocs } from "../../core/extraction/index.js";
 import { buildGraph } from "../../core/graph/index.js";
 import { writeSplitGraph } from "../../core/graph/writer.js";
-import { info, verbose, infoTime } from "../utils/logger.js";
+import { createLogger } from "../../log/index.js";
+
+const log = createLogger("cli:build");
 
 /**
  * Configuration for the extract command
@@ -67,28 +69,28 @@ export interface ExtractConfig {
  * @param config - Extract configuration (pattern, tsconfig)
  */
 export async function build(config: ExtractConfig): Promise<void> {
-  const buildDone = infoTime("tskb build");
-  verbose(`   Pattern: ${config.pattern}`);
-  verbose(`   Tsconfig: ${config.tsconfig}`);
+  const buildDone = log.infoTime("tskb build");
+  log.debug(`   Pattern: ${config.pattern}`);
+  log.debug(`   Tsconfig: ${config.tsconfig}`);
 
   // Find all matching files
-  const globDone = infoTime("Discovering files");
+  const globDone = log.infoTime("Discovering files");
   const files = globSync(config.pattern, { absolute: true, nodir: true });
   globDone();
-  info(`Found ${files.length} documentation files`);
+  log.info(`Found ${files.length} documentation files`);
 
   if (files.length === 0) {
-    info("No files found matching pattern");
+    log.info("No files found matching pattern");
     return;
   }
 
   // Create TypeScript program
-  const programDone = infoTime("TypeScript magic happening");
+  const programDone = log.infoTime("TypeScript magic happening");
   const program = createProgram(files, config.tsconfig);
   programDone();
 
   // Extract registry (vocabulary)
-  const registryDone = infoTime("Extracting registry (Folders, Modules, Terms)");
+  const registryDone = log.infoTime("Extracting registry (Folders, Modules, Terms)");
   const tsconfigDir = path.dirname(path.resolve(config.tsconfig));
 
   // Use rootDir from tsconfig if available, otherwise use tsconfig directory
@@ -97,108 +99,108 @@ export async function build(config: ExtractConfig): Promise<void> {
   // compilerOptions.rootDir is already an absolute path resolved by TypeScript
   const baseDir = compilerOptions.rootDir || tsconfigDir;
 
-  verbose(`   Base directory: ${baseDir}`);
+  log.debug(`   Base directory: ${baseDir}`);
 
   const registry = extractRegistry(program, baseDir);
   registryDone();
 
-  info(`   ├─ ${registry.folders.size} folders`);
+  log.info(`   ├─ ${registry.folders.size} folders`);
 
   // Report path resolution status
   const foldersWithPaths = Array.from(registry.folders.values()).filter((c) => c.path);
   const validPaths = foldersWithPaths.filter((c) => c.pathExists).length;
   const invalidPaths = foldersWithPaths.filter((c) => !c.pathExists).length;
   if (foldersWithPaths.length > 0) {
-    verbose(
+    log.debug(
       `   │  └─ Paths: ${validPaths} valid, ${
         invalidPaths > 0 ? `${invalidPaths} missing` : "0 missing"
       }`
     );
   }
 
-  info(`   ├─ ${registry.modules.size} modules`);
+  log.info(`   ├─ ${registry.modules.size} modules`);
 
   // Report module import path resolution status
   const modulesWithImports = Array.from(registry.modules.values()).filter((m) => m.importPath);
   const validImports = modulesWithImports.filter((m) => m.pathExists).length;
   const invalidImports = modulesWithImports.filter((m) => !m.pathExists).length;
   if (modulesWithImports.length > 0) {
-    verbose(
+    log.debug(
       `   │  └─ Imports: ${validImports} valid, ${
         invalidImports > 0 ? `${invalidImports} missing` : "0 missing"
       }`
     );
   }
 
-  info(`   ├─ ${registry.exports.size} exports`);
-  info(`   └─ ${registry.terms.size} terms`);
+  log.info(`   ├─ ${registry.exports.size} exports`);
+  log.info(`   └─ ${registry.terms.size} terms`);
 
   // Report folder summary and module morphology counts
   const foldersWithSummary = Array.from(registry.folders.values()).filter(
     (f) => f.folderSummary
   ).length;
   if (foldersWithSummary > 0) {
-    verbose(`   Folder summaries: ${foldersWithSummary} extracted`);
+    log.debug(`   Folder summaries: ${foldersWithSummary} extracted`);
   }
   const modulesWithMorphology = Array.from(registry.modules.values()).filter(
     (m) => m.morphology
   ).length;
   if (modulesWithMorphology > 0) {
-    verbose(`   Module morphologies: ${modulesWithMorphology} extracted`);
+    log.debug(`   Module morphologies: ${modulesWithMorphology} extracted`);
   }
   const modulesWithImportData = Array.from(registry.modules.values()).filter(
     (m) => m.imports
   ).length;
   if (modulesWithImportData > 0) {
-    verbose(`   Module imports: ${modulesWithImportData} extracted`);
+    log.debug(`   Module imports: ${modulesWithImportData} extracted`);
   }
   const exportsWithMorphology = Array.from(registry.exports.values()).filter(
     (e) => e.morphology
   ).length;
   if (exportsWithMorphology > 0) {
-    verbose(`   Export morphologies: ${exportsWithMorphology} extracted`);
+    log.debug(`   Export morphologies: ${exportsWithMorphology} extracted`);
   }
 
   // Extract documentation
-  const docsDone = infoTime("Extracting documentation");
+  const docsDone = log.infoTime("Extracting documentation");
   const docs = extractDocs(program, new Set(files), registry);
   docsDone();
-  info(`└─ ${docs.length} docs`);
+  log.info(`└─ ${docs.length} docs`);
 
   // Build knowledge graph
-  const graphDone = infoTime("Building knowledge graph");
+  const graphDone = log.infoTime("Building knowledge graph");
   const graph = buildGraph(registry, docs, baseDir, config.projectName);
   graphDone();
 
-  info(`   ├─ ${graph.metadata.stats.folderCount} folder nodes`);
-  info(`   ├─ ${graph.metadata.stats.moduleCount} module nodes`);
-  info(`   ├─ ${graph.metadata.stats.exportCount} export nodes`);
-  info(`   ├─ ${graph.metadata.stats.termCount} term nodes`);
+  log.info(`   ├─ ${graph.metadata.stats.folderCount} folder nodes`);
+  log.info(`   ├─ ${graph.metadata.stats.moduleCount} module nodes`);
+  log.info(`   ├─ ${graph.metadata.stats.exportCount} export nodes`);
+  log.info(`   ├─ ${graph.metadata.stats.termCount} term nodes`);
   if (graph.metadata.stats.externalCount > 0) {
-    info(`   ├─ ${graph.metadata.stats.externalCount} external nodes`);
+    log.info(`   ├─ ${graph.metadata.stats.externalCount} external nodes`);
   }
   if (graph.metadata.stats.flowCount > 0) {
-    info(`   ├─ ${graph.metadata.stats.flowCount} flow nodes`);
+    log.info(`   ├─ ${graph.metadata.stats.flowCount} flow nodes`);
   }
-  info(`   ├─ ${graph.metadata.stats.docCount} doc nodes`);
-  info(`   └─ ${graph.metadata.stats.edgeCount} edges`);
+  log.info(`   ├─ ${graph.metadata.stats.docCount} doc nodes`);
+  log.info(`   └─ ${graph.metadata.stats.edgeCount} edges`);
 
   // Create .tskb output directory (clean first so stale files don't linger)
-  const outputDone = infoTime("Writing outputs");
+  const outputDone = log.infoTime("Writing outputs");
   const outputDir = path.resolve(process.cwd(), ".tskb");
-  verbose(`   Output directory: ${outputDir}`);
+  log.debug(`   Output directory: ${outputDir}`);
   fs.rmSync(outputDir, { recursive: true, force: true });
   fs.mkdirSync(outputDir, { recursive: true });
 
   // Write split graph files to .tskb/graph/
   const graphDir = writeSplitGraph(graph, outputDir);
-  verbose(`   Writing graph to ${graphDir}`);
+  log.debug(`   Writing graph to ${graphDir}`);
 
   // Generate Claude Code skills if .claude/skills/ exists
   const { generateSkillFiles } = await import("../utils/skill-generator.js");
   const skillPaths = generateSkillFiles(graph);
   for (const p of skillPaths) {
-    info(`Writing Claude Code skill: ${p}`);
+    log.info(`Writing Claude Code skill: ${p}`);
   }
 
   // Generate Copilot instructions if .github/ exists
@@ -206,20 +208,20 @@ export async function build(config: ExtractConfig): Promise<void> {
     await import("../utils/copilot-instructions-generator.js");
   const copilotPaths = generateCopilotInstructionsFiles(graph);
   for (const p of copilotPaths) {
-    info(`Writing Copilot instructions: ${p}`);
+    log.info(`Writing Copilot instructions: ${p}`);
   }
   outputDone();
 
-  info("");
-  info("✓ Done!");
-  info("");
-  info("Output directory: .tskb/");
-  info("   └─ graph/         Knowledge graph data (split by type)");
+  log.info("");
+  log.info("✓ Done!");
+  log.info("");
+  log.info("Output directory: .tskb/");
+  log.info("   └─ graph/         Knowledge graph data (split by type)");
   for (const p of skillPaths) {
-    info(`   └─ ${path.relative(process.cwd(), p)}  Claude Code skill`);
+    log.info(`   └─ ${path.relative(process.cwd(), p)}  Claude Code skill`);
   }
   for (const p of copilotPaths) {
-    info(`   └─ ${path.relative(process.cwd(), p)}  Copilot instructions`);
+    log.info(`   └─ ${path.relative(process.cwd(), p)}  Copilot instructions`);
   }
   buildDone();
 }

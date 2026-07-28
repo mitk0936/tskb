@@ -3,9 +3,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { exec } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { info } from "../../cli/utils/logger.js";
+import { createLogger } from "../../log/index.js";
 import { transformGraph, sanitizeFolderId } from "./transform.js";
 import type { KnowledgeGraph } from "../graph/types.js";
+
+const log = createLogger("core:explorer");
 
 const MIME: Record<string, string> = {
   ".html": "text/html",
@@ -92,10 +94,10 @@ export async function serveExplorer(
         const next = reloadGraph();
         currentVersion = mtime;
         chunkCache = buildChunkCache(next, currentVersion);
-        info(`🔄 Graph changed — explorer chunks refreshed (v${currentVersion}).`);
+        log.info(`🔄 Graph changed — explorer chunks refreshed (v${currentVersion}).`);
       } catch (err) {
         // Keep serving the previous good cache; the next poll retries.
-        info(`⚠️  Graph reload skipped: ${err instanceof Error ? err.message : String(err)}`);
+        log.info(`⚠️  Graph reload skipped: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
         reloading = false;
       }
@@ -164,8 +166,8 @@ export async function serveExplorer(
   });
 
   const url = `http://localhost:${port}`;
-  info(`Explorer running at ${url}`);
-  info(`Press Ctrl+C to stop.`);
+  log.info(`Explorer running at ${url}`);
+  log.info(`Press Ctrl+C to stop.`);
 
   if (autoOpen) openBrowser(url);
 
@@ -186,6 +188,6 @@ function openBrowser(url: string): void {
         : `xdg-open "${url}"`;
 
   exec(cmd, (err) => {
-    if (err) info(`Could not open browser automatically: ${err.message}`);
+    if (err) log.info(`Could not open browser automatically: ${err.message}`);
   });
 }
