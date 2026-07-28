@@ -64,10 +64,10 @@ export default (
     <H2>Receiving</H2>
     <P>
       A downstream action gets the capability by awaiting the producer's <code>ref</code> on its{" "}
-      {ActivityExport} — a promise that resolves the moment the producer attaches. Because an
-      action's arguments may themselves be promises, you pass the producer's <code>ref</code>{" "}
-      straight in as an argument (<code>migrate(server.ref)</code>), and the consumer starts the
-      instant the value is published. Unlike <code>result</code>, which never throws,{" "}
+      {ActivityExport} — a promise that resolves the moment the producer attaches, before the
+      producer has finished. Because an action's arguments may themselves be promises, you pass the
+      producer's <code>ref</code> straight in as an argument (<code>migrate(server.ref)</code>), and
+      the consumer starts the instant the value is published. Like <code>result</code>,{" "}
       <code>ref</code> rejects on failure or cancellation — a consumer waiting on a capability that
       never arrives fails rather than hanging. An action that publishes nothing still resolves its{" "}
       <code>ref</code> (with <code>undefined</code>) on success, so awaiting it never wedges.

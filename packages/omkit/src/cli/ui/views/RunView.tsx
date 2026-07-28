@@ -1,7 +1,8 @@
 import { useRef, useState, type ReactElement } from "react";
 import { Box, Text, useInput } from "ink";
 import { SearchableList } from "./SearchableList.tsx";
-import type { PromptRequest, Verdict } from "../../client/types.ts";
+import type { RunSummary } from "../../../output/RunModel.ts";
+import type { PromptRequest, Verdict } from "../../../client/types.ts";
 
 /** A choice prompt: searchable, arrow-navigable options, Enter picks the highlighted one. */
 function ChoicePrompt({
@@ -92,23 +93,44 @@ export function PromptView({
   );
 }
 
-/** The live run surface: milestone lines, a pending prompt, and the final verdict. */
+/** One-line roll-up of the live tree: what's still running and the finished tally. Empty until
+ *  something is happening, so it renders nothing at the very start of a run. */
+function statusStrip(s: RunSummary): string {
+  const parts: string[] = [];
+  if (s.running.length) {
+    const shown = s.running.slice(0, 3).join(", ");
+    const more = s.running.length > 3 ? ` +${s.running.length - 3}` : "";
+    parts.push(`● running: ${shown}${more}`);
+  }
+  const tally: string[] = [];
+  if (s.ok) tally.push(`${s.ok} ok`);
+  if (s.failed) tally.push(`${s.failed} failed`);
+  if (s.cancelled) tally.push(`${s.cancelled} cancelled`);
+  if (tally.length) parts.push(tally.join(" · "));
+  return parts.join("  ·  ");
+}
+
+/** The live run surface: milestone lines, a compact status strip, a pending prompt, and the verdict. */
 export function RunView({
   lines,
+  status,
   prompt,
   verdict,
   onAnswer,
 }: {
-  lines: string[];
+  lines: readonly string[];
+  status?: RunSummary;
   prompt?: PromptRequest;
   verdict?: Verdict;
   onAnswer: (value: string) => void;
 }): ReactElement {
+  const strip = status && !verdict ? statusStrip(status) : "";
   return (
     <Box flexDirection="column">
       {lines.map((line, i) => (
         <Text key={i}>{line}</Text>
       ))}
+      {strip ? <Text dimColor>{strip}</Text> : null}
       {prompt ? <PromptView request={prompt} onAnswer={onAnswer} /> : null}
       {verdict ? (
         <Text color={verdict.ok ? "green" : "red"}>

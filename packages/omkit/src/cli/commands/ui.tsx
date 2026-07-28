@@ -2,7 +2,7 @@ import { render } from "ink";
 import { App } from "../ui/app.tsx";
 import { renderDiagnostics, withSpinner } from "../ui/Report.tsx";
 import { reportNoOms } from "./run.ts";
-import type { OmkitClient, Verdict } from "../client/index.ts";
+import type { OmkitClient, Verdict } from "../../client/index.ts";
 
 /**
  * Render the interactive Ink app. Ink's own Ctrl+C handling is disabled so the app can tear the
@@ -14,10 +14,10 @@ import type { OmkitClient, Verdict } from "../client/index.ts";
  * it reports why (config + warnings) instead of dropping into a blank picker. Non-fatal warnings
  * are printed so they aren't lost behind the UI.
  */
-export async function launchUi(client: OmkitClient, tsconfig: string): Promise<void> {
+export async function launchUi(client: OmkitClient): Promise<void> {
   const registry = await withSpinner("discovering…", () => client.discover());
   if (registry.oms.length === 0) {
-    await reportNoOms(tsconfig, registry);
+    await reportNoOms(client.tsconfig, registry);
     return;
   }
   if (registry.warnings.length > 0) {

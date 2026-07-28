@@ -1,8 +1,8 @@
 import { fork } from "node:child_process";
 import path from "node:path";
 import { createChannel, type Transport } from "./channel.ts";
-import type { ChildMessage, SupervisorMessage } from "../../core/interaction.ts";
-import type { RunSession, RunOptions } from "./types.ts";
+import type { ChildMessage, SupervisorMessage } from "../core/interaction.ts";
+import type { RunSession, RunOptions, InspectOptions } from "./types.ts";
 
 /**
  * The `tsx` loader, resolved to an absolute URL from omkit's own location. Resolving it here
@@ -12,6 +12,16 @@ import type { RunSession, RunOptions } from "./types.ts";
 const tsxLoader = import.meta.resolve("tsx");
 
 /**
+ * The inspector flag to prepend to a child's `execArgv` — empty when no inspector is requested.
+ * Plain `--inspect` opens the port without stopping, so the child still installs its teardown
+ * handlers and settles normally.
+ */
+export function inspectArgs(inspect: InspectOptions | undefined): string[] {
+  if (!inspect) return [];
+  return [`--inspect=${inspect.port}`];
+}
+
+/**
  * Fork `omFile` as a supervised child: the `tsx` loader runs the TypeScript directly,
  * `OMKIT_SUPERVISED=1` flips the child into channel mode (see core/interaction.ts), and its
  * IPC channel is wrapped into a {@link RunSession}. stdout/stderr are piped (not inherited)
@@ -19,7 +29,7 @@ const tsxLoader = import.meta.resolve("tsx");
  */
 export function runOm(omFile: string, opts: RunOptions = {}): RunSession {
   const child = fork(omFile, [], {
-    execArgv: ["--import", tsxLoader],
+    execArgv: [...inspectArgs(opts.inspect), "--import", tsxLoader],
     cwd: opts.cwd ?? path.dirname(omFile),
     env: { ...process.env, OMKIT_SUPERVISED: "1" },
     stdio: ["ignore", "pipe", "pipe", "ipc"],
@@ -51,13 +61,13 @@ export function runOm(omFile: string, opts: RunOptions = {}): RunSession {
  * Spawn `omFile` **bare** — inherited stdio, no supervision. The child owns the terminal, so
  * its LiveRenderer, summary, and native `readline` prompts all work. Resolves the exit code.
  */
-export function spawnBare(omFile: string, opts: { cwd?: string } = {}): Promise<number> {
+export function spawnBare(omFile: string, opts: RunOptions = {}): Promise<number> {
   // A bare run is unsupervised even if the parent process happens to carry the flag (e.g. a
   // test runner spawned from inside a supervised run) — clear it so the child stays bare.
   const env = { ...process.env };
   delete env.OMKIT_SUPERVISED;
   const child = fork(omFile, [], {
-    execArgv: ["--import", tsxLoader],
+    execArgv: [...inspectArgs(opts.inspect), "--import", tsxLoader],
     cwd: opts.cwd ?? path.dirname(omFile),
     stdio: "inherit",
     env,

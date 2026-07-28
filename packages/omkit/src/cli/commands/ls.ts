@@ -1,5 +1,5 @@
 import path from "node:path";
-import type { Registry } from "../client/registry.ts";
+import type { Registry } from "../../client/registry.ts";
 
 /** Render a {@link Registry} for the terminal (plain text) or as JSON. */
 export function formatRegistry(registry: Registry, opts: { json?: boolean } = {}): string {

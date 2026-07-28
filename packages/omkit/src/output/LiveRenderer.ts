@@ -1,5 +1,5 @@
 import type { LogStore } from "./log/LogStore.ts";
-import { format } from "./milestones.ts";
+import { RunModel } from "./RunModel.ts";
 
 /** The terminal surface the renderer appends to (process.stdout satisfies it). */
 export interface LiveTerminal {
@@ -12,24 +12,19 @@ export interface LiveTerminal {
  * retired: the interactive surface is the Ink app (`omkit ui`); this reporter is the plain
  * output for bare `omkit run`, CI, and pipes. Writes through the given terminal directly (for
  * `process.stdout`, `patch-console` doesn't intercept it, so it can't feed console capture).
+ *
+ * Folds the stream through a {@link RunModel} — the same reducer the interactive app uses — so the
+ * bare and supervised surfaces render a run identically (tags and all) rather than drifting apart.
  */
 export class LiveRenderer {
-  /** Tags accumulated per node from `tag` entries, so milestones can show them by name. */
-  private readonly tagsByNode = new Map<string, string[]>();
+  private readonly model = new RunModel();
 
   constructor(private readonly term: LiveTerminal) {}
 
   async run(store: LogStore): Promise<void> {
     for await (const entry of store.subscribe({ replay: true })) {
-      if (entry.level === "tag" && entry.source === "tag") {
-        const list = this.tagsByNode.get(entry.nodeId) ?? [];
-        list.push(entry.message);
-        this.tagsByNode.set(entry.nodeId, list);
-        continue; // tags aren't their own line — they decorate the node's milestones
-      }
-      const rendered = format(entry, this.tagsByNode.get(entry.nodeId));
-      if (rendered === null) continue;
-      this.term.write(`${rendered.text}\n`);
+      const rendered = this.model.apply(entry);
+      if (rendered) this.term.write(`${rendered.text}\n`);
     }
   }
 }

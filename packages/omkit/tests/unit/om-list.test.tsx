@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { render } from "ink-testing-library";
 import { OmList } from "../../src/cli/ui/views/OmList.tsx";
-import type { DiscoveredOm } from "../../src/cli/client/registry.ts";
+import type { DiscoveredOm } from "../../src/client/registry.ts";
 
 const oms: DiscoveredOm[] = [
   { name: "dev", file: "/p/oms/dev.ts", line: 1 },

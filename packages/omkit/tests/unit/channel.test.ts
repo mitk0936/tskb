@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { createChannel, type Transport } from "../../src/cli/client/channel.ts";
+import { createChannel, type Transport } from "../../src/client/channel.ts";
 import type { ChildMessage, SupervisorMessage } from "../../src/core/interaction.ts";
 
 /** A fake child transport the test drives directly. */
@@ -63,6 +63,19 @@ describe("createChannel", () => {
       { kind: "answer", id: "p2", value: "yes", via: "input" },
       { kind: "cancel" },
     ]);
+  });
+
+  test("a prompt-done message fires promptDone with the withdrawn id", () => {
+    const f = fakeTransport();
+    const session = createChannel(f.transport);
+
+    const done: string[] = [];
+    session.on("promptDone", (id) => done.push(id));
+
+    f.emit({ kind: "prompt", id: "p1", spec: { kind: "input", message: "Name?", default: "" } });
+    f.emit({ kind: "prompt-done", id: "p1" });
+
+    expect(done).toEqual(["p1"]);
   });
 
   test("an unexpected close before settle resolves a failed verdict", async () => {

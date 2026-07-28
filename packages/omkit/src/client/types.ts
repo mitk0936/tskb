@@ -1,5 +1,5 @@
-import type { LogEntry } from "../../foundation/LogEntry.ts";
-import type { PromptSpec } from "../../core/interaction.ts";
+import type { LogEntry } from "../foundation/LogEntry.ts";
+import type { PromptSpec } from "../core/interaction.ts";
 import type { Registry } from "./registry.ts";
 
 /** A run's terminal verdict, resolved when the child settles. */
@@ -19,10 +19,18 @@ export interface Diagnostic {
   readonly message: string;
 }
 
+/** Node inspector wiring for a run's forked child, so a debugger can attach to the om. */
+export interface InspectOptions {
+  /** Inspector port the child listens on. */
+  readonly port: number;
+}
+
 /** Options for launching a run. */
 export interface RunOptions {
   /** Working directory for the child process (defaults to the om file's directory). */
   readonly cwd?: string;
+  /** When set, fork the child with the Node inspector open so a debugger can attach. */
+  readonly inspect?: InspectOptions;
 }
 
 /** A prompt the running om is waiting on — surfaced to the frontend, answered via `answer`. */
@@ -35,6 +43,8 @@ export interface PromptRequest {
 export interface RunEvents {
   log: (entry: LogEntry) => void;
   prompt: (request: PromptRequest) => void;
+  /** A pending prompt was withdrawn by the child (timed out or torn down) — clear it from the UI. */
+  promptDone: (id: string) => void;
   settled: (verdict: Verdict) => void;
 }
 
@@ -51,10 +61,14 @@ export interface RunSession {
 
 /** The headless engine behind every omkit frontend. */
 export interface OmkitClient {
+  /** The `tsconfig.omkit.json` path this client scans and runs against — the single source of it. */
+  readonly tsconfig: string;
   /** Statically scan the project's `tsconfig.omkit.json` for oms and actions. */
   discover(): Promise<Registry>;
-  /** Spawn an om file as a supervised child and return its live session. */
+  /** Spawn an om file as a supervised child and return its live session (the Ink UI drives this). */
   run(omFile: string, opts?: RunOptions): RunSession;
+  /** Spawn an om file bare — inherited stdio, no supervision — and resolve its exit code. */
+  runBare(omFile: string, opts?: RunOptions): Promise<number>;
   /** Typecheck the project (`tsc --noEmit`) and return diagnostics. */
   check(): Promise<Diagnostic[]>;
 }

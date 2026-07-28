@@ -236,8 +236,9 @@ Point the `omkit` bin at a project — a `tsconfig.omkit.json` that lists your `
 - **`omkit run <om>`** — run one om directly by name or file path, inheriting the terminal.
 - **`omkit ls`** — list the discovered oms and actions.
 - **`omkit check`** — typecheck the project (`tsc --noEmit`) and report diagnostics.
+- **`omkit help`** — print the command overview (also `--help` / `-h`).
 
-Each run is supervised in its own child process and narrated to a run folder (see above), whether you launch it from the picker or with `run <om>`.
+Both paths run the om in its own child process and narrate it to a run folder (see above). The picker **supervises** the child — piping its output into the live view and answering prompts for it — while `omkit run <om>` runs it **bare**, handing the om your terminal directly.
 
 ## Install
 

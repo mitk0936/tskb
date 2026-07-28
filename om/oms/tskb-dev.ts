@@ -31,16 +31,15 @@ om("tskb:dev", async () => {
     // the failure and logs it, so the run stays green and the stack still comes up.
     await command("npm test", { cwd: repoRoot })
       .tag("tskb:tests")
+
       .once("done")
       .catch((e) => console.error("tests failed — bringing up the stack anyway:", e));
   }
 
   // watches the lib build changes - rebuilds docs
   command(WATCH_DOCS_CMD, { cwd: repoRoot }).tag("watch:docs:daemon");
-
   // dev watcher on tskb lib source
   command("npm run dev", { cwd: tskbPath }).tag("watch:tskb:lib:daemon");
-
   // watches the explorer app source changes - vite dev server, inside watcher for docs change
   command("npm run dev:explorer", { cwd: tskbPath }).tag("server:explorer:daemon");
 

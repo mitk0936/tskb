@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { render } from "ink-testing-library";
 import { RunView, PromptView } from "../../src/cli/ui/views/RunView.tsx";
-import type { PromptRequest } from "../../src/cli/client/types.ts";
+import type { PromptRequest } from "../../src/client/types.ts";
 
 describe("RunView", () => {
   test("renders milestone lines and the verdict", () => {

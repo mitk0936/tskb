@@ -1,8 +1,8 @@
 import { describe, expect, test, vi } from "vitest";
 import { render } from "ink-testing-library";
 import { App } from "../../src/cli/ui/app.tsx";
-import type { OmkitClient, RunSession, RunEvents } from "../../src/cli/client/types.ts";
-import type { Registry } from "../../src/cli/client/registry.ts";
+import type { OmkitClient, RunSession, RunEvents } from "../../src/client/types.ts";
+import type { Registry } from "../../src/client/registry.ts";
 
 /** A fake session whose handlers the test can fire. `result` stays pending (the run is "live")
  *  until the test calls `settle` — mirroring a real run that resolves only when it ends. */
@@ -69,6 +69,32 @@ describe("App", () => {
     });
     await waitFor(() => frame().includes("ping"));
     expect(frame()).toContain("ping");
+  });
+
+  test("a prompt that times out is cleared from the screen and the run resumes", async () => {
+    // When a supervised prompt times out, the child moves on and sends `promptDone`. The app must
+    // withdraw the prompt box — otherwise a stale, unanswerable prompt lingers on the console and
+    // the "running…" spinner never comes back.
+    const { session, fire } = fakeSession();
+    const { lastFrame, stdin } = render(<App client={fakeClient(session)} />);
+    const frame = (): string => lastFrame() ?? "";
+
+    await waitFor(() => frame().includes("dev"));
+    stdin.write("\r"); // select the om → start the run
+    await waitFor(() => frame().includes("running"));
+
+    (fire.prompt as (r: unknown) => void)?.({
+      id: "p1",
+      spec: { kind: "input", message: "Name?", default: "anon" },
+    });
+    await waitFor(() => frame().includes("Name?"));
+    expect(frame()).not.toContain("running…"); // the prompt replaced the spinner
+
+    // The child timed out and withdrew the prompt.
+    (fire.promptDone as (id: string) => void)?.("p1");
+    await waitFor(() => !frame().includes("Name?"));
+    expect(frame()).not.toContain("Name?"); // the stale prompt box is gone
+    await waitFor(() => frame().includes("running…")); // and the run is live again
   });
 
   test("a run that finishes on its own reports the verdict and exits", async () => {

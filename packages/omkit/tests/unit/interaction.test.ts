@@ -64,6 +64,21 @@ describe("interaction channel — child side", () => {
     expect(() => ch.push({ kind: "answer", id, value: "late", via: "input" })).not.toThrow();
   });
 
+  test("aborting a request tells the supervisor the prompt is done (so the UI can clear it)", async () => {
+    // On a timeout (or teardown) the child gives up on the prompt and moves on. Without a
+    // withdraw message up the channel the supervisor's prompt box would linger on screen forever.
+    const ch = fakeChannel();
+    const sup = createSupervisor(ch.send, ch.onMessage);
+    const ac = new AbortController();
+    const pending = sup.request({ kind: "input", message: "?", default: "d" }, ac.signal);
+    const id = ch.sent[0].kind === "prompt" ? ch.sent[0].id : "";
+
+    ac.abort();
+    await expect(pending).rejects.toThrow();
+
+    expect(ch.sent).toContainEqual({ kind: "prompt-done", id });
+  });
+
   test("log and settled emit the right child messages", () => {
     const ch = fakeChannel();
     const sup = createSupervisor(ch.send, ch.onMessage);

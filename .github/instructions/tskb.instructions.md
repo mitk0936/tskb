@@ -70,7 +70,7 @@ All paths are relative to project root and can be used directly to read files.
 ## Boundaries
 
 - **E2E tests** — `tests` — End-to-end tests for the tskb CLI.
-- **omkit CLI** — `packages/omkit/src/cli` — The omkit command-line binary: the supervisor process that discovers oms, spawns each run as its own child process, and drives them (run, list, typecheck, and the interactive app).
+- **omkit CLI** — `packages/omkit/src/cli` — The omkit command-line binary: the supervisor process that hosts the client engine and drives it — the commands (init, ls, check, run) and the interactive app.
 - **omkit runtime** — `packages/omkit` — The operational-model kit: a Node runtime for the workflows around your code (start servers, wait, watch, drive a browser, tear down) that narrates each run to disk.
 - **test-fixtures** — `tests/e2e/fixture` — A small sample project used as the test subject — like a real repo that adopted tskb.
 - **TSKB Explorer server** — `packages/tskb/src/core/explorer` — Server side of the explorer: turns the graph into chunks and serves them.
@@ -91,6 +91,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 
 ## Essential Docs
 
+- `docs/src/omkit/client.tskb.tsx` — Why does every omkit frontend go through the client?
 - `docs/src/omkit/main.tskb.tsx` — What is omkit and what does it provide?
 - `docs/src/tskb/cli/logging.tskb.tsx` — How does tskb route log output across verbosity levels and streams?
 - `docs/src/tskb/core/typescript.tskb.tsx` — How does tskb create a TypeScript Program for static analysis without compiling?
@@ -100,7 +101,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — What does the runtime module provide and what does it not do?
 - `docs/src/tskb/usage.tskb.tsx` — What's the typical workflow for setting up tskb in a repo?
 
-_Plus 27 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 32 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 ## Externals
 
@@ -132,4 +133,4 @@ _Plus 27 supplementary docs available via `npx --no -- tskb docs --plain`._
 - **omkit-run** [essential] — An om(name, body) call hosts a run: actions launch as nodes, the engine supervises them and the shared log, and the run folder captures the record
   omkit.om → omkit.action → omkit.core.execution-tree → omkit.output.run-folder
 
-_Plus 11 supplementary flows available via `npx --no -- tskb flows --plain`._
+_Plus 12 supplementary flows available via `npx --no -- tskb flows --plain`._

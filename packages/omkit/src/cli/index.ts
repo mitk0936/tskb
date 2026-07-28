@@ -3,22 +3,49 @@ import { parseArgs } from "node:util";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { realpathSync } from "node:fs";
-import { createOmkitClient } from "./client/index.ts";
+import { createOmkitClient, type InspectOptions, type OmkitClient } from "../client/index.ts";
 
 export interface Cli {
   command: string;
   target?: string;
   json: boolean;
   tsconfig: string;
+  /** Set by `--help`/`-h` (the `help` command is carried on `command` instead). */
+  help: boolean;
+  /** The Node inspector, if requested via `--inspect[=port]`. */
+  inspect?: InspectOptions;
+}
+
+/**
+ * Pull the Node-style inspector flag out of argv, returning the options plus the remaining args.
+ * Matches Node's own syntax: `--inspect`, `--inspect=PORT` (default port 9229); an explicit port
+ * always wins.
+ */
+function extractInspect(argv: string[]): { inspect?: InspectOptions; rest: string[] } {
+  let inspect: InspectOptions | undefined;
+  const rest: string[] = [];
+  for (const arg of argv) {
+    const m = /^--inspect(?:=(\d+))?$/.exec(arg);
+    if (!m) {
+      rest.push(arg);
+      continue;
+    }
+    const port = m[1] ? Number(m[1]) : (inspect?.port ?? 9229);
+    inspect = { port };
+  }
+  return { inspect, rest };
 }
 
 /** Parse argv (without node/script) into a command, an optional target, and flags. */
 export function parseCli(argv: string[]): Cli {
+  // Inspector flags take an optional `=PORT`, which `parseArgs` can't express — pull them first.
+  const { inspect, rest } = extractInspect(argv);
   const { values, positionals } = parseArgs({
-    args: argv,
+    args: rest,
     options: {
       json: { type: "boolean", default: false },
       tsconfig: { type: "string", default: "tsconfig.omkit.json" },
+      help: { type: "boolean", short: "h", default: false },
     },
     allowPositionals: true,
   });
@@ -27,13 +54,45 @@ export function parseCli(argv: string[]): Cli {
     target: positionals[1],
     json: Boolean(values.json),
     tsconfig: values.tsconfig as string,
+    help: Boolean(values.help),
+    inspect,
   };
+}
+
+/**
+ * The `check` command: typecheck the project and render the diagnostics. The mapping is trivial
+ * (one item per diagnostic) and the policy is local — **any diagnostic fails the command** (exit 1),
+ * a clean project reports ok and exits 0.
+ */
+async function checkCommand(client: OmkitClient): Promise<void> {
+  const { renderDiagnostics, withSpinner } = await import("./ui/Report.tsx");
+  const diagnostics = await withSpinner("type-checking…", () => client.check());
+  const n = diagnostics.length;
+  const items = diagnostics.map((d) => ({
+    head: `${path.basename(d.file)}:${d.line}`,
+    detail: d.message,
+  }));
+  const title = n === 0 ? "no type errors" : `${n} type error${n === 1 ? "" : "s"}`;
+  await renderDiagnostics(
+    { kind: n === 0 ? "ok" : "error", title, items },
+    n === 0 ? process.stdout : process.stderr
+  );
+  process.exitCode = n === 0 ? 0 : 1;
 }
 
 /** The bin entry: route to a lazily-imported command; owns stdout and the exit code. */
 async function main(): Promise<void> {
   const cli = parseCli(process.argv.slice(2));
-  const client = createOmkitClient({ tsconfig: cli.tsconfig });
+
+  // `--help`/`-h` or the `help` command short-circuits everything — no config or client needed.
+  if (cli.help || cli.command === "help") {
+    const { helpText } = await import("./commands/help.ts");
+    console.log(helpText());
+    return;
+  }
+
+  const inspect = cli.inspect;
+  const client = createOmkitClient({ tsconfig: cli.tsconfig, inspect });
 
   if (cli.command === "init") {
     const { scaffold } = await import("./commands/init.ts");
@@ -50,47 +109,17 @@ async function main(): Promise<void> {
     return;
   }
   if (cli.command === "check") {
-    const { checkReport } = await import("./commands/check.ts");
-    const { renderDiagnostics, withSpinner } = await import("./ui/Report.tsx");
-    const diagnostics = await withSpinner("type-checking…", () => client.check());
-    const { title, items, code } = checkReport(diagnostics);
-    // Type errors fail the command (exit 1); a clean project reports ok and exits 0.
-    await renderDiagnostics(
-      { kind: code === 0 ? "ok" : "error", title, items },
-      code === 0 ? process.stdout : process.stderr
-    );
-    process.exitCode = code;
+    await checkCommand(client);
     return;
   }
   if (cli.command === "run") {
-    // No target → open the interactive picker (browse/search oms, run one with live output).
-    // A bare `omkit` lands here too, since `run` is the default command.
-    if (!cli.target) {
-      const { launchUi } = await import("./commands/ui.tsx");
-      await launchUi(client, cli.tsconfig);
-      return;
-    }
-    const { resolveOm, reportNoOms } = await import("./commands/run.ts");
-    const { spawnBare } = await import("./client/runner.ts");
-    const { withSpinner } = await import("./ui/Report.tsx");
-    const registry = await withSpinner("discovering…", () => client.discover());
-    if (registry.oms.length === 0) {
-      await reportNoOms(cli.tsconfig, registry);
-      process.exitCode = 1;
-      return;
-    }
-    const omFile = resolveOm(cli.target, registry, process.cwd());
-    if (!omFile) {
-      const known = registry.oms.map((o) => o.name).join(", ");
-      console.error(`no om matches "${cli.target}". Known oms: ${known}`);
-      process.exitCode = 1;
-      return;
-    }
-    process.on("SIGINT", () => {}); // let the child tear down; don't die first
-    process.exitCode = await spawnBare(omFile, { cwd: path.dirname(omFile) });
+    const { runCommand } = await import("./commands/run.ts");
+    await runCommand(client, { target: cli.target, inspect: cli.inspect });
     return;
   }
-  console.error(`unknown command "${cli.command}"`);
+  const { helpText } = await import("./commands/help.ts");
+  console.error(`unknown command "${cli.command}"\n`);
+  console.error(helpText());
   process.exitCode = 1;
 }
 

@@ -2,46 +2,22 @@
   "version": "0.2.0",
   "configurations": [
     {
-      // Debug the dev pipeline (docs watch + lib dev + explorer SPA).
+      // Runs `npm run omkit:debug` (= omkit --inspect=9191). omkit itself is the npm/parent
+      // process; the om you pick runs in a forked child that opens the inspector on :9191.
+      // autoAttachChildProcesses lets VS Code detect that fork and attach to it automatically —
+      // no manual attach config, no port to keep in sync. skipFiles keeps the debugger in YOUR
+      // om code (run through tsx from source) and out of node_internals + omkit's own dist.
       "type": "node",
       "request": "launch",
-      "name": "Debug tskb dev",
-      "preLaunchTask": "wm: build",
-      "program": "${workspaceFolder}/wm/dist/src/pipelines/tskb-dev.js",
-      // Faithful to the npm script, which launches `node dist/...` from wm/.
-      "cwd": "${workspaceFolder}/wm",
+      "name": "Debug omkit:debug",
+      "preLaunchTask": "omkit: build",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "omkit:debug"],
+      "cwd": "${workspaceFolder}/om",
       "console": "integratedTerminal",
-      "sourceMaps": true,
-      // Cover every workspace package's dist, not just wm — so breakpoints in
-      // the spawned tskb CLI / omkit core bind to their compiled output too.
-      "outFiles": [
-        "${workspaceFolder}/wm/dist/**/*.js",
-        "${workspaceFolder}/packages/*/dist/**/*.js"
-      ],
-      // The pipeline's whole job is spawning child processes (tsc watch, vite,
-      // npx tskb). Attach the debugger to those too so breakpoints in the
-      // spawned tools / omkit core are hit, not just the orchestrator. NOTE:
-      // through zx's PowerShell + npx + .cmd-shim chain this is unreliable on
-      // Windows — to debug the tskb CLI itself, use "Debug tskb CLI" below.
       "autoAttachChildProcesses": true,
-      "skipFiles": ["<node_internals>/**"]
-    },
-    {
-      // Debug the one-shot build pipeline (build docs + watch .tskb dir).
-      "type": "node",
-      "request": "launch",
-      "name": "Debug tskb build",
-      "preLaunchTask": "wm: build",
-      "program": "${workspaceFolder}/wm/dist/src/pipelines/tskb-build.js",
-      "cwd": "${workspaceFolder}/wm",
-      "console": "integratedTerminal",
       "sourceMaps": true,
-      "outFiles": [
-        "${workspaceFolder}/wm/dist/**/*.js",
-        "${workspaceFolder}/packages/*/dist/**/*.js"
-      ],
-      "autoAttachChildProcesses": true,
-      "skipFiles": ["<node_internals>/**"]
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
     }
   ]
 }

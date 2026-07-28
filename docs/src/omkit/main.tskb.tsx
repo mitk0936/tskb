@@ -82,6 +82,11 @@ declare global {
         type: typeof import("packages/omkit/src/core/ExecutionTree.js");
       }>;
 
+      "omkit.core.interaction": Module<{
+        desc: "The child side of the supervisor channel: the wire messages both sides speak, and the handle that sends logs, prompts, and the verdict up to a supervising frontend.";
+        type: typeof import("packages/omkit/src/core/interaction.js");
+      }>;
+
       "omkit.actions.index": Module<{
         desc: "Public re-exports of the batteries in omkit/actions.";
         type: typeof import("packages/omkit/src/actions/index.js");
@@ -112,6 +117,11 @@ declare global {
       "omkit.Activity": Export<{
         desc: "The live handle returned by launching an action: configure it (withCache, tag) and observe it (result, ref, events).";
         type: import("packages/omkit/src/core/types.js").Activity;
+      }>;
+
+      "omkit.core.Supervisor": Export<{
+        desc: "The child-side handle to a supervising frontend: sends prompts, live logs, and the verdict up the channel, and resolves prompts when the answer returns.";
+        type: import("packages/omkit/src/core/interaction.js").Supervisor;
       }>;
     }
 

@@ -3,7 +3,7 @@ import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { runOm } from "../../src/cli/client/runner.ts";
+import { runOm } from "../../src/client/runner.ts";
 import type { LogEntry } from "../../src/foundation/LogEntry.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));

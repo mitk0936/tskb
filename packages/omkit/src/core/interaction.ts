@@ -15,6 +15,7 @@ export interface PromptSpec {
 // child → supervisor
 export type ChildMessage =
   | { kind: "prompt"; id: string; spec: PromptSpec }
+  | { kind: "prompt-done"; id: string }
   | { kind: "log"; entry: LogEntry }
   | { kind: "settled"; ok: boolean; folder: string; summary: string[] };
 
@@ -58,6 +59,10 @@ export class Supervisor {
     return new Promise<AnswerMessage>((resolve, reject) => {
       const onAbort = () => {
         this.pending.delete(id);
+        // The child is giving up on this prompt (timeout or teardown) and moving on. Tell the
+        // supervisor so it withdraws the prompt from its UI — otherwise a stale, unanswerable
+        // prompt box lingers on screen for the rest of the run.
+        this.send({ kind: "prompt-done", id });
         reject(new Error("prompt aborted"));
       };
       if (signal.aborted) return onAbort();

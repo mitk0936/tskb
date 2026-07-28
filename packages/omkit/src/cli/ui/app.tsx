@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useApp, useInput } from "ink";
-import { format } from "../../output/milestones.ts";
+import { RunModel, type RunSummary } from "../../output/RunModel.ts";
 import { OmList } from "./views/OmList.tsx";
 import { RunView } from "./views/RunView.tsx";
 import { Spinner } from "./Spinner.tsx";
-import type { OmkitClient, RunSession, PromptRequest, Verdict } from "../client/types.ts";
-import type { DiscoveredOm } from "../client/registry.ts";
+import type { OmkitClient, RunSession, PromptRequest, Verdict } from "../../client/types.ts";
+import type { DiscoveredOm } from "../../client/registry.ts";
 
 /** The interactive app: discover → list/search → run → live milestones + prompts. */
 export function App({
@@ -23,7 +23,10 @@ export function App({
   const { exit } = useApp();
   const [oms, setOms] = useState<DiscoveredOm[]>(initialOms ?? []);
   const [session, setSession] = useState<RunSession | null>(null);
-  const [lines, setLines] = useState<string[]>([]);
+  // A per-run RunModel folds the log stream into a capped milestone tail plus a live node summary;
+  // these snapshots are what the view renders. The cap is what keeps a long run from growing forever.
+  const [lines, setLines] = useState<readonly string[]>([]);
+  const [status, setStatus] = useState<RunSummary | undefined>();
   const [prompt, setPrompt] = useState<PromptRequest | undefined>();
   const [verdict, setVerdict] = useState<Verdict | undefined>();
   const [tearing, setTearing] = useState(false);
@@ -45,13 +48,19 @@ export function App({
   }, [client, initialOms]);
 
   const run = (om: DiscoveredOm): void => {
+    const model = new RunModel();
     const s = client.run(om.file);
     sessionRef.current = s;
     s.on("log", (entry) => {
-      const rendered = format(entry);
-      if (rendered) setLines((prev) => [...prev, rendered.text]);
+      model.apply(entry);
+      setLines(model.milestones());
+      setStatus(model.summary());
     });
     s.on("prompt", (req) => setPrompt(req));
+    // The child gave up on the prompt (timed out or torn down). Withdraw its box so a stale,
+    // unanswerable prompt doesn't linger — but only if it's still the one on screen, so a late
+    // withdrawal can't clobber a fresh prompt.
+    s.on("promptDone", (id) => setPrompt((p) => (p?.id === id ? undefined : p)));
     s.on("settled", (v) => {
       setVerdict(v);
       setPrompt(undefined);
@@ -105,7 +114,7 @@ export function App({
   if (!session) return <OmList oms={oms} onSelect={run} />;
   return (
     <>
-      <RunView lines={lines} prompt={prompt} verdict={verdict} onAnswer={answer} />
+      <RunView lines={lines} status={status} prompt={prompt} verdict={verdict} onAnswer={answer} />
       {!verdict && tearing ? <Spinner label="tearing down… (stopping the run cleanly)" /> : null}
       {!verdict && !tearing && !prompt ? <Spinner label="running…" /> : null}
     </>

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { formatRegistry } from "../../src/cli/commands/ls.ts";
-import type { Registry } from "../../src/cli/client/registry.ts";
+import type { Registry } from "../../src/client/registry.ts";
 
 const registry: Registry = {
   oms: [{ name: "dev", file: "/p/oms/dev.ts", line: 3 }],

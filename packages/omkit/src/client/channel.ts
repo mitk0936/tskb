@@ -1,4 +1,4 @@
-import type { ChildMessage, SupervisorMessage } from "../../core/interaction.ts";
+import type { ChildMessage, SupervisorMessage } from "../core/interaction.ts";
 import type { RunSession, RunEvents, Verdict } from "./types.ts";
 
 /** The minimal duplex the channel needs — satisfied by a real ChildProcess or a fake. */
@@ -9,14 +9,15 @@ export interface Transport {
 }
 
 /**
- * Turn a child transport into a {@link RunSession}: fan `log`/`prompt` child messages out to
- * handlers, resolve `result` on `settled`, and map `answer`/`cancel` back down the wire. A
- * close before `settled` resolves a failed verdict so `result` never hangs.
+ * Turn a child transport into a {@link RunSession}: fan `log`/`prompt`/`prompt-done` child
+ * messages out to handlers, resolve `result` on `settled`, and map `answer`/`cancel` back down
+ * the wire. A close before `settled` resolves a failed verdict so `result` never hangs.
  */
 export function createChannel(transport: Transport): RunSession {
   const handlers: { [K in keyof RunEvents]: RunEvents[K][] } = {
     log: [],
     prompt: [],
+    promptDone: [],
     settled: [],
   };
   let settled = false;
@@ -28,6 +29,8 @@ export function createChannel(transport: Transport): RunSession {
       for (const h of handlers.log) h(message.entry);
     } else if (message.kind === "prompt") {
       for (const h of handlers.prompt) h({ id: message.id, spec: message.spec });
+    } else if (message.kind === "prompt-done") {
+      for (const h of handlers.promptDone) h(message.id);
     } else if (message.kind === "settled") {
       settled = true;
       const verdict: Verdict = { ok: message.ok, folder: message.folder, summary: message.summary };

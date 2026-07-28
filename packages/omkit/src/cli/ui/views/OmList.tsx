@@ -2,7 +2,7 @@ import path from "node:path";
 import { type ReactElement } from "react";
 import { Text } from "ink";
 import { SearchableList } from "./SearchableList.tsx";
-import type { DiscoveredOm } from "../../client/registry.ts";
+import type { DiscoveredOm } from "../../../client/registry.ts";
 
 /** Show the om's path relative to cwd when it's inside the project; else the absolute path. */
 function displayPath(file: string): string {

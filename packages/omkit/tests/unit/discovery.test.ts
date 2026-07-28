@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { discover } from "../../src/cli/client/discovery.ts";
+import { discover } from "../../src/client/discovery.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const tsconfig = path.join(here, "../fixtures/discovery/tsconfig.omkit.json");

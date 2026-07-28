@@ -4,7 +4,7 @@ import os from "node:os";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolveOm } from "../../src/cli/commands/run.ts";
-import { spawnBare } from "../../src/cli/client/runner.ts";
+import { spawnBare } from "../../src/client/runner.ts";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const runDir = path.join(here, "../fixtures/run");

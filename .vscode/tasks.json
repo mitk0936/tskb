@@ -2,12 +2,13 @@
   "version": "2.0.0",
   "tasks": [
     {
-      // Compiles the wm pipelines to wm/dist (with source maps, per
-      // tsconfig.build.json). Used as the preLaunchTask for the debug configs.
-      "label": "wm: build",
+      // Compiles omkit to packages/omkit/dist. Used as the preLaunchTask for the debug configs,
+      // so the CLI/runtime the debugger runs is always fresh. (The om files and your own actions
+      // run through tsx from source, so they never need a build step.)
+      "label": "omkit: build",
       "type": "shell",
       "command": "npm run build",
-      "options": { "cwd": "${workspaceFolder}/wm" },
+      "options": { "cwd": "${workspaceFolder}/packages/omkit" },
       "problemMatcher": ["$tsc"],
       "presentation": { "reveal": "silent", "clear": true },
       "group": "build"

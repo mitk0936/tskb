@@ -66,10 +66,11 @@ export interface OmContext {
 
 /**
  * A launched action: the live node's awaitable/observable surface, returned by
- * **invoking an {@link Action}**. `.result` always resolves an {@link Outcome} (never
- * throws); `.ref` rejects on failure/cancel. The body is committed one microtask after
- * the launching call, so pre-body config (`withCache`) chained before the first `await`
- * still applies.
+ * **invoking an {@link Action}**. `.result` (like `.ref` and `once`) resolves the value on
+ * success and **rejects** with the action's error on failure (or `CancelledError` on cancel);
+ * reading it observes the activity, so a handled failure won't tear the run down. The body is
+ * committed one microtask after the launching call, so pre-body config (`withCache`) chained
+ * before the first `await` still applies.
  */
 export interface Activity<Result = unknown, Events extends object = NoEvents, Handle = void> {
   readonly id: string;

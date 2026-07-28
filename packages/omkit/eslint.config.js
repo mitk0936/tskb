@@ -43,12 +43,14 @@ export default [
     "actions build on core/system/foundation — not output directly"
   ),
 
-  // The client SDK is the headless, UI-free engine — it must not reach into the CLI
-  // frontends (commands, Ink app). Keeps it reusable by the future MCP server unchanged.
+  // The client is the headless, UI-free engine layer. It sits above core (the om runtime's
+  // interaction protocol) but below every frontend: it may import core and foundation, and it
+  // must not reach up into the CLI (commands, Ink app, bin) nor sideways into the output writers
+  // or the action batteries. Keeps it reusable by the future MCP server unchanged.
   boundary(
-    "cli/client",
-    ["**/cli/commands/**", "**/cli/ui/**"],
-    "the client SDK is UI-free — it must not import CLI commands or the Ink app"
+    "client",
+    ["**/cli/**", "**/output/**", "**/actions/**"],
+    "the client is the UI-free engine — it may import core and foundation, not the CLI, output, or actions"
   ),
 
   // These own the real console (terminal writer / capture / live render); actions
