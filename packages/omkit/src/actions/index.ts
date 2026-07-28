@@ -17,6 +17,9 @@ export type {
   BodyMatcher,
 } from "./healthcheck.ts";
 
+export { portFree } from "./port-free.ts";
+export type { PortFreeOptions, PortFreeResult, PortFreeEvents } from "./port-free.ts";
+
 export { watch } from "./watch.ts";
 export type { FileEvent, FileListener, WatchOptions } from "./watch.ts";
 

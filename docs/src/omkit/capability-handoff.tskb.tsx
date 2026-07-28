@@ -80,9 +80,10 @@ export default (
       {ChromePageExport} in {ChromePageModule} is the clearest case. It attaches a Chromium{" "}
       <code>Page</code> as its capability, so a downstream smoke test awaits <code>page.ref</code>{" "}
       and drives the same live page — real DOM, real network — instead of a URL scraped from stdout.
-      Its source argument can itself be another action's <code>ref</code>, so capabilities chain:{" "}
-      <code>chromePage("app", chromedriver.ref)</code> wires one action's output straight into the
-      next.
+      Its source argument is a resolved handle rather than a promise, so capabilities chain by
+      awaiting the producer at the call site: <code>chromePage("app", await chromedriver.ref)</code>{" "}
+      wires one action's output straight into the next, and the page action isn't launched until the
+      browser it needs actually exists.
     </P>
 
     <Relation from={ChromePageExport} to={CapabilityTerm} label="publishes a live Page as" />

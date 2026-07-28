@@ -45,11 +45,13 @@ om("tskb:dev", async () => {
 
   await healthcheck({ url: EXPLORER_URL, timeoutMs: 7000 }).tag("explorer:ready:gate").once("done");
 
-  const chrome = browser({ headless: false }).tag("browser:chrome");
-  const page = chromePage("Explorer", chrome.ref, { url: EXPLORER_URL }).tag("browser:explorer");
+  const chrome = await browser({ headless: false }).tag("browser:chrome").ref;
+  const page = await chromePage("Explorer", await chrome, { url: EXPLORER_URL }).tag(
+    "browser:explorer"
+  ).ref;
 
   try {
-    await inspectPage(page.ref).tag("explorer:inspect").once("done");
+    await inspectPage(page).tag("explorer:inspect").once("done");
 
     console.log("Platform running.");
     console.log("Watchers are live.");

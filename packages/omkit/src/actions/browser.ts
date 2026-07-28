@@ -24,7 +24,7 @@ const delay = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms
 
 /**
  * Launches a Chromium browser with Playwright and publishes the live {@link Browser}
- * as this action's handle, so a driver — e.g. `chromePage("Explorer", browser.ref,
+ * as this action's handle, so a driver — e.g. `chromePage("Explorer", await browser.ref,
  * { url })` — can await `instance.ref` and open pages in it. This owns the browser it
  * launches (unlike a CDP endpoint handed to `chromePage`, which belongs to its opener),
  * so teardown closes it. Replaces the external chromedriver/WebDriver dance.
