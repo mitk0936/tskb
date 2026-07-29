@@ -1475,23 +1475,23 @@ Expected: PASS.
 
 - [ ] **Step 5: Update the README**
 
-`constraint-readme-sync.tskb.tsx` requires this. Update every `om(` example to the builder, and add a migration section:
+`constraint-readme-sync.tskb.tsx` requires this. Two edits:
 
-```markdown
-## Migrating from `om(name, body)`
+1. **Update every `om(` example in the README** to the builder form.
+2. **Add a new section** near the top, titled `## Migrating from om(name, body)`, containing:
+   - A sentence stating that `om(name, body)` was removed in 0.5.0 and `.run(body)` replaces it.
+   - A fenced `diff` code block showing exactly this before/after:
 
-`om(name, body)` was removed in 0.5.0. Chain `.run(body)` instead:
-
-​`diff
+```diff
 -om("dev", async (ctx) => {
 +om("dev").run(async (ctx) => {
    // ...
  });
-​`
-
-Run folders are unaffected — a run's identity is its name plus its defining file, and
-line numbers are not part of the hash, so migrating a call site keeps its history.
 ```
+
+- A closing sentence: "Run folders are unaffected — a run's identity is its name plus
+  its defining file, and line numbers are not part of the hash, so migrating a call
+  site keeps its history."
 
 - [ ] **Step 6: Bump the version and write the changelog**
 
