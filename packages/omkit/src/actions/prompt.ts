@@ -136,7 +136,12 @@ async function askTerminal(
       const read: LineReader = async () => {
         try {
           return await rl.question("", { signal: waitSignal });
-        } catch {
+        } catch (err) {
+          // Giving up (prompt timeout or run teardown) is not end-of-input. Propagate it so the
+          // action's outer catch labels the answer `timeout` and falls back to the default, the
+          // same as the `input` and `choice` kinds — half a JSON blob is not a useful answer.
+          // Only a rejection with the signal still unaborted is genuine EOF (the stream closed).
+          if (waitSignal.aborted) throw err;
           return undefined;
         }
       };
