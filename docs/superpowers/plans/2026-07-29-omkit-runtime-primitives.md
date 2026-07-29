@@ -1477,7 +1477,7 @@ Expected: PASS.
 
 `constraint-readme-sync.tskb.tsx` requires this. Update every `om(` example to the builder, and add a migration section:
 
-````markdown
+```markdown
 ## Migrating from `om(name, body)`
 
 `om(name, body)` was removed in 0.5.0. Chain `.run(body)` instead:
@@ -1491,7 +1491,7 @@ Expected: PASS.
 
 Run folders are unaffected — a run's identity is its name plus its defining file, and
 line numbers are not part of the hash, so migrating a call site keeps its history.
-````
+```
 
 - [ ] **Step 6: Bump the version and write the changelog**
 
