@@ -28,4 +28,14 @@ describe("shapeHint", () => {
   test("degrades to 'see schema' for a shape it cannot sketch", () => {
     expect(shapeHint({ not: "a shape it understands" })).toBe("see schema");
   });
+
+  test("degrades tuple (bare) to 'see schema'", () => {
+    const hint = hintFor(z.tuple([z.string(), z.number()]));
+    expect(hint).toBe("see schema");
+  });
+
+  test("degrades tuple (nested in object) to 'see schema'", () => {
+    const hint = hintFor(z.object({ pair: z.tuple([z.string(), z.number()]) }));
+    expect(hint).toBe("{ pair: see schema }");
+  });
 });

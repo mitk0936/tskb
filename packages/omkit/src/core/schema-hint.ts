@@ -6,8 +6,7 @@ const OPAQUE = "see schema";
 /**
  * Render a JSON Schema as a one-line type sketch for a prompt — `{ host: string,
  * port?: number }`. Deliberately partial: anything it cannot express degrades to
- * {@link OPAQUE} rather than printing something misleading, and the caller prints the
- * raw schema alongside.
+ * {@link OPAQUE} rather than printing something misleading.
  */
 export function shapeHint(schema: JsonSchema): string {
   return render(schema);
@@ -30,6 +29,7 @@ function render(node: unknown): string {
     case "null":
       return String(s.type);
     case "array":
+      if (typeof s.items !== "object" || s.items === null) return OPAQUE;
       return `${render(s.items)}[]`;
     case "object":
       return renderObject(s);
