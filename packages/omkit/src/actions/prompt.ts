@@ -25,7 +25,59 @@ export interface ChoicePromptOptions extends PromptCommon {
   default?: string | number;
 }
 
-export type PromptOptions = InputPromptOptions | ChoicePromptOptions;
+/** How a multiline prompt decides the user is done. */
+export type MultilineUntil = "json" | string | ((text: string) => boolean);
+
+export interface MultilinePromptOptions extends PromptCommon {
+  kind: "multiline";
+  /** A one-line type sketch printed under the message. */
+  hint?: string;
+  /** Default `"json"` — stop once the text parses as JSON. */
+  until?: MultilineUntil;
+  /** Value used on EOF with no input, or on timeout. Default "". */
+  default?: string;
+}
+
+export type PromptOptions = InputPromptOptions | ChoicePromptOptions | MultilinePromptOptions;
+
+/** Reads one line, or `undefined` at EOF. */
+export type LineReader = () => Promise<string | undefined>;
+
+/**
+ * Accumulate lines until `until` says stop, or EOF. Exported for testing: keeping the
+ * termination rule separate from the terminal means it can be driven by a scripted
+ * reader instead of a TTY.
+ *
+ * `"json"` is self-terminating — pasting a pretty-printed blob just works, with no
+ * sentinel to explain. A sentinel line is excluded from the result.
+ *
+ * Note there is deliberately no Ctrl-D/EOF-by-keystroke terminator: readline treats it as
+ * a close, and `prompt` builds and tears down an interface per call, so it risks leaving
+ * stdin unusable for later prompts in the same run.
+ */
+export async function readUntil(read: LineReader, until: MultilineUntil): Promise<string> {
+  const lines: string[] = [];
+  for (;;) {
+    const line = await read();
+    if (line === undefined) break; // EOF
+    if (typeof until === "string" && until !== "json" && line === until) break;
+    lines.push(line);
+    const text = lines.join("\n");
+    if (until === "json" && parses(text)) break;
+    if (typeof until === "function" && until(text)) break;
+  }
+  return lines.join("\n");
+}
+
+function parses(text: string): boolean {
+  if (text.trim() === "") return false;
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /** How a prompt's answer was decided. */
 export type PromptVia = "input" | "default" | "timeout";
@@ -57,10 +109,11 @@ async function askSupervisor(
 ): Promise<Answer> {
   const { opts, message, defaultValue, resolveRaw } = ctx;
   const spec: PromptSpec = {
-    kind: opts.kind === "choice" ? "choice" : "input",
+    kind: opts.kind === "choice" ? "choice" : opts.kind === "multiline" ? "multiline" : "input",
     message,
     default: defaultValue,
     ...(opts.kind === "choice" ? { choices: asChoices(opts.choices) } : {}),
+    ...(opts.kind === "multiline" && opts.hint ? { hint: opts.hint } : {}),
   };
   const answer = await supervisor.request(spec, waitSignal);
   const resolved = resolveRaw(answer.value);
@@ -73,10 +126,24 @@ async function askTerminal(
   query: string,
   resolveRaw: (raw: string) => string | undefined,
   defaultValue: string,
-  waitSignal: AbortSignal
+  waitSignal: AbortSignal,
+  multiline?: { until: MultilineUntil }
 ): Promise<Answer> {
   const rl = createInterface({ input: process.stdin, output: process.stdout });
   try {
+    if (multiline) {
+      process.stdout.write(query);
+      const read: LineReader = async () => {
+        try {
+          return await rl.question("", { signal: waitSignal });
+        } catch {
+          return undefined;
+        }
+      };
+      const text = await readUntil(read, multiline.until);
+      if (text.trim() === "") return { value: defaultValue, via: "default" };
+      return { value: text, via: "input" };
+    }
     const raw = (await rl.question(query, { signal: waitSignal })).trim();
     if (raw === "") return { value: defaultValue, via: "default" };
     const resolved = resolveRaw(raw);
@@ -89,10 +156,11 @@ async function askTerminal(
 }
 
 /**
- * Asks the terminal a question — free-text **input** or a **choice** — and resolves
- * with the answer, which it also attaches as the handle (`prompt(...).ref` feeds
- * another action). A timeout (default 30s) falls back to the default so an
- * unattended run never blocks; teardown also unblocks a pending prompt.
+ * Asks the terminal a question — free-text **input**, a **choice**, or a **multiline**
+ * block (see {@link readUntil} for how it ends) — and resolves with the answer, which it
+ * also attaches as the handle (`prompt(...).ref` feeds another action). A timeout
+ * (default 30s) falls back to the default so an unattended run never blocks; teardown
+ * also unblocks a pending prompt.
  */
 export const prompt = action("prompt")
   .emits<PromptEvents>()
@@ -106,7 +174,12 @@ export const prompt = action("prompt")
     let defaultValue: string;
     let resolveRaw: (raw: string) => string | undefined;
 
-    if (opts.kind === "choice") {
+    if (opts.kind === "multiline") {
+      defaultValue = opts.default ?? "";
+      message = opts.message ?? "Input:";
+      query = opts.hint ? `${message}\n  ${opts.hint}\n> ` : `${message}\n> `;
+      resolveRaw = (raw): string | undefined => raw;
+    } else if (opts.kind === "choice") {
       const choices = asChoices(opts.choices);
       const { default: def } = opts;
       const picked =
@@ -141,6 +214,8 @@ export const prompt = action("prompt")
 
     let value = defaultValue;
     let via: PromptVia = "default";
+    const multiline =
+      opts.kind === "multiline" ? { until: opts.until ?? ("json" as MultilineUntil) } : undefined;
     const supervisor = activeSupervisor();
     try {
       // Supervised: hand off to whoever owns the terminal (Ink app / MCP client). Bare: read
@@ -148,7 +223,7 @@ export const prompt = action("prompt")
       // silent supervisor (or nobody) can't wedge the run.
       const outcome = supervisor
         ? await askSupervisor(supervisor, { opts, message, defaultValue, resolveRaw }, waitSignal)
-        : await askTerminal(query, resolveRaw, defaultValue, waitSignal);
+        : await askTerminal(query, resolveRaw, defaultValue, waitSignal, multiline);
       value = outcome.value;
       via = outcome.via;
     } catch {

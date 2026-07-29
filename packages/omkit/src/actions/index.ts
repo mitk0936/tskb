@@ -34,6 +34,8 @@ export type {
   PromptOptions,
   InputPromptOptions,
   ChoicePromptOptions,
+  MultilinePromptOptions,
+  MultilineUntil,
   PromptChoice,
   PromptVia,
   PromptEvents,
