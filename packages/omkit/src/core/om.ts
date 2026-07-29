@@ -29,6 +29,7 @@ export function om(name: string, body: (ctx: OmContext) => Awaitable<void>): Pro
       cancel: () => tree.cancel(),
       assert: ctx.assert,
       snapshot: ctx.snapshot,
+      artifact: ctx.artifact,
       artifactsFolder: ctx.artifactsFolder,
     });
 

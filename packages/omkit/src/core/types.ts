@@ -40,6 +40,16 @@ export interface ActionContext<Events extends object = NoEvents, Handle = void> 
   readonly assert: (condition: boolean, message: string) => void;
   /** Capture a JSON snapshot; drops a timeline line and resolves the file's absolute path. */
   readonly snapshot: (name: string, value: unknown) => Promise<string>;
+  /**
+   * Label a file this action wrote — name, optional description, MIME inferred from the
+   * extension. Drops a timeline line and returns the file's path. Purely descriptive:
+   * the file must already exist (or be written next); this records what it is.
+   */
+  readonly artifact: (
+    name: string,
+    file: string,
+    opts?: { description?: string; mime?: string }
+  ) => string;
   /** Absolute path to this run's output folder — write artifacts (screenshots, dumps, …) here. */
   readonly artifactsFolder: string;
   /** Spawn child processes bound to this action (output → this node's log, killed on teardown). */
@@ -60,6 +70,16 @@ export interface OmContext {
   readonly assert: (condition: boolean, message: string) => void;
   /** Capture a run-level JSON snapshot; resolves the file's absolute path. */
   readonly snapshot: (name: string, value: unknown) => Promise<string>;
+  /**
+   * Label a file this action wrote — name, optional description, MIME inferred from the
+   * extension. Drops a timeline line and returns the file's path. Purely descriptive:
+   * the file must already exist (or be written next); this records what it is.
+   */
+  readonly artifact: (
+    name: string,
+    file: string,
+    opts?: { description?: string; mime?: string }
+  ) => string;
   /** Absolute path to this run's output folder — write run-level artifacts here. */
   readonly artifactsFolder: string;
 }

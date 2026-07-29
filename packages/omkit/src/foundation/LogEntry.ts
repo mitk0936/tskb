@@ -13,7 +13,7 @@ export interface LogEntry {
   readonly nodeId: string;
   /** The owning node's execution path (`main/chromePage_9f3c`). */
   readonly path: string;
-  /** `info` | `error` | `event` | `assert` | `snapshot` | `tag` | `child` | `run`. */
+  /** `info` | `error` | `event` | `assert` | `snapshot` | `artifact` | `tag` | `child` | `run`. */
   readonly level: string;
   /** Finer origin within the node (proc name, `event`, `run`, …). */
   readonly source: string;

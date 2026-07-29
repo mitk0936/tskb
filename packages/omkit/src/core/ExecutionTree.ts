@@ -7,6 +7,7 @@ import { LogStore } from "../output/log/LogStore.ts";
 import { RunFolder } from "../output/folder/RunFolder.ts";
 import { RawStream } from "../output/log/RawStream.ts";
 import { SnapshotStore } from "../output/snapshot/SnapshotStore.ts";
+import { ArtifactStore, type ArtifactRecord } from "../output/artifact/ArtifactStore.ts";
 import { ConsoleCapture } from "../output/console/ConsoleCapture.ts";
 import { LiveRenderer } from "../output/LiveRenderer.ts";
 import { writeNodeLogs } from "../output/writers/NodeLogWriter.ts";
@@ -18,6 +19,7 @@ import { procRegistry } from "../system/proc.ts";
 import { currentNode } from "./context.ts";
 import { activeSupervisor } from "./interaction.ts";
 import type { Exec, LaunchSpec } from "./types.ts";
+import type { LogEntry } from "../foundation/LogEntry.ts";
 
 /**
  * The run: a module singleton that owns the log store, the run folder, the node
@@ -51,6 +53,7 @@ export class ExecutionTree {
   private readonly rawStream: RawStream;
   private readonly consoleCapture: ConsoleCapture;
   private readonly snapshotStore: SnapshotStore;
+  private readonly artifactStore = new ArtifactStore();
   private readonly registry: ActionRun[] = [];
   private readonly unsettled = new Set<Promise<unknown>>();
   private readonly originalLog = console.log.bind(console);
@@ -152,6 +155,7 @@ export class ExecutionTree {
   private nodeDeps(): {
     store: LogStore;
     snapshots: SnapshotStore;
+    artifacts: ArtifactStore;
     artifactsFolder: string;
     onAssert: NodeInit["onAssert"];
     onUnhandledFailure: NodeInit["onUnhandledFailure"];
@@ -159,6 +163,7 @@ export class ExecutionTree {
     return {
       store: this.store,
       snapshots: this.snapshotStore,
+      artifacts: this.artifactStore,
       artifactsFolder: this.folder.path(),
       onAssert: (pass, actionPath, message) => this.recordAssert(pass, actionPath, message),
       onUnhandledFailure: (actionPath, error) => {
@@ -368,6 +373,16 @@ export class ExecutionTree {
   /** Test seam: the projected run view (same object written to result.json). */
   runViewForTest(): RunView {
     return this.runView();
+  }
+
+  /** Test seam: the run's curated artifacts. */
+  artifactsForTest(): readonly ArtifactRecord[] {
+    return this.artifactStore.all();
+  }
+
+  /** Test seam: every log entry recorded for this run. */
+  entriesForTest(): readonly LogEntry[] {
+    return this.store.entries();
   }
 
   private runView(): RunView {
