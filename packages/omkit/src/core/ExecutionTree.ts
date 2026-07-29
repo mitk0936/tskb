@@ -13,7 +13,7 @@ import { LiveRenderer } from "../output/LiveRenderer.ts";
 import { writeNodeLogs } from "../output/writers/NodeLogWriter.ts";
 import { writeRollup } from "../output/writers/RollupWriter.ts";
 import { writeResult } from "../output/writers/ResultWriter.ts";
-import type { NodeView, RunView } from "../output/writers/views.ts";
+import type { ArtifactView, NodeView, RunView } from "../output/writers/views.ts";
 import { ActionRun, type NodeInit } from "./ActionRun.ts";
 import { procRegistry } from "../system/proc.ts";
 import { currentNode } from "./context.ts";
@@ -308,6 +308,7 @@ export class ExecutionTree {
     await writeRollup(at("events.log"), flat, entries, (e) => e.level === "event");
     await writeRollup(at("asserts.log"), flat, entries, (e) => e.level === "assert", assertSummary);
     await writeRollup(at("snapshots.log"), flat, entries, (e) => e.level === "snapshot");
+    await writeRollup(at("artifacts.log"), flat, entries, (e) => e.level === "artifact");
     await writeResult(at("result.json"), this.runView());
 
     // Only now let go of the process hooks — a Ctrl+C during the writes must still be
@@ -337,6 +338,7 @@ export class ExecutionTree {
       `  events    → ${at("events.log")}`,
       `  asserts   → ${at("asserts.log")}   ${assertSummary}`,
       `  snapshots → ${at("snapshots.log")}`,
+      `  artifacts → ${at("artifacts.log")}`,
     ];
   }
 
@@ -395,7 +397,24 @@ export class ExecutionTree {
       duration: this.root.duration,
       rawStream: this.rawStreamPath(),
       root: this.nodeView(this.root),
+      artifacts: this.curatedArtifacts(),
     };
+  }
+
+  /**
+   * The run's curated artifacts, keyed by name: re-registering a name (e.g. an om
+   * re-labels the same file after regenerating it) updates that entry in place rather
+   * than appending a second one, so `result.json` always reflects the latest
+   * registration per name. Position follows first registration; `artifacts.log` (a
+   * chronological rollup, like `events.log`/`asserts.log`) is unaffected and still
+   * lists every call.
+   */
+  private curatedArtifacts(): readonly ArtifactView[] {
+    const byName = new Map<string, ArtifactView>();
+    for (const { name, file, description, mime } of this.artifactStore.all()) {
+      byName.set(name, { name, file, mime, ...(description === undefined ? {} : { description }) });
+    }
+    return [...byName.values()];
   }
 
   /**

@@ -23,6 +23,15 @@ export interface NodeView {
   readonly children: readonly NodeView[];
 }
 
+/** A curated artifact, as projected into `result.json`. Data-only — no core import. */
+export interface ArtifactView {
+  readonly name: string;
+  /** Absolute path to the file. */
+  readonly file: string;
+  readonly description?: string;
+  readonly mime: string;
+}
+
 export interface RunView {
   readonly ok: boolean;
   readonly failures: ReadonlyArray<{ action: string; error: string }>;
@@ -33,4 +42,6 @@ export interface RunView {
   /** Absolute path to `raw.jsonl`. */
   readonly rawStream: string;
   readonly root: NodeView;
+  /** Files the run labelled via `ctx.artifact`, in registration order. */
+  readonly artifacts: readonly ArtifactView[];
 }

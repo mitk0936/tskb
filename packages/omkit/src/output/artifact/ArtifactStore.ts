@@ -44,11 +44,16 @@ export class ArtifactStore {
     nodeId: string,
     opts: { description?: string; mime?: string } = {}
   ): ArtifactRecord {
+    // `file` is documented absolute; a caller that passes a relative path still gets
+    // one back — resolved against process.cwd(), same base `path.resolve` uses by
+    // default — so every consumer (the return value, the timeline message, the
+    // on-disk rollups) carries a path that means the same thing without them.
+    const resolved = path.resolve(file);
     const record: ArtifactRecord = {
       name,
-      file,
+      file: resolved,
       nodeId,
-      mime: opts.mime ?? mimeOf(file),
+      mime: opts.mime ?? mimeOf(resolved),
       ...(opts.description === undefined ? {} : { description: opts.description }),
     };
     this.records.push(record);

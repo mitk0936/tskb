@@ -133,12 +133,12 @@ flakyBackgroundJob().result.catch((e) => console.warn("job failed, carrying on",
 
 Every action's output, events, asserts, snapshots, and lifecycle land on **one timeline** — streamed live to the terminal (curated milestones) and written to a per-run folder:
 
-- `result.json` — the run's tree, per-node status, and verdict.
+- `result.json` — the run's tree, per-node status, verdict, and curated artifacts.
 - `raw.jsonl` — every entry, machine-readable.
 - `main.log` + one `.log` per action — the human-readable timelines.
-- `events.log` / `asserts.log` / `snapshots.log` — cross-cutting rollups.
+- `events.log` / `asserts.log` / `snapshots.log` / `artifacts.log` — cross-cutting rollups.
 
-`ctx` also gives each action `assert(cond, msg)` (tallies into the run's verdict) and `snapshot(name, value)` (captures JSON state to the run folder) — so a run is an inspectable artifact, not just an exit code.
+`ctx` also gives each action `assert(cond, msg)` (tallies into the run's verdict), `snapshot(name, value)` (captures JSON state to the run folder), and `artifact(name, file, opts?)` (labels a file the action wrote — name, optional description, MIME inferred from the extension — and returns its absolute path) — so a run is an inspectable artifact, not just an exit code. Write the files you label under `ctx.artifactsFolder`, the run's own output folder.
 
 Run folders have a **stable identity**: `logs/<name>-<hash8>/<date>/<time>/`, keyed by the om's name and the file that defines it. An assistant (or a script) can always find "the latest `tskb-dev` run" without parsing scrollback, diff two runs of the same pipeline, or answer questions with evidence instead of inference: _did the server actually pass its healthcheck? which process died first? what config did the build run with?_ It's all in the folder — attributed per action, timestamped, with a verdict.
 
