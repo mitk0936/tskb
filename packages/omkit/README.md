@@ -201,6 +201,21 @@ om("deploy", async () => {
 });
 ```
 
+**Take a block of text.** `kind: "multiline"` reads lines until `until` says stop: parseable JSON (the default), a sentinel line, or a predicate over the text so far. The JSON default is self-terminating, so a pretty-printed blob can be pasted straight in with nothing to explain:
+
+```ts
+om("seed", async () => {
+  const blob = await prompt({
+    kind: "multiline",
+    message: "Paste the service config",
+    hint: "{ host: string; port: number }", // a one-line type sketch, shown under the message
+    until: "json", // the default; or "." to end on that line, or (text) => text.length > 500
+  }).result;
+  const config = JSON.parse(blob);
+  await command(`./seed.sh --host ${config.host}`).result;
+});
+```
+
 ## Events
 
 An Activity exposes its declared events plus the lifecycle ones (`done`, `error`, `attached`):
@@ -224,7 +239,7 @@ Reusable actions built on the core engine. For anything beyond these, drop down 
 - **`tailLog`** — tail a file another process writes, folding its lines into the combined log.
 - **`healthcheck`** — poll a URL/port until the status (and optionally body) matches.
 - **`portFree`** — the mirror of `healthcheck`: poll a TCP port until nothing is listening, so a restart can rebind without racing the old process.
-- **`prompt`** — ask the terminal for input or a choice, with a timeout that falls back to a default; the answer is its handle.
+- **`prompt`** — ask the terminal for input, a choice, or a multiline block, with a timeout that falls back to a default; the answer is its handle.
 - **`browser`** — launch a Chromium browser with Playwright and expose the live `Browser` as a handle (defaults to the installed Chrome); closed on teardown. Feed its `.ref` to `chromePage`.
 - **`chromePage`** — attach to Chrome over CDP, or to an existing Playwright `Page`/`Browser`/`Context` (including a `browser` handle or an Electron window), and expose the live `Page` as a handle.
 

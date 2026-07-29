@@ -51,11 +51,12 @@ afterEach(() => {
 
 /**
  * Run `body` with stdin/stdout swapped for in-memory streams, so the bare-terminal path can be
- * driven with nobody typing and without the prompt text reaching the reporter. Resolves with
- * everything that was written to the fake stdout.
+ * driven without a TTY and without the prompt text reaching the reporter. `body` receives the
+ * fake stdin to type into — a `PassThrough` buffers whatever is written before readline attaches,
+ * so it can be written to at any point. Resolves with everything written to the fake stdout.
  */
-async function withFakeStdio(body: () => Promise<void>): Promise<string> {
-  const stdin = new PassThrough(); // never emits a line — nobody is at the keyboard
+async function withFakeStdio(body: (stdin: PassThrough) => Promise<void>): Promise<string> {
+  const stdin = new PassThrough();
   let written = "";
   const stdout = new Writable({
     write(chunk, _enc, cb) {
@@ -68,7 +69,7 @@ async function withFakeStdio(body: () => Promise<void>): Promise<string> {
   Object.defineProperty(process, "stdin", { value: stdin, configurable: true });
   Object.defineProperty(process, "stdout", { value: stdout, configurable: true });
   try {
-    await body();
+    await body(stdin);
   } finally {
     Object.defineProperty(process, "stdin", realStdin);
     Object.defineProperty(process, "stdout", realStdout);
@@ -77,6 +78,28 @@ async function withFakeStdio(body: () => Promise<void>): Promise<string> {
 }
 
 describe("a multiline prompt at the bare terminal", () => {
+  test("collects the pasted block and reports via:input, ending on the JSON itself", async () => {
+    // The whole feature end to end: real lines through the readline-backed LineReader and
+    // `readUntil`'s default `"json"` rule, which ends the read on the closing brace — no
+    // sentinel, no EOF, nothing the user had to be told about.
+    const blob = '{\n  "host": "db.local",\n  "port": 5432\n}';
+    let answer: { value: string; via: string } | undefined;
+    let got: string | undefined;
+
+    const written = await withFakeStdio(async (stdin) => {
+      await om("multiline-input", async () => {
+        const asked = prompt({ kind: "multiline", message: "Paste config", timeoutMs: 5_000 });
+        asked.on("answer", (a) => void (answer = a));
+        stdin.write(`${blob}\n`);
+        got = await asked.result.catch(() => "ERR");
+      });
+    });
+
+    expect(got).toBe(blob);
+    expect(answer).toEqual({ value: blob, via: "input" });
+    expect(written).toContain("Paste config");
+  });
+
   test("a timeout uses the default and reports via:timeout, like the other kinds", async () => {
     // Nobody types, so the read is still pending when the 20ms timeout aborts it. The abort must
     // not masquerade as end-of-input: it has to reach the action's outer catch, or the answer

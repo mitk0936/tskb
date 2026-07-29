@@ -133,21 +133,33 @@ async function askTerminal(
   try {
     if (multiline) {
       process.stdout.write(query);
-      const read: LineReader = async () => {
-        try {
-          return await rl.question("", { signal: waitSignal });
-        } catch (err) {
-          // Giving up (prompt timeout or run teardown) is not end-of-input. Propagate it so the
-          // action's outer catch labels the answer `timeout` and falls back to the default, the
-          // same as the `input` and `choice` kinds — half a JSON blob is not a useful answer.
-          // Only a rejection with the signal still unaborted is genuine EOF (the stream closed).
-          if (waitSignal.aborted) throw err;
-          return undefined;
-        }
-      };
-      const text = await readUntil(read, multiline.until);
-      if (text.trim() === "") return { value: defaultValue, via: "default" };
-      return { value: text, via: "input" };
+      // Iterate the interface instead of calling `rl.question` per line. A paste arrives as a
+      // single chunk and readline emits every line in it synchronously, so a one-shot `question`
+      // takes the first line and the rest are emitted with no listener and lost — which would
+      // break the one case this kind exists for. The async iterator queues lines and applies
+      // backpressure, so a pasted blob and a typed one read the same.
+      const it = rl[Symbol.asyncIterator]();
+      // Nothing can abort a pending `it.next()`, so an abort (prompt timeout or run teardown)
+      // closes the interface, which ends the iteration. `waitSignal` then tells that apart from
+      // a genuinely closed stream below.
+      const onAbort = (): void => void rl.close();
+      if (waitSignal.aborted) onAbort();
+      else waitSignal.addEventListener("abort", onAbort, { once: true });
+      try {
+        const read: LineReader = async () => {
+          const { value, done } = await it.next();
+          return done ? undefined : value; // done → end of input
+        };
+        const text = await readUntil(read, multiline.until);
+        // Giving up is not end-of-input. Propagate so the action's outer catch labels the answer
+        // `timeout` and falls back to the default, the same as the `input` and `choice` kinds —
+        // half a JSON blob is not a useful answer, so the partial text is dropped here.
+        if (waitSignal.aborted) throw new Error("prompt aborted");
+        if (text.trim() === "") return { value: defaultValue, via: "default" };
+        return { value: text, via: "input" };
+      } finally {
+        waitSignal.removeEventListener("abort", onAbort);
+      }
     }
     const raw = (await rl.question(query, { signal: waitSignal })).trim();
     if (raw === "") return { value: defaultValue, via: "default" };
