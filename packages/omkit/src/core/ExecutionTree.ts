@@ -402,19 +402,27 @@ export class ExecutionTree {
   }
 
   /**
-   * The run's curated artifacts, keyed by name: re-registering a name (e.g. an om
-   * re-labels the same file after regenerating it) updates that entry in place rather
-   * than appending a second one, so `result.json` always reflects the latest
-   * registration per name. Position follows first registration; `artifacts.log` (a
-   * chronological rollup, like `events.log`/`asserts.log`) is unaffected and still
-   * lists every call.
+   * The run's curated artifacts, keyed by `(nodeId, name)`: one action re-registering
+   * a name (e.g. re-labelling the same file after regenerating it) updates that entry
+   * in place rather than appending a second one, so `result.json` always reflects the
+   * latest registration per name. Keying on the pair — not `name` alone — matters
+   * because two *different* actions can independently choose the same name (two
+   * screenshot steps both calling `ctx.artifact("screenshot", …)`); those describe two
+   * distinct files and both must survive into `result.json`, not collapse into one.
+   * Position follows first registration; `artifacts.log` (a chronological rollup, like
+   * `events.log`/`asserts.log`) is unaffected either way and still lists every call.
    */
   private curatedArtifacts(): readonly ArtifactView[] {
-    const byName = new Map<string, ArtifactView>();
-    for (const { name, file, description, mime } of this.artifactStore.all()) {
-      byName.set(name, { name, file, mime, ...(description === undefined ? {} : { description }) });
+    const byKey = new Map<string, ArtifactView>();
+    for (const { name, file, description, mime, nodeId } of this.artifactStore.all()) {
+      byKey.set(`${nodeId}::${name}`, {
+        name,
+        file,
+        mime,
+        ...(description === undefined ? {} : { description }),
+      });
     }
-    return [...byName.values()];
+    return [...byKey.values()];
   }
 
   /**

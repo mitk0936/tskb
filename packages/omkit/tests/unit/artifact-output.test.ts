@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
-import { om } from "../../src/index.ts";
+import { om, step } from "../../src/index.ts";
 import { ExecutionTree } from "../../src/core/ExecutionTree.ts";
 
 afterEach(() => {
@@ -57,7 +57,7 @@ describe("artifact output", () => {
     expect(ExecutionTree.last!.runViewForTest().artifacts).toEqual([]);
   });
 
-  test("re-registering the same name dedupes in the run view, keeping the latest data", async () => {
+  test("re-registering the same name updates result.json in place but artifacts.log keeps every entry", async () => {
     await om("artifact-dedupe", async (ctx) => {
       ctx.artifact("report", path.join(ctx.artifactsFolder, "report.json"), {
         description: "first pass",
@@ -67,9 +67,40 @@ describe("artifact output", () => {
       });
     });
 
-    const view = ExecutionTree.last!.runViewForTest();
-    expect(view.artifacts).toHaveLength(1);
-    expect(view.artifacts[0]).toMatchObject({ name: "report", description: "final pass" });
+    const folder = ExecutionTree.last!.folder.path();
+
+    // result.json: one entry, carrying the latest registration's data.
+    const parsed = JSON.parse(await readFile(path.join(folder, "result.json"), "utf8")) as {
+      artifacts: { name: string; description?: string }[];
+    };
+    expect(parsed.artifacts).toEqual([
+      expect.objectContaining({ name: "report", description: "final pass" }),
+    ]);
+
+    // artifacts.log: a journal, like events.log/asserts.log — both calls survive.
+    const rollup = await readFile(path.join(folder, "artifacts.log"), "utf8");
+    const reportLines = rollup.split("\n").filter((line) => line.includes("report →"));
+    expect(reportLines).toHaveLength(2);
+  });
+
+  test("two different actions registering the same name both survive in result.json", async () => {
+    await om("artifact-cross-node", async () => {
+      await step("capture-a", async (ctx) => {
+        ctx.artifact("screenshot", path.join(ctx.artifactsFolder, "a.png"));
+      });
+      await step("capture-b", async (ctx) => {
+        ctx.artifact("screenshot", path.join(ctx.artifactsFolder, "b.png"));
+      });
+    });
+
+    const folder = ExecutionTree.last!.folder.path();
+    const parsed = JSON.parse(await readFile(path.join(folder, "result.json"), "utf8")) as {
+      artifacts: { name: string; file: string }[];
+    };
+    expect(parsed.artifacts).toHaveLength(2);
+    expect(parsed.artifacts.map((a) => a.file).sort()).toEqual(
+      [path.join(folder, "a.png"), path.join(folder, "b.png")].sort()
+    );
   });
 
   test("a relative file path is resolved to absolute in the run view", async () => {
