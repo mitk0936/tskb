@@ -33,7 +33,7 @@ om("dev", async () => {
 
   // …then launch a real browser and hand its live page downstream — typed, not scraped.
   const chrome = browser({ headless: false }); // a visible Chromium, closed on teardown
-  const page = chromePage("app", chrome.ref, { url: "http://localhost:3000" });
+  const page = chromePage("app", await chrome.ref, { url: "http://localhost:3000" });
   console.log(`opened ${(await page.ref).url()}`);
 
   console.log("stack is up — press Ctrl+C to stop");
@@ -223,6 +223,7 @@ Reusable actions built on the core engine. For anything beyond these, drop down 
 - **`untilLog`** — gate on the first log entry matching a predicate.
 - **`tailLog`** — tail a file another process writes, folding its lines into the combined log.
 - **`healthcheck`** — poll a URL/port until the status (and optionally body) matches.
+- **`portFree`** — the mirror of `healthcheck`: poll a TCP port until nothing is listening, so a restart can rebind without racing the old process.
 - **`prompt`** — ask the terminal for input or a choice, with a timeout that falls back to a default; the answer is its handle.
 - **`browser`** — launch a Chromium browser with Playwright and expose the live `Browser` as a handle (defaults to the installed Chrome); closed on teardown. Feed its `.ref` to `chromePage`.
 - **`chromePage`** — attach to Chrome over CDP, or to an existing Playwright `Page`/`Browser`/`Context` (including a `browser` handle or an Electron window), and expose the live `Page` as a handle.

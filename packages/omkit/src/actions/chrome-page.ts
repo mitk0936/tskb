@@ -38,9 +38,10 @@ const pageOf = (context: BrowserContext, fresh: boolean): Promise<Page> | Page =
 
 /**
  * Publishes a Chrome/Chromium {@link Page} as this action's handle, so downstream
- * actions can await `instance.ref` and drive the same live page. The source may be
- * a promise, so it wires straight from another action's `.ref` (e.g.
- * `chromePage("Explorer", chromedriver.ref)`). `label` tags this run so several
+ * actions can await `instance.ref` and drive the same live page. The source is a
+ * resolved handle, not a promise — chain it from another action by awaiting that
+ * action's `.ref` at the call site (e.g.
+ * `chromePage("Explorer", await chromedriver.ref)`). `label` tags this run so several
  * pages in one run stay distinguishable. Daemon: acquire + attach, stay alive
  * until teardown, then close the CDP connection only when it opened one.
  */
@@ -51,20 +52,19 @@ export const chromePage = action("chromePage")
     async (
       { signal, emit, attach, tag },
       label: string,
-      source: ChromePageSource | Promise<ChromePageSource>,
+      source: ChromePageSource,
       opts: ChromePageOptions = {}
     ) => {
       tag(label);
       const { url } = opts;
-      const resolved = await source;
 
       // Only a CDP connection we open here is ours to close; handles belong to callers.
       let owned: Browser | undefined;
       let page: Page;
       let from: string;
 
-      if (typeof resolved === "string") {
-        const cdpUrl = resolved.includes("://") ? resolved : `http://${resolved}`;
+      if (typeof source === "string") {
+        const cdpUrl = source.includes("://") ? source : `http://${source}`;
         from = cdpUrl;
         try {
           owned = await chromium.connectOverCDP(cdpUrl);
@@ -73,16 +73,16 @@ export const chromePage = action("chromePage")
         }
         const context = owned.contexts()[0] ?? (await owned.newContext());
         page = await pageOf(context, url !== undefined);
-      } else if (isPage(resolved)) {
+      } else if (isPage(source)) {
         from = "page handle";
-        page = resolved;
-      } else if (isBrowser(resolved)) {
+        page = source;
+      } else if (isBrowser(source)) {
         from = "browser handle";
-        const context = resolved.contexts()[0] ?? (await resolved.newContext());
+        const context = source.contexts()[0] ?? (await source.newContext());
         page = await pageOf(context, url !== undefined);
       } else {
         from = "context handle";
-        page = await pageOf(resolved, url !== undefined);
+        page = await pageOf(source, url !== undefined);
       }
 
       page.on("console", (msg) => {

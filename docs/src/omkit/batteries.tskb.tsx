@@ -17,6 +17,10 @@ declare global {
         desc: "Battery: wait until a service reports healthy before moving on.";
         type: typeof import("packages/omkit/src/actions/index.js").healthcheck;
       }>;
+      "omkit.portFree": Export<{
+        desc: "Battery: wait until nothing is listening on a TCP port, so a restart can rebind without racing the old process.";
+        type: typeof import("packages/omkit/src/actions/index.js").portFree;
+      }>;
       "omkit.prompt": Export<{
         desc: "Battery: ask the user a question mid-run (answered in-terminal, or over the channel when supervised).";
         type: typeof import("packages/omkit/src/actions/index.js").prompt;
@@ -36,6 +40,7 @@ const CapabilityTerm = ref as tskb.Terms["capability"];
 const Command = ref as tskb.Exports["omkit.command"];
 const Watch = ref as tskb.Exports["omkit.watch"];
 const Healthcheck = ref as tskb.Exports["omkit.healthcheck"];
+const PortFree = ref as tskb.Exports["omkit.portFree"];
 const Prompt = ref as tskb.Exports["omkit.prompt"];
 const ChromePage = ref as tskb.Exports["omkit.chromePage"];
 
@@ -54,6 +59,13 @@ export default (
       reacts to file changes, {Healthcheck} waits until a service is up, {Prompt} asks the user a
       question, and {ChromePage} drives a browser. They are ordinary actions — same
       launch-and-observe shape, same {CapabilityTerm} handoff — just written once and shared.
+    </P>
+    <P>
+      Gates come in pairs, because a dev stack has to both start and stop. {Healthcheck} waits for a
+      service to answer; {PortFree} waits for one to let go of its TCP port — the check a restart
+      needs before it rebinds, since a killed process can hold its socket well after the run has
+      moved on. It probes by connecting: only a refused connection proves nobody is listening, so a
+      filtered or unreachable port reads as still busy rather than falsely free.
     </P>
 
     <Relation from={Command} to={ZxExternal} label="runs shell commands through" />
