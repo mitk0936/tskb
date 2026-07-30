@@ -58,7 +58,7 @@ declare global {
       }>;
 
       "omkit.core.om": Module<{
-        desc: "om(name, body) — hosts a linear orchestration as the root of one run.";
+        desc: "om(name).run(body) — hosts a linear orchestration as the root of one run.";
         type: typeof import("packages/omkit/src/core/om.js");
       }>;
 
@@ -220,7 +220,7 @@ export default (
 
     <Flow
       name="omkit-run"
-      desc="An om(name, body) call hosts a run: actions launch as nodes, the engine supervises them and the shared log, and the run folder captures the record"
+      desc="An om(name).run(body) call hosts a run: actions launch as nodes, the engine supervises them and the shared log, and the run folder captures the record"
       priority="essential"
     >
       <Step node={OmExport} label="hosts the orchestration as the run root" />

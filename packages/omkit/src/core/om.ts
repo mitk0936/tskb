@@ -56,28 +56,23 @@ class Builder implements OmBuilder {
 }
 
 /**
- * Start a run via the builder form: chain `.describe(…)` then finish with `.run(body)`,
- * which launches the run exactly like `om(name, body)`. The name plus the absolute path
- * of the file calling `om()` form the run's identity — its log folder is
- * `logs/<name>-<hash8>/…` — captured once here (not inside `.run()`), so both call
- * forms hash identically and migrating a call site never moves its run folder.
+ * Define a run. `om(name)` returns a builder — chain `.describe(…)` and finish with
+ * `.run(body)`, which launches it as the root of a fresh {@link ExecutionTree}. The name
+ * plus the absolute path of the calling file identify the run; its log folder is
+ * `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder.
+ *
+ * The call site is captured **here**, not in `.run()`: `om(name)` is where a run is
+ * defined, so a builder handed to (and run from) another file still hashes to the file
+ * that defined it — see the run-folder-identity constraint doc.
  */
-export function om(name: string): OmBuilder;
-/**
- * Runs a linear orchestration as the root of a fresh {@link ExecutionTree}. The
- * required `name` plus the absolute path of the file calling `om()` form the run's
- * identity — its log folder is `logs/<name>-<hash8>/…`, so same-named oms defined
- * in different files never share a folder. The body runs inside the root node's
- * ambient scope, so any action call / `step(...)` / `console.*` it reaches
- * attributes correctly. Resolves once the run has torn down and produced its
- * artifacts; never rejects (failures are recorded in the tree and set the exit code).
- */
-export function om(name: string, body: (ctx: OmContext) => Awaitable<void>): Promise<void>;
-export function om(
-  name: string,
-  body?: (ctx: OmContext) => Awaitable<void>
-): OmBuilder | Promise<void> {
+export function om(name: string): OmBuilder {
   assertName(name);
-  const site = callerSite(); // the om() call site — the run's defining script
-  return body === undefined ? new Builder(name, site) : launch(name, site, body);
+  // The removed two-argument form: JS callers would otherwise silently lose their body
+  // to a builder nobody runs. TypeScript callers get a compile error before this.
+  if (arguments.length > 1) {
+    throw new Error(
+      "om(name, body) was removed — use om(name).run(body). See the omkit CHANGELOG."
+    );
+  }
+  return new Builder(name, callerSite()); // the om() call site — the run's defining script
 }

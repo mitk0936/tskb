@@ -7,6 +7,19 @@
 
 A tiny runtime for the workflows _around_ your code — start servers, wait for health checks, build, watch, drive a browser, read state back, and tear it all down together. You write the orchestration as ordinary TypeScript; the run **narrates itself** into a structured, on-disk record — what launched, what came up, what attached, what failed, what the world actually looked like — that an AI assistant can read instead of guessing from terminal scrollback. Where [tskb](https://www.npmjs.com/package/tskb) is the _knowledge_ layer (what your system **is**), `omkit` is the _operational_ one (what it's **doing right now**).
 
+## Migrating from om(name, body)
+
+`om(name, body)` was removed in 0.5.0. `om(name)` now returns a builder, and `.run(body)` takes the place of the second argument:
+
+```diff
+-om("dev", async (ctx) => {
++om("dev").run(async (ctx) => {
+   // ...
+ });
+```
+
+Run folders are unaffected — a run's identity is its name plus its defining file, and line numbers are not part of the hash, so migrating a call site keeps its history.
+
 ## The problem
 
 You know the script. Start the API, start the web server, wait until they're _actually_ serving, open the app, maybe run a smoke check — then Ctrl+C and hope everything shut down. Most of us glue this together with `concurrently`, `wait-on`, a shell script, and a pile of opaque interleaved output. When it breaks, you're grepping stdout to find out which process died.
@@ -19,7 +32,7 @@ Now hand that same script to an AI assistant. It has it even worse: interleaved 
 import { om } from "omkit";
 import { command, healthcheck, browser, chromePage } from "omkit/actions";
 
-om("dev", async () => {
+om("dev").run(async () => {
   // `command` names the action after the command and launches it — a normal action call.
   command("npm run dev", { cwd: "api" }).tag("api"); // start both dev servers as daemons…
   command("npm run dev", { cwd: "web" }).tag("web");
@@ -89,7 +102,7 @@ const seed = action("seed")
 seed({ rows: 500 }); // calling launches it; the shape is pinned, not checked at runtime
 ```
 
-`om(name, async (ctx) => …)` hosts the orchestration as the root of a run. `om(name)` also has a builder form — chain `.describe({ summary })` to attach a human-readable summary, then finish with `.run(body)`, which behaves identically to the two-arg call. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+`om(name).run(async (ctx) => …)` hosts the orchestration as the root of a run. `om(name)` returns a builder: chain `.describe({ summary })` to attach a human-readable summary, then finish with `.run(body)`, which launches it. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
 
 ### Typed capabilities
 
@@ -106,7 +119,7 @@ const server = action("server")
 
 const migrate = action("migrate").run((_ctx, port: Promise<number>) => runMigrations(port));
 
-om("migrate", async () => {
+om("migrate").run(async () => {
   const s = server();
   migrate(s.ref); // migrate receives the port the moment the server attaches it — typed
 });
@@ -168,7 +181,7 @@ The batteries are built around **ground truth**. `healthcheck` gates on the serv
 ```ts
 const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 
-om("build", async () => {
+om("build").run(async () => {
   const out = await build().withCache(`${process.cwd()}/src`).result;
   if (out === undefined) console.log("no changes — skipped the build");
 });
@@ -179,7 +192,7 @@ om("build", async () => {
 ```ts
 import { watchDir } from "omkit/actions";
 
-om("watch", async () => {
+om("watch").run(async () => {
   const watcher = watchDir("src").tag("watch");
   watcher.on("update", (file) => console.log(`changed: ${file}`));
   // body returns, but the watcher keeps the run alive until Ctrl+C
@@ -189,7 +202,7 @@ om("watch", async () => {
 **Gate a deploy on green tests.** A red test rejects at the `await`; catch it to branch:
 
 ```ts
-om("ship", async () => {
+om("ship").run(async () => {
   try {
     await command("npm test").result; // resolves on green, throws on red
   } catch {
@@ -204,7 +217,7 @@ om("ship", async () => {
 ```ts
 import { prompt } from "omkit/actions";
 
-om("deploy", async () => {
+om("deploy").run(async () => {
   const answer = await prompt({
     kind: "choice",
     message: "Deploy to production?",
@@ -219,7 +232,7 @@ om("deploy", async () => {
 **Take a block of text.** `kind: "multiline"` reads lines until `until` says stop: parseable JSON (the default), a sentinel line, or a predicate over the text so far. The JSON default is self-terminating, so a pretty-printed blob can be pasted straight in with nothing to explain:
 
 ```ts
-om("seed", async () => {
+om("seed").run(async () => {
   const blob = await prompt({
     kind: "multiline",
     message: "Paste the service config",

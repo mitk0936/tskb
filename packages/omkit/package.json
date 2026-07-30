@@ -1,6 +1,6 @@
 {
   "name": "omkit",
-  "version": "0.4.8",
+  "version": "0.5.0",
   "description": "A tiny runtime for developer workflows: typed actions that pass runtime capabilities and emit typed events, under one run and one shared log. The operational/runtime layer to tskb's knowledge layer.",
   "type": "module",
   "main": "./dist/index.js",
@@ -10,7 +10,8 @@
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "exports": {
     ".": {

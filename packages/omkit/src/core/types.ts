@@ -70,7 +70,14 @@ export interface OmDescription {
 
 /** The builder returned by `om(name)`. `.run(body)` launches the run. */
 export interface OmBuilder {
+  /** Attach a human-readable summary — carried for `omkit ls` and future tooling. */
   describe(description: OmDescription): OmBuilder;
+  /**
+   * Launch the run with `body` as its root. The body runs inside the root node's
+   * ambient scope, so any action call / `step(...)` / `console.*` it reaches attributes
+   * correctly. Resolves once the run has torn down and produced its artifacts; never
+   * rejects (failures are recorded in the tree and set the exit code).
+   */
   run(body: (ctx: OmContext) => Awaitable<void>): Promise<void>;
 }
 

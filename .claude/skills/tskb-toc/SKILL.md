@@ -15,7 +15,7 @@ The big-picture index of this repo. Load this whenever you start a task — it t
 - **__TSKB.ROOT__** (`.`) — The root directory (automatically added by tskb)
   - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [2 folders, 2 files]
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [2 folders]
-    - **omkit** (`packages/omkit`) — The operational-model kit: a Node runtime for the workflows around your code (start servers, wait, watch, drive a browser, tear down) that narrates each run to disk. [2 folders, 5 files]
+    - **omkit** (`packages/omkit`) — The operational-model kit: a Node runtime for the workflows around your code (start servers, wait, watch, drive a browser, tear down) that narrates each run to disk. [2 folders, 6 files]
     - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [3 folders, 5 files]
   - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [4 files]
   - **tests** (`tests`) — End-to-end tests for the tskb CLI. [1 folder]
@@ -84,7 +84,7 @@ _Plus 32 supplementary docs available via `npx --no -- tskb docs --plain`._
   explorer.explore → explorer.transformGraph → explorer.exportExplorer
 - **static-analysis** [essential] — `tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly
   ts.createProgram → extraction.registry → extraction.documentation → graph.builder
-- **omkit-run** [essential] — An om(name, body) call hosts a run: actions launch as nodes, the engine supervises them and the shared log, and the run folder captures the record
+- **omkit-run** [essential] — An om(name).run(body) call hosts a run: actions launch as nodes, the engine supervises them and the shared log, and the run folder captures the record
   omkit.om → omkit.action → omkit.core.execution-tree → omkit.output.run-folder
 
 _Plus 12 supplementary flows available via `npx --no -- tskb flows --plain`._

@@ -10,11 +10,10 @@ import type { OmBuilder, OmContext } from "../../../src/index.ts";
 export const builder: OmBuilder = om("builder-cross-file");
 
 /**
- * The two-arg form's call, written in this same file — the "ground truth" identity
- * for `builder-cross-file` as defined here. The two-arg form has no builder
- * indirection to get wrong, so this is what `builder.run(...)` must match no matter
- * which file triggers it.
+ * The ground-truth identity for `builder-cross-file` as defined here: both `om(name)`
+ * and `.run(body)` are written in this file, so this resolves to *this* file's identity
+ * no matter which of the two the capture reads from. That's what `builder.run(...)`,
+ * triggered from the test file, must match.
  */
-export const runDirectlyFromHere = (
-  body: (ctx: OmContext) => Promise<void> | void
-): Promise<void> => om("builder-cross-file", body);
+export const runFromFixture = (body: (ctx: OmContext) => Promise<void> | void): Promise<void> =>
+  om("builder-cross-file").run(body);
