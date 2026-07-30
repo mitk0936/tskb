@@ -62,6 +62,10 @@ export class ExecutionTree {
   private forwarding: Promise<void> | undefined;
   private assertionsPassed = 0;
   private assertionsFailed = 0;
+  // The root's args are resolved *inside* its body (prompting is async), so unlike a
+  // child node's they cannot be handed to `run()` up front — they are recorded here
+  // instead and projected onto the root by `nodeView`.
+  private rootArgs: readonly unknown[] = [];
   private readonly faults: Array<{ action: string; error: string }> = [];
 
   static graceMs = 5000; // teardown waits this long for nodes to settle, then finalizes anyway
@@ -103,6 +107,11 @@ export class ExecutionTree {
       (currentNode.getStore() ?? this.root).toRef()
     );
     ExecutionTree.last = this;
+  }
+
+  /** Record the run's resolved args, so the root's log header reports them. */
+  setRootArgs(args: unknown): void {
+    this.rootArgs = [args];
   }
 
   /** Launch an instance under the ambient current node (or the root). */
@@ -362,7 +371,8 @@ export class ExecutionTree {
       path: node.path,
       parentId: node.parentId,
       tags: [...node.tags],
-      args: [...node.args],
+      // The root never has args passed to `run()`; its own are resolved mid-body.
+      args: [...(node.parentId === null ? this.rootArgs : node.args)],
       status: node.status,
       startedAt: node.startedAt,
       endedAt: node.endedAt,

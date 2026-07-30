@@ -17,6 +17,7 @@ export type {
   Activity,
   ActionContext,
   OmBuilder,
+  OmBuilderArgs,
   OmContext,
   OmDescription,
 } from "./core/types.ts";

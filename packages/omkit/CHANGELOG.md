@@ -16,6 +16,13 @@
 - `action(name).args(schema)` pins the type of `.run`'s args parameter (the action's first
   argument) to a zod schema's inferred type. Type-level only: the schema is not validated
   at runtime, because an action launched from an om body is passed its arguments in code.
+- `om(name).args(schema)` declares the run's inputs and resolves them at run start, passing
+  the typed result to `.run`'s body as its second parameter. Each field is filled from what
+  was supplied (`OMKIT_ARGS`, a JSON object), then the schema's defaults, then by prompting
+  — and if nobody can be asked, the run fails naming every unresolved field at once rather
+  than blocking on a question no one will see. A blank answer re-asks instead of coercing.
+  The resolved values are recorded on the root node, so `result.json` and the `main.log`
+  header report what the run was actually given.
 - `ctx.artifact(name, file, opts?)` labels a file the run produced. Registrations reach
   the timeline and `artifacts.log` (every call, chronologically) and `result.json`, which
   carries the latest registration per `(node, name)` — so one node re-labelling a name

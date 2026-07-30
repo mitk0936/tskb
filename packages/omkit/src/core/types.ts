@@ -73,12 +73,30 @@ export interface OmBuilder {
   /** Attach a human-readable summary — carried for `omkit ls` and future tooling. */
   describe(description: OmDescription): OmBuilder;
   /**
+   * Declare the run's input shape. Unlike an action's `.args()`, this is resolved at
+   * runtime: the values come from what was supplied, then the schema's defaults, then by
+   * prompting — and the run fails if that is not enough.
+   */
+  args<S extends ZodTypeLike>(schema: S): OmBuilderArgs<S>;
+  /**
    * Launch the run with `body` as its root. The body runs inside the root node's
    * ambient scope, so any action call / `step(...)` / `console.*` it reaches attributes
    * correctly. Resolves once the run has torn down and produced its artifacts; never
    * rejects (failures are recorded in the tree and set the exit code).
    */
   run(body: (ctx: OmContext) => Awaitable<void>): Promise<void>;
+}
+
+/** After `.args(schema)`: `.run`'s body receives the resolved, typed args. */
+export interface OmBuilderArgs<S extends ZodTypeLike> {
+  describe(description: OmDescription): OmBuilderArgs<S>;
+  /**
+   * Launch the run, resolving the declared args first — supplied values, then defaults,
+   * then prompting — and pass them to `body` as its second parameter. Resolution happens
+   * *inside* the run, so a prompt and its answer land on the run's own timeline; an
+   * unresolvable arg fails the run like any other error in the body.
+   */
+  run(body: (ctx: OmContext, args: InferSchema<S>) => Awaitable<void>): Promise<void>;
 }
 
 /** What the `om` body receives — the run-level counterpart to {@link ActionContext}. */

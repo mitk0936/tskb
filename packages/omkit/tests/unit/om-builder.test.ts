@@ -1,7 +1,11 @@
 import { afterEach, describe, expect, test } from "vitest";
 import { om } from "../../src/index.ts";
 import { ExecutionTree } from "../../src/core/ExecutionTree.ts";
-import { builder as crossFileBuilder, runFromFixture } from "../fixtures/call-site/builder.ts";
+import {
+  argsBuilder as crossFileArgsBuilder,
+  builder as crossFileBuilder,
+  runFromFixture,
+} from "../fixtures/call-site/builder.ts";
 
 afterEach(() => {
   ExecutionTree.reset();
@@ -57,6 +61,22 @@ describe("om builder", () => {
     // by the two assertions above rather than passing vacuously.
     await om("builder-cross-file").run(async () => {});
     expect(ExecutionTree.last!.folder.name()).not.toBe(fixtureIdentity);
+  });
+
+  // `.args(schema)` inserts a second builder between `om(name)` and `.run(body)`, so the
+  // site has to be threaded through the new object too. Same reasoning as above: only a
+  // cross-file test can tell a threaded site from one re-captured inside `.run()`.
+  test("a site survives the .args() link — identity still follows om(name)", async () => {
+    await runFromFixture(async () => {});
+    const fixtureIdentity = ExecutionTree.last!.folder.name();
+    ExecutionTree.reset();
+
+    // Built (with `.args()`) in the fixture; `.run()` fires here.
+    await crossFileArgsBuilder.run(async () => {});
+    expect(ExecutionTree.last!.runViewForTest().root.definedAt).toMatch(
+      /call-site[\\/]builder\.ts:\d+$/
+    );
+    expect(ExecutionTree.last!.folder.name()).toBe(fixtureIdentity);
   });
 
   test("the builder rejects an empty name", () => {

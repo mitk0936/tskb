@@ -102,7 +102,31 @@ const seed = action("seed")
 seed({ rows: 500 }); // calling launches it; the shape is pinned, not checked at runtime
 ```
 
-`om(name).run(async (ctx) => …)` hosts the orchestration as the root of a run. `om(name)` returns a builder: chain `.describe({ summary })` to attach a human-readable summary, then finish with `.run(body)`, which launches it. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+`om(name).run(async (ctx) => …)` hosts the orchestration as the root of a run. `om(name)` returns a builder: chain `.describe({ summary })` to attach a human-readable summary and/or `.args(schema)` to declare what the run needs, then finish with `.run(body)`, which launches it. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+
+### Run arguments — `om(name).args(schema)`
+
+An om declares what it needs, and omkit fills it in. Unlike `action`'s `.args()`, this one is **resolved at runtime**: `.run`'s body receives the resolved, validated values as its second parameter, typed by the schema.
+
+```ts
+import { z } from "zod";
+
+om("seed")
+  .args(z.object({ rows: z.number(), truncate: z.boolean().default(false) }))
+  .run(async (ctx, args) => {
+    // args: { rows: number; truncate: boolean } — already resolved and validated
+    await command(`./seed.sh --rows ${args.rows}`).result;
+  });
+```
+
+Each field is filled from the first of these that can answer:
+
+1. **Supplied** — `OMKIT_ARGS`, a JSON object in the environment.
+2. **Defaults** — anything the schema defaults, which is therefore never asked about.
+3. **Prompt** — whatever is still missing, one field at a time, with a one-line type sketch (`rows (number)`). Objects and arrays are asked for as a multiline JSON block — paste it, or answer with the path to a JSON file. A blank answer is _no answer_, not a value: it re-asks rather than coercing (`Number("")` is `0`). Resolution gives up after three rounds.
+4. **Fail** — if nobody can be asked (no supervising picker and no TTY), the run fails naming every unresolved field at once, instead of prompting into the void.
+
+Resolution happens **inside** the run, so a prompt and its answer land on the run's own timeline, and the values it settled on are recorded in `result.json` and the `main.log` header — a later reader can see exactly what the run was given.
 
 ### Typed capabilities
 

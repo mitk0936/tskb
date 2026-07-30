@@ -1,7 +1,11 @@
 import type { JsonSchema } from "./schema-json.ts";
 
-/** What we print when a schema is too gnarly to sketch (deep unions, recursion). */
-const OPAQUE = "see schema";
+/**
+ * What we print when a schema is too gnarly to sketch (deep unions, recursion). Exported
+ * so a caller can *recognize* the degraded hint and print the raw schema instead of it —
+ * comparing against a copied literal would silently stop working if this text changed.
+ */
+export const OPAQUE = "see schema";
 
 /**
  * Render a JSON Schema as a one-line type sketch for a prompt — `{ host: string,

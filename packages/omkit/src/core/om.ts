@@ -1,6 +1,18 @@
 import { ExecutionTree } from "./ExecutionTree.ts";
 import { callerSite } from "../foundation/callsite.ts";
-import type { Awaitable, Exec, OmBuilder, OmContext, OmDescription } from "./types.ts";
+import { activeSupervisor } from "./interaction.ts";
+import { resolveArgs, type AskSpec } from "./args.ts";
+import { OPAQUE } from "./schema-hint.ts";
+import type {
+  Awaitable,
+  Exec,
+  InferSchema,
+  OmBuilder,
+  OmBuilderArgs,
+  OmContext,
+  OmDescription,
+  ZodTypeLike,
+} from "./types.ts";
 
 function assertName(name: string): void {
   if (typeof name !== "string" || name.trim() === "") {
@@ -36,6 +48,7 @@ function launch(
 }
 
 class Builder implements OmBuilder {
+  /** Carried into `ArgsBuilder` by `.args()`, which otherwise rebuilds the builder. */
   private description: OmDescription | undefined;
 
   constructor(
@@ -49,6 +62,10 @@ class Builder implements OmBuilder {
     return this;
   }
 
+  args<S extends ZodTypeLike>(schema: S): OmBuilderArgs<S> {
+    return new ArgsBuilder<S>(this.name, this.site, schema, this.description);
+  }
+
   run(body: (ctx: OmContext) => Awaitable<void>): Promise<void> {
     void this.description; // carried for `omkit ls` and Spec B; not read by the runtime yet
     return launch(this.name, this.site, body);
@@ -56,14 +73,91 @@ class Builder implements OmBuilder {
 }
 
 /**
- * Define a run. `om(name)` returns a builder — chain `.describe(…)` and finish with
- * `.run(body)`, which launches it as the root of a fresh {@link ExecutionTree}. The name
- * plus the absolute path of the calling file identify the run; its log folder is
- * `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder.
+ * The builder after `.args(schema)`. Unlike an action's, the schema here is live: `.run`
+ * resolves it before calling the body, so an om declares what it needs and omkit fills it
+ * in. The site is the one `om()` captured — threaded through, never re-taken.
+ */
+class ArgsBuilder<S extends ZodTypeLike> implements OmBuilderArgs<S> {
+  constructor(
+    private readonly name: string,
+    private readonly site: string | undefined,
+    private readonly schema: S,
+    private description: OmDescription | undefined
+  ) {}
+
+  describe(description: OmDescription): OmBuilderArgs<S> {
+    this.description = description;
+    return this;
+  }
+
+  run(body: (ctx: OmContext, args: InferSchema<S>) => Awaitable<void>): Promise<void> {
+    void this.description; // carried for `omkit ls` and Spec B; not read by the runtime yet
+    // Resolution happens inside the run, not before it: prompting is async, and the run
+    // must already exist for the prompt and its answer to land on the timeline. A failure
+    // to resolve is therefore an ordinary failure of the root node — logged, and the run
+    // is marked failed — rather than a throw out of `om(...)`.
+    return launch(this.name, this.site, async (ctx) => {
+      const args = (await resolveArgs(this.schema, {
+        supplied: parseSuppliedArgs(),
+        interactive: isInteractive(),
+        ask: askForArg,
+      })) as InferSchema<S>;
+      ExecutionTree.current?.setRootArgs(args);
+      await body(ctx, args);
+    });
+  }
+}
+
+/** `OMKIT_ARGS` carries JSON — the only channel readable synchronously at `.run()`. */
+function parseSuppliedArgs(): unknown {
+  const raw = process.env.OMKIT_ARGS;
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new Error("OMKIT_ARGS is not valid JSON");
+  }
+}
+
+/**
+ * Supervised, or a real terminal. Otherwise nobody can answer a prompt and resolution must
+ * fail fast instead of blocking on a question no one will see.
+ */
+function isInteractive(): boolean {
+  return activeSupervisor() !== null || process.stdin.isTTY === true;
+}
+
+/**
+ * Ask the user for one arg, via the `prompt` battery. Imported lazily because `core` may
+ * not import `actions` (an eslint layer boundary, and it keeps `import { om }` from pulling
+ * readline in): the edge only exists when a run actually needs to prompt.
+ */
+async function askForArg(spec: AskSpec): Promise<string> {
+  const { prompt } = await import("../actions/prompt.ts");
+  if (spec.kind === "json") {
+    return prompt({
+      kind: "multiline",
+      message: `${spec.path} — JSON`,
+      // A degraded sketch tells the user nothing about what to type, so when `shapeHint`
+      // gives up the schema itself goes in its place.
+      hint: spec.hint === OPAQUE ? JSON.stringify(spec.jsonSchema) : spec.hint,
+      until: "json",
+      timeoutMs: 120_000,
+    }).result;
+  }
+  return prompt({ message: `${spec.path} (${spec.hint})`, timeoutMs: 120_000 }).result;
+}
+
+/**
+ * Define a run. `om(name)` returns a builder — chain `.describe(…)` and/or `.args(schema)`
+ * and finish with `.run(body)`, which launches it as the root of a fresh
+ * {@link ExecutionTree}. The name plus the absolute path of the calling file identify the
+ * run; its log folder is `logs/<name>-<hash8>/…`, so same-named oms in different files
+ * never share a folder.
  *
- * The call site is captured **here**, not in `.run()`: `om(name)` is where a run is
- * defined, so a builder handed to (and run from) another file still hashes to the file
- * that defined it — see the run-folder-identity constraint doc.
+ * The call site is captured **here**, not in `.run()` (nor in `.args()`): `om(name)` is
+ * where a run is defined, so a builder handed to (and run from) another file still hashes
+ * to the file that defined it — see the run-folder-identity constraint doc.
  */
 export function om(name: string): OmBuilder {
   assertName(name);
