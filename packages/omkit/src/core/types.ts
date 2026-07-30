@@ -56,6 +56,18 @@ export interface ActionContext<Events extends object = NoEvents, Handle = void> 
   readonly proc: Proc;
 }
 
+/** Human-readable metadata about an om or action. */
+export interface OmDescription {
+  /** One line saying what this does. */
+  summary: string;
+}
+
+/** The builder returned by `om(name)`. `.run(body)` launches the run. */
+export interface OmBuilder {
+  describe(description: OmDescription): OmBuilder;
+  run(body: (ctx: OmContext) => Awaitable<void>): Promise<void>;
+}
+
 /** What the `om` body receives — the run-level counterpart to {@link ActionContext}. */
 export interface OmContext {
   /** The run's (root) abort signal. */
