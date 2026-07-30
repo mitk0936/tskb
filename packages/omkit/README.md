@@ -74,7 +74,22 @@ const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 const activity = build(); // calling launches; returns the live Activity
 ```
 
-`om(name, async (ctx) => …)` hosts the orchestration as the root of a run. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+Chain `.describe({ summary })` before `.run(...)` to attach a human-readable summary (for `omkit ls` and future tooling) — same shape as `om`'s, below. `.args(schema)` pins the type of `.run`'s second parameter to a zod schema's inferred type. It's **type-level only**: nothing here resolves, prompts for, or validates the value — an action launched from an om body is passed its arguments directly in code, so the schema exists to type that call site, not to gate it. (Resolving/prompting for arguments is an `om`-level concern, not `action`'s.)
+
+```ts
+import { z } from "zod";
+
+const seed = action("seed")
+  .describe({ summary: "Seeds the database" })
+  .args(z.object({ rows: z.number() }))
+  .run(async (_ctx, { rows }) => {
+    /* rows: number — typed, not validated */
+  });
+
+seed({ rows: 500 }); // calling launches it; the shape is pinned, not checked at runtime
+```
+
+`om(name, async (ctx) => …)` hosts the orchestration as the root of a run. `om(name)` also has a builder form — chain `.describe({ summary })` to attach a human-readable summary, then finish with `.run(body)`, which behaves identically to the two-arg call. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
 
 ### Typed capabilities
 

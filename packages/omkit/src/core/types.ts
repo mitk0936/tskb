@@ -1,6 +1,12 @@
+import type { z } from "zod";
 import type { Emitter, EventHandler } from "../foundation/events.ts";
 import type { ReadableLog } from "../foundation/LogEntry.ts";
 import type { Proc } from "../system/proc.ts";
+
+/** Any zod schema. Aliased so the rest of the file reads without zod's generics. */
+export type ZodTypeLike = z.ZodType;
+/** The TypeScript type a schema validates to. */
+export type InferSchema<S extends ZodTypeLike> = z.infer<S>;
 
 /** A value an action's exec may return: a result, or a promise of one. */
 export type Awaitable<T> = T | Promise<T>;
@@ -154,13 +160,24 @@ export interface Action<
   readonly definedAt: string | undefined;
 }
 
-/** Intermediate step from `action(name)`: declare events/handle, then provide the impl. */
+/** Intermediate step from `action(name)`: declare metadata/events/handle, then the impl. */
 export interface ActionBuilderEvents<Events extends object, Handle = void> {
+  describe(description: OmDescription): ActionBuilderEvents<Events, Handle>;
   emits<E extends object>(): ActionBuilderEvents<E, Handle>;
   ref<H>(): ActionBuilderEvents<Events, H>;
+  /** Pin the first parameter to the schema's inferred type. */
+  args<S extends ZodTypeLike>(schema: S): ActionBuilderArgs<S, Events, Handle>;
   run<Args extends unknown[], Result>(
     body: (ctx: ActionContext<Events, Handle>, ...args: Args) => Awaitable<Result>
   ): Action<Args, Result, Events, Handle>;
+}
+
+/** After `.args(schema)`: `.run` takes exactly one typed argument. */
+export interface ActionBuilderArgs<S extends ZodTypeLike, Events extends object, Handle = void> {
+  describe(description: OmDescription): ActionBuilderArgs<S, Events, Handle>;
+  run<Result>(
+    body: (ctx: ActionContext<Events, Handle>, args: InferSchema<S>) => Awaitable<Result>
+  ): Action<[InferSchema<S>], Result, Events, Handle>;
 }
 
 /** The exec signature bound by `.run(...)` (arg types erased at the boundary). */
