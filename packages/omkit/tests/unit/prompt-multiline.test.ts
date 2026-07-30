@@ -87,7 +87,7 @@ describe("a multiline prompt at the bare terminal", () => {
     let got: string | undefined;
 
     const written = await withFakeStdio(async (stdin) => {
-      await om("multiline-input", async () => {
+      await om("multiline-input").run(async () => {
         const asked = prompt({ kind: "multiline", message: "Paste config", timeoutMs: 5_000 });
         asked.on("answer", (a) => void (answer = a));
         stdin.write(`${blob}\n`);
@@ -108,7 +108,7 @@ describe("a multiline prompt at the bare terminal", () => {
     let got: string | undefined;
 
     const written = await withFakeStdio(async () => {
-      await om("multiline-timeout", async () => {
+      await om("multiline-timeout").run(async () => {
         const asked = prompt({
           kind: "multiline",
           message: "Paste config",
@@ -146,7 +146,7 @@ describe("a multiline prompt under a supervisor", () => {
     installSupervisor(sup);
 
     let got: string | undefined;
-    await om("ask-multiline", async () => {
+    await om("ask-multiline").run(async () => {
       got = await prompt({
         kind: "multiline",
         message: "Paste config",

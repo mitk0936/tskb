@@ -31,7 +31,7 @@ describe("portFree", () => {
     const { port, close } = await listen();
     let result: PortFreeResult | undefined;
 
-    await om("port-free-release", async () => {
+    await om("port-free-release").run(async () => {
       const gate = portFree(port, { intervalMs: 20, connectTimeoutMs: 250, timeoutMs: 5000 });
       setTimeout(() => void close(), 150); // release well after the first probes have failed
       result = await gate.result;
@@ -47,7 +47,7 @@ describe("portFree", () => {
     await close(); // the port is now known-free
     let result: PortFreeResult | undefined;
 
-    await om("port-free-immediate", async () => {
+    await om("port-free-immediate").run(async () => {
       result = await portFree(port, { intervalMs: 20, timeoutMs: 5000 }).result;
     });
 
@@ -58,7 +58,7 @@ describe("portFree", () => {
     const { port, close } = await listen();
     let error: unknown;
 
-    await om("port-free-timeout", async () => {
+    await om("port-free-timeout").run(async () => {
       error = await portFree(port, { intervalMs: 20, timeoutMs: 100 }).result.catch((e) => e);
     });
     await close();

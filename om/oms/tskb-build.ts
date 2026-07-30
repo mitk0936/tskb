@@ -17,7 +17,7 @@ const buildConfig = {
   verbose: true, // flip to false to quiet the diagnostic firehose
 };
 
-om("tskb:build", async ({ snapshot }) => {
+om("tskb:build").run(async ({ snapshot }) => {
   void snapshot("build-config", buildConfig);
 
   const watchBuildDirectory = watchDir(path.join(repoRoot, ".tskb")).tag("watch:build:daemon");

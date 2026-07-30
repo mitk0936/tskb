@@ -59,7 +59,7 @@ describe("om builder", () => {
 
     // Confirm the match above isn't coincidental: a direct call to the *same* name
     // from *this* file must hash differently than the fixture's.
-    await om("builder-cross-file", async () => {});
+    await om("builder-cross-file").run(async () => {});
     expect(ExecutionTree.last!.folder.name()).not.toBe(fixtureIdentity);
   });
 

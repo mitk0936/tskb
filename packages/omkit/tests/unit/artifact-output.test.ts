@@ -11,7 +11,7 @@ afterEach(() => {
 
 describe("artifact output", () => {
   test("curated artifacts appear in the run view", async () => {
-    await om("artifact-view", async (ctx) => {
+    await om("artifact-view").run(async (ctx) => {
       ctx.artifact("report", path.join(ctx.artifactsFolder, "report.json"), {
         description: "The generated report",
       });
@@ -27,7 +27,7 @@ describe("artifact output", () => {
   });
 
   test("result.json carries the artifacts", async () => {
-    await om("artifact-result", async (ctx) => {
+    await om("artifact-result").run(async (ctx) => {
       ctx.artifact("shot", path.join(ctx.artifactsFolder, "shot.png"));
     });
 
@@ -41,7 +41,7 @@ describe("artifact output", () => {
   });
 
   test("artifacts.log lists each registration", async () => {
-    await om("artifact-rollup", async (ctx) => {
+    await om("artifact-rollup").run(async (ctx) => {
       ctx.artifact("one", path.join(ctx.artifactsFolder, "one.png"));
       ctx.artifact("two", path.join(ctx.artifactsFolder, "two.png"));
     });
@@ -53,12 +53,12 @@ describe("artifact output", () => {
   });
 
   test("a run with no artifacts still writes an empty list", async () => {
-    await om("artifact-none", async () => {});
+    await om("artifact-none").run(async () => {});
     expect(ExecutionTree.last!.runViewForTest().artifacts).toEqual([]);
   });
 
   test("re-registering the same name updates result.json in place but artifacts.log keeps every entry", async () => {
-    await om("artifact-dedupe", async (ctx) => {
+    await om("artifact-dedupe").run(async (ctx) => {
       ctx.artifact("report", path.join(ctx.artifactsFolder, "report.json"), {
         description: "first pass",
       });
@@ -84,7 +84,7 @@ describe("artifact output", () => {
   });
 
   test("two different actions registering the same name both survive in result.json", async () => {
-    await om("artifact-cross-node", async () => {
+    await om("artifact-cross-node").run(async () => {
       await step("capture-a", async (ctx) => {
         ctx.artifact("screenshot", path.join(ctx.artifactsFolder, "a.png"));
       });
@@ -104,7 +104,7 @@ describe("artifact output", () => {
   });
 
   test("a relative file path is resolved to absolute in the run view", async () => {
-    await om("artifact-relative", async (ctx) => {
+    await om("artifact-relative").run(async (ctx) => {
       ctx.artifact("relative", path.join("relative-artifact.txt"));
     });
 

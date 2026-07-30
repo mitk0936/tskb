@@ -46,7 +46,7 @@ describe("chromePage __name shim", () => {
   test("seeds a no-op __name across the whole context — every page and future document", async () => {
     const { initial, sibling, ctxInit } = makeEnv();
 
-    await om("shim", async ({ cancel }) => {
+    await om("shim").run(async ({ cancel }) => {
       const inst = chromePage("Test", initial as never);
       await inst.ref; // resolves once the page is attached — the shim has run by then
       cancel();

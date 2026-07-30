@@ -14,7 +14,7 @@ const EXPLORER_URL = `http://localhost:${EXPLORER_PORT}/`;
 const WATCH_DOCS_CMD =
   'npx --no -- tskb "./docs/**/*.tskb.tsx" --tsconfig ./docs/tsconfig.json --project "TSKB Monorepo Watch Dev" --watch --watch-path ./packages/tskb/dist';
 
-om("tskb:dev", async () => {
+om("tskb:dev").run(async () => {
   const answer = await prompt({
     kind: "choice",
     message: "Run tests?",

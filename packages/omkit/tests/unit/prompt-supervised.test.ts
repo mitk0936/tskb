@@ -35,7 +35,7 @@ describe("prompt under a supervisor", () => {
     installSupervisor(sup);
 
     let picked: string | undefined;
-    await om("ask", async () => {
+    await om("ask").run(async () => {
       picked = await prompt({
         kind: "choice",
         message: "Deploy?",
@@ -68,7 +68,7 @@ describe("prompt under a supervisor", () => {
     installSupervisor(sup);
 
     let picked: string | undefined;
-    await om("ask-timeout", async () => {
+    await om("ask-timeout").run(async () => {
       picked = await prompt({ message: "Name?", default: "anon", timeoutMs: 20 }).result.catch(
         () => "ERR"
       );

@@ -30,7 +30,7 @@ describe("ExecutionTree under a supervisor", () => {
     const { sup, sent } = recordingSupervisor();
     installSupervisor(sup);
 
-    await om("run-ok", async ({ snapshot }) => {
+    await om("run-ok").run(async ({ snapshot }) => {
       await snapshot("state", { a: 1 });
     });
 
@@ -49,7 +49,7 @@ describe("ExecutionTree under a supervisor", () => {
     const { sup, sent } = recordingSupervisor();
     installSupervisor(sup);
 
-    await om("run-fail", async () => {
+    await om("run-fail").run(async () => {
       // Unobserved failure tears the run down and records a fault.
       action("boom").run(() => {
         throw new Error("nope");
@@ -64,7 +64,7 @@ describe("ExecutionTree under a supervisor", () => {
     const { sup, sent, push } = recordingSupervisor();
     installSupervisor(sup);
 
-    await om("run-cancel", async ({ signal }) => {
+    await om("run-cancel").run(async ({ signal }) => {
       // Ask the supervisor to cancel, then wait — teardown must abort this signal.
       push({ kind: "cancel" });
       await new Promise<void>((resolve) => {
@@ -82,7 +82,7 @@ describe("ExecutionTree under a supervisor", () => {
     installSupervisor(sup);
     const write = vi.spyOn(process.stdout, "write").mockReturnValue(true);
 
-    await om("quiet", async ({ snapshot }) => {
+    await om("quiet").run(async ({ snapshot }) => {
       await snapshot("s", { ok: true });
     });
 

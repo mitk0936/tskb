@@ -43,7 +43,7 @@ describe("ArtifactStore", () => {
 describe("ctx.artifact", () => {
   test("registers from an om body and returns the path", async () => {
     let returned = "";
-    await om("artifact-probe", async (ctx) => {
+    await om("artifact-probe").run(async (ctx) => {
       returned = ctx.artifact("login-failure", path.join(ctx.artifactsFolder, "shot.png"), {
         description: "Screenshot at the failing assertion",
       });
@@ -58,7 +58,7 @@ describe("ctx.artifact", () => {
   });
 
   test("the registration reaches the run timeline", async () => {
-    await om("artifact-timeline", async (ctx) => {
+    await om("artifact-timeline").run(async (ctx) => {
       ctx.artifact("report", path.join(ctx.artifactsFolder, "report.json"));
     });
 

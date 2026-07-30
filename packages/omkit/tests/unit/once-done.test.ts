@@ -10,7 +10,7 @@ afterEach(() => {
 describe('once("done")', () => {
   test("resolves the result value on success", async () => {
     let got: unknown;
-    await om("once-done", async () => {
+    await om("once-done").run(async () => {
       got = await action("win")
         .run(async () => 42)()
         .once("done");
@@ -21,7 +21,7 @@ describe('once("done")', () => {
   test("rejects with the failure and observes it — the body cannot sail past a failed gate", async () => {
     let caught: unknown;
     let sailedPast = false;
-    await om("once-done", async () => {
+    await om("once-done").run(async () => {
       try {
         await action("boom")
           .run(async () => {
@@ -41,7 +41,7 @@ describe('once("done")', () => {
 
   test("rejects CancelledError when the activity is cancelled", async () => {
     let caught: unknown;
-    await om("once-done", async () => {
+    await om("once-done").run(async () => {
       const daemon = action("daemon").run(
         ({ signal }) =>
           new Promise<void>((_, reject) => {
