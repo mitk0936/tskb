@@ -164,6 +164,9 @@ const ActionExport = ref as tskb.Exports["omkit.action"];
 const StepExport = ref as tskb.Exports["omkit.step"];
 const ActivityExport = ref as tskb.Exports["omkit.Activity"];
 
+const ResolveArgsExport = ref as tskb.Exports["omkit.resolveArgs"];
+const ArtifactStoreExport = ref as tskb.Exports["omkit.ArtifactStore"];
+
 const CapabilityTerm = ref as tskb.Terms["capability"];
 const RunFolderTerm = ref as tskb.Terms["run-folder"];
 const SupervisionTerm = ref as tskb.Terms["structured-supervision"];
@@ -187,6 +190,16 @@ export default (
       The public surface in {OmkitIndex} is small and curated: {OmExport} hosts a run,{" "}
       {ActionExport} defines a typed unit of work, and {StepExport} runs a one-off inline unit.
       Everything else — the engine that supervises them — stays internal.
+    </P>
+    <P>
+      Both {OmExport} and {ActionExport} return a builder: chain <code>.describe(...)</code> to
+      attach a one-line summary — carried on the definition for <code>omkit ls</code> and future
+      tooling, but not read by anything yet — and finish with <code>.run(body)</code>. Only{" "}
+      {OmExport}'s <code>.args(schema)</code> does anything at runtime: it declares the run's input
+      shape, and {ResolveArgsExport} fills it in before handing the resolved value to{" "}
+      <code>.run</code>'s body as its second parameter. {ActionExport}'s own{" "}
+      <code>.args(schema)</code> only pins that parameter's type. How the two differ, and how
+      resolution actually works, is its own question — see the args doc.
     </P>
 
     <H2>The model</H2>
@@ -216,6 +229,12 @@ export default (
       Every run produces a {RunFolderTerm} — a machine-readable account of what launched, what came
       up, what failed, and what the world looked like. Its stable identity means a script or an
       assistant can always find "the latest run" of a given {OmExport} without parsing scrollback.
+    </P>
+    <P>
+      A run can also curate its own file outputs: <code>ctx.artifact(name, file, opts?)</code>{" "}
+      labels a file the body already wrote, and {ArtifactStoreExport} keeps every registration.
+      Which files land where, and how <code>ctx.artifact</code> differs from{" "}
+      <code>ctx.snapshot</code>, is the artifacts doc's question.
     </P>
 
     <Flow

@@ -101,7 +101,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — What does the runtime module provide and what does it not do?
 - `docs/src/tskb/usage.tskb.tsx` — What's the typical workflow for setting up tskb in a repo?
 
-_Plus 32 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 34 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 ## Externals
 
