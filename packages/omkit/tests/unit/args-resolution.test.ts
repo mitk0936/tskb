@@ -4,6 +4,7 @@ import { z } from "zod";
 import { MissingArgsError, resolveArgs } from "../../src/core/args.ts";
 import { om } from "../../src/index.ts";
 import { ExecutionTree } from "../../src/core/ExecutionTree.ts";
+import { withFakeStdio } from "../support/fake-stdio.ts";
 import {
   createSupervisor,
   installSupervisor,
@@ -51,7 +52,7 @@ describe("resolveArgs", () => {
 
   test("prompts for a missing object as JSON, with a shape hint", async () => {
     const schema = z.object({ config: z.object({ host: z.string(), port: z.number() }) });
-    let seenHint = "";
+    let seenHint: string | undefined;
     const resolved = await resolveArgs(schema, {
       supplied: {},
       interactive: true,
@@ -115,9 +116,38 @@ describe("resolveArgs", () => {
     ).toEqual({});
   });
 
-  // `shapeHint` degrades to the literal "see schema" when it cannot sketch a shape. The
-  // caller needs the raw schema to print in that case, so the spec carries it — see the
-  // `om().args()` prompt tests below for the branch that uses it.
+  test("a type JSON Schema cannot represent still resolves when nothing must be asked", async () => {
+    // `z.toJSONSchema` throws on `z.date()`. Converting eagerly therefore failed runs whose
+    // args were entirely supplied — work the run never needed, taking it down anyway. The
+    // conversion exists for the prompt's type sketch, so it may only happen when asking.
+    const schema = z.object({ when: z.date(), rows: z.number() });
+    const when = new Date("2020-01-01T00:00:00.000Z");
+    expect(
+      await resolveArgs(schema, { supplied: { when, rows: 1 }, interactive: false, ask: never })
+    ).toEqual({ when, rows: 1 });
+    // Defaults too — also resolved without ever reaching a prompt.
+    const defaulted = z.object({ when: z.date().default(when) });
+    expect(await resolveArgs(defaulted, { supplied: {}, interactive: false, ask: never })).toEqual({
+      when,
+    });
+  });
+
+  test("an unrepresentable type that *is* asked about still fails loudly", async () => {
+    // The other direction: laziness must not turn a real conversion failure into silence.
+    // Nothing supplied `when`, so a sketch is genuinely needed and the throw is correct.
+    await expect(
+      resolveArgs(z.object({ when: z.date() }), {
+        supplied: {},
+        interactive: true,
+        ask: never,
+      })
+    ).rejects.toThrow(/JSON Schema/);
+  });
+
+  // `shapeHint` returns `undefined` when it cannot sketch a shape — degradation is signalled
+  // by the type, not by a sentinel string a caller has to recognise. The caller needs the raw
+  // schema to print instead, so the spec carries it — see the `om().args()` prompt tests below
+  // for the branch that uses it.
   test("the ask spec carries the field's own JSON Schema, not the root's", async () => {
     const schema = z.object({ config: z.object({}), rows: z.number() });
     const seen = new Map<string, unknown>();
@@ -126,7 +156,7 @@ describe("resolveArgs", () => {
       interactive: true,
       ask: async (spec) => {
         seen.set(spec.path, spec.jsonSchema);
-        expect(spec.hint).toBe(spec.path === "config" ? "see schema" : "number");
+        expect(spec.hint).toBe(spec.path === "config" ? undefined : "number");
         return spec.path === "config" ? "{}" : "7";
       },
     });
@@ -344,6 +374,45 @@ describe("om().args()", () => {
     expect(spec?.message).toBe("rows (number)");
   });
 
+  test("a file-path answer at a bare terminal ends the read and resolves the arg", async () => {
+    // The composition test. Every seam is real: `om().args()` → `resolveArgs` → `askForArg` →
+    // `prompt` → readline over a genuine stream → `readUntil` → `coerce`. The unit test above
+    // ("a missing complex arg can be answered with a file path") drives `resolveArgs` with a
+    // stub `ask` that hands back a path directly — it proves `coerce` reads one, and is
+    // structurally blind to whether the real prompt can ever deliver one. It could not: the
+    // prompt asked with `until: "json"`, a path is not JSON, and the harness below never ends
+    // the stream because a terminal has no EOF either. So the read never terminated, the user
+    // waited out a 120s timeout, and the empty result re-asked — three times, then failure.
+    //
+    // The second line is the discriminator against a fix that merely reads *more*: it must
+    // still be sitting unread when the answer is taken, so the answer is the path alone.
+    const schema = z.object({ pkg: z.object({ name: z.string() }) });
+    const file = fileURLToPath(new URL("../../package.json", import.meta.url));
+    let seen: unknown;
+
+    const written = await withFakeStdio(async (stdin) => {
+      stdin.write(`@${file}\n`);
+      stdin.write("this line must not be swallowed into the answer\n");
+      await om("args-file-path-bare")
+        .args(schema)
+        .run(async (_ctx, args) => {
+          seen = args.pkg;
+        });
+    });
+
+    expect(seen).toEqual({ name: "omkit" });
+    const view = ExecutionTree.last!.runViewForTest();
+    expect(view.ok).toBe(true);
+    expect(view.root.args).toEqual([{ pkg: { name: "omkit" } }]);
+    // Asked exactly once. A read that swallowed the decoy line would resolve to neither JSON
+    // nor a readable path, and the loop would ask again — so the node count is the re-ask
+    // detector, structural rather than scraped from the terminal text.
+    expect(view.root.children.filter((c) => c.name === "prompt")).toHaveLength(1);
+    // …and the question really did reach the terminal, sketch and all.
+    expect(written).toContain("pkg — JSON");
+    expect(written).toContain("{ name: string }");
+  }, 20_000);
+
   test(".describe() survives the .args() link, chained on either side", () => {
     // `.args()` returns a *new* builder, so a field set before the link has to be carried
     // across it. Nothing in the runtime reads the description yet, so there is no behavioral
@@ -356,6 +425,30 @@ describe("om().args()", () => {
 
     expect(described(om("chain-describe-first").describe(summary).args(schema))).toEqual(summary);
     expect(described(om("chain-describe-last").args(schema).describe(summary))).toEqual(summary);
+  });
+
+  test(".describe() reaches the run, not just the builder", async () => {
+    // Carrying it across the links is only half the journey: `.run()` used to drop it on the
+    // floor, so the value was reachable from nothing once the builder was gone. The run is
+    // where it now lands — still unread by the runtime, but retrievable, which is what the
+    // README and CHANGELOG claim.
+    const summary: OmDescription = { summary: "Seeds the database" };
+    await om("describe-carried-plain")
+      .describe(summary)
+      .run(async () => {});
+    expect(ExecutionTree.last!.description).toEqual(summary);
+
+    ExecutionTree.reset();
+    process.env.OMKIT_ARGS = JSON.stringify({ rows: 1 });
+    await om("describe-carried-args")
+      .describe(summary)
+      .args(z.object({ rows: z.number() }))
+      .run(async () => {});
+    expect(ExecutionTree.last!.description).toEqual(summary);
+
+    ExecutionTree.reset();
+    await om("describe-absent").run(async () => {});
+    expect(ExecutionTree.last!.description).toBeUndefined();
   });
 });
 

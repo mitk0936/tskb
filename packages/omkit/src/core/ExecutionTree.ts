@@ -18,7 +18,7 @@ import { ActionRun, type NodeInit } from "./ActionRun.ts";
 import { procRegistry } from "../system/proc.ts";
 import { currentNode } from "./context.ts";
 import { activeSupervisor } from "./interaction.ts";
-import type { Exec, LaunchSpec } from "./types.ts";
+import type { Exec, LaunchSpec, OmDescription } from "./types.ts";
 import type { LogEntry } from "../foundation/LogEntry.ts";
 
 /**
@@ -49,6 +49,11 @@ export class ExecutionTree {
   readonly store = new LogStore();
   readonly folder: RunFolder;
   readonly root: ActionRun;
+  /**
+   * The om's `.describe(…)` summary, carried here from the builder so it survives the
+   * terminal `.run(...)` call. Stored so it is retrievable; nothing reads it yet.
+   */
+  readonly description: OmDescription | undefined;
 
   private readonly rawStream: RawStream;
   private readonly consoleCapture: ConsoleCapture;
@@ -84,7 +89,8 @@ export class ExecutionTree {
   private readonly onUncaught = (e: unknown): void => this.onFatal("uncaughtException", e);
   private readonly onUnhandled = (e: unknown): void => this.onFatal("unhandledRejection", e);
 
-  constructor(name: string, definedAt?: string) {
+  constructor(name: string, definedAt?: string, description?: OmDescription) {
+    this.description = description;
     // The run's identity: its name + where om() is written (not how it was launched),
     // so same-named oms in different files get distinct log folders.
     this.folder = new RunFolder(name, omHash(name, siteFile(definedAt)));
@@ -421,11 +427,15 @@ export class ExecutionTree {
    * distinct files and both must survive into `result.json`, not collapse into one.
    * Position follows first registration; `artifacts.log` (a chronological rollup, like
    * `events.log`/`asserts.log`) is unaffected either way and still lists every call.
+   *
+   * The pair is joined with `\0` — the same separator `omHash` uses, and for the same
+   * reason: a step name may legitimately contain colons (`TSKB:root:watch:docs`) and an
+   * artifact name is free-form, so any printable separator can be forged inside a key.
    */
   private curatedArtifacts(): readonly ArtifactView[] {
     const byKey = new Map<string, ArtifactView>();
     for (const { name, file, description, mime, nodeId } of this.artifactStore.all()) {
-      byKey.set(`${nodeId}::${name}`, {
+      byKey.set(`${nodeId}\0${name}`, {
         name,
         file,
         mime,

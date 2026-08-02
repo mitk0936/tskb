@@ -28,9 +28,9 @@ export interface AskSpec {
   /** Dotted path of the field, e.g. `rows` or `config`. */
   readonly path: string;
   readonly kind: "scalar" | "json";
-  /** One-line type sketch for the prompt. */
-  readonly hint: string;
-  /** The field's JSON Schema, for printing when the hint degrades. */
+  /** One-line type sketch for the prompt, or `undefined` when the shape cannot be sketched. */
+  readonly hint: string | undefined;
+  /** The field's JSON Schema, for printing when there is no hint. */
   readonly jsonSchema: JsonSchema;
 }
 
@@ -55,7 +55,12 @@ const MAX_ATTEMPTS = 3;
  * the second is unanswerable.
  */
 export async function resolveArgs(schema: z.ZodType, opts: ResolveOptions): Promise<unknown> {
-  const root = toJsonSchema(schema);
+  // Converted lazily, and only once something actually has to be asked. `toJSONSchema`
+  // throws for types it cannot represent (`z.date()`, and anything built on it), and only
+  // the prompt needs the conversion — a run whose args all arrived supplied or defaulted
+  // must not be failed by work it never required.
+  let converted: JsonSchema | undefined;
+  const root = (): JsonSchema => (converted ??= toJsonSchema(schema));
   let current: Record<string, unknown> = asRecord(opts.supplied);
 
   for (let attempt = 0; ; attempt++) {
@@ -78,7 +83,7 @@ export async function resolveArgs(schema: z.ZodType, opts: ResolveOptions): Prom
     }
 
     for (const field of blocking) {
-      const fieldSchema = propertySchema(root, field);
+      const fieldSchema = propertySchema(root(), field);
       const kind = isComplex(fieldSchema) ? "json" : "scalar";
       const answer = await opts.ask({
         path: field,
@@ -129,6 +134,36 @@ function isComplex(schema: JsonSchema): boolean {
 }
 
 /**
+ * True once a JSON-kind answer is finished. A `{`/`[` opener is a pasted blob and is done
+ * when it parses; anything else is a path to a JSON file, and one line is the whole answer.
+ *
+ * Exported because the prompt that *collects* the answer has to stop on exactly the inputs
+ * {@link coerce} knows how to read — `om.ts` passes this as the multiline prompt's `until`.
+ * Let the two rules drift apart and the documented file-path answer becomes untypable: a
+ * bare path is not JSON, so a JSON-only terminator keeps reading, and a real terminal never
+ * reaches the EOF that would otherwise end it.
+ */
+export function jsonAnswerComplete(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed === "") return false; // a bare Enter is not an answer — keep reading
+  return isJsonBlob(trimmed) ? parsesAsJson(trimmed) : true;
+}
+
+/** Whether an answer is a pasted JSON blob rather than a path to one. */
+function isJsonBlob(text: string): boolean {
+  return text.startsWith("{") || text.startsWith("[");
+}
+
+function parsesAsJson(text: string): boolean {
+  try {
+    JSON.parse(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Turn a prompt answer into a value the schema can accept. Scalars coerce from their
  * string form; complex fields parse as JSON, or are read from a file path when the answer
  * does not start with `{` or `[` — pointing at a file beats pasting a large config.
@@ -137,7 +172,7 @@ function coerce(answer: string, schema: JsonSchema, kind: "scalar" | "json"): un
   const text = answer.trim();
   if (kind === "json") {
     try {
-      return JSON.parse(text.startsWith("{") || text.startsWith("[") ? text : readFileArg(text));
+      return JSON.parse(isJsonBlob(text) ? text : readFileArg(text));
     } catch {
       // Unparseable JSON *or* an unreadable path: hand the raw text back so the schema
       // rejects it and the loop re-asks, naming the field. A mistyped filename must not

@@ -193,11 +193,11 @@ export default (
     </P>
     <P>
       Both {OmExport} and {ActionExport} return a builder: chain <code>.describe(...)</code> to
-      attach a one-line summary — carried on the definition for <code>omkit ls</code> and future
-      tooling, but not read by anything yet — and finish with <code>.run(body)</code>. Only{" "}
-      {OmExport}'s <code>.args(schema)</code> does anything at runtime: it declares the run's input
-      shape, and {ResolveArgsExport} fills it in before handing the resolved value to{" "}
-      <code>.run</code>'s body as its second parameter. {ActionExport}'s own{" "}
+      attach a one-line summary — stored on the definition so future tooling (<code>omkit ls</code>)
+      can read it back, but read by nothing today, including <code>omkit ls</code> — and finish with{" "}
+      <code>.run(body)</code>. Only {OmExport}'s <code>.args(schema)</code> does anything at
+      runtime: it declares the run's input shape, and {ResolveArgsExport} fills it in before handing
+      the resolved value to <code>.run</code>'s body as its second parameter. {ActionExport}'s own{" "}
       <code>.args(schema)</code> only pins that parameter's type. How the two differ, and how
       resolution actually works, is its own question — see the args doc.
     </P>

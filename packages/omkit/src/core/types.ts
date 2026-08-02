@@ -183,6 +183,11 @@ export interface Action<
   readonly actionName: string;
   /** `file:line` where this action was defined (the `.run(...)` site), for the log header. */
   readonly definedAt: string | undefined;
+  /**
+   * The summary from `.describe(…)`, carried across every builder link onto the definition.
+   * Stored so it is retrievable; nothing in the runtime reads it yet.
+   */
+  readonly description: OmDescription | undefined;
 }
 
 /** Intermediate step from `action(name)`: declare metadata/events/handle, then the impl. */

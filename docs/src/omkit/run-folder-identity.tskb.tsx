@@ -47,6 +47,7 @@ const SiteFileExport = ref as tskb.Exports["omkit.siteFile"];
 const RunFolderModule = ref as tskb.Modules["omkit.output.run-folder"];
 
 const RunFolderTerm = ref as tskb.Terms["run-folder"];
+const Vitest = ref as tskb.Externals["vitest"];
 
 // ─── Documentation ────────────────────────────────────────────────────────────
 
@@ -107,6 +108,23 @@ export default (
       The hash and the call-site capture live in {IdsModule} and {CallsiteModule}. Change either and
       you change what "the same run" means — so treat this identity as a contract, not an
       implementation detail.
+    </P>
+
+    <H2>Known caveat: on Windows, one om can own two lineages</H2>
+    <P>
+      The hash is taken over the raw call-site string, and {SiteFileExport} only strips the{" "}
+      <code>:line</code> — it does not normalise path separators. A V8 stack frame reports whichever
+      style the runner produced, so on Windows the same file can hash two ways: {Vitest} reports
+      forward slashes, while launching the om directly through the TypeScript runner reports
+      backslashes. The om then owns two run-folder lineages, split by nothing but how it was
+      started, and "the latest run of X" sees only half its history.
+    </P>
+    <P>
+      This is a known limitation, recorded rather than fixed. Normalising the separator inside{" "}
+      {SiteFileExport} would change what {OmHashExport} returns for every om on a Windows machine,
+      orphaning every run folder already on disk — a deliberate migration, not a drive-by fix. It
+      does not affect POSIX systems, which have only one separator. If you do fix it, treat it as a
+      change to this contract and re-key the existing folders on purpose.
     </P>
   </Doc>
 );

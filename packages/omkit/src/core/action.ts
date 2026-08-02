@@ -49,15 +49,16 @@ class Builder<Events extends object, Handle> implements ActionBuilderEvents<Even
   run<Args extends unknown[], Result>(
     body: (ctx: ActionContext<Events, Handle>, ...args: Args) => Awaitable<Result>
   ): Action<Args, Result, Events, Handle> {
-    void this.description; // carried for `omkit ls` and Spec B; not read by the runtime yet
     const name = this.name;
+    // Carried onto the definition for `omkit ls` and Spec B; not read by the runtime yet.
+    const description = this.description;
     const definedAt = callerSite(); // the `.run(...)` call site — where this action lives
     const exec = body as unknown as Exec<object, unknown, unknown>;
     const create = (...args: Args): Activity<Result, Events, Handle> => {
       const spec: LaunchSpec = { name, args, tags: [], body: exec, definedAt };
       return ExecutionTree.require().launch(spec) as unknown as Activity<Result, Events, Handle>;
     };
-    return Object.assign(create, { actionName: name, definedAt });
+    return Object.assign(create, { actionName: name, definedAt, description });
   }
 }
 
@@ -73,6 +74,7 @@ class ArgsBuilder<
 > implements ActionBuilderArgs<S, Events, Handle> {
   constructor(
     private readonly name: string,
+    /** Type-level only: `S` pins `.run`'s parameter. Nothing reads the value at runtime. */
     private readonly schema: S,
     private description: OmDescription | undefined
   ) {}
@@ -85,16 +87,16 @@ class ArgsBuilder<
   run<Result>(
     body: (ctx: ActionContext<Events, Handle>, args: InferSchema<S>) => Awaitable<Result>
   ): Action<[InferSchema<S>], Result, Events, Handle> {
-    void this.schema;
-    void this.description;
     const name = this.name;
+    // Carried onto the definition for `omkit ls` and Spec B; not read by the runtime yet.
+    const description = this.description;
     const definedAt = callerSite();
     const exec = body as unknown as Exec<object, unknown, unknown>;
     const create = (...args: [InferSchema<S>]): Activity<Result, Events, Handle> => {
       const spec: LaunchSpec = { name, args, tags: [], body: exec, definedAt };
       return ExecutionTree.require().launch(spec) as unknown as Activity<Result, Events, Handle>;
     };
-    return Object.assign(create, { actionName: name, definedAt });
+    return Object.assign(create, { actionName: name, definedAt, description });
   }
 }
 

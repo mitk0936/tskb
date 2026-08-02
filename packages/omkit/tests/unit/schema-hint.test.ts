@@ -3,7 +3,7 @@ import { z } from "zod";
 import { toJsonSchema } from "../../src/core/schema-json.ts";
 import { shapeHint } from "../../src/core/schema-hint.ts";
 
-const hintFor = (schema: z.ZodType): string => shapeHint(toJsonSchema(schema));
+const hintFor = (schema: z.ZodType): string | undefined => shapeHint(toJsonSchema(schema));
 
 describe("shapeHint", () => {
   test("renders scalars", () => {
@@ -25,17 +25,37 @@ describe("shapeHint", () => {
     expect(hintFor(z.object({ mode: z.enum(["fast", "slow"]) }))).toBe('{ mode: "fast" | "slow" }');
   });
 
-  test("degrades to 'see schema' for a shape it cannot sketch", () => {
-    expect(shapeHint({ not: "a shape it understands" })).toBe("see schema");
+  test("degrades to undefined for a shape it cannot sketch", () => {
+    expect(shapeHint({ not: "a shape it understands" })).toBeUndefined();
   });
 
-  test("degrades tuple (bare) to 'see schema'", () => {
-    const hint = hintFor(z.tuple([z.string(), z.number()]));
-    expect(hint).toBe("see schema");
+  test("degrades tuple (bare) to undefined", () => {
+    expect(hintFor(z.tuple([z.string(), z.number()]))).toBeUndefined();
   });
 
-  test("degrades tuple (nested in object) to 'see schema'", () => {
-    const hint = hintFor(z.object({ pair: z.tuple([z.string(), z.number()]) }));
-    expect(hint).toBe("{ pair: see schema }");
+  // Degradation is all-or-nothing, and these are the cases that prove it. A partial sketch
+  // interpolates the placeholder into an otherwise-valid line — `{ pair: see schema }` — which
+  // reads as a field whose type is literally "see schema", and which no caller can tell apart
+  // from a real sketch without string-matching. One unsketchable descendant, at any depth,
+  // must take the whole line with it.
+  test("an unsketchable field degrades the object around it", () => {
+    expect(hintFor(z.object({ pair: z.tuple([z.string(), z.number()]) }))).toBeUndefined();
+  });
+
+  test("an unsketchable type nested two levels down degrades the whole sketch", () => {
+    const schema = z.object({ config: z.object({ mode: z.union([z.string(), z.number()]) }) });
+    expect(hintFor(schema)).toBeUndefined();
+    // …and the field's own sub-schema, which is what `resolveArgs` actually asks about.
+    const config = (toJsonSchema(schema).properties as Record<string, never>).config;
+    expect(shapeHint(config)).toBeUndefined();
+  });
+
+  test("an unsketchable element degrades the array around it", () => {
+    expect(hintFor(z.object({ pairs: z.array(z.tuple([z.string()])) }))).toBeUndefined();
+  });
+
+  test("a sketchable neighbour does not rescue an unsketchable sibling", () => {
+    const schema = z.object({ host: z.string(), when: z.union([z.string(), z.number()]) });
+    expect(hintFor(schema)).toBeUndefined();
   });
 });

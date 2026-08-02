@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 import { action, om } from "../../src/index.ts";
 import { ExecutionTree } from "../../src/core/ExecutionTree.ts";
+import type { OmDescription } from "../../src/core/types.ts";
 
 afterEach(() => {
   ExecutionTree.reset();
@@ -50,6 +51,38 @@ describe("action metadata", () => {
       handle = await built({ label: "ok" }).ref;
     });
     expect(handle).toBe("ok");
+  });
+
+  test(".describe() survives every builder link and lands on the definition", () => {
+    // Each of `.emits()`, `.ref()` and `.args()` returns a *new* builder, and `.run()` is the
+    // terminal call that has to put the value somewhere durable. Both halves have been broken
+    // before — a link that rebuilt without carrying the field, and a `.run()` that carried it
+    // and then dropped it — and neither is visible from behaviour, because nothing reads the
+    // description yet. So the definition is asserted on directly. None of these launch.
+    const summary: OmDescription = { summary: "Everything at once" };
+    const noop = async (): Promise<void> => {};
+
+    expect(action("plain").describe(summary).run(noop).description).toEqual(summary);
+    expect(action("evented").describe(summary).emits<{ tick: number }>().run(noop).description) //
+      .toEqual(summary);
+    expect(action("reffed").describe(summary).ref<string>().run(noop).description).toEqual(summary);
+    expect(
+      action("everything")
+        .describe(summary)
+        .emits<{ tick: number }>()
+        .ref<string>()
+        .args(z.object({ label: z.string() }))
+        .run(noop).description
+    ).toEqual(summary);
+    // Chained *after* the links, on the args builder — the other direction of the same carry.
+    expect(
+      action("described-last")
+        .args(z.object({ label: z.string() }))
+        .describe(summary)
+        .run(noop).description
+    ).toEqual(summary);
+    // And absent when never described, rather than some leaked default.
+    expect(action("undescribed").run(noop).description).toBeUndefined();
   });
 });
 

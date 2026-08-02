@@ -1,8 +1,8 @@
-import { PassThrough, Writable } from "node:stream";
 import { afterEach, describe, expect, test } from "vitest";
 import { om } from "../../src/index.ts";
 import { prompt, readUntil } from "../../src/actions/prompt.ts";
 import { ExecutionTree } from "../../src/core/ExecutionTree.ts";
+import { withFakeStdio } from "../support/fake-stdio.ts";
 import {
   createSupervisor,
   installSupervisor,
@@ -48,34 +48,6 @@ afterEach(() => {
   ExecutionTree.reset();
   process.exitCode = 0;
 });
-
-/**
- * Run `body` with stdin/stdout swapped for in-memory streams, so the bare-terminal path can be
- * driven without a TTY and without the prompt text reaching the reporter. `body` receives the
- * fake stdin to type into — a `PassThrough` buffers whatever is written before readline attaches,
- * so it can be written to at any point. Resolves with everything written to the fake stdout.
- */
-async function withFakeStdio(body: (stdin: PassThrough) => Promise<void>): Promise<string> {
-  const stdin = new PassThrough();
-  let written = "";
-  const stdout = new Writable({
-    write(chunk, _enc, cb) {
-      written += String(chunk);
-      cb();
-    },
-  });
-  const realStdin = Object.getOwnPropertyDescriptor(process, "stdin")!;
-  const realStdout = Object.getOwnPropertyDescriptor(process, "stdout")!;
-  Object.defineProperty(process, "stdin", { value: stdin, configurable: true });
-  Object.defineProperty(process, "stdout", { value: stdout, configurable: true });
-  try {
-    await body(stdin);
-  } finally {
-    Object.defineProperty(process, "stdin", realStdin);
-    Object.defineProperty(process, "stdout", realStdout);
-  }
-  return written;
-}
 
 describe("a multiline prompt at the bare terminal", () => {
   test("collects the pasted block and reports via:input, ending on the JSON itself", async () => {

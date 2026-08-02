@@ -87,7 +87,7 @@ const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 const activity = build(); // calling launches; returns the live Activity
 ```
 
-Chain `.describe({ summary })` before `.run(...)` to attach a human-readable summary (for `omkit ls` and future tooling) — same shape as `om`'s, below. `.args(schema)` pins the type of `.run`'s second parameter to a zod schema's inferred type. It's **type-level only**: nothing here resolves, prompts for, or validates the value — an action launched from an om body is passed its arguments directly in code, so the schema exists to type that call site, not to gate it. (Resolving/prompting for arguments is an `om`-level concern, not `action`'s.)
+Chain `.describe({ summary })` before `.run(...)` to attach a human-readable summary — stored on the definition, for `omkit ls` and future tooling to read; nothing reads it yet, so today it is documentation that travels with the code. Same shape as `om`'s, below. `.args(schema)` pins the type of `.run`'s second parameter to a zod schema's inferred type. It's **type-level only**: nothing here resolves, prompts for, or validates the value — an action launched from an om body is passed its arguments directly in code, so the schema exists to type that call site, not to gate it. (Resolving/prompting for arguments is an `om`-level concern, not `action`'s.)
 
 ```ts
 import { z } from "zod";
@@ -102,7 +102,7 @@ const seed = action("seed")
 seed({ rows: 500 }); // calling launches it; the shape is pinned, not checked at runtime
 ```
 
-`om(name).run(async (ctx) => …)` hosts the orchestration as the root of a run. `om(name)` returns a builder: chain `.describe({ summary })` to attach a human-readable summary and/or `.args(schema)` to declare what the run needs, then finish with `.run(body)`, which launches it. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+`om(name).run(async (ctx) => …)` hosts the orchestration as the root of a run. `om(name)` returns a builder: chain `.describe({ summary })` to attach a human-readable summary (stored on the run; nothing reads it yet) and/or `.args(schema)` to declare what the run needs, then finish with `.run(body)`, which launches it. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
 
 ### Run arguments — `om(name).args(schema)`
 
@@ -121,7 +121,7 @@ om("seed")
 
 Each field is filled from the first of these that can answer:
 
-1. **Supplied** — `OMKIT_ARGS`, a JSON object in the environment.
+1. **Supplied** — `OMKIT_ARGS`, a JSON object in the environment. It is read once at run start and then cleared, so a subprocess the run spawns doesn't inherit one om's args and resolve them against another's schema.
 2. **Defaults** — anything the schema defaults, which is therefore never asked about.
 3. **Prompt** — whatever is still missing, one field at a time, with a one-line type sketch (`rows (number)`). Objects and arrays are asked for as a multiline JSON block — paste it, or answer with the path to a JSON file. A blank answer is _no answer_, not a value: it re-asks rather than coercing (`Number("")` is `0`). Resolution gives up after three rounds.
 4. **Fail** — if nobody can be asked (no supervising picker and no TTY), the run fails naming every unresolved field at once, instead of prompting into the void.

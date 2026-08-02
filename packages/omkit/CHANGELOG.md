@@ -12,15 +12,19 @@
 ### Added
 
 - `om(name).describe({ summary })` and `action(name).describe({ summary })` — the summary
-  is accepted and carried on the definition; nothing in the runtime reads it yet.
+  survives every builder link and is stored where it can be read back: on the `Action` an
+  action's `.run(...)` returns, and on the run an om's `.run(...)` starts. Nothing in the
+  runtime reads it yet — `omkit ls` does not show it.
 - `action(name).args(schema)` pins the type of `.run`'s args parameter (the action's first
   argument) to a zod schema's inferred type. Type-level only: the schema is not validated
   at runtime, because an action launched from an om body is passed its arguments in code.
 - `om(name).args(schema)` declares the run's inputs and resolves them at run start, passing
   the typed result to `.run`'s body as its second parameter. Each field is filled from what
-  was supplied (`OMKIT_ARGS`, a JSON object), then the schema's defaults, then by prompting
+  was supplied (`OMKIT_ARGS`, a JSON object, read once at run start and then cleared from the
+  environment so subprocesses do not inherit it), then the schema's defaults, then by prompting
   — and if nobody can be asked, the run fails naming every unresolved field at once rather
-  than blocking on a question no one will see. A blank answer re-asks instead of coercing.
+  than blocking on a question no one will see. A blank answer re-asks instead of coercing;
+  an object or array field can be answered with a pasted JSON blob or the path to a JSON file.
   The resolved values are recorded on the root node, so `result.json` and the `main.log`
   header report what the run was actually given.
 - `ctx.artifact(name, file, opts?)` labels a file the run produced. Registrations reach

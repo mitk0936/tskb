@@ -1,7 +1,7 @@
 import { ExecutionTree } from "./ExecutionTree.ts";
 import { callerSite } from "../foundation/callsite.ts";
 import { activeSupervisor } from "./interaction.ts";
-import { resolveArgs, type AskSpec } from "./args.ts";
+import { jsonAnswerComplete, resolveArgs, type AskSpec } from "./args.ts";
 import { OPAQUE } from "./schema-hint.ts";
 import type {
   Awaitable,
@@ -24,12 +24,13 @@ function assertName(name: string): void {
 function launch(
   name: string,
   site: string | undefined,
+  description: OmDescription | undefined,
   body: (ctx: OmContext) => Awaitable<void>
 ): Promise<void> {
   if (ExecutionTree.current) {
     throw new Error("an om() run is already active in this process");
   }
-  const tree = new ExecutionTree(name, site);
+  const tree = new ExecutionTree(name, site, description);
   ExecutionTree.current = tree;
 
   const rootBody: Exec<object, unknown, unknown> = (ctx) =>
@@ -67,8 +68,8 @@ class Builder implements OmBuilder {
   }
 
   run(body: (ctx: OmContext) => Awaitable<void>): Promise<void> {
-    void this.description; // carried for `omkit ls` and Spec B; not read by the runtime yet
-    return launch(this.name, this.site, body);
+    // Carried onto the run for `omkit ls` and Spec B; not read by the runtime yet.
+    return launch(this.name, this.site, this.description, body);
   }
 }
 
@@ -91,12 +92,11 @@ class ArgsBuilder<S extends ZodTypeLike> implements OmBuilderArgs<S> {
   }
 
   run(body: (ctx: OmContext, args: InferSchema<S>) => Awaitable<void>): Promise<void> {
-    void this.description; // carried for `omkit ls` and Spec B; not read by the runtime yet
     // Resolution happens inside the run, not before it: prompting is async, and the run
     // must already exist for the prompt and its answer to land on the timeline. A failure
     // to resolve is therefore an ordinary failure of the root node — logged, and the run
     // is marked failed — rather than a throw out of `om(...)`.
-    return launch(this.name, this.site, async (ctx) => {
+    return launch(this.name, this.site, this.description, async (ctx) => {
       const args = (await resolveArgs(this.schema, {
         supplied: parseSuppliedArgs(),
         interactive: isInteractive(),
@@ -111,6 +111,11 @@ class ArgsBuilder<S extends ZodTypeLike> implements OmBuilderArgs<S> {
 /** `OMKIT_ARGS` carries JSON — the only channel readable synchronously at `.run()`. */
 function parseSuppliedArgs(): unknown {
   const raw = process.env.OMKIT_ARGS;
+  // Read it once, then clear it from the environment so any subprocess this run spawns
+  // (`command("npx omkit run other-om")`, a nested npm script, …) does not inherit this
+  // run's args and resolve them against a completely different schema. Whoever launches an
+  // omkit child sets that child's args explicitly.
+  delete process.env.OMKIT_ARGS;
   if (!raw) return {};
   try {
     return JSON.parse(raw);
@@ -128,9 +133,14 @@ function isInteractive(): boolean {
 }
 
 /**
- * Ask the user for one arg, via the `prompt` battery. Imported lazily because `core` may
- * not import `actions` (an eslint layer boundary, and it keeps `import { om }` from pulling
- * readline in): the edge only exists when a run actually needs to prompt.
+ * Ask the user for one arg, via the `prompt` battery.
+ *
+ * The import is dynamic so that `import { om }` does not pull readline in, and because
+ * `core` is otherwise not allowed to import `actions`. Be clear about what that costs: this
+ * is a **deliberate, unenforced** runtime edge, not a permitted one. ESLint's
+ * `no-restricted-imports` has no `ImportExpression` visitor, so a dynamic import is
+ * *invisible* to the rule rather than allowed by it — the linter will not catch the next one
+ * either, and nothing but this comment stands between here and a real dependency cycle.
  */
 async function askForArg(spec: AskSpec): Promise<string> {
   const { prompt } = await import("../actions/prompt.ts");
@@ -138,14 +148,19 @@ async function askForArg(spec: AskSpec): Promise<string> {
     return prompt({
       kind: "multiline",
       message: `${spec.path} — JSON`,
-      // A degraded sketch tells the user nothing about what to type, so when `shapeHint`
-      // gives up the schema itself goes in its place.
-      hint: spec.hint === OPAQUE ? JSON.stringify(spec.jsonSchema) : spec.hint,
-      until: "json",
+      // No sketch means `shapeHint` could not express the shape; a placeholder would tell
+      // the user nothing about what to type, so the schema itself goes in its place.
+      hint: spec.hint ?? JSON.stringify(spec.jsonSchema),
+      // Not `"json"`: a JSON-kind arg may also be answered with the path to a JSON file, and
+      // a path is not JSON, so a JSON-only terminator would never end the read. At a bare
+      // terminal there is no EOF to fall back on, so the user would wait out the timeout —
+      // three times. This is the same rule `coerce` reads the answer back with.
+      until: jsonAnswerComplete,
       timeoutMs: 120_000,
     }).result;
   }
-  return prompt({ message: `${spec.path} (${spec.hint})`, timeoutMs: 120_000 }).result;
+  // One line has no room for a raw schema, so an unsketchable scalar shows the placeholder.
+  return prompt({ message: `${spec.path} (${spec.hint ?? OPAQUE})`, timeoutMs: 120_000 }).result;
 }
 
 /**

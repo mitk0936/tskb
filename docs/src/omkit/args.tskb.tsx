@@ -70,7 +70,9 @@ export default (
     <P>Each field is filled from the first of these that can answer, in order:</P>
     <List>
       <Li>
-        <strong>Supplied.</strong> <code>OMKIT_ARGS</code>, a JSON object read from the environment.
+        <strong>Supplied.</strong> <code>OMKIT_ARGS</code>, a JSON object read from the environment
+        — read once at run start and then cleared, so a subprocess the run spawns cannot inherit one
+        om's args and have them resolved against another om's schema.
       </Li>
       <Li>
         <strong>Defaults.</strong> Whatever the schema itself defaults — a defaulted field is
