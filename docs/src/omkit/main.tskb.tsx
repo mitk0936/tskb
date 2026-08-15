@@ -153,6 +153,7 @@ const OmkitFolder = ref as tskb.Folders["omkit"];
 const CoreFolder = ref as tskb.Folders["omkit.core"];
 const ActionsFolder = ref as tskb.Folders["omkit.actions"];
 const OutputFolder = ref as tskb.Folders["omkit.output"];
+const McpFolder = ref as tskb.Folders["omkit.mcp"];
 
 const OmkitIndex = ref as tskb.Modules["omkit.index"];
 const ExecutionTreeModule = ref as tskb.Modules["omkit.core.execution-tree"];
@@ -193,13 +194,13 @@ export default (
     </P>
     <P>
       Both {OmExport} and {ActionExport} return a builder: chain <code>.describe(...)</code> to
-      attach a one-line summary — stored on the definition so future tooling (<code>omkit ls</code>)
-      can read it back, but read by nothing today, including <code>omkit ls</code> — and finish with{" "}
-      <code>.run(body)</code>. Only {OmExport}'s <code>.args(schema)</code> does anything at
-      runtime: it declares the run's input shape, and {ResolveArgsExport} fills it in before handing
-      the resolved value to <code>.run</code>'s body as its second parameter. {ActionExport}'s own{" "}
-      <code>.args(schema)</code> only pins that parameter's type. How the two differ, and how
-      resolution actually works, is its own question — see the args doc.
+      attach a one-line summary, <code>.mcp(...)</code> to expose the entry to the MCP server — the
+      first consumer to actually read that summary back, though <code>omkit ls</code> still does not
+      — and finish with <code>.run(body)</code>. Only {OmExport}'s <code>.args(schema)</code> does
+      anything at runtime: it declares the run's input shape, and {ResolveArgsExport} fills it in
+      before handing the resolved value to <code>.run</code>'s body as its second parameter.{" "}
+      {ActionExport}'s own <code>.args(schema)</code> only pins that parameter's type. How the two
+      differ, and how resolution actually works, is its own question — see the args doc.
     </P>
 
     <H2>The model</H2>
@@ -251,7 +252,9 @@ export default (
     <H2>Areas</H2>
     <P>
       {CoreFolder} holds the execution model; {ActionsFolder} holds the batteries built on it; and{" "}
-      {OutputFolder} turns a run into its on-disk record.
+      {OutputFolder} turns a run into its on-disk record. Above those sits the headless client every
+      frontend drives — the terminal commands, the interactive app, and {McpFolder}, which serves a
+      project to an assistant over the Model Context Protocol.
     </P>
   </Doc>
 );

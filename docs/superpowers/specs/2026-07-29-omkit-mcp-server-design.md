@@ -1,9 +1,14 @@
 # omkit MCP server — design (Spec B)
 
-**Date:** 2026-07-29
+**Date:** 2026-07-29 (revised 2026-08-05 against shipped Spec A)
 **Status:** approved, ready for planning
 **Package:** `packages/omkit`
-**Depends on:** Spec A — `2026-07-29-omkit-runtime-primitives-design.md`
+**Depends on:** Spec A — `2026-07-29-omkit-runtime-primitives-design.md`, **shipped as omkit 0.5.0**
+
+> **Revision note.** This spec was written against Spec A's plan. Spec A shipped with
+> eight corrections to that plan, several of which land here. The sections marked
+> **[revised]** were changed after reading the shipped code; treat their claims as
+> verified against source rather than against Spec A's prose.
 
 Spec A supplies the om builder, `.describe()`, `.args(schema)`, arg resolution,
 `ctx.artifact`, and the `multiline` prompt kind.
@@ -42,9 +47,9 @@ artifacts the run produced.
 From the existing code:
 
 1. **Discovery never imports user code.** `client/discovery.ts` is a pure
-   TypeScript AST scan, finding `om("name", …)` calls and
+   TypeScript AST scan, finding `om("name")` calls and
    `export const x = action("name")…` chains, recording only _whether_ `.ref` /
-   `.emits` appear (`actionChain`, discovery.ts:140-163).
+   `.emits` appear (`actionChain`, discovery.ts:140-158).
 
 2. **Importing an om file runs it.** `om(name).args(…).run(body)` executes at module
    load, by design (Spec A §1), so no om module can be loaded merely to read its
@@ -52,8 +57,10 @@ From the existing code:
    were import free of side effects, discovery would be an ordinary import with no
    child process.
 
-3. **Actions cannot run standalone.** `ExecutionTree.require()` (action.ts:39)
-   throws outside a run, so an action-as-tool needs a host om.
+3. **Actions cannot run standalone.** `ExecutionTree.require()` throws outside a run,
+   so an action-as-tool needs a host om. **[revised]** There are now two call sites,
+   action.ts:59 and action.ts:97 — `.args()` added a second `run()` — so anything
+   reasoning about the launch path must account for both.
 
 4. **Runs are long-lived and can talk back.** Oms start servers, watch, and drive
    Chrome. A run can raise a `PromptRequest` over the interaction channel.
@@ -152,6 +159,14 @@ caveat, flagged inline rather than left implicit.
 | `client/registry.ts`           | `DiscoveredOm` / `DiscoveredAction` carry metadata                                            |
 | `client/types.ts`              | `RunOptions` gains `env?: Record<string, string>`                                             |
 
+**[revised] This spec is what first makes `.describe()` observable.** Spec A stores a
+description on the definition but ships **no consumer**: `DiscoveredOm` is
+`{ name, file, line }` and the AST scan cannot read a summary anyway, since the value
+only exists once the module has been imported. The registration fork is the only path
+that can carry it, which makes `list_oms` the first reader of a field that has so far
+been write-only. A useful side effect: once the fork carries descriptions, `omkit ls`
+can display them from the same source, closing a gap Spec A left open.
+
 `@modelcontextprotocol/sdk` is imported only under `mcp/`. Nothing in `core/`,
 `client/`, or `output/` learns that MCP exists, so an om file never imports it and
 the runtime is unchanged for anyone not using the server.
@@ -177,6 +192,20 @@ om("smoke-test")
 - Actions use the same method, with the same meaning. Most settle; a `watch`- or
   server-shaped action must declare `mode: "long-lived"`.
 
+**`.mcp()` must survive every chain link, and this is a known trap. [revised]** It
+lands on four interfaces — `OmBuilder`, `OmBuilderArgs`, `ActionBuilderEvents`,
+`ActionBuilderArgs` — because `.args()` and the action builder's `.emits()`/`.ref()`
+each return a **new** object rather than `this`. Spec A shipped this exact bug twice:
+`.describe()` was silently dropped across `.emits()`/`.ref()`, and separately across
+`.args()`, in both cases because the rebuilding method did not carry the field
+forward. The example above crosses the `.args()` boundary, which is one of the two
+places it broke.
+
+Implementation must therefore carry `mcp` through every rebuild, and tests must pin
+it **in both orders** (`.mcp().args()` and `.args().mcp()`, likewise around
+`.emits()`/`.ref()`). A test that only exercises one direction passes against the bug
+— which is how it survived the first time.
+
 ## Tool surface
 
 Six tools, fixed regardless of how many oms a project has.
@@ -201,8 +230,13 @@ Six tools, fixed regardless of how many oms a project has.
 - `notifications/cancelled` → `session.cancel()`. The run tears down normally and
   still writes its folder.
 - `session.on("prompt")` → elicitation; the answer returns via
-  `session.answer(id, value)`; `promptDone` withdraws it. prompt.ts:146 already
+  `session.answer(id, value)`; `promptDone` withdraws it. prompt.ts:238 already
   describes its supervisor as "whoever owns the terminal (Ink app / MCP client)".
+  **[revised]** The spec kind is now `"input" | "choice" | "multiline"` and carries an
+  optional `hint`, so the elicitation mapping has more to express than the original
+  draft assumed. Worth noting the `multiline` kind has **no Ink renderer** — a real
+  gap on the CLI path — but that does not affect MCP, where the client is the
+  supervisor and receives the spec directly.
 
 Because the server validates args and applies defaults **before** spawning, Spec A's
 prompt-based resolution is normally dormant under MCP. Were `OMKIT_ARGS` ever
@@ -229,7 +263,7 @@ omkit://runs/{run}/{date}/{time}/{file}   → one specific run
 `{run}` is the `<name>-<hash8>` folder name. Discovery is a filesystem scan of
 `logs/` — no registry involvement.
 
-`{file}` covers what `ExecutionTree` finalize writes (ExecutionTree.ts:302-306):
+`{file}` covers what `ExecutionTree` finalize writes (ExecutionTree.ts:312-326):
 `main.log`, per-action `<name>.log`, `events.log`, `asserts.log`, `snapshots.log`,
 `artifacts.log` (Spec A), `result.json`, `raw.jsonl`, plus anything the om wrote to
 `artifactsFolder`.
@@ -278,10 +312,32 @@ the MCP server.
 `warnings` and only fatal config problems throw. The fork keeps that contract: a
 file that throws on import becomes a warning and the other oms still serve.
 
+**Where the `OMKIT_DISCOVER` guard goes. [revised]** In `launch()`
+(`core/om.ts:24`), the single choke point both `run()` methods funnel through — not
+in the `run()` methods themselves. This matters more than it looks:
+`OmBuilderArgs.run()` calls `resolveArgs` **inside** the run body (om.ts:99), so a
+guard placed one level too high would let discovery of an om with required args
+either prompt into a child nobody can answer, or throw `MissingArgsError`. Neither
+is a discovery outcome. Guarding `launch()` means registration happens before any
+resolution is attempted.
+
 Zod → JSON Schema conversion for `list_oms` happens in the child, reusing
-`core/schema-json.ts` from Spec A — which owns that converter and the decision of
-whether Zod v4's native `z.toJSONSchema` or `zod-to-json-schema` is used. Nothing
-new is added here.
+`core/schema-json.ts` from Spec A, which owns that converter.
+
+**Conversion must be isolated per om. [revised]** `z.toJSONSchema` **throws** for
+schemas it cannot represent — `z.date()`, `z.custom()`, and anything built on them.
+Spec A hit this and made conversion lazy in `resolveArgs`, so a fully-supplied run
+never touches the converter. `list_oms` has no such escape: it must convert every
+exposed om's schema eagerly, so one om declaring `.args(z.object({ when: z.date() }))`
+would take down the **entire tool list** rather than its own entry.
+
+So each om's conversion is wrapped independently. A schema that will not convert
+degrades that om to an entry marked unavailable, carrying the converter's message as
+the reason, and every other om still lists. The same rule applies to actions.
+
+Note also that `toJsonSchema` uses `{ io: "input" }`, so a `.default()` field is
+reported as **not required** — correct for MCP, since Claude should not be asked to
+supply values resolution fills itself.
 
 ## Argument delivery
 
@@ -298,19 +354,31 @@ An action is a tool only if it carries `.mcp()`. Spec A's `.args(schema)` pins i
 first parameter, so an action-backed tool takes a single object — **an existing
 multi-positional-arg action cannot become a tool without that signature change.**
 
-omkit ships a real host module, forked as the om file:
+omkit ships a real host module, forked as the om file: **[revised]**
 
 ```ts
 // packages/omkit/src/mcp/action-host.ts
+import { omHash } from "../foundation/ids.ts";
+
 const file = process.env.OMKIT_ACTION_FILE!;
 const name = process.env.OMKIT_ACTION_NAME!;
 const args = JSON.parse(process.env.OMKIT_ARGS ?? "{}");
 
-om(`${name}@${shortHash(file)}`, async (ctx) => {
+om(`${name}@${omHash(name, file)}`).run(async (ctx) => {
   const mod = await import(pathToFileURL(file).href);
   await mod[process.env.OMKIT_ACTION_EXPORT!](args).result;
 });
 ```
+
+Two corrections from the original draft, both caught against shipped source:
+
+- It used `om(name, body)`, which Spec A **removed**. The builder's `.run(body)` is
+  the only form.
+- It called `shortHash(file)`, which **does not exist** anywhere in `src/`. The real
+  helper is `omHash(name, file?)` (`foundation/ids.ts:22`) — first 8 hex of sha256
+  over `` `${file}\0${name}` ``. Reusing it is better than inventing a new hash: the
+  suffix is then derived by exactly the rule that governs run identity everywhere
+  else, applied one level in.
 
 **Nothing is forged.** `callerSite()` captures `action-host.ts`, which genuinely is
 where the run is defined. The disambiguator lives in the **name** —
@@ -335,9 +403,17 @@ Per `constraint-test-coverage.tskb.tsx`; unit tests colocated in
 `packages/omkit/tests/unit/`.
 
 - **Discovery fork** — registers without launching; a throwing file degrades to a
-  warning; `discover()` remains AST-only.
+  warning; `discover()` remains AST-only. **[revised]** An om with **required** args
+  registers without prompting and without raising `MissingArgsError` — the test that
+  proves the guard sits in `launch()` rather than above `resolveArgs`.
+- **Builder metadata** — **[revised]** `.mcp()` survives `.args()` in both orders, and
+  `.emits()`/`.ref()` in both orders. One test per direction; a single-direction test
+  passes against the bug this is guarding.
 - **Tools** — `run_om` rejects a long-lived om; arg validation returns `isError`;
   `start_om` returns a handle immediately; `list_oms` omits oms without `.mcp()`.
+  **[revised]** `list_oms` survives an om whose schema cannot convert
+  (`z.date()`): that om is listed as unavailable with a reason, and **every other om
+  still lists**.
 - **Progress and cancellation** — milestones become progress notifications with a
   monotonic `progress`; `notifications/cancelled` tears the run down and still
   writes its folder.
@@ -348,13 +424,15 @@ Per `constraint-test-coverage.tskb.tsx`; unit tests colocated in
 
 ## Risks
 
-| Risk                                               | Mitigation                                                                               |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Discovery fork executes user module top-level code | Isolated in a throwaway child; `discover()` and `omkit ls` unaffected                    |
-| Discovery latency on every server start            | Cache the registry for the process; re-discover on demand                                |
-| A settling om that never settles                   | Timeout backstop reports it as an error, surfacing the bug                               |
-| Client timeout shorter than a legitimate run       | Progress helps but is not guaranteed to extend deadlines; `start_om` is the escape hatch |
-| Resource reads leak files outside the project      | Path confinement under `logs/`, enforced on every read                                   |
+| Risk                                                  | Mitigation                                                                                                                                                                                                                      |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Discovery fork executes user module top-level code    | Isolated in a throwaway child; `discover()` and `omkit ls` unaffected                                                                                                                                                           |
+| Discovery latency on every server start               | Cache the registry for the process; re-discover on demand                                                                                                                                                                       |
+| A settling om that never settles                      | Timeout backstop reports it as an error, surfacing the bug                                                                                                                                                                      |
+| Client timeout shorter than a legitimate run          | Progress helps but is not guaranteed to extend deadlines; `start_om` is the escape hatch                                                                                                                                        |
+| Resource reads leak files outside the project         | Path confinement under `logs/`, enforced on every read                                                                                                                                                                          |
+| One unrepresentable schema breaks the whole tool list | Per-om conversion isolation; that om lists as unavailable with a reason                                                                                                                                                         |
+| `latest` diverges between runners                     | Run identity hashes the raw stack-frame string, so `D:/…` (vitest) and `D:\…` (tsx) hash differently. The server forks through one client so it stays self-consistent; documented as a caveat in `run-folder-identity.tskb.tsx` |
 
 ## Deferred
 

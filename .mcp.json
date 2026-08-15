@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "omkit": {
+      "command": "node",
+      "args": ["packages/omkit/dist/cli/index.js", "mcp", "--tsconfig", "om/tsconfig.omkit.json"]
+    }
+  }
+}

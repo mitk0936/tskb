@@ -49,8 +49,25 @@ export default [
   // or the action batteries. Keeps it reusable by the future MCP server unchanged.
   boundary(
     "client",
+    ["**/cli/**", "**/output/**", "**/actions/**", "@modelcontextprotocol/*"],
+    "the client is the UI-free engine — it may import core and foundation, not the CLI, output, actions, or the MCP SDK"
+  ),
+
+  // The MCP server is a frontend: it may reach down into the client, core and foundation,
+  // but not sideways into the CLI, the output writers, or the action batteries.
+  boundary(
+    "mcp",
     ["**/cli/**", "**/output/**", "**/actions/**"],
-    "the client is the UI-free engine — it may import core and foundation, not the CLI, output, or actions"
+    "the mcp server is a frontend over the client — not the CLI, output, or actions"
+  ),
+
+  // The skill generator reads registrations and writes markdown. It sits beside the mcp server
+  // rather than under it — nothing about generating a file should depend on the server being
+  // built, which is what keeps the generator shippable on its own.
+  boundary(
+    "skill",
+    ["**/cli/**", "**/output/**", "**/actions/**", "**/mcp/**", "@modelcontextprotocol/*"],
+    "the skill generator reads the client and core — not the CLI, output, actions, or the MCP server"
   ),
 
   // These own the real console (terminal writer / capture / live render); actions
@@ -66,5 +83,14 @@ export default [
       "src/cli/**/*.{ts,tsx}",
     ],
     rules: { "no-console": "off" },
+  },
+
+  // Must stay LAST: flat config resolves a rule by the final matching entry, and the
+  // `src/cli/**` exemption above would otherwise re-enable console in the mcp command.
+  // stdout is the JSON-RPC stream — a stray console.log corrupts it, and the failure
+  // reaches the client as an unexplained parse error with nothing to work from.
+  {
+    files: ["src/mcp/**/*.ts", "src/cli/commands/mcp.ts"],
+    rules: { "no-console": "error" },
   },
 ];

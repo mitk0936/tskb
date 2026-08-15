@@ -1,5 +1,6 @@
 import { fork } from "node:child_process";
 import path from "node:path";
+import { canonicalPath } from "../foundation/canonicalPath.ts";
 import { createChannel, type Transport } from "./channel.ts";
 import type { ChildMessage, SupervisorMessage } from "../core/interaction.ts";
 import type { RunSession, RunOptions, InspectOptions } from "./types.ts";
@@ -9,7 +10,7 @@ import type { RunSession, RunOptions, InspectOptions } from "./types.ts";
  * (not as the bare specifier `--import tsx`) keeps the child's `tsx` independent of its cwd —
  * a run in any directory still finds the loader shipped with omkit.
  */
-const tsxLoader = import.meta.resolve("tsx");
+export const tsxLoader = import.meta.resolve("tsx");
 
 /**
  * The inspector flag to prepend to a child's `execArgv` — empty when no inspector is requested.
@@ -26,12 +27,19 @@ export function inspectArgs(inspect: InspectOptions | undefined): string[] {
  * `OMKIT_SUPERVISED=1` flips the child into channel mode (see core/interaction.ts), and its
  * IPC channel is wrapped into a {@link RunSession}. stdout/stderr are piped (not inherited)
  * so the child never writes to the supervisor's terminal.
+ *
+ * The path is canonicalised first, and that is load-bearing rather than tidy — see
+ * {@link canonicalPath}. The child resolves `"omkit"` through `node_modules`, which is a
+ * symlink Node realpaths to the package's true on-disk name; forking with any other spelling
+ * of the same file gives the child a *second* copy of omkit, with its own module state. The
+ * run then exists in one copy while the om's actions look for it in the other.
  */
 export function runOm(omFile: string, opts: RunOptions = {}): RunSession {
-  const child = fork(omFile, [], {
+  const file = canonicalPath(omFile);
+  const child = fork(file, [], {
     execArgv: [...inspectArgs(opts.inspect), "--import", tsxLoader],
-    cwd: opts.cwd ?? path.dirname(omFile),
-    env: { ...process.env, OMKIT_SUPERVISED: "1" },
+    cwd: opts.cwd ?? path.dirname(file),
+    env: { ...process.env, OMKIT_SUPERVISED: "1", ...opts.env },
     stdio: ["ignore", "pipe", "pipe", "ipc"],
   });
 
@@ -64,11 +72,12 @@ export function runOm(omFile: string, opts: RunOptions = {}): RunSession {
 export function spawnBare(omFile: string, opts: RunOptions = {}): Promise<number> {
   // A bare run is unsupervised even if the parent process happens to carry the flag (e.g. a
   // test runner spawned from inside a supervised run) — clear it so the child stays bare.
-  const env = { ...process.env };
+  const env = { ...process.env, ...opts.env };
   delete env.OMKIT_SUPERVISED;
-  const child = fork(omFile, [], {
+  const file = canonicalPath(omFile);
+  const child = fork(file, [], {
     execArgv: [...inspectArgs(opts.inspect), "--import", tsxLoader],
-    cwd: opts.cwd ?? path.dirname(omFile),
+    cwd: opts.cwd ?? path.dirname(file),
     stdio: "inherit",
     env,
   });

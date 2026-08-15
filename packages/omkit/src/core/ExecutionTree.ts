@@ -18,7 +18,7 @@ import { ActionRun, type NodeInit } from "./ActionRun.ts";
 import { procRegistry } from "../system/proc.ts";
 import { currentNode } from "./context.ts";
 import { activeSupervisor } from "./interaction.ts";
-import type { Exec, LaunchSpec, OmDescription } from "./types.ts";
+import type { Exec, LaunchSpec, OmDescription, ResolvedMcpExposure } from "./types.ts";
 import type { LogEntry } from "../foundation/LogEntry.ts";
 
 /**
@@ -54,6 +54,13 @@ export class ExecutionTree {
    * terminal `.run(...)` call. Stored so it is retrievable; nothing reads it yet.
    */
   readonly description: OmDescription | undefined;
+  /**
+   * The om's `.mcp(…)` exposure, carried here from the builder for the same reason
+   * `description` is: `.run(...)` is the terminal call, and an om has no definition object
+   * to hang it on. The MCP server reads its own copy from the discovery fork, not from
+   * here — this is what makes the carry observable, and therefore testable, at all.
+   */
+  readonly mcp: ResolvedMcpExposure | undefined;
 
   private readonly rawStream: RawStream;
   private readonly consoleCapture: ConsoleCapture;
@@ -89,8 +96,14 @@ export class ExecutionTree {
   private readonly onUncaught = (e: unknown): void => this.onFatal("uncaughtException", e);
   private readonly onUnhandled = (e: unknown): void => this.onFatal("unhandledRejection", e);
 
-  constructor(name: string, definedAt?: string, description?: OmDescription) {
+  constructor(
+    name: string,
+    definedAt?: string,
+    description?: OmDescription,
+    mcp?: ResolvedMcpExposure
+  ) {
     this.description = description;
+    this.mcp = mcp;
     // The run's identity: its name + where om() is written (not how it was launched),
     // so same-named oms in different files get distinct log folders.
     this.folder = new RunFolder(name, omHash(name, siteFile(definedAt)));

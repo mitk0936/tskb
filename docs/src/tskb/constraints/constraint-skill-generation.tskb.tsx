@@ -2,6 +2,9 @@ import { Doc, P, ref } from "tskb";
 
 const SkillGenModule = ref as tskb.Modules["cli.utils.skill-generator"];
 const ContentBuilderModule = ref as tskb.Modules["cli.utils.content-builder"];
+const OmkitSkillFolder = ref as tskb.Folders["omkit.skill"];
+const OmkitSkillCommand = ref as tskb.Modules["omkit.cli.commands.skill"];
+const RegistryHash = ref as tskb.Terms["registry-hash"];
 
 export default (
   <Doc explains="How are the .claude/skills/ files maintained?" priority="constraint">
@@ -16,6 +19,22 @@ export default (
       writes those bodies to disk, including the frontmatter (name, description, allowed-tools) and
       the per-skill `references/` directory. To change a skill's content, frontmatter, or its set of
       references, edit one of those two modules and rebuild — never the generated Markdown.
+    </P>
+    <P>
+      `.claude/skills/omkit-runs/SKILL.md` obeys the same rule but has a different author:{" "}
+      {OmkitSkillFolder} generates it from what this repo's oms declare, driven by{" "}
+      {OmkitSkillCommand} as the `build:skill` step the docs build chains. Its content comes from
+      the om files themselves — <code>{".describe({ summary })"}</code>, <code>.args(schema)</code>,{" "}
+      <code>.mcp()</code>, and the tags on the calls in each body — so changing what it says means
+      editing an om, not the Markdown.
+    </P>
+    <P>
+      One exception, and only one: the frontmatter `description` in that file is authored and
+      preserved across regeneration, because it decides when an assistant loads the skill and a
+      generated summary of contents would be the wrong shape. Everything else in the file is
+      overwritten. The header carries a {RegistryHash}, and `npm run build:skill -- --check` exits
+      non-zero when the committed file no longer matches the project — which is how a hand edit or a
+      stale commit gets caught rather than silently trusted.
     </P>
   </Doc>
 );

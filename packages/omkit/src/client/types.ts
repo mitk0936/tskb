@@ -1,6 +1,6 @@
 import type { LogEntry } from "../foundation/LogEntry.ts";
 import type { PromptSpec } from "../core/interaction.ts";
-import type { Registry } from "./registry.ts";
+import type { Registry, RegistrationSet } from "./registry.ts";
 
 /** A run's terminal verdict, resolved when the child settles. */
 export interface Verdict {
@@ -31,6 +31,8 @@ export interface RunOptions {
   readonly cwd?: string;
   /** When set, fork the child with the Node inspector open so a debugger can attach. */
   readonly inspect?: InspectOptions;
+  /** Extra environment for the child, merged over the parent's — how `OMKIT_ARGS` travels. */
+  readonly env?: Record<string, string>;
 }
 
 /** A prompt the running om is waiting on — surfaced to the frontend, answered via `answer`. */
@@ -65,6 +67,12 @@ export interface OmkitClient {
   readonly tsconfig: string;
   /** Statically scan the project's `tsconfig.omkit.json` for oms and actions. */
   discover(): Promise<Registry>;
+  /**
+   * Read what the project's oms and actions declare, by importing them in a throwaway
+   * child. Unlike {@link OmkitClient.discover} this executes user code, so it is never on
+   * the `omkit ls` path — only a caller that needs real schemas should ask for it.
+   */
+  discoverRegistrations(): Promise<RegistrationSet>;
   /** Spawn an om file as a supervised child and return its live session (the Ink UI drives this). */
   run(omFile: string, opts?: RunOptions): RunSession;
   /** Spawn an om file bare — inherited stdio, no supervision — and resolve its exit code. */

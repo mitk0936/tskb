@@ -1,7 +1,9 @@
-import { discover } from "./discovery.ts";
+import { discover, discoverRegistrations } from "./discovery.ts";
 import { runOm, spawnBare } from "./runner.ts";
 import { runCheck } from "./check.ts";
 import type { OmkitClient } from "./types.ts";
+
+export { readRegistrations, discoverRegistrations } from "./discovery.ts";
 
 export type {
   OmkitClient,
@@ -13,7 +15,15 @@ export type {
   PromptRequest,
   RunEvents,
 } from "./types.ts";
-export type { Registry, DiscoveredOm, DiscoveredAction } from "./registry.ts";
+export type {
+  Registry,
+  DiscoveredOm,
+  DiscoveredAction,
+  Registration,
+  OmRegistration,
+  ActionRegistration,
+  RegistrationSet,
+} from "./registry.ts";
 import type { InspectOptions, RunOptions } from "./types.ts";
 
 /** Configuration for a client — the project's `tsconfig.omkit.json` and optional debugging. */
@@ -33,6 +43,7 @@ export function createOmkitClient(config: OmkitConfig): OmkitClient {
   return {
     tsconfig: config.tsconfig,
     discover: async () => discover(config.tsconfig),
+    discoverRegistrations: async () => discoverRegistrations(config.tsconfig),
     run: (omFile, opts) => runOm(omFile, withInspect(opts)),
     runBare: (omFile, opts) => spawnBare(omFile, withInspect(opts)),
     check: async () => runCheck(config.tsconfig),

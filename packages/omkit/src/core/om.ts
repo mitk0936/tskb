@@ -1,5 +1,6 @@
 import { ExecutionTree } from "./ExecutionTree.ts";
-import { callerSite } from "../foundation/callsite.ts";
+import { callerSite, siteFile } from "../foundation/callsite.ts";
+import { describeSchema, isDiscovering, reportOm } from "./discovery-mode.ts";
 import { activeSupervisor } from "./interaction.ts";
 import { jsonAnswerComplete, resolveArgs, type AskSpec } from "./args.ts";
 import { OPAQUE } from "./schema-hint.ts";
@@ -7,10 +8,12 @@ import type {
   Awaitable,
   Exec,
   InferSchema,
+  McpExposure,
   OmBuilder,
   OmBuilderArgs,
   OmContext,
   OmDescription,
+  ResolvedMcpExposure,
   ZodTypeLike,
 } from "./types.ts";
 
@@ -25,12 +28,36 @@ function launch(
   name: string,
   site: string | undefined,
   description: OmDescription | undefined,
-  body: (ctx: OmContext) => Awaitable<void>
+  exposure: ResolvedMcpExposure | undefined,
+  body: (ctx: OmContext) => Awaitable<void>,
+  schema?: unknown
 ): Promise<void> {
+  // Discovery: report what this om declares and start nothing.
+  //
+  // The guard belongs *here*, at the single choke point both `run()` methods funnel
+  // through, for two reasons. `OmBuilderArgs.run` resolves args inside the run body, so a
+  // guard one level up would reach `resolveArgs` first and prompt into a child nobody can
+  // answer (or throw MissingArgsError) — neither is a discovery outcome. And
+  // `new ExecutionTree(...)` creates the run's log folder in its constructor, so the
+  // guard has to precede it or discovery litters `logs/` with empty runs.
+  if (isDiscovering()) {
+    const { inputSchema, schemaError } = describeSchema(schema);
+    reportOm({
+      kind: "om-registration",
+      name,
+      file: siteFile(site),
+      description,
+      mcp: exposure,
+      inputSchema,
+      schemaError,
+    });
+    return Promise.resolve();
+  }
+
   if (ExecutionTree.current) {
     throw new Error("an om() run is already active in this process");
   }
-  const tree = new ExecutionTree(name, site, description);
+  const tree = new ExecutionTree(name, site, description, exposure);
   ExecutionTree.current = tree;
 
   const rootBody: Exec<object, unknown, unknown> = (ctx) =>
@@ -51,6 +78,8 @@ function launch(
 class Builder implements OmBuilder {
   /** Carried into `ArgsBuilder` by `.args()`, which otherwise rebuilds the builder. */
   private description: OmDescription | undefined;
+  /** Carried the same way, for the same reason — `.args()` returns a new object. */
+  private exposure: ResolvedMcpExposure | undefined;
 
   constructor(
     private readonly name: string,
@@ -63,13 +92,19 @@ class Builder implements OmBuilder {
     return this;
   }
 
+  mcp(exposure: McpExposure = {}): OmBuilder {
+    // The default is filled here, not at the reader, so every consumer sees one shape.
+    this.exposure = { mode: exposure.mode ?? "settling" };
+    return this;
+  }
+
   args<S extends ZodTypeLike>(schema: S): OmBuilderArgs<S> {
-    return new ArgsBuilder<S>(this.name, this.site, schema, this.description);
+    return new ArgsBuilder<S>(this.name, this.site, schema, this.description, this.exposure);
   }
 
   run(body: (ctx: OmContext) => Awaitable<void>): Promise<void> {
-    // Carried onto the run for `omkit ls` and Spec B; not read by the runtime yet.
-    return launch(this.name, this.site, this.description, body);
+    // Carried onto the run for `omkit ls` and the MCP server; not read by the runtime yet.
+    return launch(this.name, this.site, this.description, this.exposure, body);
   }
 }
 
@@ -83,11 +118,17 @@ class ArgsBuilder<S extends ZodTypeLike> implements OmBuilderArgs<S> {
     private readonly name: string,
     private readonly site: string | undefined,
     private readonly schema: S,
-    private description: OmDescription | undefined
+    private description: OmDescription | undefined,
+    private exposure: ResolvedMcpExposure | undefined
   ) {}
 
   describe(description: OmDescription): OmBuilderArgs<S> {
     this.description = description;
+    return this;
+  }
+
+  mcp(exposure: McpExposure = {}): OmBuilderArgs<S> {
+    this.exposure = { mode: exposure.mode ?? "settling" };
     return this;
   }
 
@@ -96,15 +137,24 @@ class ArgsBuilder<S extends ZodTypeLike> implements OmBuilderArgs<S> {
     // must already exist for the prompt and its answer to land on the timeline. A failure
     // to resolve is therefore an ordinary failure of the root node — logged, and the run
     // is marked failed — rather than a throw out of `om(...)`.
-    return launch(this.name, this.site, this.description, async (ctx) => {
-      const args = (await resolveArgs(this.schema, {
-        supplied: parseSuppliedArgs(),
-        interactive: isInteractive(),
-        ask: askForArg,
-      })) as InferSchema<S>;
-      ExecutionTree.current?.setRootArgs(args);
-      await body(ctx, args);
-    });
+    return launch(
+      this.name,
+      this.site,
+      this.description,
+      this.exposure,
+      async (ctx) => {
+        const args = (await resolveArgs(this.schema, {
+          supplied: parseSuppliedArgs(),
+          interactive: isInteractive(),
+          ask: askForArg,
+        })) as InferSchema<S>;
+        ExecutionTree.current?.setRootArgs(args);
+        await body(ctx, args);
+      },
+      // Handed to `launch` for discovery only: in a real run the schema is resolved above,
+      // inside the body. Discovery never reaches that body, so it converts the schema here.
+      this.schema
+    );
   }
 }
 

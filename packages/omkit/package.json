@@ -1,6 +1,6 @@
 {
   "name": "omkit",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "description": "A tiny runtime for developer workflows: typed actions that pass runtime capabilities and emit typed events, under one run and one shared log. The operational/runtime layer to tskb's knowledge layer.",
   "type": "module",
   "main": "./dist/index.js",
@@ -53,6 +53,7 @@
     "developer-tools"
   ],
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "ink": "^7.1.1",
     "patch-console": "^2.0.0",
     "playwright-core": "^1.49.0",

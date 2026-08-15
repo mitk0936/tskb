@@ -93,6 +93,8 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 
 - `docs/src/omkit/client.tskb.tsx` — Why does every omkit frontend go through the client?
 - `docs/src/omkit/main.tskb.tsx` — What is omkit and what does it provide?
+- `docs/src/omkit/mcp.tskb.tsx` — What does omkit expose over MCP, and how does a client drive it?
+- `docs/src/omkit/skill.tskb.tsx` — How does omkit generate a skill file, and what does that file promise?
 - `docs/src/tskb/cli/logging.tskb.tsx` — How does tskb route log output across verbosity levels and streams?
 - `docs/src/tskb/core/typescript.tskb.tsx` — How does tskb create a TypeScript Program for static analysis without compiling?
 - `docs/src/tskb/explorer/explorer.tskb.tsx` — What is the tskb explorer and how does its data flow from CLI to browser?
@@ -107,6 +109,7 @@ _Plus 34 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 - **d3** — Data-visualisation library used for layout, zoom, and SVG drawing. (url: https://d3js.org, kind: npm-package)
 - **debug** — Tiny namespaced logging library. Off by default, enabled per-namespace via the DEBUG env var (Node) or localStorage.debug (browser). (url: https://www.npmjs.com/package/debug, kind: package)
+- **modelcontextprotocol-sdk** — The official Model Context Protocol SDK. Provides the server, the stdio transport, and the request plumbing. Imported only under the mcp folder. (url: https://github.com/modelcontextprotocol/typescript-sdk, kind: npm-package)
 - **npm** — npm package registry where tskb is published. The package includes the CLI binary, library entry point, JSX runtime, and pre-built explorer SPA assets. (url: https://www.npmjs.com/package/tskb, kind: package-registry)
 - **playwright-core** — Browser automation library. The chromePage battery attaches to Chrome over CDP and hands downstream steps a live Page. (url: https://playwright.dev, kind: npm-package)
 - **typescript** — TypeScript compiler API (the 'typescript' npm package). Provides the AST, type checker, and symbol resolution used throughout registry extraction and documentation parsing. (url: https://www.typescriptlang.org, kind: npm-package)
@@ -130,7 +133,9 @@ _Plus 34 supplementary docs available via `npx --no -- tskb docs --plain`._
   explorer.explore → explorer.transformGraph → explorer.exportExplorer
 - **static-analysis** [essential] — `tskb build` invokes createProgram to set up TypeScript static analysis, then hands the Program to extraction and graph assembly
   ts.createProgram → extraction.registry → extraction.documentation → graph.builder
+- **mcp-run-om** [essential] — An assistant asks the server to run an om: metadata comes from a discovery fork, the run is supervised through the client, and its record is served back as resources
+  omkit.mcp.server → omkit.mcp.tools → omkit.discoverRegistrations → omkit.createOmkitClient → omkit.mcp.progress → omkit.output.run-folder → omkit.mcp.resources
 - **omkit-run** [essential] — An om(name).run(body) call hosts a run: actions launch as nodes, the engine supervises them and the shared log, and the run folder captures the record
   omkit.om → omkit.action → omkit.core.execution-tree → omkit.output.run-folder
 
-_Plus 12 supplementary flows available via `npx --no -- tskb flows --plain`._
+_Plus 13 supplementary flows available via `npx --no -- tskb flows --plain`._

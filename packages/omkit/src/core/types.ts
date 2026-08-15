@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import type { JsonSchema } from "./schema-json.ts";
 import type { Emitter, EventHandler } from "../foundation/events.ts";
 import type { ReadableLog } from "../foundation/LogEntry.ts";
 import type { Proc } from "../system/proc.ts";
@@ -68,10 +69,39 @@ export interface OmDescription {
   summary: string;
 }
 
+/** How an om or action behaves when a client runs it as an MCP tool. */
+export type McpMode = "settling" | "long-lived";
+
+/**
+ * Marks an om or action as exposed over MCP. Absent ⇒ invisible to the server:
+ * `.describe()` and `.args()` alone expose nothing.
+ */
+export interface McpExposure {
+  /**
+   * Whether the run settles on its own. `run_om` accepts only a `"settling"` entry; a
+   * `"long-lived"` one must be started with `start_om`. Omitted ⇒ `"settling"`, so being
+   * wrong surfaces as a timeout rather than a silently orphaned process.
+   */
+  mode?: McpMode;
+}
+
+/** An {@link McpExposure} after the builder has filled its default. */
+export interface ResolvedMcpExposure {
+  readonly mode: McpMode;
+}
+
+/** The result of converting a declared schema — one of the two fields is always undefined. */
+export interface DescribedArgs {
+  readonly inputSchema: JsonSchema | undefined;
+  readonly schemaError: string | undefined;
+}
+
 /** The builder returned by `om(name)`. `.run(body)` launches the run. */
 export interface OmBuilder {
   /** Attach a human-readable summary — carried for `omkit ls` and future tooling. */
   describe(description: OmDescription): OmBuilder;
+  /** Expose this om over MCP. Without it the MCP server does not list or run it. */
+  mcp(exposure?: McpExposure): OmBuilder;
   /**
    * Declare the run's input shape. Unlike an action's `.args()`, this is resolved at
    * runtime: the values come from what was supplied, then the schema's defaults, then by
@@ -90,6 +120,8 @@ export interface OmBuilder {
 /** After `.args(schema)`: `.run`'s body receives the resolved, typed args. */
 export interface OmBuilderArgs<S extends ZodTypeLike> {
   describe(description: OmDescription): OmBuilderArgs<S>;
+  /** Expose this om over MCP. Without it the MCP server does not list or run it. */
+  mcp(exposure?: McpExposure): OmBuilderArgs<S>;
   /**
    * Launch the run, resolving the declared args first — supplied values, then defaults,
    * then prompting — and pass them to `body` as its second parameter. Resolution happens
@@ -188,11 +220,23 @@ export interface Action<
    * Stored so it is retrievable; nothing in the runtime reads it yet.
    */
   readonly description: OmDescription | undefined;
+  /** The `.mcp(…)` exposure, carried across every builder link. Undefined ⇒ not exposed. */
+  readonly mcp: ResolvedMcpExposure | undefined;
+  /**
+   * The declared args as JSON Schema, computed on demand. Called by the discovery child
+   * rather than converting the schema itself: the user's file resolves `"omkit"` to the
+   * installed package while the child runs omkit's own module graph, so the two can hold
+   * different zod instances. Converting inside the defining copy sidesteps that. Never
+   * throws — an unconvertible schema comes back as `schemaError`.
+   */
+  readonly describeArgs: () => DescribedArgs;
 }
 
 /** Intermediate step from `action(name)`: declare metadata/events/handle, then the impl. */
 export interface ActionBuilderEvents<Events extends object, Handle = void> {
   describe(description: OmDescription): ActionBuilderEvents<Events, Handle>;
+  /** Expose this action over MCP. Without it the MCP server does not list or run it. */
+  mcp(exposure?: McpExposure): ActionBuilderEvents<Events, Handle>;
   emits<E extends object>(): ActionBuilderEvents<E, Handle>;
   ref<H>(): ActionBuilderEvents<Events, H>;
   /** Pin the first parameter to the schema's inferred type. */
@@ -205,6 +249,8 @@ export interface ActionBuilderEvents<Events extends object, Handle = void> {
 /** After `.args(schema)`: `.run` takes exactly one typed argument. */
 export interface ActionBuilderArgs<S extends ZodTypeLike, Events extends object, Handle = void> {
   describe(description: OmDescription): ActionBuilderArgs<S, Events, Handle>;
+  /** Expose this action over MCP. Without it the MCP server does not list or run it. */
+  mcp(exposure?: McpExposure): ActionBuilderArgs<S, Events, Handle>;
   run<Result>(
     body: (ctx: ActionContext<Events, Handle>, args: InferSchema<S>) => Awaitable<Result>
   ): Action<[InferSchema<S>], Result, Events, Handle>;

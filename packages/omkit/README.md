@@ -302,11 +302,100 @@ Point the `omkit` bin at a project — a `tsconfig.omkit.json` that lists your `
 - **`omkit init`** — scaffold a starter project: `tsconfig.omkit.json`, a sample `oms/dev.ts`, and `actions/hello.ts`.
 - **`omkit run`** — with no argument, open the interactive picker: browse and search your oms, run one, and watch its milestones stream live — answering any `prompt` in-console. A bare `omkit` does the same (`run` is the default command).
 - **`omkit run <om>`** — run one om directly by name or file path, inheriting the terminal.
-- **`omkit ls`** — list the discovered oms and actions.
+- **`omkit ls`** — list the discovered oms and actions. Add `--describe` to show each one's `.describe({ summary })` and whether it's exposed; without it, `ls` is a static scan that never imports your code.
 - **`omkit check`** — typecheck the project (`tsc --noEmit`) and report diagnostics.
+- **`omkit skill`** — generate `.claude/skills/omkit-runs/SKILL.md`, a map of what's runnable (see below).
+- **`omkit mcp`** — serve the project over the Model Context Protocol on stdio (see below).
 - **`omkit help`** — print the command overview (also `--help` / `-h`).
 
 Both paths run the om in its own child process and narrate it to a run folder (see above). The picker **supervises** the child — piping its output into the live view and answering prompts for it — while `omkit run <om>` runs it **bare**, handing the om your terminal directly.
+
+## MCP — let an assistant drive your oms
+
+`omkit mcp` serves a project over the [Model Context Protocol](https://modelcontextprotocol.io), so Claude and other assistants can discover your oms, run one, and read what the run produced — instead of shelling out and scraping stdout.
+
+**Nothing is exposed unless you say so.** Add `.mcp()` to an om or action; without it the server neither lists nor runs it. `.describe()` and `.args()` alone expose nothing.
+
+```ts
+om("smoke-test")
+  .describe({ summary: "Boot the app and run the smoke suite" })
+  .args(z.object({ headless: z.boolean().default(true) }))
+  .mcp() // ← now an assistant can run it
+  .run(async (ctx, { headless }) => {
+    /* … */
+  });
+```
+
+`mode` defaults to `"settling"` — a run that finishes on its own. Declare `.mcp({ mode: "long-lived" })` for a server or a watcher: MCP has no way to express "this never finishes", so omkit does. `run_om` refuses a long-lived entry and points you at `start_om`.
+
+Point your client at the project:
+
+```json
+{
+  "mcpServers": {
+    "omkit": {
+      "command": "npx",
+      "args": ["--no", "--", "omkit", "mcp"]
+    }
+  }
+}
+```
+
+The server takes its **project root from the working directory your client launches it in**, and resolves `logs/` under that root — so runs it starts are the runs its resources can serve. If your config lives at the repo root but the om project sits in a subfolder, point at the config explicitly rather than relying on a `cwd` field your client may not support: `["--no", "--", "omkit", "mcp", "--tsconfig", "om/tsconfig.omkit.json"]`.
+
+### Inspecting it
+
+The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) drives the same binary, so you can exercise every tool by hand before pointing an assistant at it:
+
+```sh
+npx -y @modelcontextprotocol/inspector npx --no -- omkit mcp
+```
+
+It serves a UI on `localhost:6274` and prints an auth token to paste in. Because omkit declares real input schemas, you get form fields per tool — and the history pane shows the full request and response for each call, `structuredContent` and resource links included. That is usually all the debugging you need: it is a client, so it shows you what _you_ sent, not what an assistant sent.
+
+Two things to know. On Windows the Inspector cannot spawn a `.cmd` shim directly, so if `npx` fails there, point it at the binary instead — `node node_modules/omkit/dist/cli/index.js mcp`. And the Inspector owns the runs it starts: closing it tears down anything `start_om` left running, the same rule that applies to any client.
+
+**Six tools**, however many oms you have — adding one changes what `list_oms` returns, never the tool list:
+
+| Tool                    | What it does                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `list_oms`              | Exposed oms and actions: summary, mode, and the JSON Schema for their arguments |
+| `run_om(name, args)`    | Runs a settling entry to completion and returns its verdict and assert tally    |
+| `start_om(name, args)`  | Starts anything and returns a handle immediately                                |
+| `get_run(run)`          | Status, verdict once settled, and links to the files the run produced           |
+| `tail_run(run, cursor)` | Log lines since `cursor` — live while running, from `raw.jsonl` once settled    |
+| `cancel_run(runId)`     | Tears a run down; it still finishes writing its run folder                      |
+
+Call `list_oms` first — `run_om`'s `args` is a plain object, so its schema comes from the listing rather than from the tool definition. That is the cost of a tool list that doesn't churn every time you edit a file.
+
+**Run folders are resources.** `omkit://runs/{run}/latest/{file}` reads from the newest run of an om, and `omkit://runs/{run}/{date}/{time}/{file}` from one specific run. Reads are confined under the project's `logs/`, size-capped, and read-only. Files a run labelled with `ctx.artifact` come back named and described.
+
+**While a run is going**, milestones arrive as progress notifications, cancelling the request tears the run down (and it still writes its record), and a `prompt` raised mid-run reaches you as an elicitation — the client is the supervisor.
+
+## A skill file — the map, before the first call
+
+`list_oms` answers "what can I run here?" at runtime, but charges a round trip for it: an assistant has to call it before it can build arguments for anything. `omkit skill` writes the same answer to disk, where it's already in context:
+
+```sh
+omkit skill          # writes .claude/skills/omkit-runs/SKILL.md
+omkit skill --check  # exits non-zero when it no longer matches the project
+```
+
+Each exposed workflow gets its summary, its argument shape, the path to its source, and an outline of what it calls — read statically from the body, with the `.tag("…")` names you already wrote:
+
+```
+### `tskb:build` — settling
+
+Rebuild the tskb knowledge graph from this repo's .tskb.tsx docs.
+
+- **Defined in:** `om/oms/tskb-build.ts`
+- **Args:** `{ verbose?: boolean, projectName?: string }`
+- **Calls:** `watchDir` [watch:build:daemon] → `buildDocs` [build]
+```
+
+Generating it runs nothing — it uses the same discovery fork as `list_oms`, where `.run(body)` reports what it declares instead of launching. The file documents the shell invocation as well as the MCP one, so it's useful with no MCP wiring at all.
+
+It's meant to be committed. A `registry-hash` in the header covers the project's declarations rather than the rendered markdown, so `--check` catches an edited om but not a reformatted file — put it in a pre-commit hook or CI. The one field you should edit by hand is the frontmatter `description`, which decides when an assistant loads the file; regeneration preserves it.
 
 ## Install
 
