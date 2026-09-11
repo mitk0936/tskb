@@ -62,6 +62,15 @@ describe("skillCommand", () => {
     expect(read()).toContain("Rebuild the graph.");
   });
 
+  it("carries a subfolder config into the commands it writes", async () => {
+    const client: OmkitClient = {
+      ...fakeClient({ oms: [om()] }),
+      tsconfig: path.join(root, "om", "tsconfig.omkit.json"),
+    };
+    await skillCommand(client, { root });
+    expect(read()).toContain("npx omkit run tskb:build --tsconfig om/tsconfig.omkit.json");
+  });
+
   it("omits an om the author did not expose", async () => {
     await skillCommand(fakeClient({ oms: [om({ name: "secret", mcp: undefined })] }), { root });
     expect(read()).not.toContain("secret");

@@ -192,7 +192,7 @@ Every action's output, events, asserts, snapshots, and lifecycle land on **one t
 
 `ctx` also gives each action `assert(cond, msg)` (tallies into the run's verdict), `snapshot(name, value)` (captures JSON state to the run folder), and `artifact(name, file, opts?)` (labels a file the action wrote — name, optional description, MIME inferred from the extension — and returns its absolute path) — so a run is an inspectable artifact, not just an exit code. Write the files you label under `ctx.artifactsFolder`, the run's own output folder.
 
-Run folders have a **stable identity**: `logs/<name>-<hash8>/<date>/<time>/`, keyed by the om's name and the file that defines it. An assistant (or a script) can always find "the latest `tskb-dev` run" without parsing scrollback, diff two runs of the same pipeline, or answer questions with evidence instead of inference: _did the server actually pass its healthcheck? which process died first? what config did the build run with?_ It's all in the folder — attributed per action, timestamped, with a verdict.
+Run folders have a **stable identity**: `logs/<name>-<hash8>/<date>/<time>/`, keyed by the om's name and the file that defines it, under the project that owns the config — not under whichever directory the run happened to start in. An assistant (or a script) can always find "the latest `tskb-dev` run" without parsing scrollback, diff two runs of the same pipeline, or answer questions with evidence instead of inference: _did the server actually pass its healthcheck? which process died first? what config did the build run with?_ It's all in the folder — attributed per action, timestamped, with a verdict.
 
 ### Observing the real world, not assuming it
 
@@ -341,7 +341,7 @@ Point your client at the project:
 }
 ```
 
-The server takes its **project root from the working directory your client launches it in**, and resolves `logs/` under that root — so runs it starts are the runs its resources can serve. If your config lives at the repo root but the om project sits in a subfolder, point at the config explicitly rather than relying on a `cwd` field your client may not support: `["--no", "--", "omkit", "mcp", "--tsconfig", "om/tsconfig.omkit.json"]`.
+The server takes its **project root from the config it was given** — the directory holding your `tsconfig.omkit.json` — and resolves `logs/` under it, so the runs it starts are the runs its resources can serve regardless of which directory your client launched it in. `omkit run` uses the same root, so a run you start in the terminal and a run an assistant starts land in one tree and each can read the other's record. If the om project sits in a subfolder, name the config rather than relying on a `cwd` field your client may not support: `["--no", "--", "omkit", "mcp", "--tsconfig", "om/tsconfig.omkit.json"]`.
 
 ### Inspecting it
 

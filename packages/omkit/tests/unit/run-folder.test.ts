@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, afterEach, describe, expect, test } from "vitest";
+import { afterAll, beforeAll, afterEach, describe, expect, test, vi } from "vitest";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -15,6 +15,7 @@ beforeAll(() => {
 
 afterEach(() => {
   process.chdir(previousCwd);
+  vi.useRealTimers();
 });
 
 afterAll(() => {
@@ -35,6 +36,10 @@ describe("RunFolder", () => {
     // The collision that matters: `hms` has second resolution, and `RawStream` opens
     // raw.jsonl with flags "w". Sharing a directory means two live runs truncate the same
     // file and write at independent offsets — corrupt bytes, not a "last one wins".
+    // Freeze the clock so both runs share one base timestamp — otherwise a second-boundary
+    // between the two `path()` calls yields distinct folders and never exercises the lock.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2024, 0, 1, 9, 26, 42));
     process.chdir(workdir);
     const first = new RunFolder("collide", "aaaaaaaa");
     const second = new RunFolder("collide", "aaaaaaaa");
@@ -51,6 +56,8 @@ describe("RunFolder", () => {
   });
 
   test("a third collision keeps counting", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2024, 0, 1, 9, 26, 42));
     process.chdir(workdir);
     const dirs = [1, 2, 3].map(() => new RunFolder("triple", "bbbbbbbb").path());
     expect(new Set(dirs).size).toBe(3);
@@ -71,5 +78,33 @@ describe("RunFolder", () => {
     const folder = new RunFolder("implicit", "dddddddd");
     const file = folder.file("result.json");
     expect(fs.existsSync(path.dirname(file))).toBe(true);
+  });
+
+  describe("the project root", () => {
+    afterEach(() => {
+      delete process.env.OMKIT_ROOT;
+    });
+
+    test("puts the run under OMKIT_ROOT, wherever the child happens to be working", () => {
+      const project = fs.mkdtempSync(path.join(os.tmpdir(), "omkit-project-"));
+      // The situation this exists for: a child whose cwd is the om file's own directory,
+      // several levels below the project it belongs to.
+      const deep = path.join(workdir, "src", "oms", "experiments");
+      fs.mkdirSync(deep, { recursive: true });
+      process.chdir(deep);
+      process.env.OMKIT_ROOT = project;
+
+      const dir = new RunFolder("rooted", "eeeeeeee").path();
+
+      expect(dir.startsWith(path.join(fs.realpathSync(project), "logs"))).toBe(true);
+      expect(fs.existsSync(path.join(deep, "logs"))).toBe(false);
+      fs.rmSync(project, { recursive: true, force: true });
+    });
+
+    test("falls back to cwd when no root was named", () => {
+      process.chdir(workdir);
+      const dir = new RunFolder("unrooted", "ffffffff").path();
+      expect(dir.startsWith(path.join(fs.realpathSync(workdir), "logs"))).toBe(true);
+    });
   });
 });

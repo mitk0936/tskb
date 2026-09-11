@@ -205,24 +205,28 @@ export function registerTools(server: McpServer, ctx: ToolContext): void {
   /**
    * Launch an entry as a supervised run.
    *
-   * cwd is the project **root**, not the om file's directory. `omkit run` uses the file's
-   * directory, but resources here resolve under `<root>/logs` — a run launched elsewhere
-   * writes its folder somewhere this same server cannot serve, so `get_run`'s resource
-   * links would point at nothing.
+   * `OMKIT_ROOT` is this server's own root, stated rather than inherited: resources here
+   * resolve under `<root>/logs`, so a run that writes its folder anywhere else is a run this
+   * same server cannot serve, and `get_run`'s resource links would point at nothing. The
+   * client would default it to the project owning the tsconfig — the same directory in
+   * practice — but "the server serves what it writes" should not rest on the two agreeing.
    */
   const launch = (entry: ToolEntry, args: Record<string, unknown>): LiveRun => {
     // An action cannot run standalone, so an action-backed tool forks omkit's shipped host
     // om instead of the action's own file — which defines no om at all.
     const isAction = entry.kind === "action";
     const file = isAction ? hostFile() : entry.file;
-    const env: Record<string, string> = isAction
-      ? {
-          OMKIT_ACTION_FILE: entry.file,
-          OMKIT_ACTION_NAME: entry.name,
-          OMKIT_ACTION_EXPORT: entry.exportName!,
-          OMKIT_ACTION_ARGS: JSON.stringify(args),
-        }
-      : { OMKIT_ARGS: JSON.stringify(args) };
+    const env: Record<string, string> = {
+      OMKIT_ROOT: ctx.root,
+      ...(isAction
+        ? {
+            OMKIT_ACTION_FILE: entry.file,
+            OMKIT_ACTION_NAME: entry.name,
+            OMKIT_ACTION_EXPORT: entry.exportName!,
+            OMKIT_ACTION_ARGS: JSON.stringify(args),
+          }
+        : { OMKIT_ARGS: JSON.stringify(args) }),
+    };
     const folderName = isAction
       ? hostFolderName(entry.name, entry.file)
       : (entry.folderName ?? entry.name);

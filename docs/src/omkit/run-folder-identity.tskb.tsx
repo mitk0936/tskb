@@ -46,6 +46,9 @@ const CallerSiteExport = ref as tskb.Exports["omkit.callerSite"];
 const SiteFileExport = ref as tskb.Exports["omkit.siteFile"];
 const RunFolderModule = ref as tskb.Modules["omkit.output.run-folder"];
 
+const CreateClientExport = ref as tskb.Exports["omkit.createOmkitClient"];
+const McpToolsModule = ref as tskb.Modules["omkit.mcp.tools"];
+
 const RunFolderTerm = ref as tskb.Terms["run-folder"];
 const Vitest = ref as tskb.Externals["vitest"];
 
@@ -92,7 +95,32 @@ export default (
         Identity is a property of where the run is <em>defined</em>, not how the process was
         launched.
       </Li>
+      <Li>
+        <strong>The folder's parent is the project, not the process.</strong> Which{" "}
+        <code>logs/</code> a run writes into is named explicitly by whoever starts it, through{" "}
+        <code>OMKIT_ROOT</code> — never read off the working directory.
+      </Li>
     </List>
+
+    <H2>Which logs/ the folder lands in</H2>
+    <P>
+      Identity names the folder; the project names its parent. {RunFolderModule} resolves{" "}
+      <code>logs/</code> against <code>OMKIT_ROOT</code>, which {CreateClientExport} sets to the
+      directory owning the config it was built from, and which {McpToolsModule} sets to the root
+      that same server serves its resources from — so a run an assistant starts and a run started
+      from a terminal land in one tree, and each can read the other's record.
+    </P>
+    <P>
+      Reading the working directory instead is what scattered them. A run's cwd is not a statement
+      about which project it belongs to: a bare run sets it to the om file's own directory, so that
+      relative paths written in a body resolve the way their author reads them. A project with oms
+      in several folders therefore grew a <code>logs/</code> tree beside each one, while the server
+      wrote to wherever it happened to be launched — one om, several lineages, and the "latest run
+      of X" guarantee above silently answering from whichever half the asker was standing in. The
+      cwd still means what it meant; only the record's location is a property of the project.
+    </P>
+
+    <Relation from={CreateClientExport} to={RunFolderModule} label="names the root of" />
 
     <H2>What breaks if you get it wrong</H2>
     <P>

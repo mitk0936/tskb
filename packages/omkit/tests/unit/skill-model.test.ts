@@ -49,20 +49,20 @@ describe("buildSkillModel", () => {
         actions: [action("visible"), action("private", { mcp: undefined })],
       }),
       reg(),
-      ROOT
+      { root: ROOT }
     );
     expect(m.oms.map((o) => o.name)).toEqual(["shown"]);
     expect(m.actions.map((a) => a.name)).toEqual(["visible"]);
   });
 
   it("emits project-relative posix paths", () => {
-    const m = buildSkillModel(set({ oms: [om("b")] }), reg(), ROOT);
+    const m = buildSkillModel(set({ oms: [om("b")] }), reg(), { root: ROOT });
     expect(m.oms[0]!.file).toBe("om/build.ts");
   });
 
   it("keeps an absolute path when the file lies outside the project root", () => {
     const outside = path.resolve("/elsewhere/x.ts");
-    const m = buildSkillModel(set({ oms: [om("b", { file: outside })] }), reg(), ROOT);
+    const m = buildSkillModel(set({ oms: [om("b", { file: outside })] }), reg(), { root: ROOT });
     expect(m.oms[0]!.file).not.toMatch(/\.\./);
     expect(m.oms[0]!.file.endsWith("elsewhere/x.ts")).toBe(true);
   });
@@ -80,7 +80,7 @@ describe("buildSkillModel", () => {
     const m = buildSkillModel(
       set({ oms: [om("a", { inputSchema: sketchable }), om("z", { inputSchema: opaque })] }),
       reg(),
-      ROOT
+      { root: ROOT }
     );
     expect(m.oms[0]!.argHint).toBe("{ v?: boolean }");
     expect(m.oms[0]!.argSchema).toBeUndefined();
@@ -89,9 +89,94 @@ describe("buildSkillModel", () => {
   });
 
   it("omits both arg fields when no args were declared", () => {
-    const m = buildSkillModel(set({ oms: [om("b")] }), reg(), ROOT);
+    const m = buildSkillModel(set({ oms: [om("b")] }), reg(), { root: ROOT });
     expect(m.oms[0]!.argHint).toBeUndefined();
     expect(m.oms[0]!.argSchema).toBeUndefined();
+    expect(m.oms[0]!.argExample).toBeUndefined();
+  });
+
+  describe("the OMKIT_ARGS example", () => {
+    const exampleOf = (inputSchema: JsonSchema): Record<string, unknown> | undefined =>
+      buildSkillModel(set({ oms: [om("a", { inputSchema })] }), reg(), { root: ROOT }).oms[0]!
+        .argExample;
+
+    it("carries every required field, since a run cannot start without them", () => {
+      expect(
+        exampleOf({
+          type: "object",
+          properties: { target: { type: "string" }, replicas: { type: "integer" } },
+          required: ["target"],
+        })
+      ).toEqual({ target: "…" });
+    });
+
+    it("takes an enum's first member — the case a hint-regex could not read", () => {
+      expect(
+        exampleOf({
+          type: "object",
+          properties: { suite: { enum: ["Full_Layouts", "Full_Platform"] } },
+        })
+      ).toEqual({ suite: "Full_Layouts" });
+    });
+
+    it("prefers a declared default over an invented value", () => {
+      expect(
+        exampleOf({ type: "object", properties: { port: { type: "integer", default: 9876 } } })
+      ).toEqual({ port: 9876 });
+    });
+
+    it("shows one optional field when nothing is required", () => {
+      expect(
+        exampleOf({
+          type: "object",
+          properties: { verbose: { type: "boolean" }, name: { type: "string" } },
+          required: [],
+        })
+      ).toEqual({ verbose: false });
+    });
+
+    it("gives up rather than emit an example that would still prompt", () => {
+      expect(
+        exampleOf({
+          type: "object",
+          properties: { config: { type: "object" }, name: { type: "string" } },
+          required: ["config"],
+        })
+      ).toBeUndefined();
+    });
+
+    it("gives up when no field can be sampled at all", () => {
+      expect(
+        exampleOf({ type: "object", properties: { tags: { type: "array" } } })
+      ).toBeUndefined();
+    });
+  });
+
+  describe("the invocation", () => {
+    it("records a config the reader has to name, relative to the root", () => {
+      const m = buildSkillModel(set({ oms: [om("b")] }), reg(), {
+        root: ROOT,
+        tsconfig: at("om/tsconfig.omkit.json"),
+      });
+      expect(m.tsconfig).toBe("om/tsconfig.omkit.json");
+    });
+
+    it("stays silent when omkit's own default already finds it", () => {
+      const m = buildSkillModel(set({ oms: [om("b")] }), reg(), {
+        root: ROOT,
+        tsconfig: at("tsconfig.omkit.json"),
+      });
+      expect(m.tsconfig).toBeUndefined();
+    });
+
+    it("moves the hash, since every command in the file depends on it", () => {
+      const base = buildSkillModel(set({ oms: [om("b")] }), reg(), { root: ROOT }).hash;
+      const moved = buildSkillModel(set({ oms: [om("b")] }), reg(), {
+        root: ROOT,
+        tsconfig: at("om/tsconfig.omkit.json"),
+      }).hash;
+      expect(moved).not.toBe(base);
+    });
   });
 
   it("attaches the outline from the AST scan, matched on name and file", () => {
@@ -103,7 +188,7 @@ describe("buildSkillModel", () => {
           { name: "b", file: at("om/other.ts"), line: 1, calls: [{ name: "wrong" }] },
         ],
       }),
-      ROOT
+      { root: ROOT }
     );
     expect(m.oms[0]!.calls).toEqual([{ name: "command", tag: "t" }]);
   });
@@ -122,46 +207,44 @@ describe("buildSkillModel", () => {
           },
         ],
       }),
-      ROOT
+      { root: ROOT }
     );
     expect(m.actions[0]!.exportName).toBe("inspectPage");
     expect(m.actions[0]!.publishesCapability).toBe(true);
   });
 
   it("sorts alphabetically regardless of discovery order, and hashes identically", () => {
-    const a = buildSkillModel(set({ oms: [om("z"), om("a")] }), reg(), ROOT);
-    const b = buildSkillModel(set({ oms: [om("a"), om("z")] }), reg(), ROOT);
+    const a = buildSkillModel(set({ oms: [om("z"), om("a")] }), reg(), { root: ROOT });
+    const b = buildSkillModel(set({ oms: [om("a"), om("z")] }), reg(), { root: ROOT });
     expect(a.oms.map((o) => o.name)).toEqual(["a", "z"]);
     expect(a.hash).toBe(b.hash);
   });
 
   it("hashes as 8 hex characters", () => {
-    expect(buildSkillModel(set({ oms: [om("b")] }), reg(), ROOT).hash).toMatch(/^[0-9a-f]{8}$/);
+    expect(buildSkillModel(set({ oms: [om("b")] }), reg(), { root: ROOT }).hash).toMatch(
+      /^[0-9a-f]{8}$/
+    );
   });
 
   it("moves the hash when a summary, a mode, a schema, or the outline changes", () => {
-    const base = buildSkillModel(set({ oms: [om("b")] }), reg(), ROOT).hash;
-    const summary = buildSkillModel(
-      set({ oms: [om("b", { summary: "does a thing" })] }),
-      reg(),
-      ROOT
-    ).hash;
-    const mode = buildSkillModel(
-      set({ oms: [om("b", { mcp: { mode: "long-lived" } })] }),
-      reg(),
-      ROOT
-    ).hash;
+    const base = buildSkillModel(set({ oms: [om("b")] }), reg(), { root: ROOT }).hash;
+    const summary = buildSkillModel(set({ oms: [om("b", { summary: "does a thing" })] }), reg(), {
+      root: ROOT,
+    }).hash;
+    const mode = buildSkillModel(set({ oms: [om("b", { mcp: { mode: "long-lived" } })] }), reg(), {
+      root: ROOT,
+    }).hash;
     const schema = buildSkillModel(
       set({
         oms: [om("b", { inputSchema: { type: "object", properties: { v: { type: "boolean" } } } })],
       }),
       reg(),
-      ROOT
+      { root: ROOT }
     ).hash;
     const outline = buildSkillModel(
       set({ oms: [om("b")] }),
       reg({ oms: [{ name: "b", file: at(BUILD), line: 1, calls: [{ name: "command" }] }] }),
-      ROOT
+      { root: ROOT }
     ).hash;
     expect(new Set([base, summary, mode, schema, outline]).size).toBe(5);
   });
@@ -170,12 +253,12 @@ describe("buildSkillModel", () => {
     const one = buildSkillModel(
       set({ oms: [om("b", { inputSchema: { type: "object", properties: {}, required: [] } })] }),
       reg(),
-      ROOT
+      { root: ROOT }
     ).hash;
     const two = buildSkillModel(
       set({ oms: [om("b", { inputSchema: { required: [], properties: {}, type: "object" } })] }),
       reg(),
-      ROOT
+      { root: ROOT }
     ).hash;
     expect(one).toBe(two);
   });

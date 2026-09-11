@@ -97,16 +97,84 @@ describe("renderSkill", () => {
   });
 
   it("documents both the shell and the MCP path", () => {
-    const out = render(model({ oms: [om()] }));
+    const out = render(model({ oms: [om({ argExample: { verbose: false } })] }));
     expect(out).toContain("npx omkit run tskb:build");
     expect(out).toContain("OMKIT_ARGS=");
     expect(out).toContain("claude mcp add omkit -- npx omkit mcp");
     expect(out).toContain("`list_oms` is authoritative");
   });
 
-  it("builds the OMKIT_ARGS example from a real declared field", () => {
-    const out = render(model({ oms: [om({ argHint: "{ verbose?: boolean, name?: string }" })] }));
-    expect(out).toContain(`OMKIT_ARGS='{"verbose":false}'`);
+  it("takes the shell example from a settling om, not whichever sorts first", () => {
+    const out = render(
+      model({ oms: [om({ name: "dev", mode: "long-lived" }), om({ name: "build" })] })
+    );
+    expect(out).toContain("npx omkit run build");
+    expect(out).not.toContain("npx omkit run dev\n");
+  });
+
+  it("says so when the only example available never finishes", () => {
+    const out = render(model({ oms: [om({ name: "dev", mode: "long-lived" })] }));
+    expect(out).toContain("npx omkit run dev  # long-lived: runs until you stop it");
+  });
+
+  it("takes the args example from a settling om too", () => {
+    const out = render(
+      model({
+        oms: [
+          om({ name: "dev", mode: "long-lived", argExample: { port: 9876 } }),
+          om({ name: "build", argExample: { verbose: false } }),
+        ],
+      })
+    );
+    expect(out).toContain(`OMKIT_ARGS='{"verbose":false}' npx omkit run build`);
+  });
+
+  it("puts the project's --tsconfig on every command it prints", () => {
+    const out = render(
+      model({ oms: [om({ argExample: { verbose: false } })], tsconfig: "om/tsconfig.omkit.json" })
+    );
+    expect(out).toContain("npx omkit run tskb:build --tsconfig om/tsconfig.omkit.json");
+    expect(out).toContain(
+      `OMKIT_ARGS='{"verbose":false}' npx omkit run tskb:build --tsconfig om/tsconfig.omkit.json`
+    );
+    expect(out).toContain(
+      "claude mcp add omkit -- npx omkit mcp --tsconfig om/tsconfig.omkit.json"
+    );
+  });
+
+  it("leaves the flag off when omkit's own default finds the config", () => {
+    const out = render(model({ oms: [om()] }));
+    expect(out).not.toContain("--tsconfig");
+  });
+
+  it("says where the commands must be run from", () => {
+    expect(render(model({ oms: [om()] }))).toContain("Run these from the project root");
+  });
+
+  it("quotes an om name the shell would otherwise split", () => {
+    const out = render(model({ oms: [om({ name: "DTF Tests" })] }));
+    expect(out).toContain('npx omkit run "DTF Tests"');
+    expect(out).not.toContain("npx omkit run DTF Tests");
+  });
+
+  it("leaves a bare name unquoted", () => {
+    expect(render(model({ oms: [om()] }))).toContain("npx omkit run tskb:build\n");
+  });
+
+  it("escapes a quote inside a name rather than emitting a broken command", () => {
+    const out = render(model({ oms: [om({ name: 'say "hi"' })] }));
+    expect(out).toContain('npx omkit run "say \\"hi\\""');
+  });
+
+  it("writes the model's example verbatim, quoting and all", () => {
+    const out = render(model({ oms: [om({ argExample: { suite: "Full_Layouts" } })] }));
+    expect(out).toContain(`OMKIT_ARGS='{"suite":"Full_Layouts"}'`);
+  });
+
+  it("drops the args line entirely when no honest example exists", () => {
+    const out = render(model({ oms: [om({ argHint: "{ config?: object }" })] }));
+    expect(out).not.toContain("OMKIT_ARGS='{}'");
+    expect(out).not.toContain("OMKIT_ARGS=");
   });
 
   it("labels the outline as an approximation", () => {
@@ -117,6 +185,11 @@ describe("renderSkill", () => {
 
   it("states the run folder layout and nothing else", () => {
     expect(render(model({ oms: [om()] }))).toContain("`logs/<name>-<hash8>/<date>/<time>/`");
+  });
+
+  it("spells the run folder from the root when the project sits in a subfolder", () => {
+    const out = render(model({ oms: [om()], tsconfig: "om/tsconfig.omkit.json" }));
+    expect(out).toContain("`om/logs/<name>-<hash8>/<date>/<time>/`");
   });
 
   it("says so plainly when nothing is exposed", () => {

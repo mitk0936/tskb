@@ -46,6 +46,47 @@
 
 ### Fixed
 
+- **`typescript` moved from `devDependencies` to `dependencies`.** Three shipped modules import
+  it at runtime, and one of them — discovery — runs on every command, so an install that did not
+  already happen to have TypeScript nearby failed with `ERR_MODULE_NOT_FOUND` on `omkit ls`. It
+  went unnoticed because a monorepo hoists it into place.
+- **A node's log file no longer spells its name out as directories.** A node's id is
+  `<name>_<shortId>`, ids are joined with `/` into node paths, and those paths become log file
+  paths — so a name carrying its own separators was read as tree nesting. A `command` node is
+  named after its whole command line, and one watcher's log ended up nine directories deep, with
+  `docs`, `packages` and `tskb` as real folders inside the run. Names are now sanitised where the
+  id is made, which is the only place the two kinds of separator are still distinguishable, and
+  the name's contribution to an id is capped so a long command line cannot push a log path past
+  Windows' 260-character limit. Displayed names are untouched: nodes are shown by name, never by
+  id.
+
+- **One project, one `logs/` tree.** A run's record now lands under the project that owns the
+  config, wherever the run was started from. It used to follow the working directory, and the
+  frontends chose different ones: `omkit run` set it to the om file's own directory, so a project
+  with oms in several folders accumulated a `logs/` beside each of them, while the MCP server used
+  the directory it happened to be launched in — with the result that a run started in the terminal
+  and a run started by an assistant wrote to two different trees, and neither could read the
+  other's record. The child's cwd is unchanged, so relative paths inside an om body still resolve
+  where their author reads them. Folder _names_ are unchanged; only their parent moves, so records
+  written before this land in the old location and stay readable there.
+- **A generated skill now documents commands that work.** `omkit skill` was given a config path and
+  dropped it from everything it wrote, so a project whose om files live in a subfolder got a file
+  whose every command failed at the root the file itself is read from. The `--tsconfig` the project
+  needs is now carried into each rendered command, including the `claude mcp add` line, and the run
+  folder is spelled from the root rather than as a bare `logs/`.
+- **An om name with a space is quoted** in the commands the skill writes. Names are free text, and
+  `omkit run DTF Tests` resolves the target as `DTF` and leaves `Tests` as a stray positional.
+- **The shell example is one that can actually be run.** It was whichever om sorted first, which for
+  one real project was a long-lived one — an example that hangs, two paragraphs above the heading
+  saying it never finishes. A settling om is preferred; when a project has none, the example says so
+  on the line itself.
+- **The `OMKIT_ARGS` example is built from the schema** instead of by pattern-matching the rendered
+  type sketch. The old reading recognised `{ field: type` and nothing else, so an om whose first
+  field was an enum silently produced `OMKIT_ARGS='{}'` — syntactically fine, and wrong about the
+  project. Examples now carry every required field (or one optional field when nothing is required),
+  take an enum's first member and a declared default where there is one, and are omitted entirely
+  when no complete example can be built.
+
 - **Two spellings of one path no longer mean two different things** (Windows). A
   case-insensitive filesystem let `d:\repo\om.ts` and `D:\repo\om.ts` name the same file, and
   omkit keyed on the string twice. Node caches ES modules by URL, so a child forked with one
@@ -59,6 +100,14 @@
 
 ### Changed
 
+- **`omkit skill --root` now defaults to the enclosing repository**, not to the tsconfig's own
+  directory. The root decides where `.claude/` goes and what the recorded paths are relative to,
+  and a skill file is read with the repository as the working directory — so the old default was
+  wrong for exactly the layout (`om/` beside the code it drives) that needed it, and had to be
+  corrected with a second flag. `--root` remains, for a project deliberately not at the top of its
+  checkout.
+- `RunOptions.env` now carries `OMKIT_ROOT` by default — the project owning the client's config.
+  A caller may still set its own; the MCP server does, naming the root it serves resources from.
 - `DiscoveredOm` gained `calls`, so `omkit ls --json` carries the outline. Additive, and derived
   statically, so `discover()` is still the pass that never executes user code.
 - The generated `description` in the skill's frontmatter is preserved across regeneration. It is

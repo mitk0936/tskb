@@ -460,8 +460,14 @@ export class ExecutionTree {
 
   /**
    * Absolute `.log` path for a node — root is `main.log`, children drop the `main/`
-   * prefix. Each id segment is sanitized so names with filesystem-illegal characters
-   * (e.g. `TSKB:root:watch:docs`) still produce a valid path.
+   * prefix. One directory level per ancestor, mirroring the tree.
+   *
+   * Every `/` here is a level, and that holds only because ids are sanitised where they are
+   * made (see `makeId`): a name that carried its own separators would be split here into
+   * levels it never had, and the run folder would grow directories spelling out a command's
+   * arguments. `fsSafe` stays as the second line of defence for anything that reaches a
+   * segment by another route; it cannot be the first, since by this point a separator from a
+   * name and a separator from the tree are the same character.
    */
   private logFile(nodePath: string): string {
     const rel = nodePath === "main" ? "main" : nodePath.slice("main/".length);

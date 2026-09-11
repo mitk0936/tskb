@@ -6,6 +6,11 @@ export interface Transport {
   send(message: SupervisorMessage): void;
   onMessage(handler: (message: ChildMessage) => void): void;
   onClose(handler: (code: number | null) => void): void;
+  /**
+   * Whatever the child printed outside the channel, for a close that never reached `settled`.
+   * Read only on that path — a run that reports for itself needs no second account.
+   */
+  diagnostics?(): string[];
 }
 
 /**
@@ -40,7 +45,14 @@ export function createChannel(transport: Transport): RunSession {
   });
 
   transport.onClose(() => {
-    if (!settled) resolveResult({ ok: false, folder: "", summary: [] });
+    if (settled) return;
+    // The child died before it could report: there is no run folder and no summary of its own.
+    // What it printed on its way out — a module that failed to load, a crash during import — is
+    // the only account of why, so it stands in as the summary. Without it the frontend shows a
+    // bare "✗ failed" and the reason is lost with the process.
+    const output = transport.diagnostics?.() ?? [];
+    const summary = output.length ? ["the run ended before it could report:", ...output] : [];
+    resolveResult({ ok: false, folder: "", summary });
   });
 
   return {

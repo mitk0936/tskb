@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { realpathSync } from "node:fs";
 import { createOmkitClient, type InspectOptions, type OmkitClient } from "../client/index.ts";
+import { DEFAULT_TSCONFIG } from "../client/types.ts";
 
 export interface Cli {
   command: string;
@@ -18,7 +19,7 @@ export interface Cli {
   check: boolean;
   /** `skill --out <path>`: write somewhere other than `.claude/skills/omkit-runs/SKILL.md`. */
   out?: string;
-  /** `skill --root <path>`: the project the skill describes, when the tsconfig sits below it. */
+  /** `skill --root <path>`: override the repository the skill is written for and relative to. */
   root?: string;
   /** The Node inspector, if requested via `--inspect[=port]`. */
   inspect?: InspectOptions;
@@ -52,7 +53,7 @@ export function parseCli(argv: string[]): Cli {
     args: rest,
     options: {
       json: { type: "boolean", default: false },
-      tsconfig: { type: "string", default: "tsconfig.omkit.json" },
+      tsconfig: { type: "string", default: DEFAULT_TSCONFIG },
       help: { type: "boolean", short: "h", default: false },
       describe: { type: "boolean", default: false },
       check: { type: "boolean", default: false },
@@ -130,12 +131,14 @@ async function initCommand(): Promise<void> {
 
 /** The `skill` command: generate the runnable-workflow map for an assistant to read. */
 async function generateSkill(client: OmkitClient, cli: Cli): Promise<void> {
-  const { skillCommand } = await import("./commands/skill.ts");
+  const { skillCommand, skillRoot } = await import("./commands/skill.ts");
   // The root decides two things at once — where `.claude/` goes, and what the recorded paths are
-  // relative to — so it is one setting, not two. It defaults to the tsconfig's directory (the
-  // common layout, where they are the same place); `--root` covers the repo that keeps its om
-  // project in a subfolder, where the reader's cwd is the repo and so the paths must be too.
-  const root = cli.root ? path.resolve(cli.root) : path.dirname(path.resolve(cli.tsconfig));
+  // relative to — so it is one setting, not two. It defaults to the enclosing repository, which
+  // is both where `.claude/` belongs and where the file's reader will be standing; `--root`
+  // remains for the project that is deliberately not at the top of its checkout.
+  const root = cli.root
+    ? path.resolve(cli.root)
+    : skillRoot(path.dirname(path.resolve(cli.tsconfig)));
   await skillCommand(client, { root, check: cli.check, ...(cli.out ? { out: cli.out } : {}) });
 }
 
@@ -147,9 +150,12 @@ const COMMANDS: Record<string, (client: OmkitClient, cli: Cli) => Promise<void>>
   init: () => initCommand(),
   ls: (client, cli) => lsCommand(client, cli),
   check: (client) => checkCommand(client),
-  mcp: async (client) => {
+  mcp: async (client, cli) => {
     const { mcpCommand } = await import("./commands/mcp.ts");
-    await mcpCommand(client, { root: process.cwd() });
+    // The project owning the config, not the directory the server was launched from: run
+    // folders are written under it, so reading them back has to use the same answer. An
+    // assistant that starts the server from anywhere still sees the project's own runs.
+    await mcpCommand(client, { root: path.dirname(path.resolve(cli.tsconfig)) });
   },
   skill: (client, cli) => generateSkill(client, cli),
   run: async (client, cli) => {

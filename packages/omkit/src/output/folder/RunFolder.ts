@@ -8,6 +8,22 @@ import { newUuid, shortId } from "../../foundation/ids.ts";
 const MAX_NUMBERED_ATTEMPTS = 99;
 
 /**
+ * Where `logs/` goes: the project root a frontend named, or the working directory when nobody
+ * named one.
+ *
+ * A run's cwd is not a statement about which project it belongs to — `omkit run` sets it to the
+ * om file's own directory so relative paths in a body resolve the way their author reads them,
+ * which meant one project scattered its records across every folder that happened to contain an
+ * om, while the MCP server wrote them wherever the server was started. Two names for one thing.
+ * The root is passed explicitly and separately so the record's location is a property of the
+ * project, and the cwd stays free to mean what it already meant.
+ */
+function logsRoot(): string {
+  const root = process.env.OMKIT_ROOT;
+  return root ? path.resolve(root, "logs") : path.resolve("logs");
+}
+
+/**
  * Owns this run's single output directory — `logs/<name>-<hash>/<date>/<time>/` —
  * where `raw.jsonl`, the per-action `.log` files, rollups, and `result.json` all
  * live. The path is computed once, lazily, and always returned absolute so links
@@ -66,7 +82,7 @@ export class RunFolder {
    */
   private claim(): void {
     const now = new Date();
-    const parent = path.resolve("logs", this.name(), ymd(now));
+    const parent = path.resolve(logsRoot(), this.name(), ymd(now));
     mkdirSync(parent, { recursive: true });
     const base = hms(now, "-");
 

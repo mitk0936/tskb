@@ -31,22 +31,41 @@ export function renderSkill(model: SkillModel, opts: { description: string }): s
     ...howToRun(model),
     ...workflows(model),
     ...actions(model),
-    ...whereOutputLands(),
+    ...whereOutputLands(model),
   ];
   return `${lines.join("\n")}\n`;
 }
 
 function howToRun(model: SkillModel): string[] {
-  const example = model.oms[0]?.name ?? "<om>";
-  const withArgs = model.oms.find((o) => o.argHint !== undefined) ?? model.oms[0];
+  // A long-lived om is the wrong thing to demonstrate `run` with: it never returns, and the
+  // entry's own heading says so a few lines further down. Prefer one that settles, and fall
+  // back to the long-lived one only when the project has nothing else — annotated, so the
+  // command still reads as deliberate rather than as an example that hangs.
+  const settling = model.oms.filter((o) => o.mode !== "long-lived");
+  const pool = settling.length ? settling : model.oms;
+  const example = pool[0];
+  const withArgs = pool.find((o) => o.argExample !== undefined);
+  const name = example?.name ?? "<om>";
+  const holds = example?.mode === "long-lived" ? "  # long-lived: runs until you stop it" : "";
+  // Appended to every command, because omkit resolves its config against the working directory
+  // and this file's reader is at the project root, which is not necessarily where the config is.
+  const config = model.tsconfig ? ` --tsconfig ${model.tsconfig}` : "";
   return [
     "## How to run",
     "",
-    "**Shell — always available:**",
+    "**Shell — always available.** Run these from the project root (the directory holding",
+    "`.claude/`); every path here is relative to it.",
     "",
     "```bash",
-    `npx omkit run ${example}`,
-    `OMKIT_ARGS='${exampleArgs(withArgs)}' npx omkit run ${withArgs?.name ?? example}`,
+    `npx omkit run ${shellName(name)}${config}${holds}`,
+    // Only when there is a real one to show. An `OMKIT_ARGS='{}'` line teaches the syntax and
+    // nothing else, and reads as though this project's runs take no arguments — which is the
+    // opposite of what it means when a project's args could not be sampled.
+    ...(withArgs
+      ? [
+          `OMKIT_ARGS='${JSON.stringify(withArgs.argExample)}' npx omkit run ${shellName(withArgs.name)}${config}`,
+        ]
+      : []),
     "```",
     "",
     "Arguments travel as one JSON object in `OMKIT_ARGS`. Anything an om declares but does not",
@@ -56,7 +75,7 @@ function howToRun(model: SkillModel): string[] {
     "completion and returns its verdict; `start_om` starts a long-lived one and returns a run id",
     "to poll with `get_run`, read with `tail_run`, and end with `cancel_run`.",
     "",
-    "To wire it up: `claude mcp add omkit -- npx omkit mcp`",
+    `To wire it up: \`claude mcp add omkit -- npx omkit mcp${config}\``,
     "",
     "At runtime `list_oms` is authoritative — this file is orientation, and can drift.",
     "",
@@ -64,16 +83,19 @@ function howToRun(model: SkillModel): string[] {
 }
 
 /**
- * A plausible `OMKIT_ARGS` value built from the first declared field, so the example shows the
- * real shape rather than a placeholder. Falls back to an empty object when nothing is declared.
+ * An om's name as one shell argument.
+ *
+ * A name is free text — `om("DTF Tests")` is legal, and reads well in a log — but written bare
+ * into a command it stops being one argument: `omkit run DTF Tests` resolves the target as
+ * "DTF" and leaves "Tests" as a stray positional. So the file carries the quotes rather than
+ * leaving the reader to notice they are missing.
+ *
+ * Double quotes, not single, because cmd.exe and PowerShell understand them too. Names built
+ * from shell metacharacters beyond a quote or a backslash (`$`, backticks) are the author's to
+ * avoid — there is no quoting form that is literal in every shell at once.
  */
-function exampleArgs(entry: SkillEntry | undefined): string {
-  const match = entry?.argHint?.match(/\{ (\w+)\??: (\w+)/);
-  if (!match) return "{}";
-  const [, field, type] = match;
-  const value = type === "string" ? '"…"' : type === "boolean" ? "false" : "0";
-  return `{"${field}":${value}}`;
-}
+const shellName = (name: string): string =>
+  /^[\w:.@/-]+$/.test(name) ? name : `"${name.replace(/([\\"])/g, "\\$1")}"`;
 
 function workflows(model: SkillModel): string[] {
   if (model.oms.length === 0) {
@@ -128,14 +150,21 @@ function entry(e: SkillEntry, heading: string): string[] {
   return lines;
 }
 
+/** The model's paths are already posix, so the directory half is a plain string operation. */
+const posixDirname = (file: string): string => file.slice(0, Math.max(0, file.lastIndexOf("/")));
+
 const renderCall = (c: { name: string; tag?: string }): string =>
   c.tag ? `\`${c.name}\` [${c.tag}]` : `\`${c.name}\``;
 
-function whereOutputLands(): string[] {
+function whereOutputLands(model: SkillModel): string[] {
+  // Spelled from the root the reader stands at, not as a bare `logs/`: the folder belongs to
+  // the project that owns the config, which in a subfolder layout is not where they are.
+  const dir = model.tsconfig ? posixDirname(model.tsconfig) : "";
+  const logs = dir ? `${dir}/logs` : "logs";
   return [
     "## Where output lands",
     "",
-    "`logs/<name>-<hash8>/<date>/<time>/` — `main.log`, `result.json`, `artifacts.log`,",
+    `\`${logs}/<name>-<hash8>/<date>/<time>/\` — \`main.log\`, \`result.json\`, \`artifacts.log\`,`,
     "`events.log`, `asserts.log`, `raw.jsonl`. A run's identity is its name plus its defining",
     'file, so "the latest run of X" is always resolvable without parsing scrollback.',
     "",

@@ -5,7 +5,8 @@
  * take data and return data, which is what makes determinism testable without touching a disk.
  */
 export { buildSkillModel, registryHash } from "./model.ts";
-export type { SkillCall, SkillEntry, SkillModel } from "./model.ts";
+export type { SkillCall, SkillEntry, SkillModel, SkillProject } from "./model.ts";
+export { skillRoot } from "./root.ts";
 export { renderSkill, generatedBy, SKILL_NAME } from "./render.ts";
 export { readExisting, writeSkill, DEFAULT_DESCRIPTION, SKILL_RELATIVE_PATH } from "./file.ts";
 export type { ExistingSkill } from "./file.ts";

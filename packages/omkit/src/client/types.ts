@@ -2,6 +2,12 @@ import type { LogEntry } from "../foundation/LogEntry.ts";
 import type { PromptSpec } from "../core/interaction.ts";
 import type { Registry, RegistrationSet } from "./registry.ts";
 
+/**
+ * The config file omkit looks for when nobody names one — resolved against the working
+ * directory, which is why anything generated for a reader elsewhere has to say so explicitly.
+ */
+export const DEFAULT_TSCONFIG = "tsconfig.omkit.json";
+
 /** A run's terminal verdict, resolved when the child settles. */
 export interface Verdict {
   readonly ok: boolean;

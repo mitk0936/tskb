@@ -10,6 +10,8 @@ import {
 import type { OmkitClient } from "../../client/index.ts";
 import type { Registry } from "../../client/registry.ts";
 
+export { skillRoot } from "../../skill/index.ts";
+
 const EMPTY_REGISTRY: Registry = { oms: [], actions: [], warnings: [] };
 
 export interface SkillOptions {
@@ -32,7 +34,12 @@ export async function skillCommand(client: OmkitClient, opts: SkillOptions): Pro
   const file = path.resolve(opts.root, opts.out ?? SKILL_RELATIVE_PATH);
 
   const registrations = await client.discoverRegistrations();
-  const model = buildSkillModel(registrations, registrations.registry ?? EMPTY_REGISTRY, opts.root);
+  // The client's tsconfig is the one discovery actually ran against, so the commands the file
+  // renders are the commands that produced it — not a guess at what the reader should type.
+  const model = buildSkillModel(registrations, registrations.registry ?? EMPTY_REGISTRY, {
+    root: opts.root,
+    tsconfig: path.resolve(client.tsconfig),
+  });
   const existing = readExisting(file);
 
   if (opts.check) {
