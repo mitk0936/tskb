@@ -2,6 +2,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { shapeHint } from "../core/schema-hint.ts";
 import { DEFAULT_TSCONFIG } from "../client/types.ts";
+import { byNesting } from "../client/order.ts";
 import type { McpMode } from "../core/types.ts";
 import type { JsonSchema } from "../core/schema-json.ts";
 import type {
@@ -83,10 +84,12 @@ export function buildSkillModel(
     registry.actions.map((a) => [key(a.name, a.file), a.publishesCapability] as const)
   );
 
+  // Oms are what a reader picks from, so the core ones — those nearest the root — lead.
+  // Actions are looked up by name from an om's outline, so alphabetical is their lookup order.
   const oms = registrations.oms
     .filter(isExposed)
-    .map((om) => omEntry(om, outlines.get(key(om.name, om.file)), root))
-    .sort(byName);
+    .sort(byNesting(root))
+    .map((om) => omEntry(om, outlines.get(key(om.name, om.file)), root));
   const actions = registrations.actions
     .filter(isExposed)
     .map((a) => actionEntry(a, capabilities.get(key(a.name, a.file)), root))

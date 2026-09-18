@@ -220,6 +220,36 @@ describe("buildSkillModel", () => {
     expect(a.hash).toBe(b.hash);
   });
 
+  it("lists the oms nearest the root first, so the core workflows lead", () => {
+    const m = buildSkillModel(
+      set({
+        oms: [
+          om("a-nightly", { file: at("om/ci/nightly/a.ts") }),
+          om("z-top", { file: at("z.ts") }),
+          om("b-build"), // om/build.ts
+          om("a-build"), // om/build.ts — same depth as b-build, so alphabetical
+        ],
+      }),
+      reg(),
+      { root: ROOT }
+    );
+    expect(m.oms.map((o) => o.name)).toEqual(["z-top", "a-build", "b-build", "a-nightly"]);
+  });
+
+  it("keeps actions alphabetical — they are looked up by name from an outline", () => {
+    const m = buildSkillModel(
+      set({
+        actions: [
+          action("b", { file: at("om/actions/b.ts") }),
+          action("a", { file: at("om/actions/deep/nested/a.ts") }),
+        ],
+      }),
+      reg(),
+      { root: ROOT }
+    );
+    expect(m.actions.map((a) => a.name)).toEqual(["a", "b"]);
+  });
+
   it("hashes as 8 hex characters", () => {
     expect(buildSkillModel(set({ oms: [om("b")] }), reg(), { root: ROOT }).hash).toMatch(
       /^[0-9a-f]{8}$/

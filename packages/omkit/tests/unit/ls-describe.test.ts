@@ -45,6 +45,15 @@ const registrations: RegistrationSet = {
 };
 
 describe("formatRegistry --describe", () => {
+  test("orders the declared oms like the listed ones, so --json agrees with plain text", () => {
+    // Under --describe the JSON `oms` key comes from the registrations, not the AST scan.
+    const out = formatRegistry(registry, { json: true, registrations, root: path.resolve("/p") });
+    expect(JSON.parse(out).oms.map((o: { name: string }) => o.name)).toEqual([
+      "tskb:build",
+      "tskb:dev",
+    ]);
+  });
+
   test("shows each summary on its own indented line", () => {
     const out = formatRegistry(registry, { registrations });
     expect(out).toContain("    Bring up the tskb dev stack.");
@@ -116,8 +125,10 @@ describe("formatRegistry --describe", () => {
 
   test("json mode merges the declarations", () => {
     const parsed = JSON.parse(formatRegistry(registry, { json: true, registrations })) as {
-      oms: { summary?: string }[];
+      oms: { name: string; summary?: string }[];
     };
-    expect(parsed.oms[0]!.summary).toBe("Bring up the tskb dev stack.");
+    expect(parsed.oms.find((o) => o.name === "tskb:dev")!.summary).toBe(
+      "Bring up the tskb dev stack."
+    );
   });
 });

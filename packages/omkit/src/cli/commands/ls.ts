@@ -1,8 +1,14 @@
 import path from "node:path";
+import { byNesting } from "../../client/order.ts";
 import type { Registration, RegistrationSet, Registry } from "../../client/registry.ts";
 
 export interface FormatOptions {
   readonly json?: boolean;
+  /**
+   * Where om depth is measured from for the listing order. Defaults to the working directory —
+   * the same root the interactive picker measures from, so `ls` and the picker agree.
+   */
+  readonly root?: string;
   /**
    * What the oms and actions declare, from the discovery fork. Present only under
    * `--describe`: reading it costs an import of every candidate file, which is why plain
@@ -11,14 +17,26 @@ export interface FormatOptions {
   readonly registrations?: RegistrationSet;
 }
 
-/** Render a {@link Registry} for the terminal (plain text) or as JSON. */
+/**
+ * Render a {@link Registry} for the terminal (plain text) or as JSON.
+ *
+ * Oms are listed with {@link byNesting} — the core workflows near the root first — in both
+ * modes, and in the registrations too, since under `--describe` the JSON `oms` key is theirs.
+ * Actions keep discovery order: they are looked up by name, not browsed.
+ */
 export function formatRegistry(registry: Registry, opts: FormatOptions = {}): string {
-  if (opts.json) return renderJson(registry, opts.registrations);
+  const order = byNesting(opts.root ?? process.cwd());
+  const oms = [...registry.oms].sort(order);
+  const registrations = opts.registrations && {
+    ...opts.registrations,
+    oms: [...opts.registrations.oms].sort(order),
+  };
+  if (opts.json) return renderJson({ ...registry, oms }, registrations);
 
-  const declared = index(opts.registrations);
+  const declared = index(registrations);
   const lines = [
-    `oms (${registry.oms.length})`,
-    ...registry.oms.flatMap((om) =>
+    `oms (${oms.length})`,
+    ...oms.flatMap((om) =>
       row(
         `${om.name}  ${path.basename(om.file)}:${om.line}`,
         [],

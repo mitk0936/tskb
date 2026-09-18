@@ -19,6 +19,7 @@ const CliIndex = ref as tskb.Modules["omkit.cli.index"];
 const CommandsFolder = ref as tskb.Folders["omkit.cli.commands"];
 const ClientExport = ref as tskb.Exports["omkit.OmkitClient"];
 const LsCommand = ref as tskb.Modules["omkit.cli.commands.ls"];
+const ByNesting = ref as tskb.Exports["omkit.byNesting"];
 const SkillCommand = ref as tskb.Modules["omkit.cli.commands.skill"];
 const McpFolder = ref as tskb.Folders["omkit.mcp"];
 const SkillFolder = ref as tskb.Folders["omkit.skill"];
@@ -42,7 +43,9 @@ export default (
       <Li>
         <code>omkit ls</code> — list the discovered oms and actions, via {LsCommand}. Add{" "}
         <code>--describe</code> to show what each one declares about itself; without it the command
-        is the static scan and nothing else.
+        is the static scan and nothing else. Oms are ordered with {ByNesting} from the working
+        directory — the core ones nearest the root first — in plain and <code>--json</code> output
+        alike, so the listing agrees with the interactive picker and the generated skill.
       </Li>
       <Li>
         <code>omkit check</code> — typecheck the project and report diagnostics.
@@ -74,5 +77,6 @@ export default (
     </P>
 
     <Relation from={CliIndex} to={ClientExport} label="routes every command through" />
+    <Relation from={LsCommand} to={ByNesting} label="orders oms with" />
   </Doc>
 );

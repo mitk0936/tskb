@@ -105,6 +105,8 @@ const SkillRender = ref as tskb.Modules["omkit.skill.render"];
 const SkillFile = ref as tskb.Modules["omkit.skill.file"];
 const SkillIndex = ref as tskb.Modules["omkit.skill.index"];
 const OutlineModule = ref as tskb.Modules["omkit.client.outline"];
+const OrderModule = ref as tskb.Modules["omkit.client.order"];
+const ByNesting = ref as tskb.Exports["omkit.byNesting"];
 const SkillCommand = ref as tskb.Modules["omkit.cli.commands.skill"];
 const LsCommand = ref as tskb.Modules["omkit.cli.commands.ls"];
 
@@ -155,6 +157,13 @@ export default (
       user code at all. The static scan knows the {CallsOutline} and whether an action publishes a
       capability. {BuildSkillModel} folds both into one sorted {SkillModelType}, keyed on each
       entry's name in its defining file so a name reused across two files cannot cross over.
+    </P>
+    <P>
+      The oms are ordered with {ByNesting}: nearest the root first, alphabetical within a depth. A
+      reader picks a workflow from this list the way a person picks one from the interactive app,
+      and the core workflows are the ones near the top of the project — so those lead, and a variant
+      three folders down follows. Actions stay alphabetical: nobody browses them, they are looked up
+      by the name an outline cites.
     </P>
     <P>
       Exposure stays opt-in. Only an entry the author marked with {McpExposure} is listed, which is
@@ -211,8 +220,9 @@ export default (
         command uses.
       </Li>
       <Li>
-        {OutlineModule} sits with the client rather than here, because it is part of reading a
-        project, not part of rendering one.
+        {OutlineModule} and {OrderModule} sit with the client rather than here, because reading a
+        project and deciding how its oms are listed are not part of rendering one — the picker needs
+        both as much as this layer does.
       </Li>
       <Li>
         {SkillCommand} does the wiring, and the same registrations power{" "}
@@ -243,5 +253,6 @@ export default (
       label="renders summaries from, under --describe"
     />
     <Relation from={SkillModelModule} to={CallsOutline} label="carries, without promising" />
+    <Relation from={SkillModelModule} to={ByNesting} label="orders oms with" />
   </Doc>
 );
