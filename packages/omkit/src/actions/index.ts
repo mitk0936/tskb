@@ -34,16 +34,19 @@ export type {
   PromptOptions,
   InputPromptOptions,
   ChoicePromptOptions,
+  MultilinePromptOptions,
+  MultilineUntil,
   PromptChoice,
   PromptVia,
   PromptEvents,
 } from "./prompt.ts";
 
-export { chromePage } from "./chrome-page.ts";
+export { chromePage, selectPage, pagesOf } from "./chrome-page.ts";
 export type {
   ChromePageOptions,
   ChromePageEvents,
   ChromePageSource,
+  PageMatch,
   Page,
   Browser,
   BrowserContext,
@@ -51,3 +54,6 @@ export type {
 
 export { browser } from "./browser.ts";
 export type { BrowserOptions } from "./browser.ts";
+
+export { drivePage } from "./drive-page.ts";
+export type { DrivePageOptions, DrivePageResult } from "./drive-page.ts";

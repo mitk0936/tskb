@@ -7,6 +7,19 @@
 
 A tiny runtime for the workflows _around_ your code — start servers, wait for health checks, build, watch, drive a browser, read state back, and tear it all down together. You write the orchestration as ordinary TypeScript; the run **narrates itself** into a structured, on-disk record — what launched, what came up, what attached, what failed, what the world actually looked like — that an AI assistant can read instead of guessing from terminal scrollback. Where [tskb](https://www.npmjs.com/package/tskb) is the _knowledge_ layer (what your system **is**), `omkit` is the _operational_ one (what it's **doing right now**).
 
+## Migrating from om(name, body)
+
+`om(name, body)` was removed in 0.5.0. `om(name)` now returns a builder, and `.run(body)` takes the place of the second argument:
+
+```diff
+-om("dev", async (ctx) => {
++om("dev").run(async (ctx) => {
+   // ...
+ });
+```
+
+Run folders are unaffected — a run's identity is its name plus its defining file, and line numbers are not part of the hash, so migrating a call site keeps its history.
+
 ## The problem
 
 You know the script. Start the API, start the web server, wait until they're _actually_ serving, open the app, maybe run a smoke check — then Ctrl+C and hope everything shut down. Most of us glue this together with `concurrently`, `wait-on`, a shell script, and a pile of opaque interleaved output. When it breaks, you're grepping stdout to find out which process died.
@@ -19,7 +32,7 @@ Now hand that same script to an AI assistant. It has it even worse: interleaved 
 import { om } from "omkit";
 import { command, healthcheck, browser, chromePage } from "omkit/actions";
 
-om("dev", async () => {
+om("dev").run(async () => {
   // `command` names the action after the command and launches it — a normal action call.
   command("npm run dev", { cwd: "api" }).tag("api"); // start both dev servers as daemons…
   command("npm run dev", { cwd: "web" }).tag("web");
@@ -74,7 +87,46 @@ const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 const activity = build(); // calling launches; returns the live Activity
 ```
 
-`om(name, async (ctx) => …)` hosts the orchestration as the root of a run. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+Chain `.describe({ summary })` before `.run(...)` to attach a human-readable summary — stored on the definition, for `omkit ls` and future tooling to read; nothing reads it yet, so today it is documentation that travels with the code. Same shape as `om`'s, below. `.args(schema)` pins the type of `.run`'s second parameter to a zod schema's inferred type. It's **type-level only**: nothing here resolves, prompts for, or validates the value — an action launched from an om body is passed its arguments directly in code, so the schema exists to type that call site, not to gate it. (Resolving/prompting for arguments is an `om`-level concern, not `action`'s.)
+
+```ts
+import { z } from "zod";
+
+const seed = action("seed")
+  .describe({ summary: "Seeds the database" })
+  .args(z.object({ rows: z.number() }))
+  .run(async (_ctx, { rows }) => {
+    /* rows: number — typed, not validated */
+  });
+
+seed({ rows: 500 }); // calling launches it; the shape is pinned, not checked at runtime
+```
+
+`om(name).run(async (ctx) => …)` hosts the orchestration as the root of a run. `om(name)` returns a builder: chain `.describe({ summary })` to attach a human-readable summary (stored on the run; nothing reads it yet) and/or `.args(schema)` to declare what the run needs, then finish with `.run(body)`, which launches it. The name plus the file it's defined in identify the run — logs land in `logs/<name>-<hash8>/…`, so same-named oms in different files never share a folder. You write ordinary `await` / `if` / loops / variables; the Activities you launch keep running in parallel, and because the body stays in-flight while you `await`, the run never idles shut between steps. Config chained synchronously on an Activity right after launching it (like `withCache`) applies before its body runs — the body commits one microtask later, so chain it in the same tick, before you `await`. For a one-off inline step, `step(name, fn)` runs `fn` as its own node without a reusable definition.
+
+### Run arguments — `om(name).args(schema)`
+
+An om declares what it needs, and omkit fills it in. Unlike `action`'s `.args()`, this one is **resolved at runtime**: `.run`'s body receives the resolved, validated values as its second parameter, typed by the schema.
+
+```ts
+import { z } from "zod";
+
+om("seed")
+  .args(z.object({ rows: z.number(), truncate: z.boolean().default(false) }))
+  .run(async (ctx, args) => {
+    // args: { rows: number; truncate: boolean } — already resolved and validated
+    await command(`./seed.sh --rows ${args.rows}`).result;
+  });
+```
+
+Each field is filled from the first of these that can answer:
+
+1. **Supplied** — `OMKIT_ARGS`, a JSON object in the environment. It is read once at run start and then cleared, so a subprocess the run spawns doesn't inherit one om's args and resolve them against another's schema.
+2. **Defaults** — anything the schema defaults, which is therefore never asked about.
+3. **Prompt** — whatever is still missing, one field at a time, with a one-line type sketch (`rows (number)`). Objects and arrays are asked for as a multiline JSON block — paste it, or answer with the path to a JSON file. A blank answer is _no answer_, not a value: it re-asks rather than coercing (`Number("")` is `0`). Resolution gives up after three rounds.
+4. **Fail** — if nobody can be asked (no supervising picker and no TTY), the run fails naming every unresolved field at once, instead of prompting into the void.
+
+Resolution happens **inside** the run, so a prompt and its answer land on the run's own timeline, and the values it settled on are recorded in `result.json` and the `main.log` header — a later reader can see exactly what the run was given.
 
 ### Typed capabilities
 
@@ -91,7 +143,7 @@ const server = action("server")
 
 const migrate = action("migrate").run((_ctx, port: Promise<number>) => runMigrations(port));
 
-om("migrate", async () => {
+om("migrate").run(async () => {
   const s = server();
   migrate(s.ref); // migrate receives the port the moment the server attaches it — typed
 });
@@ -133,14 +185,14 @@ flakyBackgroundJob().result.catch((e) => console.warn("job failed, carrying on",
 
 Every action's output, events, asserts, snapshots, and lifecycle land on **one timeline** — streamed live to the terminal (curated milestones) and written to a per-run folder:
 
-- `result.json` — the run's tree, per-node status, and verdict.
+- `result.json` — the run's tree, per-node status, verdict, and curated artifacts.
 - `raw.jsonl` — every entry, machine-readable.
 - `main.log` + one `.log` per action — the human-readable timelines.
-- `events.log` / `asserts.log` / `snapshots.log` — cross-cutting rollups.
+- `events.log` / `asserts.log` / `snapshots.log` / `artifacts.log` — cross-cutting rollups.
 
-`ctx` also gives each action `assert(cond, msg)` (tallies into the run's verdict) and `snapshot(name, value)` (captures JSON state to the run folder) — so a run is an inspectable artifact, not just an exit code.
+`ctx` also gives each action `assert(cond, msg)` (tallies into the run's verdict), `snapshot(name, value)` (captures JSON state to the run folder), and `artifact(name, file, opts?)` (labels a file the action wrote — name, optional description, MIME inferred from the extension — and returns its absolute path) — so a run is an inspectable artifact, not just an exit code. Write the files you label under `ctx.artifactsFolder`, the run's own output folder.
 
-Run folders have a **stable identity**: `logs/<name>-<hash8>/<date>/<time>/`, keyed by the om's name and the file that defines it. An assistant (or a script) can always find "the latest `tskb-dev` run" without parsing scrollback, diff two runs of the same pipeline, or answer questions with evidence instead of inference: _did the server actually pass its healthcheck? which process died first? what config did the build run with?_ It's all in the folder — attributed per action, timestamped, with a verdict.
+Run folders have a **stable identity**: `logs/<name>-<hash8>/<date>/<time>/`, keyed by the om's name and the file that defines it, under the project that owns the config — not under whichever directory the run happened to start in. An assistant (or a script) can always find "the latest `tskb-dev` run" without parsing scrollback, diff two runs of the same pipeline, or answer questions with evidence instead of inference: _did the server actually pass its healthcheck? which process died first? what config did the build run with?_ It's all in the folder — attributed per action, timestamped, with a verdict.
 
 ### Observing the real world, not assuming it
 
@@ -153,7 +205,7 @@ The batteries are built around **ground truth**. `healthcheck` gates on the serv
 ```ts
 const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 
-om("build", async () => {
+om("build").run(async () => {
   const out = await build().withCache(`${process.cwd()}/src`).result;
   if (out === undefined) console.log("no changes — skipped the build");
 });
@@ -164,7 +216,7 @@ om("build", async () => {
 ```ts
 import { watchDir } from "omkit/actions";
 
-om("watch", async () => {
+om("watch").run(async () => {
   const watcher = watchDir("src").tag("watch");
   watcher.on("update", (file) => console.log(`changed: ${file}`));
   // body returns, but the watcher keeps the run alive until Ctrl+C
@@ -174,7 +226,7 @@ om("watch", async () => {
 **Gate a deploy on green tests.** A red test rejects at the `await`; catch it to branch:
 
 ```ts
-om("ship", async () => {
+om("ship").run(async () => {
   try {
     await command("npm test").result; // resolves on green, throws on red
   } catch {
@@ -189,7 +241,7 @@ om("ship", async () => {
 ```ts
 import { prompt } from "omkit/actions";
 
-om("deploy", async () => {
+om("deploy").run(async () => {
   const answer = await prompt({
     kind: "choice",
     message: "Deploy to production?",
@@ -198,6 +250,21 @@ om("deploy", async () => {
     timeoutMs: 10_000, // no answer in 10s → "no"
   }).result;
   if (answer === "yes") await command("./deploy.sh").result;
+});
+```
+
+**Take a block of text.** `kind: "multiline"` reads lines until `until` says stop: parseable JSON (the default), a sentinel line, or a predicate over the text so far. The JSON default is self-terminating, so a pretty-printed blob can be pasted straight in with nothing to explain:
+
+```ts
+om("seed").run(async () => {
+  const blob = await prompt({
+    kind: "multiline",
+    message: "Paste the service config",
+    hint: "{ host: string; port: number }", // a one-line type sketch, shown under the message
+    until: "json", // the default; or "." to end on that line, or (text) => text.length > 500
+  }).result;
+  const config = JSON.parse(blob);
+  await command(`./seed.sh --host ${config.host}`).result;
 });
 ```
 
@@ -224,7 +291,7 @@ Reusable actions built on the core engine. For anything beyond these, drop down 
 - **`tailLog`** — tail a file another process writes, folding its lines into the combined log.
 - **`healthcheck`** — poll a URL/port until the status (and optionally body) matches.
 - **`portFree`** — the mirror of `healthcheck`: poll a TCP port until nothing is listening, so a restart can rebind without racing the old process.
-- **`prompt`** — ask the terminal for input or a choice, with a timeout that falls back to a default; the answer is its handle.
+- **`prompt`** — ask the terminal for input, a choice, or a multiline block, with a timeout that falls back to a default; the answer is its handle.
 - **`browser`** — launch a Chromium browser with Playwright and expose the live `Browser` as a handle (defaults to the installed Chrome); closed on teardown. Feed its `.ref` to `chromePage`.
 - **`chromePage`** — attach to Chrome over CDP, or to an existing Playwright `Page`/`Browser`/`Context` (including a `browser` handle or an Electron window), and expose the live `Page` as a handle.
 
@@ -235,11 +302,100 @@ Point the `omkit` bin at a project — a `tsconfig.omkit.json` that lists your `
 - **`omkit init`** — scaffold a starter project: `tsconfig.omkit.json`, a sample `oms/dev.ts`, and `actions/hello.ts`.
 - **`omkit run`** — with no argument, open the interactive picker: browse and search your oms, run one, and watch its milestones stream live — answering any `prompt` in-console. A bare `omkit` does the same (`run` is the default command).
 - **`omkit run <om>`** — run one om directly by name or file path, inheriting the terminal.
-- **`omkit ls`** — list the discovered oms and actions.
+- **`omkit ls`** — list the discovered oms and actions. Add `--describe` to show each one's `.describe({ summary })` and whether it's exposed; without it, `ls` is a static scan that never imports your code.
 - **`omkit check`** — typecheck the project (`tsc --noEmit`) and report diagnostics.
+- **`omkit skill`** — generate `.claude/skills/omkit-runs/SKILL.md`, a map of what's runnable (see below).
+- **`omkit mcp`** — serve the project over the Model Context Protocol on stdio (see below).
 - **`omkit help`** — print the command overview (also `--help` / `-h`).
 
 Both paths run the om in its own child process and narrate it to a run folder (see above). The picker **supervises** the child — piping its output into the live view and answering prompts for it — while `omkit run <om>` runs it **bare**, handing the om your terminal directly.
+
+## MCP — let an assistant drive your oms
+
+`omkit mcp` serves a project over the [Model Context Protocol](https://modelcontextprotocol.io), so Claude and other assistants can discover your oms, run one, and read what the run produced — instead of shelling out and scraping stdout.
+
+**Nothing is exposed unless you say so.** Add `.mcp()` to an om or action; without it the server neither lists nor runs it. `.describe()` and `.args()` alone expose nothing.
+
+```ts
+om("smoke-test")
+  .describe({ summary: "Boot the app and run the smoke suite" })
+  .args(z.object({ headless: z.boolean().default(true) }))
+  .mcp() // ← now an assistant can run it
+  .run(async (ctx, { headless }) => {
+    /* … */
+  });
+```
+
+`mode` defaults to `"settling"` — a run that finishes on its own. Declare `.mcp({ mode: "long-lived" })` for a server or a watcher: MCP has no way to express "this never finishes", so omkit does. `run_om` refuses a long-lived entry and points you at `start_om`.
+
+Point your client at the project:
+
+```json
+{
+  "mcpServers": {
+    "omkit": {
+      "command": "npx",
+      "args": ["--no", "--", "omkit", "mcp"]
+    }
+  }
+}
+```
+
+The server takes its **project root from the config it was given** — the directory holding your `tsconfig.omkit.json` — and resolves `logs/` under it, so the runs it starts are the runs its resources can serve regardless of which directory your client launched it in. `omkit run` uses the same root, so a run you start in the terminal and a run an assistant starts land in one tree and each can read the other's record. If the om project sits in a subfolder, name the config rather than relying on a `cwd` field your client may not support: `["--no", "--", "omkit", "mcp", "--tsconfig", "om/tsconfig.omkit.json"]`.
+
+### Inspecting it
+
+The [MCP Inspector](https://github.com/modelcontextprotocol/inspector) drives the same binary, so you can exercise every tool by hand before pointing an assistant at it:
+
+```sh
+npx -y @modelcontextprotocol/inspector npx --no -- omkit mcp
+```
+
+It serves a UI on `localhost:6274` and prints an auth token to paste in. Because omkit declares real input schemas, you get form fields per tool — and the history pane shows the full request and response for each call, `structuredContent` and resource links included. That is usually all the debugging you need: it is a client, so it shows you what _you_ sent, not what an assistant sent.
+
+Two things to know. On Windows the Inspector cannot spawn a `.cmd` shim directly, so if `npx` fails there, point it at the binary instead — `node node_modules/omkit/dist/cli/index.js mcp`. And the Inspector owns the runs it starts: closing it tears down anything `start_om` left running, the same rule that applies to any client.
+
+**Six tools**, however many oms you have — adding one changes what `list_oms` returns, never the tool list:
+
+| Tool                    | What it does                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| `list_oms`              | Exposed oms and actions: summary, mode, and the JSON Schema for their arguments |
+| `run_om(name, args)`    | Runs a settling entry to completion and returns its verdict and assert tally    |
+| `start_om(name, args)`  | Starts anything and returns a handle immediately                                |
+| `get_run(run)`          | Status, verdict once settled, and links to the files the run produced           |
+| `tail_run(run, cursor)` | Log lines since `cursor` — live while running, from `raw.jsonl` once settled    |
+| `cancel_run(runId)`     | Tears a run down; it still finishes writing its run folder                      |
+
+Call `list_oms` first — `run_om`'s `args` is a plain object, so its schema comes from the listing rather than from the tool definition. That is the cost of a tool list that doesn't churn every time you edit a file.
+
+**Run folders are resources.** `omkit://runs/{run}/latest/{file}` reads from the newest run of an om, and `omkit://runs/{run}/{date}/{time}/{file}` from one specific run. Reads are confined under the project's `logs/`, size-capped, and read-only. Files a run labelled with `ctx.artifact` come back named and described.
+
+**While a run is going**, milestones arrive as progress notifications, cancelling the request tears the run down (and it still writes its record), and a `prompt` raised mid-run reaches you as an elicitation — the client is the supervisor.
+
+## A skill file — the map, before the first call
+
+`list_oms` answers "what can I run here?" at runtime, but charges a round trip for it: an assistant has to call it before it can build arguments for anything. `omkit skill` writes the same answer to disk, where it's already in context:
+
+```sh
+omkit skill          # writes .claude/skills/omkit-runs/SKILL.md
+omkit skill --check  # exits non-zero when it no longer matches the project
+```
+
+Each exposed workflow gets its summary, its argument shape, the path to its source, and an outline of what it calls — read statically from the body, with the `.tag("…")` names you already wrote:
+
+```
+### `tskb:build` — settling
+
+Rebuild the tskb knowledge graph from this repo's .tskb.tsx docs.
+
+- **Defined in:** `om/oms/tskb-build.ts`
+- **Args:** `{ verbose?: boolean, projectName?: string }`
+- **Calls:** `watchDir` [watch:build:daemon] → `buildDocs` [build]
+```
+
+Generating it runs nothing — it uses the same discovery fork as `list_oms`, where `.run(body)` reports what it declares instead of launching. The file documents the shell invocation as well as the MCP one, so it's useful with no MCP wiring at all.
+
+It's meant to be committed. A `registry-hash` in the header covers the project's declarations rather than the rendered markdown, so `--check` catches an edited om but not a reformatted file — put it in a pre-commit hook or CI. The one field you should edit by hand is the frontmatter `description`, which decides when an assistant loads the file; regeneration preserves it.
 
 ## Install
 

@@ -7,6 +7,7 @@ import { createProc } from "../system/proc.ts";
 import { FolderCache } from "../system/fs/FolderCache.ts";
 import type { LogStore } from "../output/log/LogStore.ts";
 import type { SnapshotStore } from "../output/snapshot/SnapshotStore.ts";
+import type { ArtifactStore } from "../output/artifact/ArtifactStore.ts";
 import type { ActionContext, Activity, Exec, InstanceEvents, NodeStatus } from "./types.ts";
 
 /** Everything a node needs to exist, minus its behavior. */
@@ -25,6 +26,8 @@ export interface NodeInit {
   readonly parentSignal: AbortSignal | null;
   /** The run's snapshot store — backs `ctx.snapshot`. */
   readonly snapshots: SnapshotStore;
+  /** The run's artifact registry — backs `ctx.artifact`. */
+  readonly artifacts: ArtifactStore;
   /** Absolute path to the run's output folder — backs `ctx.artifactsFolder`. */
   readonly artifactsFolder: string;
   /** Report an assertion outcome to the run verdict. */
@@ -67,6 +70,7 @@ export class ActionRun<
 
   private readonly store: LogStore;
   private readonly snapshots: SnapshotStore;
+  private readonly artifacts: ArtifactStore;
   private readonly artifactsFolder: string;
   private readonly onAssert: (pass: boolean, path: string, message: string) => void;
   private readonly onUnhandledFailure: (path: string, error: unknown) => void;
@@ -97,6 +101,7 @@ export class ActionRun<
     this.parentId = init.parentId;
     this.store = init.store;
     this.snapshots = init.snapshots;
+    this.artifacts = init.artifacts;
     this.artifactsFolder = init.artifactsFolder;
     this.onAssert = init.onAssert;
     this.onUnhandledFailure = init.onUnhandledFailure;
@@ -278,6 +283,7 @@ export class ActionRun<
       tag: (name: string) => void this.tag(name),
       assert: (condition: boolean, message: string) => this.assertInvariant(condition, message),
       snapshot: (name: string, value: unknown) => this.captureSnapshot(name, value),
+      artifact: (name, file, opts) => this.registerArtifact(name, file, opts),
       artifactsFolder: this.artifactsFolder,
       proc: createProc(
         (source, level, message) =>
@@ -299,6 +305,17 @@ export class ActionRun<
     this.log("snapshot", "snapshot", `${name} → ${file}`);
     this.bubble(`📸 ${name} → ${file}`);
     return file;
+  }
+
+  private registerArtifact(
+    name: string,
+    file: string,
+    opts?: { description?: string; mime?: string }
+  ): string {
+    const record = this.artifacts.register(name, file, this.id, opts);
+    this.log("artifact", "artifact", `${name} → ${record.file}`);
+    this.bubble(`📎 ${name} → ${record.file}`);
+    return record.file;
   }
 
   private attach(handle: Handle): void {

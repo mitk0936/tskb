@@ -1,7 +1,7 @@
 import { om } from "omkit";
 
-om("dev", async () => {
+om("dev").run(async () => {
   // two daemons + a gate, elided for the fixture
 });
 
-om("build", async () => {});
+om("build").run(async () => {});

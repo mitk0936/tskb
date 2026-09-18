@@ -84,4 +84,40 @@ describe("createChannel", () => {
     f.close(1);
     await expect(session.result).resolves.toEqual({ ok: false, folder: "", summary: [] });
   });
+
+  test("a close before settle carries the child's own output as the summary", async () => {
+    // The child never reached `settled`, so it has no summary of its own — and a verdict with
+    // nothing in it tells the user only that something failed, never what.
+    const f = fakeTransport();
+    const session = createChannel({
+      ...f.transport,
+      diagnostics: () => ["Error: Cannot find module './nope.ts'", "  at loadESM (node:internal)"],
+    });
+    f.close(1);
+
+    await expect(session.result).resolves.toEqual({
+      ok: false,
+      folder: "",
+      summary: [
+        "the run ended before it could report:",
+        "Error: Cannot find module './nope.ts'",
+        "  at loadESM (node:internal)",
+      ],
+    });
+  });
+
+  test("a run that reports for itself is not second-guessed by its raw output", async () => {
+    // `settled` is the run's own account. Node prints warnings and inspector banners to the
+    // same streams, so a diagnostic tail must never dilute a verdict the run already gave.
+    const f = fakeTransport();
+    const session = createChannel({ ...f.transport, diagnostics: () => ["ExperimentalWarning"] });
+    f.emit({ kind: "settled", ok: true, folder: "/runs/dev-abc", summary: ["om → /runs/dev-abc"] });
+    f.close(0);
+
+    await expect(session.result).resolves.toEqual({
+      ok: true,
+      folder: "/runs/dev-abc",
+      summary: ["om → /runs/dev-abc"],
+    });
+  });
 });

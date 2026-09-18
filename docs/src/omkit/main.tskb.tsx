@@ -58,7 +58,7 @@ declare global {
       }>;
 
       "omkit.core.om": Module<{
-        desc: "om(name, body) — hosts a linear orchestration as the root of one run.";
+        desc: "om(name).run(body) — hosts a linear orchestration as the root of one run.";
         type: typeof import("packages/omkit/src/core/om.js");
       }>;
 
@@ -153,6 +153,7 @@ const OmkitFolder = ref as tskb.Folders["omkit"];
 const CoreFolder = ref as tskb.Folders["omkit.core"];
 const ActionsFolder = ref as tskb.Folders["omkit.actions"];
 const OutputFolder = ref as tskb.Folders["omkit.output"];
+const McpFolder = ref as tskb.Folders["omkit.mcp"];
 
 const OmkitIndex = ref as tskb.Modules["omkit.index"];
 const ExecutionTreeModule = ref as tskb.Modules["omkit.core.execution-tree"];
@@ -163,6 +164,9 @@ const OmExport = ref as tskb.Exports["omkit.om"];
 const ActionExport = ref as tskb.Exports["omkit.action"];
 const StepExport = ref as tskb.Exports["omkit.step"];
 const ActivityExport = ref as tskb.Exports["omkit.Activity"];
+
+const ResolveArgsExport = ref as tskb.Exports["omkit.resolveArgs"];
+const ArtifactStoreExport = ref as tskb.Exports["omkit.ArtifactStore"];
 
 const CapabilityTerm = ref as tskb.Terms["capability"];
 const RunFolderTerm = ref as tskb.Terms["run-folder"];
@@ -187,6 +191,16 @@ export default (
       The public surface in {OmkitIndex} is small and curated: {OmExport} hosts a run,{" "}
       {ActionExport} defines a typed unit of work, and {StepExport} runs a one-off inline unit.
       Everything else — the engine that supervises them — stays internal.
+    </P>
+    <P>
+      Both {OmExport} and {ActionExport} return a builder: chain <code>.describe(...)</code> to
+      attach a one-line summary, <code>.mcp(...)</code> to expose the entry to the MCP server — the
+      first consumer to actually read that summary back, though <code>omkit ls</code> still does not
+      — and finish with <code>.run(body)</code>. Only {OmExport}'s <code>.args(schema)</code> does
+      anything at runtime: it declares the run's input shape, and {ResolveArgsExport} fills it in
+      before handing the resolved value to <code>.run</code>'s body as its second parameter.{" "}
+      {ActionExport}'s own <code>.args(schema)</code> only pins that parameter's type. How the two
+      differ, and how resolution actually works, is its own question — see the args doc.
     </P>
 
     <H2>The model</H2>
@@ -217,10 +231,16 @@ export default (
       up, what failed, and what the world looked like. Its stable identity means a script or an
       assistant can always find "the latest run" of a given {OmExport} without parsing scrollback.
     </P>
+    <P>
+      A run can also curate its own file outputs: <code>ctx.artifact(name, file, opts?)</code>{" "}
+      labels a file the body already wrote, and {ArtifactStoreExport} keeps every registration.
+      Which files land where, and how <code>ctx.artifact</code> differs from{" "}
+      <code>ctx.snapshot</code>, is the artifacts doc's question.
+    </P>
 
     <Flow
       name="omkit-run"
-      desc="An om(name, body) call hosts a run: actions launch as nodes, the engine supervises them and the shared log, and the run folder captures the record"
+      desc="An om(name).run(body) call hosts a run: actions launch as nodes, the engine supervises them and the shared log, and the run folder captures the record"
       priority="essential"
     >
       <Step node={OmExport} label="hosts the orchestration as the run root" />
@@ -232,7 +252,9 @@ export default (
     <H2>Areas</H2>
     <P>
       {CoreFolder} holds the execution model; {ActionsFolder} holds the batteries built on it; and{" "}
-      {OutputFolder} turns a run into its on-disk record.
+      {OutputFolder} turns a run into its on-disk record. Above those sits the headless client every
+      frontend drives — the terminal commands, the interactive app, and {McpFolder}, which serves a
+      project to an assistant over the Model Context Protocol.
     </P>
   </Doc>
 );

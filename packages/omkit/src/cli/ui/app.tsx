@@ -7,6 +7,18 @@ import { Spinner } from "./Spinner.tsx";
 import type { OmkitClient, RunSession, PromptRequest, Verdict } from "../../client/types.ts";
 import type { DiscoveredOm } from "../../client/registry.ts";
 
+/**
+ * How often the run screen redraws while the log streams in.
+ *
+ * An Ink frame costs ~25ms at minimum and grows with the milestone tail, so redrawing per log
+ * entry caps the app at roughly 40 entries/second — far under what a build, a test suite, or a
+ * dev server emits. The app then falls permanently behind: `settled` is the *last* message on
+ * the channel, so it only arrives once every backlogged entry has been drawn, and the run looks
+ * hung long after the child has finished. Folding into the model is cheap; drawing is not, so
+ * the two run at different rates.
+ */
+const REDRAW_MS = 80;
+
 /** The interactive app: discover → list/search → run → live milestones + prompts. */
 export function App({
   client,
@@ -35,6 +47,17 @@ export function App({
   const sessionRef = useRef<RunSession | null>(null);
   const verdictRef = useRef<Verdict | undefined>(undefined);
   const tearingRef = useRef(false);
+  const redrawTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+
+  const stopRedraw = (): void => {
+    if (redrawTimer.current === undefined) return;
+    clearInterval(redrawTimer.current);
+    redrawTimer.current = undefined;
+  };
+
+  // The redraw timer holds the event loop open, so it must not outlive the app — an unmount
+  // for any reason other than the run settling would otherwise keep the CLI from exiting.
+  useEffect(() => stopRedraw, []);
 
   useEffect(() => {
     if (initialOms) return; // provided by the caller's pre-flight discovery
@@ -51,17 +74,33 @@ export function App({
     const model = new RunModel();
     const s = client.run(om.file);
     sessionRef.current = s;
-    s.on("log", (entry) => {
-      model.apply(entry);
+    // Every entry lands in the model immediately; the screen catches up on its own cadence.
+    // `dirty` keeps an idle run from redrawing over nothing — see REDRAW_MS for why the two
+    // are separated at all.
+    let dirty = false;
+    const redraw = (): void => {
+      if (!dirty) return;
+      dirty = false;
       setLines(model.milestones());
       setStatus(model.summary());
+    };
+    redrawTimer.current = setInterval(redraw, REDRAW_MS);
+    s.on("log", (entry) => {
+      model.apply(entry);
+      dirty = true;
     });
-    s.on("prompt", (req) => setPrompt(req));
+    // A prompt blocks the child until it's answered, so it must not wait for the next tick —
+    // and the milestones that led to it are the context the question is read in.
+    s.on("prompt", (req) => {
+      redraw();
+      setPrompt(req);
+    });
     // The child gave up on the prompt (timed out or torn down). Withdraw its box so a stale,
     // unanswerable prompt doesn't linger — but only if it's still the one on screen, so a late
     // withdrawal can't clobber a fresh prompt.
     s.on("promptDone", (id) => setPrompt((p) => (p?.id === id ? undefined : p)));
     s.on("settled", (v) => {
+      redraw(); // the run's closing milestones, before its verdict
       setVerdict(v);
       setPrompt(undefined);
     });
@@ -71,6 +110,8 @@ export function App({
     // so it can print the durable summary block, and unmount. Without this a self-completing run
     // would show its verdict line but never exit or render the summary.
     void s.result.then((v) => {
+      stopRedraw();
+      redraw(); // last pass: whatever arrived since the final tick
       verdictRef.current = v;
       setVerdict(v);
       onExit?.(v);

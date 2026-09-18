@@ -18,7 +18,7 @@ const TSCONFIG = `{
 const DEV_OM = `import { om } from "omkit";
 import { command, healthcheck } from "omkit/actions";
 
-om("dev", async () => {
+om("dev").run(async () => {
   command("npm run dev", { cwd: "api" }).tag("api");
   const up = await healthcheck({ url: "http://localhost:3000" }).result;
   if (!up.ok) return;

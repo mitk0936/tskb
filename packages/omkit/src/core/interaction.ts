@@ -6,10 +6,12 @@ import type { LogEntry } from "../foundation/LogEntry.ts";
  * so there is no core→actions import cycle).
  */
 export interface PromptSpec {
-  kind: "input" | "choice";
+  kind: "input" | "choice" | "multiline";
   message: string;
   default: string;
   choices?: { label: string; value: string }[];
+  /** A one-line type sketch shown with the message — set for `multiline` JSON prompts. */
+  hint?: string;
 }
 
 // child → supervisor

@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { realpathSync } from "node:fs";
 import { createOmkitClient, type InspectOptions, type OmkitClient } from "../client/index.ts";
+import { DEFAULT_TSCONFIG } from "../client/types.ts";
 
 export interface Cli {
   command: string;
@@ -12,6 +13,14 @@ export interface Cli {
   tsconfig: string;
   /** Set by `--help`/`-h` (the `help` command is carried on `command` instead). */
   help: boolean;
+  /** `ls --describe`: import the oms to read their summaries, instead of staying AST-only. */
+  describe: boolean;
+  /** `skill --check`: report drift and exit non-zero instead of writing. */
+  check: boolean;
+  /** `skill --out <path>`: write somewhere other than `.claude/skills/omkit-runs/SKILL.md`. */
+  out?: string;
+  /** `skill --root <path>`: override the repository the skill is written for and relative to. */
+  root?: string;
   /** The Node inspector, if requested via `--inspect[=port]`. */
   inspect?: InspectOptions;
 }
@@ -44,8 +53,12 @@ export function parseCli(argv: string[]): Cli {
     args: rest,
     options: {
       json: { type: "boolean", default: false },
-      tsconfig: { type: "string", default: "tsconfig.omkit.json" },
+      tsconfig: { type: "string", default: DEFAULT_TSCONFIG },
       help: { type: "boolean", short: "h", default: false },
+      describe: { type: "boolean", default: false },
+      check: { type: "boolean", default: false },
+      out: { type: "string" },
+      root: { type: "string" },
     },
     allowPositionals: true,
   });
@@ -55,6 +68,10 @@ export function parseCli(argv: string[]): Cli {
     json: Boolean(values.json),
     tsconfig: values.tsconfig as string,
     help: Boolean(values.help),
+    describe: Boolean(values.describe),
+    check: Boolean(values.check),
+    ...(values.out === undefined ? {} : { out: values.out as string }),
+    ...(values.root === undefined ? {} : { root: values.root as string }),
     inspect,
   };
 }
@@ -80,6 +97,73 @@ async function checkCommand(client: OmkitClient): Promise<void> {
   process.exitCode = n === 0 ? 0 : 1;
 }
 
+/**
+ * The `ls` command: print the discovered oms and actions.
+ *
+ * `--describe` is the only path here that imports user code. Without it `ls` is the AST scan
+ * and nothing else — the property that keeps it instant and safe to run in any repo, including
+ * one whose oms would start servers if they were evaluated.
+ */
+async function lsCommand(client: OmkitClient, cli: Cli): Promise<void> {
+  const { formatRegistry } = await import("./commands/ls.ts");
+  const { withSpinner } = await import("./ui/Report.tsx");
+
+  if (!cli.describe) {
+    const registry = await withSpinner("discovering…", () => client.discover());
+    console.log(formatRegistry(registry, { json: cli.json }));
+    return;
+  }
+
+  const registrations = await withSpinner("reading declarations…", () =>
+    client.discoverRegistrations()
+  );
+  const registry = registrations.registry ?? (await client.discover());
+  console.log(formatRegistry(registry, { json: cli.json, registrations }));
+}
+
+/** The `init` command: scaffold a starter project in the current directory. */
+async function initCommand(): Promise<void> {
+  const { scaffold } = await import("./commands/init.ts");
+  const { created, skipped } = scaffold(process.cwd());
+  for (const f of created) console.log(`created ${f}`);
+  for (const f of skipped) console.log(`exists, skipped ${f}`);
+}
+
+/** The `skill` command: generate the runnable-workflow map for an assistant to read. */
+async function generateSkill(client: OmkitClient, cli: Cli): Promise<void> {
+  const { skillCommand, skillRoot } = await import("./commands/skill.ts");
+  // The root decides two things at once — where `.claude/` goes, and what the recorded paths are
+  // relative to — so it is one setting, not two. It defaults to the enclosing repository, which
+  // is both where `.claude/` belongs and where the file's reader will be standing; `--root`
+  // remains for the project that is deliberately not at the top of its checkout.
+  const root = cli.root
+    ? path.resolve(cli.root)
+    : skillRoot(path.dirname(path.resolve(cli.tsconfig)));
+  await skillCommand(client, { root, check: cli.check, ...(cli.out ? { out: cli.out } : {}) });
+}
+
+/**
+ * Every command, by name. A table rather than a chain of `if`s: each entry is one lazy import
+ * and one call, so adding a command cannot quietly grow the entry point's branching.
+ */
+const COMMANDS: Record<string, (client: OmkitClient, cli: Cli) => Promise<void>> = {
+  init: () => initCommand(),
+  ls: (client, cli) => lsCommand(client, cli),
+  check: (client) => checkCommand(client),
+  mcp: async (client, cli) => {
+    const { mcpCommand } = await import("./commands/mcp.ts");
+    // The project owning the config, not the directory the server was launched from: run
+    // folders are written under it, so reading them back has to use the same answer. An
+    // assistant that starts the server from anywhere still sees the project's own runs.
+    await mcpCommand(client, { root: path.dirname(path.resolve(cli.tsconfig)) });
+  },
+  skill: (client, cli) => generateSkill(client, cli),
+  run: async (client, cli) => {
+    const { runCommand } = await import("./commands/run.ts");
+    await runCommand(client, { target: cli.target, inspect: cli.inspect });
+  },
+};
+
 /** The bin entry: route to a lazily-imported command; owns stdout and the exit code. */
 async function main(): Promise<void> {
   const cli = parseCli(process.argv.slice(2));
@@ -91,36 +175,16 @@ async function main(): Promise<void> {
     return;
   }
 
-  const inspect = cli.inspect;
-  const client = createOmkitClient({ tsconfig: cli.tsconfig, inspect });
+  const handler = COMMANDS[cli.command];
+  if (!handler) {
+    const { helpText } = await import("./commands/help.ts");
+    console.error(`unknown command "${cli.command}"\n`);
+    console.error(helpText());
+    process.exitCode = 1;
+    return;
+  }
 
-  if (cli.command === "init") {
-    const { scaffold } = await import("./commands/init.ts");
-    const { created, skipped } = scaffold(process.cwd());
-    for (const f of created) console.log(`created ${f}`);
-    for (const f of skipped) console.log(`exists, skipped ${f}`);
-    return;
-  }
-  if (cli.command === "ls") {
-    const { formatRegistry } = await import("./commands/ls.ts");
-    const { withSpinner } = await import("./ui/Report.tsx");
-    const registry = await withSpinner("discovering…", () => client.discover());
-    console.log(formatRegistry(registry, { json: cli.json }));
-    return;
-  }
-  if (cli.command === "check") {
-    await checkCommand(client);
-    return;
-  }
-  if (cli.command === "run") {
-    const { runCommand } = await import("./commands/run.ts");
-    await runCommand(client, { target: cli.target, inspect: cli.inspect });
-    return;
-  }
-  const { helpText } = await import("./commands/help.ts");
-  console.error(`unknown command "${cli.command}"\n`);
-  console.error(helpText());
-  process.exitCode = 1;
+  await handler(createOmkitClient({ tsconfig: cli.tsconfig, inspect: cli.inspect }), cli);
 }
 
 /**

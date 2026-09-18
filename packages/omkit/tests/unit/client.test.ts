@@ -40,7 +40,25 @@ describe("createOmkitClient", () => {
 
   test("runBare() runs an om unsupervised through the facade and resolves its exit code", async () => {
     const client = createOmkitClient({ tsconfig });
-    const code = await client.runBare(helloOm, { cwd: workdir });
+    // The root is overridden because the client's default is the fixture project itself, and
+    // a test must not write run folders into the repo. That a caller *can* override it is the
+    // contract the MCP server depends on — see the root test below.
+    const code = await client.runBare(helloOm, { cwd: workdir, env: { OMKIT_ROOT: workdir } });
     expect(code).toBe(0);
+  }, 20_000);
+
+  test("puts a run's record under the project owning the config, not beside the om", async () => {
+    const client = createOmkitClient({ tsconfig });
+    const project = path.dirname(tsconfig);
+    const logs = path.join(project, "logs");
+    fs.rmSync(logs, { recursive: true, force: true });
+
+    // Three different directories are in play — the om's own (`fixtures/run/`), the config's
+    // (`fixtures/discovery/`), and the child's cwd — and only one of them is the project.
+    await client.runBare(helloOm, { cwd: workdir });
+
+    expect(fs.existsSync(logs)).toBe(true);
+    expect(fs.existsSync(path.join(path.dirname(helloOm), "logs"))).toBe(false);
+    fs.rmSync(logs, { recursive: true, force: true });
   }, 20_000);
 });

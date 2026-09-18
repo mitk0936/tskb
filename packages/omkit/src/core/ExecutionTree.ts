@@ -7,17 +7,19 @@ import { LogStore } from "../output/log/LogStore.ts";
 import { RunFolder } from "../output/folder/RunFolder.ts";
 import { RawStream } from "../output/log/RawStream.ts";
 import { SnapshotStore } from "../output/snapshot/SnapshotStore.ts";
+import { ArtifactStore, type ArtifactRecord } from "../output/artifact/ArtifactStore.ts";
 import { ConsoleCapture } from "../output/console/ConsoleCapture.ts";
 import { LiveRenderer } from "../output/LiveRenderer.ts";
 import { writeNodeLogs } from "../output/writers/NodeLogWriter.ts";
 import { writeRollup } from "../output/writers/RollupWriter.ts";
 import { writeResult } from "../output/writers/ResultWriter.ts";
-import type { NodeView, RunView } from "../output/writers/views.ts";
+import type { ArtifactView, NodeView, RunView } from "../output/writers/views.ts";
 import { ActionRun, type NodeInit } from "./ActionRun.ts";
 import { procRegistry } from "../system/proc.ts";
 import { currentNode } from "./context.ts";
 import { activeSupervisor } from "./interaction.ts";
-import type { Exec, LaunchSpec } from "./types.ts";
+import type { Exec, LaunchSpec, OmDescription, ResolvedMcpExposure } from "./types.ts";
+import type { LogEntry } from "../foundation/LogEntry.ts";
 
 /**
  * The run: a module singleton that owns the log store, the run folder, the node
@@ -47,10 +49,23 @@ export class ExecutionTree {
   readonly store = new LogStore();
   readonly folder: RunFolder;
   readonly root: ActionRun;
+  /**
+   * The om's `.describe(…)` summary, carried here from the builder so it survives the
+   * terminal `.run(...)` call. Stored so it is retrievable; nothing reads it yet.
+   */
+  readonly description: OmDescription | undefined;
+  /**
+   * The om's `.mcp(…)` exposure, carried here from the builder for the same reason
+   * `description` is: `.run(...)` is the terminal call, and an om has no definition object
+   * to hang it on. The MCP server reads its own copy from the discovery fork, not from
+   * here — this is what makes the carry observable, and therefore testable, at all.
+   */
+  readonly mcp: ResolvedMcpExposure | undefined;
 
   private readonly rawStream: RawStream;
   private readonly consoleCapture: ConsoleCapture;
   private readonly snapshotStore: SnapshotStore;
+  private readonly artifactStore = new ArtifactStore();
   private readonly registry: ActionRun[] = [];
   private readonly unsettled = new Set<Promise<unknown>>();
   private readonly originalLog = console.log.bind(console);
@@ -59,6 +74,10 @@ export class ExecutionTree {
   private forwarding: Promise<void> | undefined;
   private assertionsPassed = 0;
   private assertionsFailed = 0;
+  // The root's args are resolved *inside* its body (prompting is async), so unlike a
+  // child node's they cannot be handed to `run()` up front — they are recorded here
+  // instead and projected onto the root by `nodeView`.
+  private rootArgs: readonly unknown[] = [];
   private readonly faults: Array<{ action: string; error: string }> = [];
 
   static graceMs = 5000; // teardown waits this long for nodes to settle, then finalizes anyway
@@ -77,7 +96,14 @@ export class ExecutionTree {
   private readonly onUncaught = (e: unknown): void => this.onFatal("uncaughtException", e);
   private readonly onUnhandled = (e: unknown): void => this.onFatal("unhandledRejection", e);
 
-  constructor(name: string, definedAt?: string) {
+  constructor(
+    name: string,
+    definedAt?: string,
+    description?: OmDescription,
+    mcp?: ResolvedMcpExposure
+  ) {
+    this.description = description;
+    this.mcp = mcp;
     // The run's identity: its name + where om() is written (not how it was launched),
     // so same-named oms in different files get distinct log folders.
     this.folder = new RunFolder(name, omHash(name, siteFile(definedAt)));
@@ -100,6 +126,11 @@ export class ExecutionTree {
       (currentNode.getStore() ?? this.root).toRef()
     );
     ExecutionTree.last = this;
+  }
+
+  /** Record the run's resolved args, so the root's log header reports them. */
+  setRootArgs(args: unknown): void {
+    this.rootArgs = [args];
   }
 
   /** Launch an instance under the ambient current node (or the root). */
@@ -152,6 +183,7 @@ export class ExecutionTree {
   private nodeDeps(): {
     store: LogStore;
     snapshots: SnapshotStore;
+    artifacts: ArtifactStore;
     artifactsFolder: string;
     onAssert: NodeInit["onAssert"];
     onUnhandledFailure: NodeInit["onUnhandledFailure"];
@@ -159,6 +191,7 @@ export class ExecutionTree {
     return {
       store: this.store,
       snapshots: this.snapshotStore,
+      artifacts: this.artifactStore,
       artifactsFolder: this.folder.path(),
       onAssert: (pass, actionPath, message) => this.recordAssert(pass, actionPath, message),
       onUnhandledFailure: (actionPath, error) => {
@@ -303,6 +336,7 @@ export class ExecutionTree {
     await writeRollup(at("events.log"), flat, entries, (e) => e.level === "event");
     await writeRollup(at("asserts.log"), flat, entries, (e) => e.level === "assert", assertSummary);
     await writeRollup(at("snapshots.log"), flat, entries, (e) => e.level === "snapshot");
+    await writeRollup(at("artifacts.log"), flat, entries, (e) => e.level === "artifact");
     await writeResult(at("result.json"), this.runView());
 
     // Only now let go of the process hooks — a Ctrl+C during the writes must still be
@@ -332,6 +366,7 @@ export class ExecutionTree {
       `  events    → ${at("events.log")}`,
       `  asserts   → ${at("asserts.log")}   ${assertSummary}`,
       `  snapshots → ${at("snapshots.log")}`,
+      `  artifacts → ${at("artifacts.log")}`,
     ];
   }
 
@@ -355,7 +390,8 @@ export class ExecutionTree {
       path: node.path,
       parentId: node.parentId,
       tags: [...node.tags],
-      args: [...node.args],
+      // The root never has args passed to `run()`; its own are resolved mid-body.
+      args: [...(node.parentId === null ? this.rootArgs : node.args)],
       status: node.status,
       startedAt: node.startedAt,
       endedAt: node.endedAt,
@@ -370,6 +406,16 @@ export class ExecutionTree {
     return this.runView();
   }
 
+  /** Test seam: the run's curated artifacts. */
+  artifactsForTest(): readonly ArtifactRecord[] {
+    return this.artifactStore.all();
+  }
+
+  /** Test seam: every log entry recorded for this run. */
+  entriesForTest(): readonly LogEntry[] {
+    return this.store.entries();
+  }
+
   private runView(): RunView {
     return {
       ok: this.faults.length === 0,
@@ -380,13 +426,48 @@ export class ExecutionTree {
       duration: this.root.duration,
       rawStream: this.rawStreamPath(),
       root: this.nodeView(this.root),
+      artifacts: this.curatedArtifacts(),
     };
   }
 
   /**
+   * The run's curated artifacts, keyed by `(nodeId, name)`: one action re-registering
+   * a name (e.g. re-labelling the same file after regenerating it) updates that entry
+   * in place rather than appending a second one, so `result.json` always reflects the
+   * latest registration per name. Keying on the pair — not `name` alone — matters
+   * because two *different* actions can independently choose the same name (two
+   * screenshot steps both calling `ctx.artifact("screenshot", …)`); those describe two
+   * distinct files and both must survive into `result.json`, not collapse into one.
+   * Position follows first registration; `artifacts.log` (a chronological rollup, like
+   * `events.log`/`asserts.log`) is unaffected either way and still lists every call.
+   *
+   * The pair is joined with `\0` — the same separator `omHash` uses, and for the same
+   * reason: a step name may legitimately contain colons (`TSKB:root:watch:docs`) and an
+   * artifact name is free-form, so any printable separator can be forged inside a key.
+   */
+  private curatedArtifacts(): readonly ArtifactView[] {
+    const byKey = new Map<string, ArtifactView>();
+    for (const { name, file, description, mime, nodeId } of this.artifactStore.all()) {
+      byKey.set(`${nodeId}\0${name}`, {
+        name,
+        file,
+        mime,
+        ...(description === undefined ? {} : { description }),
+      });
+    }
+    return [...byKey.values()];
+  }
+
+  /**
    * Absolute `.log` path for a node — root is `main.log`, children drop the `main/`
-   * prefix. Each id segment is sanitized so names with filesystem-illegal characters
-   * (e.g. `TSKB:root:watch:docs`) still produce a valid path.
+   * prefix. One directory level per ancestor, mirroring the tree.
+   *
+   * Every `/` here is a level, and that holds only because ids are sanitised where they are
+   * made (see `makeId`): a name that carried its own separators would be split here into
+   * levels it never had, and the run folder would grow directories spelling out a command's
+   * arguments. `fsSafe` stays as the second line of defence for anything that reaches a
+   * segment by another route; it cannot be the first, since by this point a separator from a
+   * name and a separator from the tree are the same character.
    */
   private logFile(nodePath: string): string {
     const rel = nodePath === "main" ? "main" : nodePath.slice("main/".length);

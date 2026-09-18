@@ -1,0 +1,138 @@
+import { afterEach, describe, expect, test } from "vitest";
+import { om } from "../../src/index.ts";
+import { prompt, readUntil } from "../../src/actions/prompt.ts";
+import { ExecutionTree } from "../../src/core/ExecutionTree.ts";
+import { withFakeStdio } from "../support/fake-stdio.ts";
+import {
+  createSupervisor,
+  installSupervisor,
+  type ChildMessage,
+  type SupervisorMessage,
+} from "../../src/core/interaction.ts";
+
+/** Feed a fixed script of lines, one per call, then EOF (undefined). */
+const scripted = (lines: string[]) => {
+  let i = 0;
+  return async (): Promise<string | undefined> => lines[i++];
+};
+
+describe("readUntil", () => {
+  test("'json' stops as soon as the accumulated text parses", async () => {
+    const read = scripted(["{", '  "host": "db.local",', '  "port": 5432', "}", "never"]);
+    expect(await readUntil(read, "json")).toBe('{\n  "host": "db.local",\n  "port": 5432\n}');
+  });
+
+  test("a sentinel string stops on that line and excludes it", async () => {
+    const read = scripted(["first", "second", ".", "after"]);
+    expect(await readUntil(read, ".")).toBe("first\nsecond");
+  });
+
+  test("a predicate stops when it returns true", async () => {
+    const read = scripted(["a", "ab", "abc"]);
+    expect(await readUntil(read, (text) => text.length >= 4)).toBe("a\nab");
+  });
+
+  test("EOF ends input and returns what was collected", async () => {
+    const read = scripted(["only line"]);
+    expect(await readUntil(read, ".")).toBe("only line");
+  });
+
+  test("'json' returns the text unparsed if EOF arrives first", async () => {
+    const read = scripted(["{ broken"]);
+    expect(await readUntil(read, "json")).toBe("{ broken");
+  });
+});
+
+afterEach(() => {
+  installSupervisor(null);
+  ExecutionTree.reset();
+  process.exitCode = 0;
+});
+
+describe("a multiline prompt at the bare terminal", () => {
+  test("collects the pasted block and reports via:input, ending on the JSON itself", async () => {
+    // The whole feature end to end: real lines through the readline-backed LineReader and
+    // `readUntil`'s default `"json"` rule, which ends the read on the closing brace — no
+    // sentinel, no EOF, nothing the user had to be told about.
+    const blob = '{\n  "host": "db.local",\n  "port": 5432\n}';
+    let answer: { value: string; via: string } | undefined;
+    let got: string | undefined;
+
+    const written = await withFakeStdio(async (stdin) => {
+      await om("multiline-input").run(async () => {
+        const asked = prompt({ kind: "multiline", message: "Paste config", timeoutMs: 5_000 });
+        asked.on("answer", (a) => void (answer = a));
+        stdin.write(`${blob}\n`);
+        got = await asked.result.catch(() => "ERR");
+      });
+    });
+
+    expect(got).toBe(blob);
+    expect(answer).toEqual({ value: blob, via: "input" });
+    expect(written).toContain("Paste config");
+  });
+
+  test("a timeout uses the default and reports via:timeout, like the other kinds", async () => {
+    // Nobody types, so the read is still pending when the 20ms timeout aborts it. The abort must
+    // not masquerade as end-of-input: it has to reach the action's outer catch, or the answer
+    // would be mislabelled `default` (or, mid-paste, a partial blob labelled `input`).
+    let answer: { value: string; via: string } | undefined;
+    let got: string | undefined;
+
+    const written = await withFakeStdio(async () => {
+      await om("multiline-timeout").run(async () => {
+        const asked = prompt({
+          kind: "multiline",
+          message: "Paste config",
+          hint: "{ host: string }",
+          default: "fallback",
+          timeoutMs: 20,
+        });
+        asked.on("answer", (a) => void (answer = a));
+        got = await asked.result.catch(() => "ERR");
+      });
+    });
+
+    expect(got).toBe("fallback");
+    expect(answer).toEqual({ value: "fallback", via: "timeout" });
+    // The message and hint really did reach the terminal before the wait began.
+    expect(written).toContain("Paste config");
+    expect(written).toContain("{ host: string }");
+  });
+});
+
+describe("a multiline prompt under a supervisor", () => {
+  test("forwards the kind and hint on the spec, and takes the answer verbatim", async () => {
+    // Supervised, the whole block comes back as one answer — `readUntil` is the bare-terminal
+    // path only — so what matters here is that the frontend is told it is a multiline prompt.
+    const sent: ChildMessage[] = [];
+    let deliver: ((m: SupervisorMessage) => void) | undefined;
+    const sup = createSupervisor(
+      (m) => {
+        sent.push(m);
+        if (m.kind === "prompt")
+          deliver?.({ kind: "answer", id: m.id, value: "{\n  a: 1\n}", via: "input" });
+      },
+      (cb) => void (deliver = cb)
+    );
+    installSupervisor(sup);
+
+    let got: string | undefined;
+    await om("ask-multiline").run(async () => {
+      got = await prompt({
+        kind: "multiline",
+        message: "Paste config",
+        hint: "{ host: string }",
+      }).result.catch(() => "ERR");
+    });
+
+    expect(got).toBe("{\n  a: 1\n}");
+    const req = sent.find((m) => m.kind === "prompt");
+    expect(req).toBeDefined();
+    if (req?.kind === "prompt") {
+      expect(req.spec.kind).toBe("multiline");
+      expect(req.spec.message).toBe("Paste config");
+      expect(req.spec.hint).toBe("{ host: string }");
+    }
+  });
+});

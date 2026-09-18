@@ -1,6 +1,13 @@
+import type { z } from "zod";
+import type { JsonSchema } from "./schema-json.ts";
 import type { Emitter, EventHandler } from "../foundation/events.ts";
 import type { ReadableLog } from "../foundation/LogEntry.ts";
 import type { Proc } from "../system/proc.ts";
+
+/** Any zod schema. Aliased so the rest of the file reads without zod's generics. */
+export type ZodTypeLike = z.ZodType;
+/** The TypeScript type a schema validates to. */
+export type InferSchema<S extends ZodTypeLike> = z.infer<S>;
 
 /** A value an action's exec may return: a result, or a promise of one. */
 export type Awaitable<T> = T | Promise<T>;
@@ -40,10 +47,88 @@ export interface ActionContext<Events extends object = NoEvents, Handle = void> 
   readonly assert: (condition: boolean, message: string) => void;
   /** Capture a JSON snapshot; drops a timeline line and resolves the file's absolute path. */
   readonly snapshot: (name: string, value: unknown) => Promise<string>;
+  /**
+   * Label a file this action wrote — name, optional description, MIME inferred from the
+   * extension. Drops a timeline line and returns the file's path. Purely descriptive:
+   * the file must already exist (or be written next); this records what it is.
+   */
+  readonly artifact: (
+    name: string,
+    file: string,
+    opts?: { description?: string; mime?: string }
+  ) => string;
   /** Absolute path to this run's output folder — write artifacts (screenshots, dumps, …) here. */
   readonly artifactsFolder: string;
   /** Spawn child processes bound to this action (output → this node's log, killed on teardown). */
   readonly proc: Proc;
+}
+
+/** Human-readable metadata about an om or action. */
+export interface OmDescription {
+  /** One line saying what this does. */
+  summary: string;
+}
+
+/** How an om or action behaves when a client runs it as an MCP tool. */
+export type McpMode = "settling" | "long-lived";
+
+/**
+ * Marks an om or action as exposed over MCP. Absent ⇒ invisible to the server:
+ * `.describe()` and `.args()` alone expose nothing.
+ */
+export interface McpExposure {
+  /**
+   * Whether the run settles on its own. `run_om` accepts only a `"settling"` entry; a
+   * `"long-lived"` one must be started with `start_om`. Omitted ⇒ `"settling"`, so being
+   * wrong surfaces as a timeout rather than a silently orphaned process.
+   */
+  mode?: McpMode;
+}
+
+/** An {@link McpExposure} after the builder has filled its default. */
+export interface ResolvedMcpExposure {
+  readonly mode: McpMode;
+}
+
+/** The result of converting a declared schema — one of the two fields is always undefined. */
+export interface DescribedArgs {
+  readonly inputSchema: JsonSchema | undefined;
+  readonly schemaError: string | undefined;
+}
+
+/** The builder returned by `om(name)`. `.run(body)` launches the run. */
+export interface OmBuilder {
+  /** Attach a human-readable summary — carried for `omkit ls` and future tooling. */
+  describe(description: OmDescription): OmBuilder;
+  /** Expose this om over MCP. Without it the MCP server does not list or run it. */
+  mcp(exposure?: McpExposure): OmBuilder;
+  /**
+   * Declare the run's input shape. Unlike an action's `.args()`, this is resolved at
+   * runtime: the values come from what was supplied, then the schema's defaults, then by
+   * prompting — and the run fails if that is not enough.
+   */
+  args<S extends ZodTypeLike>(schema: S): OmBuilderArgs<S>;
+  /**
+   * Launch the run with `body` as its root. The body runs inside the root node's
+   * ambient scope, so any action call / `step(...)` / `console.*` it reaches attributes
+   * correctly. Resolves once the run has torn down and produced its artifacts; never
+   * rejects (failures are recorded in the tree and set the exit code).
+   */
+  run(body: (ctx: OmContext) => Awaitable<void>): Promise<void>;
+}
+
+/** After `.args(schema)`: `.run`'s body receives the resolved, typed args. */
+export interface OmBuilderArgs<S extends ZodTypeLike> {
+  describe(description: OmDescription): OmBuilderArgs<S>;
+  /** Expose this om over MCP. Without it the MCP server does not list or run it. */
+  mcp(exposure?: McpExposure): OmBuilderArgs<S>;
+  /**
+   * Launch the run, resolving the declared args first — supplied values, then defaults,
+   * then prompting — and pass them to `body` as its second parameter. Resolution happens
+   * *inside* the run, so a prompt and its answer land on the run's own timeline; an
+   * unresolvable arg fails the run like any other error in the body.
+   */
+  run(body: (ctx: OmContext, args: InferSchema<S>) => Awaitable<void>): Promise<void>;
 }
 
 /** What the `om` body receives — the run-level counterpart to {@link ActionContext}. */
@@ -60,6 +145,16 @@ export interface OmContext {
   readonly assert: (condition: boolean, message: string) => void;
   /** Capture a run-level JSON snapshot; resolves the file's absolute path. */
   readonly snapshot: (name: string, value: unknown) => Promise<string>;
+  /**
+   * Label a file this action wrote — name, optional description, MIME inferred from the
+   * extension. Drops a timeline line and returns the file's path. Purely descriptive:
+   * the file must already exist (or be written next); this records what it is.
+   */
+  readonly artifact: (
+    name: string,
+    file: string,
+    opts?: { description?: string; mime?: string }
+  ) => string;
   /** Absolute path to this run's output folder — write run-level artifacts here. */
   readonly artifactsFolder: string;
 }
@@ -120,15 +215,45 @@ export interface Action<
   readonly actionName: string;
   /** `file:line` where this action was defined (the `.run(...)` site), for the log header. */
   readonly definedAt: string | undefined;
+  /**
+   * The summary from `.describe(…)`, carried across every builder link onto the definition.
+   * Stored so it is retrievable; nothing in the runtime reads it yet.
+   */
+  readonly description: OmDescription | undefined;
+  /** The `.mcp(…)` exposure, carried across every builder link. Undefined ⇒ not exposed. */
+  readonly mcp: ResolvedMcpExposure | undefined;
+  /**
+   * The declared args as JSON Schema, computed on demand. Called by the discovery child
+   * rather than converting the schema itself: the user's file resolves `"omkit"` to the
+   * installed package while the child runs omkit's own module graph, so the two can hold
+   * different zod instances. Converting inside the defining copy sidesteps that. Never
+   * throws — an unconvertible schema comes back as `schemaError`.
+   */
+  readonly describeArgs: () => DescribedArgs;
 }
 
-/** Intermediate step from `action(name)`: declare events/handle, then provide the impl. */
+/** Intermediate step from `action(name)`: declare metadata/events/handle, then the impl. */
 export interface ActionBuilderEvents<Events extends object, Handle = void> {
+  describe(description: OmDescription): ActionBuilderEvents<Events, Handle>;
+  /** Expose this action over MCP. Without it the MCP server does not list or run it. */
+  mcp(exposure?: McpExposure): ActionBuilderEvents<Events, Handle>;
   emits<E extends object>(): ActionBuilderEvents<E, Handle>;
   ref<H>(): ActionBuilderEvents<Events, H>;
+  /** Pin the first parameter to the schema's inferred type. */
+  args<S extends ZodTypeLike>(schema: S): ActionBuilderArgs<S, Events, Handle>;
   run<Args extends unknown[], Result>(
     body: (ctx: ActionContext<Events, Handle>, ...args: Args) => Awaitable<Result>
   ): Action<Args, Result, Events, Handle>;
+}
+
+/** After `.args(schema)`: `.run` takes exactly one typed argument. */
+export interface ActionBuilderArgs<S extends ZodTypeLike, Events extends object, Handle = void> {
+  describe(description: OmDescription): ActionBuilderArgs<S, Events, Handle>;
+  /** Expose this action over MCP. Without it the MCP server does not list or run it. */
+  mcp(exposure?: McpExposure): ActionBuilderArgs<S, Events, Handle>;
+  run<Result>(
+    body: (ctx: ActionContext<Events, Handle>, args: InferSchema<S>) => Awaitable<Result>
+  ): Action<[InferSchema<S>], Result, Events, Handle>;
 }
 
 /** The exec signature bound by `.run(...)` (arg types erased at the boundary). */
