@@ -50,6 +50,8 @@ export type GetRefsForFn = (nodeId: string, kind: "docs" | "flows") => ExplorerN
 export type OnNodeRefClick = (nodeId: string) => void;
 export type OnNodeHighlightFn = (nodeId: string | null) => void;
 export type OnNodePrefetchFn = (nodeId: string) => Promise<void>;
+/** Highlights the matching relation arc on the canvas; pass null to clear. */
+export type OnRelationHighlightFn = (edge: { from: string; to: string } | null) => void;
 
 /** Callbacks and lookups supplied by the host so panel views never reach into the rest of the SPA. */
 export interface NodeRefHooks {
@@ -58,4 +60,5 @@ export interface NodeRefHooks {
   onNodeRef: OnNodeRefClick;
   onNodeHighlight: OnNodeHighlightFn;
   onNodePrefetch: OnNodePrefetchFn;
+  onRelationHighlight: OnRelationHighlightFn;
 }

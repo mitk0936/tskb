@@ -141,7 +141,7 @@ declare global {
 
     interface Terms {
       capability: Term<"A typed value one action publishes with attach() and downstream actions receive by awaiting .ref — a runtime handoff (a port, a client, a live page), not a string scraped from a log.">;
-      "run-folder": Term<"A run's on-disk record at logs/<name>-<hash8>/<date>/<time>/: result.json (the tree and verdict), raw.jsonl (every entry), and per-action .log files. Its identity is keyed by the om's name and the file that defines it.">;
+      "run-folder": Term<"A run's on-disk record at logs/<name>-<hash8>/<date>/<time>/: result.json (the tree, the verdict, and whatever the body returned as `value`), raw.jsonl (every entry), and per-action .log files. Its identity is keyed by the om's name and the file that defines it.">;
       "structured-supervision": Term<"omkit's failure model: an activity whose failure nobody observes tears the whole run down. Observing it — awaiting .result/.ref/.once (which reject on failure), a .result.catch, or an on('error') listener — makes the failure yours to handle instead.">;
     }
   }

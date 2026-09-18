@@ -280,6 +280,10 @@ export class ExecutionTree {
     const rootPromise = currentNode.run(this.root, () => this.root.run(body, []));
     this.trackNode(rootPromise);
     await rootPromise;
+    // The body has returned. A long-lived run is "up" from here — its daemons keep it
+    // open — and a supervisor that started it wants to know, because nothing else on the
+    // channel distinguishes "still booting" from "up and driveable" before `settled`.
+    if (supervisor) supervisor.up(this.verdictOk(), this.folder.path());
 
     await this.drive();
     await this.finalize();
@@ -417,6 +421,7 @@ export class ExecutionTree {
   }
 
   private runView(): RunView {
+    const value = serialisable(this.root.value);
     return {
       ok: this.faults.length === 0,
       failures: [...this.faults],
@@ -427,6 +432,7 @@ export class ExecutionTree {
       rawStream: this.rawStreamPath(),
       root: this.nodeView(this.root),
       artifacts: this.curatedArtifacts(),
+      ...(value === undefined ? {} : { value }),
     };
   }
 
@@ -486,3 +492,17 @@ export class ExecutionTree {
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? (error.stack ?? error.message) : String(error);
+
+/**
+ * The value as `result.json` will carry it, or undefined when it cannot be carried. A
+ * body may hand back anything — a capability handle, a cyclic object — and the run must
+ * still write its record; a value that does not survive JSON is dropped, not fatal.
+ */
+function serialisable(value: unknown): unknown {
+  if (value === undefined) return undefined;
+  try {
+    return JSON.parse(JSON.stringify(value)) as unknown;
+  } catch {
+    return undefined;
+  }
+}

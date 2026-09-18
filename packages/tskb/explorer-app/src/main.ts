@@ -9,8 +9,10 @@ import {
   renderLaneBands,
   renderRelationEdges,
   renderRelationEndpoints,
+  setRelationEdgeHighlight,
 } from "./components/edges/EdgeRenderer";
 import { computeRenderState, type StructureLink, type RelationLink } from "./render-state";
+import { readSearchQuery, withSearchQuery } from "./ui/search-url";
 import {
   showGlobalSpinner,
   hideGlobalSpinner,
@@ -67,6 +69,7 @@ export class ExplorerApp {
   private selected: PositionedNode | null = null;
   private matchIds: Set<string> | null = null;
   private searchWorker: Worker | null = null;
+  private searchInput: HTMLInputElement | null = null;
   private searchChip: HTMLDivElement | null = null;
   private zoomK = 1;
   private pendingScrollGen = 0;
@@ -97,6 +100,8 @@ export class ExplorerApp {
       onNodeRef: (nodeId: string) => this.navigateToNode(nodeId),
       onNodeHighlight: (nodeId: string | null) => this.onNodeHighlight(nodeId),
       onNodePrefetch: (nodeId: string) => this.prefetchNodeChunk(nodeId),
+      onRelationHighlight: (edge) =>
+        setRelationEdgeHighlight(this.relationEdgeLayer, edge ? `${edge.from}→${edge.to}` : null),
     };
     // The DocPanel registers itself as a Router listener on construction; the
     // listener closure keeps the instance alive for the SPA's lifetime.
@@ -109,6 +114,8 @@ export class ExplorerApp {
       this.render();
     });
     await this.loadInitialData();
+    // Needs meta: the results expand the canvas down to the matches.
+    this.restoreSearchFromUrl();
 
     // Reload-on-change: only active when served by a live `tskb explore` server
     // (meta.mode === "served"). No-op in the static export.
@@ -199,6 +206,7 @@ export class ExplorerApp {
   private setupSearch(): void {
     const searchInput = document.getElementById("search-input") as HTMLInputElement;
     const searchBtn = document.getElementById("search-btn") as HTMLButtonElement;
+    this.searchInput = searchInput;
     this.searchChip = document.getElementById("search-chip") as HTMLDivElement;
 
     this.searchWorker = new Worker(new URL("./workers/search.worker.ts", import.meta.url), {
@@ -229,9 +237,7 @@ export class ExplorerApp {
         return;
       }
       searchInput.value = "";
-      this.showSearchChip(query, searchInput);
-      this.searchChip?.classList.add("chip-searching");
-      this.searchWorker?.postMessage({ type: "search", query });
+      this.runSearch(query, searchInput);
     };
 
     searchBtn.addEventListener("click", triggerSearch);
@@ -241,6 +247,34 @@ export class ExplorerApp {
     });
   }
 
+  /**
+   * Shows the query chip, hands the query to the worker, and mirrors it into the
+   * URL's `q` param so a reload lands on the same result set. The worker holds
+   * the query until its index is loaded, so this is safe to call early.
+   */
+  private runSearch(query: string, input: HTMLInputElement): void {
+    this.showSearchChip(query, input);
+    this.searchChip?.classList.add("chip-searching");
+    this.searchWorker?.postMessage({ type: "search", query });
+    this.syncSearchUrl(query);
+  }
+
+  /** Re-runs the search a reloaded (or shared) URL carries in `?q=`. */
+  private restoreSearchFromUrl(): void {
+    const query = readSearchQuery(window.location.search);
+    if (!query || !this.searchInput) return;
+    this.runSearch(query, this.searchInput);
+  }
+
+  /**
+   * Writes `q` into the URL without touching the panel router's hash or the
+   * history stack — back/forward stay about panel views, not past searches.
+   */
+  private syncSearchUrl(query: string | null): void {
+    const next = withSearchQuery(window.location.href, query);
+    if (next !== window.location.href) window.history.replaceState(null, "", next);
+  }
+
   private clearSearch(input: HTMLInputElement): void {
     input.value = "";
     this.matchIds = null;
@@ -248,6 +282,7 @@ export class ExplorerApp {
       this.searchChip.hidden = true;
       this.searchChip.innerHTML = "";
     }
+    this.syncSearchUrl(null);
     this.render();
   }
 

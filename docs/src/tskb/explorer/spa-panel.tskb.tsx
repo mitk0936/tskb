@@ -40,8 +40,18 @@ declare global {
       }>;
 
       "explorer.spa.ref-links": Module<{
-        desc: "Wires hover, click and prefetch behavior on a.tskb-ref anchors inside panel views.";
+        desc: "Wires hover, click and prefetch behavior on a.tskb-ref anchors inside panel views, and rewrites their text to short node labels.";
         type: typeof import("packages/tskb/explorer-app/src/router/components/RefLinks.js");
+      }>;
+
+      "explorer.spa.relations": Module<{
+        desc: "Turns the hidden Relation carrier spans in doc HTML into visible from/to chip blocks with a caption; hovering one highlights its arc on the canvas.";
+        type: typeof import("packages/tskb/explorer-app/src/router/components/Relations.js");
+      }>;
+
+      "explorer.spa.node-label": Module<{
+        desc: "Short display label for a node reference in the panel: file name for modules and files, name/ for folders.";
+        type: typeof import("packages/tskb/explorer-app/src/router/components/NodeLabel.js");
       }>;
 
       "explorer.spa.types": Module<{
@@ -107,8 +117,18 @@ declare global {
       }>;
 
       "explorer.spa.wireRefs": Export<{
-        desc: "Attaches hover, click and prefetch handlers to every a.tskb-ref under a root element.";
+        desc: "Attaches hover, click and prefetch handlers to every a.tskb-ref under a root element, and relabels each anchor with its node's short display label.";
         type: typeof import("packages/tskb/explorer-app/src/router/components/RefLinks.js").wireRefs;
+      }>;
+
+      "explorer.spa.enhanceRelations": Export<{
+        desc: "Rebuilds every span.tskb-relation under a root element into two node chips joined by a bracket and caption. Call before wireRefs so the chips get wired and labelled.";
+        type: typeof import("packages/tskb/explorer-app/src/router/components/Relations.js").enhanceRelations;
+      }>;
+
+      "explorer.spa.shortNodeLabel": Export<{
+        desc: "Maps a node kind and its display path to the short label the panel shows: `Router.ts`, `router/index.ts`, `views/`; other kinds pass through.";
+        type: typeof import("packages/tskb/explorer-app/src/router/components/NodeLabel.js").shortNodeLabel;
       }>;
 
       "explorer.spa.NodeRefHooks": Export<{
@@ -127,6 +147,8 @@ const RouterTypesModule = ref as tskb.Modules["explorer.spa.router-types"];
 const RefsViewModule = ref as tskb.Modules["explorer.spa.refs-view"];
 const AccordionModule = ref as tskb.Modules["explorer.spa.accordion"];
 const RefLinksModule = ref as tskb.Modules["explorer.spa.ref-links"];
+const NodeLabelModule = ref as tskb.Modules["explorer.spa.node-label"];
+const RelationsModule = ref as tskb.Modules["explorer.spa.relations"];
 const DomTooltipModule = ref as tskb.Modules["explorer.spa.dom-tooltip"];
 const MainModule = ref as tskb.Modules["explorer.spa.main"];
 
@@ -140,6 +162,9 @@ const PanelRouterExport = ref as tskb.Exports["explorer.spa.panelRouter"];
 const RefsViewExport = ref as tskb.Exports["explorer.spa.RefsView"];
 const RenderAccordionExport = ref as tskb.Exports["explorer.spa.renderAccordion"];
 const WireRefsExport = ref as tskb.Exports["explorer.spa.wireRefs"];
+const ShortNodeLabelExport = ref as tskb.Exports["explorer.spa.shortNodeLabel"];
+const EnhanceRelationsExport = ref as tskb.Exports["explorer.spa.enhanceRelations"];
+const ExportDisplayLabelExport = ref as tskb.Exports["explorer.spa.exportDisplayLabel"];
 const NodeRefHooksExport = ref as tskb.Exports["explorer.spa.NodeRefHooks"];
 
 const MountExport = ref as tskb.Exports["explorer.spa.ExplorerApp.mount"];
@@ -206,11 +231,43 @@ export default (
       the node's chunk isn't loaded yet, a background prefetch fires and the tooltip updates in
       place when data arrives.
     </P>
+    <H2>Relations</H2>
+    <P>
+      A doc's <code>{"<Relation>"}</code> elements reach the browser as empty{" "}
+      <code>span.tskb-relation</code> carriers (<code>data-from</code>, <code>data-to</code>,{" "}
+      <code>data-label</code>, plus a pre-computed type and display path per end).{" "}
+      {EnhanceRelationsExport} in {RelationsModule} rebuilds each carrier into a visible block: the
+      from and to nodes stacked as <code>a.tskb-ref</code> chips, joined by a bracket to the
+      relation's caption. Views call it before {WireRefsExport}, so the chips get the same click,
+      hover and labelling as any other ref. Hovering a block highlights the matching relation arc on
+      the canvas through the <code>onRelationHighlight</code> hook of {NodeRefHooksExport}.
+    </P>
+
+    <H2>Reference labels</H2>
+    <P>
+      {WireRefsExport} also rewrites each anchor's text to a short, meaningful label — never the
+      registry key. Exports go through {ExportDisplayLabelExport} (<code>Router {"{...}"}</code>,{" "}
+      <code>mount(...)</code>); modules, files and folders go through {ShortNodeLabelExport} in{" "}
+      {NodeLabelModule}, which keeps the last path segment (<code>Router.ts</code>,{" "}
+      <code>views/</code>) and the parent for <code>index.*</code> files. The full path stays on the
+      anchor's <code>title</code> and in the hover tooltip. Anchors whose node isn't loaded fall
+      back to the <code>data-node-type</code> / <code>data-node-display</code> attributes the build
+      pre-computed (a path for module, file and folder refs, and — for flow steps — the same fields
+      inside the flow's <code>stepsJson</code>). Export labels exist only on the node, so export
+      anchors without a loaded node are prefetched and relabelled in place once their chunk lands;
+      the panel body is not re-rendered, so open accordions survive.
+    </P>
 
     <Relation from={DocPanelModule} to={RouterModule} label="subscribes to" />
     <Relation from={RouterModule} to={RouterTypesModule} label="implements types from" />
     <Relation from={RefsViewModule} to={AccordionModule} label="renders body via" />
     <Relation from={RefsViewModule} to={RefLinksModule} label="wires anchors via" />
+    <Relation from={RefsViewModule} to={RelationsModule} label="renders Relation blocks via" />
+    <Relation
+      from={RefLinksModule}
+      to={NodeLabelModule}
+      label="shortens module/file/folder labels with"
+    />
     <Relation from={MainModule} to={DocPanelModule} label="opens on node select or chip click" />
     <Relation
       from={MainModule}

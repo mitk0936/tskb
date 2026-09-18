@@ -267,10 +267,33 @@ class GraphToExplorerTransformer {
         edgeCount: flow.edgeCount ?? 0,
         detail: {
           steps: String(flow.steps.length),
-          stepsJson: JSON.stringify(flow.steps.map((s) => ({ nodeId: s.nodeId, label: s.label }))),
+          stepsJson: JSON.stringify(
+            flow.steps.map((s) => ({
+              nodeId: s.nodeId,
+              label: s.label,
+              ...this.stepNodeMeta(s.nodeId),
+            }))
+          ),
         },
       })
     );
+  }
+
+  /**
+   * Node kind and display text for a flow step, so the SPA can label the step
+   * before the step node's folder chunk is loaded. Same convention as the
+   * `data-node-display` attribute on doc ref anchors: the path for modules,
+   * files and folders (folders with a trailing slash), the id for the rest.
+   */
+  private stepNodeMeta(nodeId: string): { type?: NodeType; display?: string } {
+    const { modules, folders, files, exports, terms, externals } = this.graph.nodes;
+    if (modules[nodeId]) return { type: "module", display: modules[nodeId].resolvedPath ?? nodeId };
+    if (folders[nodeId]) return { type: "folder", display: `${folders[nodeId].path ?? nodeId}/` };
+    if (files[nodeId]) return { type: "file", display: files[nodeId].path ?? nodeId };
+    if (exports[nodeId]) return { type: "export", display: nodeId };
+    if (terms[nodeId]) return { type: "term", display: nodeId };
+    if (externals[nodeId]) return { type: "external", display: nodeId };
+    return {};
   }
 
   private buildTermNodes(): ExplorerNode[] {

@@ -80,12 +80,24 @@ export function renderAccordion(
     .join("");
 }
 
+/**
+ * One entry of a flow node's `stepsJson`. `type` and `display` are pre-computed
+ * by the explorer transform (path for module/file/folder, id otherwise) so a
+ * step can be labelled before its node's chunk is loaded.
+ */
+interface FlowStepEntry {
+  nodeId: string;
+  label?: string;
+  type?: string;
+  display?: string;
+}
+
 function renderFlowSteps(item: ExplorerNode, deps: AccordionDeps): string {
   const raw = item.detail.stepsJson as string | undefined;
   if (!raw) return "";
-  let steps: Array<{ nodeId: string; label?: string }>;
+  let steps: FlowStepEntry[];
   try {
-    steps = JSON.parse(raw) as Array<{ nodeId: string; label?: string }>;
+    steps = JSON.parse(raw) as FlowStepEntry[];
   } catch {
     return "";
   }
@@ -93,8 +105,9 @@ function renderFlowSteps(item: ExplorerNode, deps: AccordionDeps): string {
   const items = steps
     .map((s, i) => {
       const stepNode = deps.getNode(s.nodeId);
-      const typeAttr = stepNode ? ` data-node-type="${escapeHtml(stepNode.type)}"` : "";
-      const display = stepNode ? (stepNode.path ?? s.nodeId) : s.nodeId;
+      const nodeType = stepNode?.type ?? s.type;
+      const typeAttr = nodeType ? ` data-node-type="${escapeHtml(nodeType)}"` : "";
+      const display = stepNode ? (stepNode.path ?? stepNode.label) : (s.display ?? s.nodeId);
       const displayAttr = ` data-node-display="${escapeHtml(display)}"`;
       const labelHtml = s.label
         ? `<span class="flow-step-label">${escapeHtml(s.label)}</span>`

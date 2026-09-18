@@ -32,6 +32,11 @@ declare global {
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/base.js").BaseNodeRenderer;
       }>;
 
+      "explorer.spa.exportDisplayLabel": Export<{
+        desc: "Label for an export card or reference: appends (...) to functions and {...} to classes, from the export's morphology summary.";
+        type: typeof import("packages/tskb/explorer-app/src/components/nodes/base.js").exportDisplayLabel;
+      }>;
+
       "explorer.spa.createNodeRenderer": Export<{
         desc: "Builds a node renderer wired with the SPA's interaction callbacks.";
         type: typeof import("packages/tskb/explorer-app/src/components/nodes/index.js").createNodeRenderer;

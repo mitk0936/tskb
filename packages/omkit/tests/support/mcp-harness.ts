@@ -17,6 +17,7 @@ export const fixtureFiles = [
   "oms/fails.ts",
   "oms/mislabelled.ts",
   "oms/waits.ts",
+  "oms/stack.ts",
   "oms/asks.ts",
   "actions/seed.ts",
 ].map((f) => path.join(fixtureDir, f));

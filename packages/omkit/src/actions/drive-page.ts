@@ -83,6 +83,22 @@ export const drivePage = action("drivePage")
     }
   });
 
+/** Longest slice of the expression an error message repeats back. */
+const JS_EXCERPT = 160;
+
+/**
+ * The message for an expression that threw in the page. Leads with what the page said —
+ * the first line of the cause, which is the `TypeError: …` a caller can act on — and names
+ * the expression only briefly: the caller sent it, so echoing all of it adds nothing, and a
+ * page-side stack means little to someone who only handed over a string. The original
+ * error stays attached as the cause.
+ */
+export function evaluateErrorMessage(js: string, cause: unknown): string {
+  const said = (cause instanceof Error ? cause.message : String(cause)).split("\n")[0]!.trim();
+  const excerpt = js.length > JS_EXCERPT ? `${js.slice(0, JS_EXCERPT)}…` : js;
+  return `the expression threw in the page: ${said} · expression: ${excerpt}`;
+}
+
 /** The work itself, split out so the daemon handle above has one obvious release point. */
 async function evaluateIn(
   page: Page,
@@ -101,9 +117,7 @@ async function evaluateIn(
   try {
     value = await page.evaluate(js);
   } catch (cause) {
-    // A page-side stack means little to a caller who only sent a string, so lead with the
-    // expression that failed and keep the original as the cause.
-    throw new Error(`the expression threw in the page: ${js}`, { cause });
+    throw new Error(evaluateErrorMessage(js, cause), { cause });
   }
   void snapshot("result", { js, value });
   console.log(`result: ${JSON.stringify(value) ?? "undefined"}`);

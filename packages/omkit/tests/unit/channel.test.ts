@@ -52,6 +52,22 @@ describe("createChannel", () => {
     });
   });
 
+  test("an up message fires `up` with the run's folder before it settles", async () => {
+    const f = fakeTransport();
+    const session = createChannel(f.transport);
+    const ups: unknown[] = [];
+    session.on("up", (info) => ups.push(info));
+
+    f.emit({ kind: "up", ok: true, folder: "/runs/dev-abc/2026-01-01/10-00-00" });
+    expect(ups).toEqual([{ ok: true, folder: "/runs/dev-abc/2026-01-01/10-00-00" }]);
+
+    // Still running: `up` says the body returned, not that the run is over.
+    let settled = false;
+    void session.result.then(() => (settled = true));
+    await Promise.resolve();
+    expect(settled).toBe(false);
+  });
+
   test("answer and cancel send the right supervisor messages", () => {
     const f = fakeTransport();
     const session = createChannel(f.transport);

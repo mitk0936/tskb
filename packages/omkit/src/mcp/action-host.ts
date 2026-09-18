@@ -50,7 +50,9 @@ om(hostOmName(name, file))
     // `npm link`, a non-hoisted pnpm layout, or two omkit versions in one tree. The bare
     // error is undiagnosable from a client, so name the cause here.
     try {
-      await (launch as Launchable)(args).result;
+      // The action's result becomes the run's `value`: the one thing an action-backed tool
+      // call exists to hand back, read from `result.json` by the server's verdict.
+      return await (launch as Launchable)(args).result;
     } catch (e) {
       if (e instanceof Error && /no active om\(\) run/.test(e.message)) {
         throw new Error(

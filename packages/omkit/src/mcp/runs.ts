@@ -1,6 +1,6 @@
 import { newUuid, shortId } from "../foundation/ids.ts";
 import type { LogEntry } from "../foundation/LogEntry.ts";
-import type { RunSession, Verdict } from "../client/types.ts";
+import type { RunSession, RunUp, Verdict } from "../client/types.ts";
 
 /**
  * How many log entries a live run keeps for `tail_run`. A watch-mode om can emit for
@@ -18,6 +18,13 @@ export interface LiveRun {
   readonly session: RunSession;
   readonly startedAt: number;
   status: "running" | "settled";
+  /** Set once the body has returned — for a long-lived run, once its stack is up. */
+  up?: RunUp;
+  /**
+   * Resolves with the `up` report, or with undefined if the run settles (or dies) without
+   * ever getting there — so a caller waiting to drive the stack is never left hanging.
+   */
+  readonly whenUp: Promise<RunUp | undefined>;
   verdict?: Verdict;
   /** The tail buffer. Entries are appended in sequence order, oldest dropped first. */
   readonly entries: LogEntry[];
@@ -41,6 +48,8 @@ export class RunRegistry {
    * starts at the tool boundary has already missed the run's opening lines.
    */
   start(name: string, folderName: string, session: RunSession): LiveRun {
+    let resolveUp!: (info: RunUp | undefined) => void;
+    const whenUp = new Promise<RunUp | undefined>((resolve) => (resolveUp = resolve));
     const run: LiveRun = {
       id: shortId(newUuid()),
       name,
@@ -50,7 +59,12 @@ export class RunRegistry {
       status: "running",
       entries: [],
       dropped: 0,
+      whenUp,
     };
+    session.on("up", (info) => {
+      run.up = info;
+      resolveUp(info);
+    });
     session.on("log", (entry) => {
       run.entries.push(entry);
       if (run.entries.length > BUFFER_LIMIT) {
@@ -61,6 +75,7 @@ export class RunRegistry {
     void session.result.then((verdict) => {
       run.status = "settled";
       run.verdict = verdict;
+      resolveUp(run.up); // no-op if `up` already resolved it; otherwise: never got there
     });
     this.runs.set(run.id, run);
     return run;

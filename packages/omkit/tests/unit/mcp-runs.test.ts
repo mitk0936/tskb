@@ -48,6 +48,47 @@ describe("start_om", () => {
     await open.callTool({ name: "cancel_run", arguments: { runId: handle.runId } });
   }, 60_000);
 
+  test("waitUntilUp returns once the body has returned, with the run's folder", async () => {
+    // `stack` has the dev-stack shape: its body launches a daemon and returns, and the run
+    // stays up on that daemon until cancelled. A client that wants to drive such a stack
+    // needs to know when the body has returned, not just that the child was forked.
+    open = await connectServer(client, workdir);
+    const result = await open.callTool({
+      name: "start_om",
+      arguments: { name: "stack", waitUntilUp: true },
+    });
+    expect(result.isError).toBeFalsy();
+    const handle = result.structuredContent as { runId: string; up: boolean; folder: string };
+    expect(handle.up).toBe(true);
+    // The dated folder exists by then — the body ran inside it.
+    expect(handle.folder).not.toBe("");
+    expect(fs.existsSync(handle.folder)).toBe(true);
+
+    // And get_run agrees: still running, but up, and it knows the folder now.
+    const seen = (await open.callTool({ name: "get_run", arguments: { run: handle.runId } }))
+      .structuredContent as { status: string; up: boolean; folder: string };
+    expect(seen.status).toBe("running");
+    expect(seen.up).toBe(true);
+    expect(seen.folder).toBe(handle.folder);
+
+    await open.callTool({ name: "cancel_run", arguments: { runId: handle.runId } });
+  }, 60_000);
+
+  test("waitUntilUp gives up after upTimeoutMs and still hands back the handle", async () => {
+    // `waits` holds inside its body, so it is never "up" in this sense — the same outcome
+    // as a stack that is simply slow: the handle comes back, and the run is left running.
+    open = await connectServer(client, workdir);
+    const result = await open.callTool({
+      name: "start_om",
+      arguments: { name: "waits", waitUntilUp: true, upTimeoutMs: 1 },
+    });
+    // Not an error: the run is fine, the client just did not wait long enough for it.
+    expect(result.isError).toBeFalsy();
+    const handle = result.structuredContent as { runId: string; up: boolean };
+    expect(handle.up).toBe(false);
+    await open.callTool({ name: "cancel_run", arguments: { runId: handle.runId } });
+  }, 60_000);
+
   test("accepts a settling om too — 'start this and come back' is a valid use", async () => {
     open = await connectServer(client, workdir);
     const result = await open.callTool({
@@ -78,15 +119,19 @@ describe("get_run", () => {
     expect(fs.existsSync(path.join(settled.folder, "result.json"))).toBe(true);
   }, 60_000);
 
-  test("a running run reports no folder — the dated one does not exist yet", async () => {
+  test("a running run reports its folder only once it is up — before that there is none", async () => {
     open = await connectServer(client, workdir);
     const handle = (await open.callTool({ name: "start_om", arguments: { name: "waits" } }))
       .structuredContent as { runId: string };
 
     const seen = (await open.callTool({ name: "get_run", arguments: { run: handle.runId } }))
-      .structuredContent as { status: string; folder: string };
+      .structuredContent as { status: string; up: boolean; folder: string };
     expect(seen.status).toBe("running");
-    expect(seen.folder).toBe("");
+    // The dated folder is stamped inside the child; the server learns it with `up`. Asked
+    // this soon the child has normally not reported yet, but timing is not the assertion —
+    // the invariant is that an empty folder and `up` never disagree.
+    if (seen.up) expect(seen.folder).not.toBe("");
+    else expect(seen.folder).toBe("");
 
     await open.callTool({ name: "cancel_run", arguments: { runId: handle.runId } });
   }, 60_000);

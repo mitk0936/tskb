@@ -44,4 +44,9 @@ export interface RunView {
   readonly root: NodeView;
   /** Files the run labelled via `ctx.artifact`, in registration order. */
   readonly artifacts: readonly ArtifactView[];
+  /**
+   * What the om body returned, when it returned something JSON can carry. Absent
+   * otherwise — most bodies return nothing; an action host returns its action's result.
+   */
+  readonly value?: unknown;
 }

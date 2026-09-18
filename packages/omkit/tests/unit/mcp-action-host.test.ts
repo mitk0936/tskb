@@ -40,11 +40,14 @@ describe("action-backed tools", () => {
       ok: boolean;
       folder: string;
       assertions: { passed: number; failed: number };
+      value?: unknown;
     };
     // The action asserts on the rows it was handed, so a passing assert proves the args
     // travelled: server → OMKIT_ACTION_ARGS → host → the action's own parameter.
     expect(verdict.ok).toBe(true);
     expect(verdict.assertions.passed).toBe(1);
+    // And what the action returned travels back the other way: host → result.json → verdict.
+    expect(verdict.value).toEqual({ seeded: 7 });
     // It lands in the same logs/ tree as an om's run, under the server's root.
     expect(fs.realpathSync(verdict.folder).startsWith(fs.realpathSync(path.join(workdir, "logs")))) //
       .toBe(true);

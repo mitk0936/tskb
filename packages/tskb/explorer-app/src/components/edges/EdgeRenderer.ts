@@ -343,6 +343,35 @@ export function renderRelationEdges(
 }
 
 /**
+ * Programmatically highlights one relation arc by its `${from}→${to}` key
+ * (or clears all when key is null). Mirrors the arc's own hover affordance —
+ * raised fill-opacity — and adds a colour-matched glow so the arc is findable
+ * when the trigger is elsewhere (e.g. hovering a relation in the doc panel).
+ * Non-matching arcs are reset to their resting opacity and de-glowed.
+ */
+export function setRelationEdgeHighlight(
+  container: d3.Selection<SVGGElement, unknown, null, undefined>,
+  key: string | null
+): void {
+  container.selectAll<SVGGElement, RelationLink>("g.relation-link").each(function (d) {
+    const active = key !== null && `${d.source.id}→${d.target.id}` === key;
+    const isTypeOnly = d.type === "imports-type";
+    const restingOpacity = isTypeOnly ? 0.08 : 0.2;
+    const hotOpacity = isTypeOnly ? 0.35 : 0.65;
+    const g = d3.select(this);
+    const path = g
+      .select(".relation-path")
+      .attr("fill-opacity", active ? hotOpacity : restingOpacity);
+    if (active) {
+      path.style("filter", `drop-shadow(0 0 4px ${NODE_COLORS[d.source.type]})`);
+      g.raise();
+    } else {
+      path.style("filter", null);
+    }
+  });
+}
+
+/**
  * Renders relation edge endpoint indicators (circle + arrow) in a separate layer
  * so they appear above node cards.
  */

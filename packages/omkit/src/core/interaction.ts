@@ -19,6 +19,12 @@ export type ChildMessage =
   | { kind: "prompt"; id: string; spec: PromptSpec }
   | { kind: "prompt-done"; id: string }
   | { kind: "log"; entry: LogEntry }
+  /**
+   * The root body has returned. For a long-lived run this is the moment its stack is up
+   * and can be reached from outside; the run itself goes on until it is torn down.
+   * Carries the dated folder, which exists by now — the body ran inside it.
+   */
+  | { kind: "up"; ok: boolean; folder: string }
   | { kind: "settled"; ok: boolean; folder: string; summary: string[] };
 
 // supervisor → child
@@ -79,6 +85,10 @@ export class Supervisor {
 
   log(entry: LogEntry): void {
     this.send({ kind: "log", entry });
+  }
+
+  up(ok: boolean, folder: string): void {
+    this.send({ kind: "up", ok, folder });
   }
 
   settled(ok: boolean, folder: string, summary: string[]): void {
