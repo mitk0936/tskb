@@ -1,5 +1,5 @@
 import type { ChildMessage, SupervisorMessage } from "../core/interaction.ts";
-import type { RunSession, RunEvents, Verdict } from "./types.ts";
+import type { RunSession, RunEvents, RunUp, Verdict } from "./types.ts";
 
 /** The minimal duplex the channel needs — satisfied by a real ChildProcess or a fake. */
 export interface Transport {
@@ -23,6 +23,7 @@ export function createChannel(transport: Transport): RunSession {
     log: [],
     prompt: [],
     promptDone: [],
+    up: [],
     settled: [],
   };
   let settled = false;
@@ -36,6 +37,9 @@ export function createChannel(transport: Transport): RunSession {
       for (const h of handlers.prompt) h({ id: message.id, spec: message.spec });
     } else if (message.kind === "prompt-done") {
       for (const h of handlers.promptDone) h(message.id);
+    } else if (message.kind === "up") {
+      const info: RunUp = { ok: message.ok, folder: message.folder };
+      for (const h of handlers.up) h(info);
     } else if (message.kind === "settled") {
       settled = true;
       const verdict: Verdict = { ok: message.ok, folder: message.folder, summary: message.summary };

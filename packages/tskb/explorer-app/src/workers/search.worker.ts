@@ -34,6 +34,8 @@ interface SearchEntry {
 
 let fuse: Fuse<SearchEntry> | null = null;
 let index: SearchEntry[] = [];
+/** Settles once init() has loaded the index (or failed); searches wait on it. */
+let ready: Promise<void> = Promise.resolve();
 
 function stripHtml(html: string): string {
   return html
@@ -140,12 +142,16 @@ function search(query: string): string[] {
 self.addEventListener("message", (e: MessageEvent<InMessage>) => {
   const msg = e.data;
   if (msg.type === "init") {
-    init(msg.url).catch((err) => log.error("init failed: %o", err));
+    ready = init(msg.url).catch((err) => log.error("init failed: %o", err));
     return;
   }
   if (msg.type === "search") {
-    const ids = search(msg.query);
-    const out: OutMessage = { type: "results", query: msg.query, ids };
-    self.postMessage(out);
+    // A query posted before the index is loaded (e.g. one restored from the URL
+    // on page load) is answered once it is, instead of with an empty result.
+    void ready.then(() => {
+      const ids = search(msg.query);
+      const out: OutMessage = { type: "results", query: msg.query, ids };
+      self.postMessage(out);
+    });
   }
 });

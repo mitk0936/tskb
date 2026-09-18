@@ -29,7 +29,7 @@ function launch(
   site: string | undefined,
   description: OmDescription | undefined,
   exposure: ResolvedMcpExposure | undefined,
-  body: (ctx: OmContext) => Awaitable<void>,
+  body: (ctx: OmContext) => Awaitable<unknown>,
   schema?: unknown
 ): Promise<void> {
   // Discovery: report what this om declares and start nothing.
@@ -102,7 +102,7 @@ class Builder implements OmBuilder {
     return new ArgsBuilder<S>(this.name, this.site, schema, this.description, this.exposure);
   }
 
-  run(body: (ctx: OmContext) => Awaitable<void>): Promise<void> {
+  run(body: (ctx: OmContext) => Awaitable<unknown>): Promise<void> {
     // Carried onto the run for `omkit ls` and the MCP server; not read by the runtime yet.
     return launch(this.name, this.site, this.description, this.exposure, body);
   }
@@ -132,7 +132,7 @@ class ArgsBuilder<S extends ZodTypeLike> implements OmBuilderArgs<S> {
     return this;
   }
 
-  run(body: (ctx: OmContext, args: InferSchema<S>) => Awaitable<void>): Promise<void> {
+  run(body: (ctx: OmContext, args: InferSchema<S>) => Awaitable<unknown>): Promise<void> {
     // Resolution happens inside the run, not before it: prompting is async, and the run
     // must already exist for the prompt and its answer to land on the timeline. A failure
     // to resolve is therefore an ordinary failure of the root node — logged, and the run
@@ -149,7 +149,7 @@ class ArgsBuilder<S extends ZodTypeLike> implements OmBuilderArgs<S> {
           ask: askForArg,
         })) as InferSchema<S>;
         ExecutionTree.current?.setRootArgs(args);
-        await body(ctx, args);
+        return body(ctx, args);
       },
       // Handed to `launch` for discovery only: in a real run the schema is resolved above,
       // inside the body. Discovery never reaches that body, so it converts the schema here.

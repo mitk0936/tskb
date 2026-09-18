@@ -10,6 +10,11 @@ function makeGraph(partial: {
   folders?: Record<string, { desc: string; path?: string }>;
   modules?: Record<string, { desc: string; resolvedPath?: string }>;
   exports?: Record<string, { desc: string; resolvedPath?: string; typeSignature?: string }>;
+  files?: Record<string, { desc: string; path?: string }>;
+  flows?: Record<
+    string,
+    { desc: string; steps: { nodeId: string; order: number; label?: string }[] }
+  >;
   edges?: { from: string; to: string; type: string }[];
 }): KnowledgeGraph {
   return {
@@ -36,9 +41,19 @@ function makeGraph(partial: {
         ])
       ),
       terms: {},
-      files: {},
+      files: Object.fromEntries(
+        Object.entries(partial.files ?? {}).map(([id, f]) => [
+          id,
+          { id, type: "file" as const, ...f },
+        ])
+      ),
       externals: {},
-      flows: {},
+      flows: Object.fromEntries(
+        Object.entries(partial.flows ?? {}).map(([id, f]) => [
+          id,
+          { id, type: "flow" as const, priority: "supplementary" as const, ...f },
+        ])
+      ),
       docs: {},
     },
     edges: partial.edges ?? [],
@@ -316,5 +331,46 @@ describe("transformGraph — nested export hierarchy", () => {
     const exportIds = ghostChunk.exports.map((e) => e.id);
     expect(exportIds).toContain("pkg.app.MyClass");
     expect(exportIds).toContain("pkg.app.MyClass.run");
+  });
+});
+
+describe("transformGraph — flow steps", () => {
+  it("annotates each step with the node kind and display path so the SPA can label it before its chunk loads", () => {
+    const graph = makeGraph({
+      folders: { pkg: { desc: "package", path: "pkg" } },
+      modules: { "pkg.server": { desc: "server", resolvedPath: "pkg/src/server.ts" } },
+      exports: { "pkg.start": { desc: "start", resolvedPath: "pkg/src/server.ts" } },
+      files: { "pkg.readme": { desc: "readme", path: "pkg/README.md" } },
+      flows: {
+        boot: {
+          desc: "boot",
+          steps: [
+            { nodeId: "pkg.server", order: 0, label: "loads config" },
+            { nodeId: "pkg.start", order: 1 },
+            { nodeId: "pkg", order: 2 },
+            { nodeId: "pkg.readme", order: 3 },
+            { nodeId: "unknown.node", order: 4 },
+          ],
+        },
+      },
+      edges: [
+        { from: ROOT, to: "pkg", type: "contains" },
+        { from: "pkg.server", to: "pkg", type: "belongs-to" },
+        { from: "pkg.start", to: "pkg.server", type: "belongs-to" },
+      ],
+    });
+
+    const result = transformGraph(graph);
+
+    const flow = result.meta.flows.find((f) => f.id === "boot")!;
+    expect(flow).toBeDefined();
+    const steps = JSON.parse(flow.detail["stepsJson"] as string);
+    expect(steps).toEqual([
+      { nodeId: "pkg.server", label: "loads config", type: "module", display: "pkg/src/server.ts" },
+      { nodeId: "pkg.start", type: "export", display: "pkg.start" },
+      { nodeId: "pkg", type: "folder", display: "pkg/" },
+      { nodeId: "pkg.readme", type: "file", display: "pkg/README.md" },
+      { nodeId: "unknown.node" },
+    ]);
   });
 });

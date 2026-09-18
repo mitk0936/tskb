@@ -231,7 +231,20 @@ export class JsxExtractor {
     }
 
     const labelAttr = labelVal ? ` data-label="${escapeAttr(labelVal)}"` : "";
-    this.html += `<span class="tskb-relation" data-from="${escapeAttr(fromVal ?? "")}" data-to="${escapeAttr(toVal ?? "")}"${labelAttr}></span>`;
+    // Each end also carries its node kind and display path (like a flow step's
+    // anchor), so the explorer can label the relation before the node's chunk
+    // is loaded.
+    const endAttrs = (end: "from" | "to", nodeId: string | undefined): string => {
+      if (!nodeId || !this.registry) return "";
+      const { nodeType, display } = resolveNodeMeta(nodeId, this.registry);
+      const typeAttr = nodeType ? ` data-${end}-type="${escapeAttr(nodeType)}"` : "";
+      return `${typeAttr} data-${end}-display="${escapeAttr(display)}"`;
+    };
+    this.html +=
+      `<span class="tskb-relation"` +
+      ` data-from="${escapeAttr(fromVal ?? "")}"${endAttrs("from", fromVal)}` +
+      ` data-to="${escapeAttr(toVal ?? "")}"${endAttrs("to", toVal)}` +
+      `${labelAttr}></span>`;
   }
 
   private handleFlow(node: ts.JsxElement, attrs: ts.JsxAttributes): void {

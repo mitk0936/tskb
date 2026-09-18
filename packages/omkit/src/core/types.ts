@@ -112,9 +112,10 @@ export interface OmBuilder {
    * Launch the run with `body` as its root. The body runs inside the root node's
    * ambient scope, so any action call / `step(...)` / `console.*` it reaches attributes
    * correctly. Resolves once the run has torn down and produced its artifacts; never
-   * rejects (failures are recorded in the tree and set the exit code).
+   * rejects (failures are recorded in the tree and set the exit code). Whatever the body
+   * returns is recorded as the run's `value` in `result.json`.
    */
-  run(body: (ctx: OmContext) => Awaitable<void>): Promise<void>;
+  run(body: (ctx: OmContext) => Awaitable<unknown>): Promise<void>;
 }
 
 /** After `.args(schema)`: `.run`'s body receives the resolved, typed args. */
@@ -126,9 +127,10 @@ export interface OmBuilderArgs<S extends ZodTypeLike> {
    * Launch the run, resolving the declared args first — supplied values, then defaults,
    * then prompting — and pass them to `body` as its second parameter. Resolution happens
    * *inside* the run, so a prompt and its answer land on the run's own timeline; an
-   * unresolvable arg fails the run like any other error in the body.
+   * unresolvable arg fails the run like any other error in the body. Whatever the body
+   * returns is recorded as the run's `value` in `result.json`.
    */
-  run(body: (ctx: OmContext, args: InferSchema<S>) => Awaitable<void>): Promise<void>;
+  run(body: (ctx: OmContext, args: InferSchema<S>) => Awaitable<unknown>): Promise<void>;
 }
 
 /** What the `om` body receives — the run-level counterpart to {@link ActionContext}. */

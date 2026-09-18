@@ -100,8 +100,13 @@ declare global {
 
     interface Modules {
       "explorer.spa.search-worker": Module<{
-        desc: "Web Worker that loads the search index and runs Fuse.js queries off the main thread.";
+        desc: "Web Worker that loads the search index and runs Fuse.js queries off the main thread. Queries posted before the index is loaded are answered once it is.";
         type: typeof import("packages/tskb/explorer-app/src/workers/search.worker.js");
+      }>;
+
+      "explorer.spa.search-url": Module<{
+        desc: "Reads and writes the search query in the URL's `q` param, leaving the panel router's hash alone.";
+        type: typeof import("packages/tskb/explorer-app/src/ui/search-url.js");
       }>;
     }
   }
@@ -119,6 +124,8 @@ const TransformModule = ref as tskb.Modules["explorer.transform"];
 const ServerModule = ref as tskb.Modules["explorer.server"];
 const ExportModule = ref as tskb.Modules["explorer.export"];
 const SearchWorkerModule = ref as tskb.Modules["explorer.spa.search-worker"];
+const SearchUrlModule = ref as tskb.Modules["explorer.spa.search-url"];
+const MainModule = ref as tskb.Modules["explorer.spa.main"];
 const TransformGraphExport = ref as tskb.Exports["explorer.transformGraph"];
 const ServeExplorerExport = ref as tskb.Exports["explorer.serveExplorer"];
 const ExportExplorerExport = ref as tskb.Exports["explorer.exportExplorer"];
@@ -161,9 +168,18 @@ export default (
     <P>
       {SearchWorkerModule} runs in a Web Worker so search never blocks the UI: it loads the{" "}
       {SearchIndexChunk}, then answers queries the main thread posts with a ranked list of matching
-      node IDs that the render loop uses to dim the rest.
+      node IDs that the render loop uses to dim the rest. A query posted before the index has loaded
+      waits for it rather than returning nothing.
+    </P>
+    <P>
+      The active query is mirrored into the URL as <code>?q=…</code> by {SearchUrlModule}, so a
+      reload or a shared link lands on the same result set: {MainModule} re-runs the query once the
+      meta chunk is in, since the results expand the canvas down to the matches. The param is
+      written with <code>replaceState</code> and lives beside the panel router's hash — back and
+      forward stay about panel views, not past searches; clearing the search removes it.
     </P>
     <Relation from={SearchWorkerModule} to={SearchIndexChunk} label="searches" />
+    <Relation from={MainModule} to={SearchUrlModule} label="mirrors the query into ?q= via" />
 
     <Relation from={LayoutFolder} to={D3External} label="positions nodes with" />
     <Relation from={ComponentsFolder} to={D3External} label="renders nodes and edges with" />

@@ -69,7 +69,7 @@ declare global {
       }>;
 
       "omkit.mcp.verdict": Module<{
-        desc: "Turns a settled run into a structured verdict, reading the assert tally and per-action failures back out of the run's own result.json.";
+        desc: "Turns a settled run into a structured verdict, reading the assert tally, per-action failures, and the body's returned value back out of the run's own result.json.";
         type: typeof import("packages/omkit/src/mcp/verdict.js");
       }>;
 
@@ -242,10 +242,31 @@ export default (
     </P>
     <List>
       <Li>List the exposed entries, with their summaries, modes, and argument schemas.</Li>
-      <Li>Run one and wait for a verdict — accepted only for a {SettlingTerm}.</Li>
-      <Li>Start one and get a handle back immediately, for anything long-lived or slow.</Li>
-      <Li>Check on a run, page through its log from a cursor, or cancel it.</Li>
+      <Li>
+        Run one and wait for a verdict — accepted only for a {SettlingTerm}. The verdict carries
+        what the body returned as <code>value</code>; for an action-backed tool that is the action's
+        own result, so a caller reads it from the answer rather than from a snapshot file.
+      </Li>
+      <Li>
+        Start one and get a handle back, for anything long-lived or slow. By default the handle
+        comes back as soon as the child is forked; with <code>waitUntilUp</code> it comes back once
+        the om's body has returned — for a dev stack, the moment its servers and browser are up and
+        can be driven from outside — bounded by a timeout, past which the handle is returned anyway
+        with <code>up: false</code>.
+      </Li>
+      <Li>
+        Check on a run, page through its log from a cursor, or cancel it. A running run reports{" "}
+        <code>up</code> and, once up, its dated folder.
+      </Li>
     </List>
+    <P>
+      "Up" is a channel message of its own: the child sends it when the root body returns, and
+      nothing else on the channel distinguishes "still booting" from "up and driveable" before{" "}
+      <code>settled</code>, which a long-lived run never sends on its own. It is what makes driving
+      a stack a two-call affair — start it and wait, then drive — rather than a poll of the log for
+      a line that means "ready". An om whose body holds until cancelled, rather than returning, is
+      never up in this sense; the wait then simply times out.
+    </P>
     <P>
       {RunsModule} holds the runs the server started. Handles are server-assigned rather than run
       folders, because a run folder's dated path is stamped inside the child on first access — it

@@ -208,10 +208,75 @@
   text-decoration: underline;
 }
 
-/* ── Relations (hidden data carrier) ─────────────────────────────────────── */
+/* ── Relations ───────────────────────────────────────────────────────────── */
+/* Carrier span (data-from / data-to / data-label), rebuilt into chips + bracket
+   by enhanceRelations(). Two node chips stacked on the left, joined on the
+   right by a bracket and its caption. */
 
 #doc-panel-body .tskb-relation {
-  display: none;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 10px 0 14px;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+/* Signals the block is a live hover target for its canvas arc. */
+#doc-panel-body .tskb-relation:hover {
+  background: #eef4fb;
+  border-color: #cbd5e1;
+}
+
+#doc-panel-body .tskb-relation-chips {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  /* Fixed share so a long caption can't squeeze the chips to nothing. */
+  flex: 0 0 46%;
+  min-width: 0;
+}
+
+#doc-panel-body a.tskb-ref.tskb-relation-chip {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#doc-panel-body .tskb-relation-connector {
+  display: flex;
+  align-items: center;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+#doc-panel-body .tskb-relation-bracket {
+  align-self: stretch;
+  flex-shrink: 0;
+  width: 9px;
+  border: 1px solid #cbd5e1;
+  border-left: 0;
+  border-radius: 0 5px 5px 0;
+}
+
+#doc-panel-body .tskb-relation-caption {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-left: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #64748b;
+  /* Wrap long relationship sentences; keep the label anchored to the right. */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 /* ── Flow blocks (inside doc HTML) ───────────────────────────────────────── */

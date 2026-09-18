@@ -113,4 +113,16 @@ describe("build output", () => {
     expect(labels).toContain("delegates to");
     expect(labels).toContain("persists to");
   });
+
+  it("should annotate each end of a Relation carrier with its node kind and display path", () => {
+    const graph = loadGraph();
+    const docs = Object.values(graph.nodes.docs) as Array<{ filePath: string; content: string }>;
+    const archDoc = docs.find((d) => d.filePath.endsWith("architecture.tskb.tsx"));
+    const html = archDoc!.content;
+    // folders show their path with a trailing slash, externals their id
+    expect(html).toContain(
+      '<span class="tskb-relation" data-from="services" data-from-type="folder" data-from-display="src/services/"' +
+        ' data-to="postgres" data-to-type="external" data-to-display="postgres" data-label="persists to"></span>'
+    );
+  });
 });

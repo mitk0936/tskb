@@ -18,6 +18,17 @@ export interface Verdict {
   readonly summary: readonly string[];
 }
 
+/**
+ * The run's body has returned. For a long-lived run this is "the stack is up": a caller
+ * that wants to drive it (attach to its browser, hit its server) waits for this, not for
+ * `settled`, which never comes on its own. `ok` is the verdict so far; `folder` is the
+ * dated run folder, known from here on.
+ */
+export interface RunUp {
+  readonly ok: boolean;
+  readonly folder: string;
+}
+
 /** A typecheck diagnostic from `check()`. */
 export interface Diagnostic {
   readonly file: string;
@@ -53,6 +64,8 @@ export interface RunEvents {
   prompt: (request: PromptRequest) => void;
   /** A pending prompt was withdrawn by the child (timed out or torn down) — clear it from the UI. */
   promptDone: (id: string) => void;
+  /** The root body returned — see {@link RunUp}. Fires at most once, before `settled`. */
+  up: (info: RunUp) => void;
   settled: (verdict: Verdict) => void;
 }
 

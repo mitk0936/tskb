@@ -7,6 +7,8 @@ export const seed = action("seed")
   .args(z.object({ rows: z.number() }))
   .run(async ({ assert }, { rows }) => {
     assert(rows > 0, `seeded ${rows} rows`);
+    // What the action hands back — the host surfaces it as the run's `value`.
+    return { seeded: rows };
   });
 
 /** Exposed, but its schema cannot be represented as JSON Schema — must list as unavailable. */

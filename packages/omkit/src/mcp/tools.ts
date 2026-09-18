@@ -10,7 +10,7 @@ import { attachElicitation, attachProgress } from "./progress.ts";
 import type { LiveRun, RunRegistry } from "./runs.ts";
 import type { OmkitClient } from "../client/index.ts";
 import type { RegistrationSet } from "../client/registry.ts";
-import type { RunSession, Verdict } from "../client/types.ts";
+import type { RunSession, RunUp, Verdict } from "../client/types.ts";
 
 /**
  * How long a "settling" run gets before the server gives up on it. Generous: a real smoke
@@ -24,6 +24,26 @@ const SETTLE_TIMEOUT_MS = 10 * 60 * 1000;
 
 /** How long teardown gets to finish writing the run folder after a backstop cancel. */
 const TEARDOWN_GRACE_MS = 10_000;
+
+/**
+ * How long `start_om` waits for a run to come up when asked to. A dev stack that cold-starts
+ * a bundler and a browser can take a minute; past this the handle comes back with
+ * `up: false` and the run carries on — the wait is a convenience, not a gate.
+ */
+const UP_TIMEOUT_MS = 2 * 60 * 1000;
+
+/** `run.whenUp`, bounded: resolves undefined once `ms` have passed without an `up` report. */
+async function upWithin(run: LiveRun, ms: number): Promise<RunUp | undefined> {
+  let timer: NodeJS.Timeout | undefined;
+  const expired = new Promise<undefined>((resolve) => {
+    timer = setTimeout(() => resolve(undefined), ms);
+  });
+  try {
+    return await Promise.race([run.whenUp, expired]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /**
  * Wait for a run to settle, or cancel it and report that it did not.
@@ -158,6 +178,20 @@ export function toolError(message: string) {
   return { content: [{ type: "text" as const, text: message }], isError: true as const };
 }
 
+/**
+ * What `get_run` says about a run that has not settled. The dated folder is stamped inside
+ * the child on first access and reported with `up`; until then there is genuinely nothing
+ * to name — not an empty string standing in for one.
+ */
+function runningReport(live: LiveRun) {
+  return {
+    status: "running" as const,
+    name: live.name,
+    up: live.up !== undefined,
+    folder: live.up?.folder ?? "",
+  };
+}
+
 export function registerTools(server: McpServer, ctx: ToolContext): void {
   const registry = createRegistryCache(ctx.client);
 
@@ -203,6 +237,31 @@ export function registerTools(server: McpServer, ctx: ToolContext): void {
   };
 
   /**
+   * The gate both launching tools pass through: the entry must exist, be callable, be of a
+   * mode the tool accepts, and be handed arguments that at least look right — all before
+   * anything is forked. Mode is checked ahead of arguments on purpose: "use start_om" is
+   * the answer a caller needs first, and a missing argument would only bury it.
+   */
+  const admit = async (
+    name: string,
+    args: Record<string, unknown>,
+    accepts: { settlingOnly?: boolean } = {}
+  ): Promise<{ ok: true; entry: ToolEntry } | { ok: false; refusal: string }> => {
+    const entry = await findEntry(name);
+    const refusal = notRunnable(name, entry);
+    if (refusal || !entry) return { ok: false, refusal: refusal! };
+    if (accepts.settlingOnly && entry.mode === "long-lived") {
+      return {
+        ok: false,
+        refusal: `"${name}" is long-lived — start it with start_om, not run_om.`,
+      };
+    }
+    const problems = checkArgs(entry.inputSchema, args);
+    if (problems.length) return { ok: false, refusal: problems.join("\n") };
+    return { ok: true, entry };
+  };
+
+  /**
    * Launch an entry as a supervised run.
    *
    * `OMKIT_ROOT` is this server's own root, stated rather than inherited: resources here
@@ -239,9 +298,10 @@ export function registerTools(server: McpServer, ctx: ToolContext): void {
       title: "Run an om and wait for its verdict",
       description:
         "Runs a settling om (or an exposed action) to completion and returns whether it " +
-        "passed, where its run folder is, its assert tally, and any failures. Call " +
-        "list_oms first to learn what `args` to pass. A long-lived entry is refused — use " +
-        "start_om for those, and for anything that takes more than about a minute.",
+        "passed, where its run folder is, its assert tally, any failures, and — as `value` — " +
+        "what it returned (an action's result travels back here). Call list_oms first to " +
+        "learn what `args` to pass. A long-lived entry is refused — use start_om for those, " +
+        "and for anything that takes more than about a minute.",
       inputSchema: {
         name: z.string().describe("The om or action name, as reported by list_oms."),
         args: z
@@ -261,18 +321,19 @@ export function registerTools(server: McpServer, ctx: ToolContext): void {
         assertions: z.object({ passed: z.number(), failed: z.number() }),
         failures: z.array(z.object({ action: z.string(), error: z.string() })),
         summary: z.array(z.string()),
+        value: z
+          .unknown()
+          .optional()
+          .describe(
+            "What the om body (or the hosted action) returned, when it returned something."
+          ),
       },
       annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
     },
     async ({ name, args, settleTimeoutMs }, extra) => {
-      const entry = await findEntry(name);
-      const refusal = notRunnable(name, entry);
-      if (refusal || !entry) return toolError(refusal!);
-      if (entry.mode === "long-lived") {
-        return toolError(`"${name}" is long-lived — start it with start_om, not run_om.`);
-      }
-      const problems = checkArgs(entry.inputSchema, args ?? {});
-      if (problems.length) return toolError(problems.join("\n"));
+      const admitted = await admit(name, args ?? {}, { settlingOnly: true });
+      if (!admitted.ok) return toolError(admitted.refusal);
+      const { entry } = admitted;
 
       const run = launch(entry, args ?? {});
       // This request lives for the whole run, so it can carry progress and it owns the
@@ -297,12 +358,28 @@ export function registerTools(server: McpServer, ctx: ToolContext): void {
     {
       title: "Start an om without waiting for it",
       description:
-        "Starts an om or exposed action and returns a handle straight away. Use this for a " +
-        "long-lived entry (a server, a watcher), or for a long suite you want to check on " +
-        "later. Follow up with get_run, tail_run and cancel_run.",
+        "Starts an om or exposed action and returns a handle. Use this for a long-lived " +
+        "entry (a server, a watcher), or for a long suite you want to check on later. Pass " +
+        "`waitUntilUp: true` to return only once the om's body has returned — for a dev " +
+        "stack, once it is up and can be driven — rather than as soon as it is forked. " +
+        "Follow up with get_run, tail_run and cancel_run.",
       inputSchema: {
         name: z.string().describe("The om or action name, as reported by list_oms."),
         args: z.record(z.string(), z.unknown()).optional(),
+        waitUntilUp: z
+          .boolean()
+          .optional()
+          .describe(
+            "Wait for the body to return before answering. The result then says `up: true` " +
+              "and names the run folder; if it takes longer than upTimeoutMs the handle comes " +
+              "back anyway with `up: false` and the run keeps going."
+          ),
+        upTimeoutMs: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe("How long waitUntilUp waits. Default 2 minutes."),
       },
       outputSchema: {
         runId: z.string(),
@@ -310,15 +387,15 @@ export function registerTools(server: McpServer, ctx: ToolContext): void {
         // The dated run folder does not exist yet — this is the folder *family*.
         folderName: z.string(),
         mode: z.enum(["settling", "long-lived"]),
+        up: z.boolean().describe("Whether the om's body had returned when this answered."),
+        folder: z.string().describe("The dated run folder — known once the run is up, else empty."),
       },
       annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
     },
-    async ({ name, args }) => {
-      const entry = await findEntry(name);
-      const refusal = notRunnable(name, entry);
-      if (refusal || !entry) return toolError(refusal!);
-      const problems = checkArgs(entry.inputSchema, args ?? {});
-      if (problems.length) return toolError(problems.join("\n"));
+    async ({ name, args, waitUntilUp, upTimeoutMs }) => {
+      const admitted = await admit(name, args ?? {});
+      if (!admitted.ok) return toolError(admitted.refusal);
+      const { entry } = admitted;
 
       const run = launch(entry, args ?? {});
       // Elicitation only — deliberately no `attachProgress`. This request ends as soon as
@@ -326,11 +403,16 @@ export function registerTools(server: McpServer, ctx: ToolContext): void {
       // to `session.cancel()` would kill the run this tool exists to keep alive. A client
       // that wants progress from a started run polls `tail_run`.
       attachElicitation(server, run.session);
+      // Optionally hold the answer until the body has returned. Bounded, and never an
+      // error: the run is not at fault for a client that would not wait long enough.
+      const up = waitUntilUp ? await upWithin(run, upTimeoutMs ?? UP_TIMEOUT_MS) : undefined;
       return both({
         runId: run.id,
         name: entry.name,
         folderName: run.folderName,
         mode: entry.mode,
+        up: up !== undefined,
+        folder: up?.folder ?? "",
       });
     }
   );
@@ -340,28 +422,30 @@ export function registerTools(server: McpServer, ctx: ToolContext): void {
     {
       title: "Check on a run",
       description:
-        "Reports whether a run is still going and, once it has settled, its verdict and " +
-        "links to the files it produced. `run` is a runId from start_om, or a run folder " +
-        "path under logs/.",
+        "Reports whether a run is still going — and, for one still going, whether its body " +
+        "has returned yet (`up`, the moment a long-lived stack can be driven) — and, once it " +
+        "has settled, its verdict and links to the files it produced. `run` is a runId from " +
+        "start_om, or a run folder path under logs/.",
       inputSchema: { run: z.string() },
       outputSchema: {
         status: z.enum(["running", "settled"]),
         name: z.string(),
         folder: z.string(),
+        up: z
+          .boolean()
+          .optional()
+          .describe("While running: whether the om's body has returned. Absent once settled."),
         ok: z.boolean().optional(),
         assertions: z.object({ passed: z.number(), failed: z.number() }).optional(),
         failures: z.array(z.object({ action: z.string(), error: z.string() })).optional(),
         summary: z.array(z.string()).optional(),
+        value: z.unknown().optional(),
       },
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async ({ run }) => {
       const live = ctx.runs.get(run);
-      if (live?.status === "running") {
-        // The dated folder is stamped inside the child on first access, so there is
-        // genuinely nothing to report here yet — not an empty string standing in for one.
-        return both({ status: "running" as const, name: live.name, folder: "" });
-      }
+      if (live?.status === "running") return both(runningReport(live));
 
       // A run this server started, or a folder already on disk — confined either way.
       const folder = live?.verdict?.folder ?? resolveRunFolder(ctx.root, run);

@@ -18,6 +18,8 @@ export type RunVerdict = {
   readonly failures: ReadonlyArray<{ action: string; error: string }>;
   /** The recap block the terminal would have printed. */
   readonly summary: readonly string[];
+  /** What the run's body returned — for an action-backed tool, the action's result. */
+  readonly value?: unknown;
 };
 
 /**
@@ -33,6 +35,7 @@ interface ResultFile {
   ok?: boolean;
   assertions?: { passed: number; failed: number };
   failures?: Array<{ action: string; error: string }>;
+  value?: unknown;
 }
 
 /** The run's own `result.json`, or undefined when there isn't a readable one. */
@@ -61,6 +64,7 @@ export async function readVerdict(verdict: Verdict): Promise<RunVerdict> {
     ...base,
     assertions: parsed.assertions ?? base.assertions,
     failures: parsed.failures ?? base.failures,
+    ...(parsed.value === undefined ? {} : { value: parsed.value }),
   };
 }
 
@@ -77,5 +81,6 @@ export async function readVerdictAt(folder: string): Promise<RunVerdict> {
     summary: [],
     assertions: parsed?.assertions ?? { passed: 0, failed: 0 },
     failures: parsed?.failures ?? [],
+    ...(parsed?.value === undefined ? {} : { value: parsed.value }),
   };
 }
