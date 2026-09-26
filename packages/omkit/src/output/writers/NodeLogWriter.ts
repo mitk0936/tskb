@@ -52,9 +52,9 @@ const legend: string[] = [
   "#",
   "# ── legend ──────────────────────────────────────────────────────────",
   "#   [n]              global sequence — the merge/order key across every .log",
-  "#   indented rows    a child action's milestones, bubbled up here",
+  "#   launch ACTION_RUN(id) · → · ….log   a child started — open that file for its full output",
+  "#   indented rows    a child action's milestones, bubbled up here (one level under launches)",
   "#   name [tags]      the action and its tags   ·   defined …  where its code lives",
-  "#   launch · → ….log a child started — open that file for its full output",
   "#   ⚡ event   ✓ done ok   ⊘ cancelled   ✗ failed   ⊨/⊭ assert pass/fail   📸 snapshot   ▪ output",
 ];
 

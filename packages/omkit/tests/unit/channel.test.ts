@@ -39,11 +39,12 @@ describe("createChannel", () => {
     session.on("log", (e) => logs.push(e));
     session.on("prompt", (r) => prompts.push(r.id));
 
-    f.emit({ kind: "log", entry });
+    const second = { ...entry, sequence: 2 };
+    f.emit({ kind: "logs", entries: [entry, second] });
     f.emit({ kind: "prompt", id: "p1", spec: { kind: "input", message: "Name?", default: "" } });
     f.emit({ kind: "settled", ok: true, folder: "/runs/dev-abc", summary: ["om → /runs/dev-abc"] });
 
-    expect(logs).toHaveLength(1);
+    expect(logs).toEqual([entry, second]); // a batch fans out one `log` per entry, in order
     expect(prompts).toEqual(["p1"]);
     await expect(session.result).resolves.toEqual({
       ok: true,

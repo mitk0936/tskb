@@ -30,26 +30,28 @@ describe("entryLine", () => {
       e({ level: "child", source: "chromePage_9f3c", message: "✓ done · ok" }),
       refOf
     );
-    expect(line).toBe("    [1] chromePage [browser:explorer] · ✓ done · ok"); // row indented under parent
+    expect(line).toBe("        [1] chromePage [browser:explorer] · ✓ done · ok"); // nested under its launch
   });
 
   test("a child with no tags shows just its name", () => {
     const refOf: RefOf = (id) => ref(id, "build", []);
     expect(entryLine(e({ level: "child", source: "x", message: "launched" }), refOf)).toBe(
-      "    [1] build · launched"
+      "        [1] build · launched"
     );
   });
 
   test("without a resolver, falls back to the raw source id", () => {
     expect(entryLine(e({ level: "child", source: "probe_1", message: "⚡ ping" }))).toBe(
-      "    [1] probe_1 · ⚡ ping"
+      "        [1] probe_1 · ⚡ ping"
     );
   });
 
-  test("the launch pointer keeps its `→ id · logfile` message (row indented)", () => {
-    expect(entryLine(e({ level: "child", source: "launch", message: "→ probe_1 · /x.log" }))).toBe(
-      "    [1] launch · → probe_1 · /x.log"
-    );
+  test("the launch pointer reads ACTION_RUN(id) (row indented one level)", () => {
+    expect(
+      entryLine(
+        e({ level: "child", source: "launch", message: "→ probe_1 · /x.log · defined /a.js:1" })
+      )
+    ).toBe("    [1] launch ACTION_RUN(probe_1) · → · /x.log · defined /a.js:1");
   });
 
   test("non-child rows are unchanged", () => {

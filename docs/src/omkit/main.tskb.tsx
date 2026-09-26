@@ -196,11 +196,13 @@ export default (
       Both {OmExport} and {ActionExport} return a builder: chain <code>.describe(...)</code> to
       attach a one-line summary, <code>.mcp(...)</code> to expose the entry to the MCP server — the
       first consumer to actually read that summary back, though <code>omkit ls</code> still does not
-      — and finish with <code>.run(body)</code>. Only {OmExport}'s <code>.args(schema)</code> does
-      anything at runtime: it declares the run's input shape, and {ResolveArgsExport} fills it in
+      — and finish with <code>.run(body)</code>. {OmExport}'s <code>.args(schema)</code> declares
+      the run's input shape, and {ResolveArgsExport} fills it in — defaults, prompting and all —
       before handing the resolved value to <code>.run</code>'s body as its second parameter.{" "}
-      {ActionExport}'s own <code>.args(schema)</code> only pins that parameter's type. How the two
-      differ, and how resolution actually works, is its own question — see the args doc.
+      {ActionExport}'s own <code>.args(schema)</code> pins that parameter's type for in-code
+      callers, and backs what the MCP server advertises and applies when it runs the action as a
+      tool. How the two differ, and how resolution actually works, is its own question — see the
+      args doc.
     </P>
 
     <H2>The model</H2>

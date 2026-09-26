@@ -20,6 +20,16 @@ function fakeChannel() {
   };
 }
 
+const logEntry = {
+  sequence: 0,
+  ts: 0,
+  nodeId: "main",
+  path: "main",
+  level: "info",
+  source: "console",
+  message: "line",
+};
+
 afterEach(() => installSupervisor(null));
 
 describe("interaction channel — child side", () => {
@@ -94,9 +104,47 @@ describe("interaction channel — child side", () => {
     sup.log(entry);
     sup.settled(true, "/runs/dev-abc", ["om → /runs/dev-abc"]);
     expect(ch.sent).toEqual([
-      { kind: "log", entry },
+      { kind: "logs", entries: [entry] },
       { kind: "settled", ok: true, folder: "/runs/dev-abc", summary: ["om → /runs/dev-abc"] },
     ]);
+  });
+
+  // Every IPC message is a separate read on the supervisor's side, and on Windows Node delivers
+  // at most one per event-loop turn — so a message per entry makes the frontend pay a turn (and,
+  // when its frames are slow, a frame) per entry. A burst must travel as one message.
+  test("a burst of log entries travels as one batched message", async () => {
+    const ch = fakeChannel();
+    const sup = createSupervisor(ch.send, ch.onMessage);
+    const entries = Array.from({ length: 1000 }, (_, i) => ({ ...logEntry, sequence: i }));
+    for (const e of entries) sup.log(e);
+    expect(ch.sent).toEqual([]); // held, not sent one by one
+
+    await new Promise((r) => setTimeout(r, 100));
+    expect(ch.sent).toEqual([{ kind: "logs", entries }]);
+  });
+
+  // Batching must not reorder: the milestones that led to a prompt are the context it's read in,
+  // and the closing entries of a run must land before its verdict.
+  test("any other message flushes the pending log entries ahead of itself", async () => {
+    const ch = fakeChannel();
+    const sup = createSupervisor(ch.send, ch.onMessage);
+    const first = { ...logEntry, sequence: 1 };
+    const second = { ...logEntry, sequence: 2 };
+
+    sup.log(first);
+    void sup.request(
+      { kind: "input", message: "Name?", default: "" },
+      new AbortController().signal
+    );
+    sup.log(second);
+    sup.up(true, "/runs/x");
+
+    expect(ch.sent.map((m) => m.kind)).toEqual(["logs", "prompt", "logs", "up"]);
+    expect(ch.sent[0]).toEqual({ kind: "logs", entries: [first] });
+    expect(ch.sent[2]).toEqual({ kind: "logs", entries: [second] });
+
+    await new Promise((r) => setTimeout(r, 100));
+    expect(ch.sent).toHaveLength(4); // nothing left behind to flush late
   });
 
   test("onCancel fires when a cancel message arrives", () => {

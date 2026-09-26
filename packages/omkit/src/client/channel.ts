@@ -31,8 +31,9 @@ export function createChannel(transport: Transport): RunSession {
   const result = new Promise<Verdict>((resolve) => (resolveResult = resolve));
 
   transport.onMessage((message) => {
-    if (message.kind === "log") {
-      for (const h of handlers.log) h(message.entry);
+    if (message.kind === "logs") {
+      // Batched on the wire (see Supervisor.log); consumers still see one `log` per entry.
+      for (const entry of message.entries) for (const h of handlers.log) h(entry);
     } else if (message.kind === "prompt") {
       for (const h of handlers.prompt) h({ id: message.id, spec: message.spec });
     } else if (message.kind === "prompt-done") {

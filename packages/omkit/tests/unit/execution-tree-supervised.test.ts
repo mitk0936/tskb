@@ -34,7 +34,7 @@ describe("ExecutionTree under a supervisor", () => {
       await snapshot("state", { a: 1 });
     });
 
-    const logs = sent.filter((m) => m.kind === "log");
+    const logs = sent.flatMap((m) => (m.kind === "logs" ? m.entries : []));
     expect(logs.length).toBeGreaterThan(0);
 
     const settled = sent.filter((m) => m.kind === "settled");

@@ -86,6 +86,34 @@ describe("action metadata", () => {
   });
 });
 
+describe("action.parseArgs()", () => {
+  // In code the schema is type-level: an om body passes typed args straight through. The
+  // MCP host is the one caller handing an action *untyped* JSON, and it has to apply the
+  // schema — defaults and all — or the default list_oms advertised never takes effect.
+  // Done by the action itself, in the copy of omkit that built the schema, for the same
+  // reason `describeArgs` is.
+  const noop = async (): Promise<void> => {};
+
+  test("fills defaults from the declared schema", () => {
+    const seed = action("seed")
+      .args(z.object({ rows: z.number(), wipe: z.boolean().default(false) }))
+      .run(noop);
+    expect(seed.parseArgs({ rows: 3 })).toEqual({ rows: 3, wipe: false });
+  });
+
+  test("rejects args the schema refuses, naming the field", () => {
+    const seed = action("seed")
+      .args(z.object({ rows: z.number() }))
+      .run(noop);
+    expect(() => seed.parseArgs({ rows: "3" })).toThrow(/seed.*rows/);
+  });
+
+  test("passes anything through when no .args() was declared", () => {
+    const supplied = { anything: true };
+    expect(action("bare").run(noop).parseArgs(supplied)).toBe(supplied);
+  });
+});
+
 /**
  * `.args()` is type-level only — it pins the type of `.run`'s second parameter and,
  * through the resulting `Action`'s call signature, the shape callers must pass. There is

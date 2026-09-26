@@ -11,10 +11,22 @@ export type RefOf = (nodeId: string) => ActionRef | undefined;
  * the child by its {@link label} (name + tags) via `refOf`; everything else keeps its
  * `source` (proc name, `console`, …).
  */
-export const entryLine = (e: LogEntry, refOf?: RefOf): string => {
-  // Bubbled child rows are nested a level in — the whole row, `[seq]` included.
-  const indent = e.level === "child" ? "    " : "";
-  return `${indent}[${e.sequence}] ${bodyOf(e, refOf)}`;
+export const entryLine = (e: LogEntry, refOf?: RefOf): string =>
+  `${indentOf(e)}[${e.sequence}] ${bodyOf(e, refOf)}`;
+
+/**
+ * Bubbled child rows are nested in — the whole row, `[seq]` included. The launch pointer
+ * sits one level in; the child's own milestones sit one level deeper, under their launch.
+ */
+const indentOf = (e: LogEntry): string => {
+  if (e.level !== "child") return "";
+  return e.source === "launch" ? "    " : "        ";
+};
+
+/** `→ <id> · <logfile> · …` → `ACTION_RUN(<id>) · → · <logfile> · …`, so a launch stands out. */
+const launchBody = (message: string): string => {
+  const [head = "", ...rest] = message.replace(/^→\s*/, "").split(" · ");
+  return [`ACTION_RUN(${head})`, "→", ...rest].join(" · ");
 };
 
 const bodyOf = (e: LogEntry, refOf?: RefOf): string => {
@@ -34,10 +46,10 @@ const bodyOf = (e: LogEntry, refOf?: RefOf): string => {
       // output. (Cancellation no longer logs at this level — it's a clean stop.)
       return e.source === "error" ? `✗ ${e.message}` : `▪ ${e.message}`;
     case "child": {
-      // A bubbled child line (indented at the row level by `entryLine`). The launch pointer
-      // (`source === "launch"`) keeps its `→ id · logfile` message; a milestone names the
-      // child by its label (name + tags) via `refOf`.
-      if (e.source === "launch") return `${e.source} · ${e.message}`;
+      // A bubbled child line (indented at the row level by `indentOf`). The launch pointer
+      // (`source === "launch"`) reads `launch ACTION_RUN(id) · → · logfile`; a milestone
+      // names the child by its label (name + tags) via `refOf`.
+      if (e.source === "launch") return `${e.source} ${launchBody(e.message)}`;
       const ref = refOf?.(e.source);
       return `${ref ? label(ref) : e.source} · ${e.message}`;
     }

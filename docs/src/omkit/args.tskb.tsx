@@ -36,6 +36,8 @@ const OmExport = ref as tskb.Exports["omkit.om"];
 const ActionExport = ref as tskb.Exports["omkit.action"];
 const ActionModule = ref as tskb.Modules["omkit.core.action"];
 
+const ActionHostModule = ref as tskb.Modules["omkit.mcp.action-host"];
+
 const SupervisionTerm = ref as tskb.Terms["structured-supervision"];
 
 // ─── Documentation ────────────────────────────────────────────────────────────
@@ -46,11 +48,14 @@ export default (
     <P>
       {OmExport} returns a builder: chaining <code>.args(schema)</code> — a zod schema — declares
       the run's input shape, and <code>.run</code>'s body then receives the resolved, typed value as
-      its second parameter. This resolution is an {OmModule}-only feature. {ActionExport}'s own{" "}
-      <code>.args(schema)</code>, declared in {ActionModule}, only pins the type of{" "}
-      <code>.run</code>'s second parameter — nothing there resolves, validates, or prompts for a
-      value, because an action launched from an om body already receives its arguments directly in
-      code, not from the environment or a prompt.
+      its second parameter. Prompting is an {OmModule}-only feature. {ActionExport}'s own{" "}
+      <code>.args(schema)</code>, declared in {ActionModule}, pins the type of <code>.run</code>'s
+      second parameter, and launching never validates: an action launched from an om body receives
+      its arguments directly in code, already typed. The one caller that hands an action untyped
+      JSON is the MCP {ActionHostModule}, which resolves it through the action's own schema (its{" "}
+      <code>parseArgs</code>) before launching — defaults filled, everything validated, never
+      prompted — so the default the MCP listing advertised from that same schema is the value the
+      body sees.
     </P>
 
     <H2>Resolution happens inside the run</H2>

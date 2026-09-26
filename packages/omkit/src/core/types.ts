@@ -232,6 +232,13 @@ export interface Action<
    * throws — an unconvertible schema comes back as `schemaError`.
    */
   readonly describeArgs: () => DescribedArgs;
+  /**
+   * Resolve args that arrived as untyped JSON — the MCP host's — against the declared
+   * schema: defaults filled, everything validated, or a throw naming the field. Identity
+   * without `.args()`. Runs in the defining copy of omkit for the same reason
+   * `describeArgs` does. In-code callers never need it: their args are typed.
+   */
+  readonly parseArgs: (supplied: unknown) => unknown;
 }
 
 /** Intermediate step from `action(name)`: declare metadata/events/handle, then the impl. */

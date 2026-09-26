@@ -87,7 +87,7 @@ const build = action("build").run(({ proc }) => proc("tsc")`tsc -b`);
 const activity = build(); // calling launches; returns the live Activity
 ```
 
-Chain `.describe({ summary })` before `.run(...)` to attach a human-readable summary — stored on the definition, for `omkit ls` and future tooling to read; nothing reads it yet, so today it is documentation that travels with the code. Same shape as `om`'s, below. `.args(schema)` pins the type of `.run`'s second parameter to a zod schema's inferred type. It's **type-level only**: nothing here resolves, prompts for, or validates the value — an action launched from an om body is passed its arguments directly in code, so the schema exists to type that call site, not to gate it. (Resolving/prompting for arguments is an `om`-level concern, not `action`'s.)
+Chain `.describe({ summary })` before `.run(...)` to attach a human-readable summary — stored on the definition, for `omkit ls` and future tooling to read; nothing reads it yet, so today it is documentation that travels with the code. Same shape as `om`'s, below. `.args(schema)` pins the type of `.run`'s second parameter to a zod schema's inferred type. In code it's **type-level only**: launching neither resolves, prompts for, nor validates the value — an action launched from an om body is passed its arguments directly in code, so the schema types that call site rather than gating it. The exception is an action run as an MCP tool: the JSON an assistant sends is resolved through this same schema before the body runs, so `.default()`s are filled and bad values are refused — the default `list_oms` advertises is the one the body gets. (Prompting for arguments stays an `om`-level concern.)
 
 ```ts
 import { z } from "zod";
@@ -96,7 +96,7 @@ const seed = action("seed")
   .describe({ summary: "Seeds the database" })
   .args(z.object({ rows: z.number() }))
   .run(async (_ctx, { rows }) => {
-    /* rows: number — typed, not validated */
+    /* rows: number — typed; validated only when run as an MCP tool */
   });
 
 seed({ rows: 500 }); // calling launches it; the shape is pinned, not checked at runtime
