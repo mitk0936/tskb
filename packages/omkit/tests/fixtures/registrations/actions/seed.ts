@@ -4,11 +4,13 @@ import { action } from "../../../../src/index.ts";
 export const seed = action("seed")
   .describe({ summary: "Seed the database" })
   .mcp()
-  .args(z.object({ rows: z.number() }))
-  .run(async ({ assert }, { rows }) => {
+  // `wipe` is defaulted: a caller may leave it out, and the body must still see `false` —
+  // the value list_oms advertises — never `undefined`.
+  .args(z.object({ rows: z.number(), wipe: z.boolean().default(false) }))
+  .run(async ({ assert }, { rows, wipe }) => {
     assert(rows > 0, `seeded ${rows} rows`);
     // What the action hands back — the host surfaces it as the run's `value`.
-    return { seeded: rows };
+    return { seeded: rows, wipe };
   });
 
 /** Exposed, but its schema cannot be represented as JSON Schema — must list as unavailable. */

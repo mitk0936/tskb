@@ -34,7 +34,10 @@ const exportName = required("OMKIT_ACTION_EXPORT");
 // that variable, and a distinct name keeps a host run from colliding with an om's args.
 const args: unknown = JSON.parse(process.env.OMKIT_ACTION_ARGS ?? "{}");
 
-type Launchable = (a: unknown) => { result: Promise<unknown> };
+interface Launchable {
+  (a: unknown): { result: Promise<unknown> };
+  readonly parseArgs: (supplied: unknown) => unknown;
+}
 
 om(hostOmName(name, file))
   .describe({ summary: `Standalone host for the ${name} action.` })
@@ -44,6 +47,12 @@ om(hostOmName(name, file))
     if (typeof launch !== "function") {
       throw new Error(`${file} has no exported action "${exportName}"`);
     }
+    const action = launch as Launchable;
+    // The server only checked that the JSON *looked* right (`checkArgs`). The schema that
+    // list_oms advertised — defaults included — lives on the action, so the action applies
+    // it: what the caller was told is what the body receives. An om does the same through
+    // `resolveArgs` before its body runs.
+    const resolved = action.parseArgs(args);
     // The action reaches `ExecutionTree.require()` through the copy of omkit *its* file
     // imported, and `current` is a static — so this only works when both resolve to the
     // same installed omkit. True for a normal install and for the fixtures; false under
@@ -52,7 +61,7 @@ om(hostOmName(name, file))
     try {
       // The action's result becomes the run's `value`: the one thing an action-backed tool
       // call exists to hand back, read from `result.json` by the server's verdict.
-      return await (launch as Launchable)(args).result;
+      return await action(resolved).result;
     } catch (e) {
       if (e instanceof Error && /no active om\(\) run/.test(e.message)) {
         throw new Error(

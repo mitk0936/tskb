@@ -315,6 +315,14 @@ export default (
       <em>name</em>, so two same-named actions in different files still get separate folders.
     </P>
     <P>
+      Before launching, the host resolves the JSON it was sent through the action's own schema — the
+      action's <code>parseArgs</code>, run by the copy of omkit that built the schema — so defaults
+      are filled and every field validated. That is the same zod object <code>list_oms</code>{" "}
+      projects to advertise the arguments, so the default a caller was shown is the value the body
+      receives; {ValidateModule}'s pre-fork look is only shallow. Unlike an om, a hosted action
+      never prompts for what is missing.
+    </P>
+    <P>
       {ActionIdentityModule} owns that naming rule, and both sides of the fork use it — the host to
       name its run, the server to answer where the run will land before the child has created
       anything. One function, so the prediction and the reality cannot drift apart.

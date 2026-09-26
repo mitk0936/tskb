@@ -4,22 +4,29 @@ import os from "node:os";
 import path from "node:path";
 import { RunFolder } from "../../src/output/folder/RunFolder.ts";
 
-// `logs/` is resolved against cwd, so the tests run inside a throwaway directory.
+// `logs/` is resolved against cwd, so the tests run inside a throwaway directory. An
+// inherited OMKIT_ROOT (tests launched from an om) would outrank cwd and send these
+// folders into the real project's logs/, where frozen-clock names collide across runs.
 let workdir: string;
 let previousCwd: string;
+let previousRoot: string | undefined;
 
 beforeAll(() => {
   previousCwd = process.cwd();
+  previousRoot = process.env.OMKIT_ROOT;
+  delete process.env.OMKIT_ROOT;
   workdir = fs.mkdtempSync(path.join(os.tmpdir(), "omkit-folder-"));
 });
 
 afterEach(() => {
   process.chdir(previousCwd);
   vi.useRealTimers();
+  delete process.env.OMKIT_ROOT;
 });
 
 afterAll(() => {
   process.chdir(previousCwd);
+  if (previousRoot !== undefined) process.env.OMKIT_ROOT = previousRoot;
   try {
     fs.rmSync(workdir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
   } catch {
@@ -81,10 +88,6 @@ describe("RunFolder", () => {
   });
 
   describe("the project root", () => {
-    afterEach(() => {
-      delete process.env.OMKIT_ROOT;
-    });
-
     test("puts the run under OMKIT_ROOT, wherever the child happens to be working", () => {
       const project = fs.mkdtempSync(path.join(os.tmpdir(), "omkit-project-"));
       // The situation this exists for: a child whose cwd is the om file's own directory,

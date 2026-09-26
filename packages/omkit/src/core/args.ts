@@ -71,14 +71,15 @@ export async function resolveArgs(schema: z.ZodType, opts: ResolveOptions): Prom
     // Nothing nameable to ask for — the schema rejected the object as a whole (a top-level
     // refinement, or a schema that isn't an object at all). No question would make progress,
     // so fail now with the real reason instead of looping silently to the attempt cap.
-    if (blocking.length === 0) throw new Error(`could not resolve args: ${message(parsed.error)}`);
+    if (blocking.length === 0)
+      throw new Error(`could not resolve args: ${formatIssues(parsed.error)}`);
     if (!opts.interactive) {
       const anySupplied = blocking.some((field) => current[field] !== undefined);
-      throw new MissingArgsError(blocking, anySupplied ? message(parsed.error) : undefined);
+      throw new MissingArgsError(blocking, anySupplied ? formatIssues(parsed.error) : undefined);
     }
     if (attempt >= MAX_ATTEMPTS) {
       throw new Error(
-        `could not resolve args after ${MAX_ATTEMPTS} attempts: ${message(parsed.error)}`
+        `could not resolve args after ${MAX_ATTEMPTS} attempts: ${formatIssues(parsed.error)}`
       );
     }
 
@@ -116,7 +117,8 @@ function blockingFields(error: z.ZodError): string[] {
   return [...new Set(names)];
 }
 
-function message(error: z.ZodError): string {
+/** Every issue on one line, `path — reason`, for an error message a caller can act on. */
+export function formatIssues(error: z.ZodError): string {
   return error.issues.map((i) => `${i.path.join(".") || "(root)"} — ${i.message}`).join("; ");
 }
 

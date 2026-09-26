@@ -18,7 +18,8 @@ export interface PromptSpec {
 export type ChildMessage =
   | { kind: "prompt"; id: string; spec: PromptSpec }
   | { kind: "prompt-done"; id: string }
-  | { kind: "log"; entry: LogEntry }
+  /** Log entries, oldest first — batched, see {@link Supervisor.log}. */
+  | { kind: "logs"; entries: LogEntry[] }
   /**
    * The root body has returned. For a long-lived run this is the moment its stack is up
    * and can be reached from outside; the run itself goes on until it is torn down.
@@ -35,6 +36,13 @@ type Send = (message: ChildMessage) => void;
 type OnMessage = (handler: (message: SupervisorMessage) => void) => void;
 
 /**
+ * How long log entries wait to share one message. Short enough to read as live on screen; long
+ * enough that a burst — a build or test suite printing hundreds of lines — crosses as a handful
+ * of messages rather than hundreds.
+ */
+const LOG_BATCH_MS = 25;
+
+/**
  * The child-side handle to an out-of-process supervisor. Sends prompt requests, live log
  * entries, and the final verdict up the channel; resolves prompts when the matching answer
  * comes back; and invokes a cancel handler on a `cancel` message. Purely a transport — it
@@ -44,11 +52,21 @@ export class Supervisor {
   private seq = 0;
   private readonly pending = new Map<string, (answer: AnswerMessage) => void>();
   private cancelHandler: (() => void) | undefined;
+  private batch: LogEntry[] = [];
+  private flushTimer: ReturnType<typeof setTimeout> | undefined;
+  private readonly send: Send;
 
   constructor(
-    private readonly send: Send,
+    private readonly sendRaw: Send,
     onMessage: OnMessage
   ) {
+    // Every other message leaves through here, so a pending batch always goes first: the entries
+    // that led to a prompt are the context it is read in, and a run's closing entries must land
+    // before its verdict.
+    this.send = (message) => {
+      this.flush();
+      sendRaw(message);
+    };
     onMessage((message) => {
       if (message.kind === "answer") {
         const resolve = this.pending.get(message.id);
@@ -83,8 +101,26 @@ export class Supervisor {
     });
   }
 
+  /**
+   * Queue a log entry; it goes up with whatever else arrives within {@link LOG_BATCH_MS}.
+   *
+   * Batched because each IPC message costs the supervisor an event-loop turn (on Windows, Node
+   * delivers at most one per turn), and a frontend with slow frames can only take so many turns
+   * a second. A message per entry let a chatty run outpace the interactive app, which then kept
+   * replaying the log long after the run had finished, with `settled` stuck behind it.
+   */
   log(entry: LogEntry): void {
-    this.send({ kind: "log", entry });
+    this.batch.push(entry);
+    this.flushTimer ??= setTimeout(() => this.flush(), LOG_BATCH_MS);
+  }
+
+  private flush(): void {
+    if (this.flushTimer) clearTimeout(this.flushTimer);
+    this.flushTimer = undefined;
+    if (this.batch.length === 0) return;
+    const entries = this.batch;
+    this.batch = [];
+    this.sendRaw({ kind: "logs", entries });
   }
 
   up(ok: boolean, folder: string): void {

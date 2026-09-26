@@ -47,7 +47,7 @@ describe("action-backed tools", () => {
     expect(verdict.ok).toBe(true);
     expect(verdict.assertions.passed).toBe(1);
     // And what the action returned travels back the other way: host → result.json → verdict.
-    expect(verdict.value).toEqual({ seeded: 7 });
+    expect(verdict.value).toEqual({ seeded: 7, wipe: false });
     // It lands in the same logs/ tree as an om's run, under the server's root.
     expect(fs.realpathSync(verdict.folder).startsWith(fs.realpathSync(path.join(workdir, "logs")))) //
       .toBe(true);
@@ -87,6 +87,33 @@ describe("action-backed tools", () => {
       path.basename(path.resolve(folders[1]!, "../.."))
     );
   }, 90_000);
+
+  test("a defaulted arg the caller omits reaches the action filled in", async () => {
+    // The same zod schema is the source of truth twice over: list_oms projects it to
+    // advertise the default, and the host must apply it so the body sees that value. If the
+    // host handed the raw JSON through, `wipe` would arrive `undefined` — silently, since a
+    // boolean has no `.toLowerCase()` to crash on — and every downstream `?? true` would
+    // quietly win over the advertised `false`.
+    open = await connectServer(client, workdir);
+    const listed = (await open.callTool({ name: "list_oms", arguments: {} })).structuredContent as {
+      entries: {
+        name: string;
+        inputSchema?: { properties?: Record<string, { default?: unknown }> };
+      }[];
+    };
+    const advertised = listed.entries.find((e) => e.name === "seed")!.inputSchema!.properties!
+      .wipe!;
+    expect(advertised.default).toBe(false);
+
+    const result = await open.callTool({
+      name: "run_om",
+      arguments: { name: "seed", args: { rows: 2 } },
+    });
+    expect(result.isError).toBeFalsy();
+    const verdict = result.structuredContent as { ok: boolean; value?: { wipe?: unknown } };
+    expect(verdict.ok).toBe(true);
+    expect(verdict.value?.wipe).toBe(advertised.default);
+  }, 60_000);
 
   test("an action whose schema will not convert is refused, not run", async () => {
     open = await connectServer(client, workdir);

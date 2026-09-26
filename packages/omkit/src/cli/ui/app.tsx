@@ -4,6 +4,7 @@ import { RunModel, type RunSummary } from "../../output/RunModel.ts";
 import { OmList } from "./views/OmList.tsx";
 import { RunView } from "./views/RunView.tsx";
 import { Spinner } from "./Spinner.tsx";
+import { redrawLoop } from "./redrawLoop.ts";
 import type { OmkitClient, RunSession, PromptRequest, Verdict } from "../../client/types.ts";
 import type { DiscoveredOm } from "../../client/registry.ts";
 
@@ -15,7 +16,8 @@ import type { DiscoveredOm } from "../../client/registry.ts";
  * dev server emits. The app then falls permanently behind: `settled` is the *last* message on
  * the channel, so it only arrives once every backlogged entry has been drawn, and the run looks
  * hung long after the child has finished. Folding into the model is cheap; drawing is not, so
- * the two run at different rates.
+ * the two run at different rates — and the gap is kept *after* each frame (see {@link redrawLoop}),
+ * since a frame slower than this would otherwise leave no time between frames for the log at all.
  */
 const REDRAW_MS = 80;
 
@@ -47,11 +49,10 @@ export function App({
   const sessionRef = useRef<RunSession | null>(null);
   const verdictRef = useRef<Verdict | undefined>(undefined);
   const tearingRef = useRef(false);
-  const redrawTimer = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const redrawTimer = useRef<ReturnType<typeof redrawLoop> | undefined>(undefined);
 
   const stopRedraw = (): void => {
-    if (redrawTimer.current === undefined) return;
-    clearInterval(redrawTimer.current);
+    redrawTimer.current?.stop();
     redrawTimer.current = undefined;
   };
 
@@ -84,7 +85,7 @@ export function App({
       setLines(model.milestones());
       setStatus(model.summary());
     };
-    redrawTimer.current = setInterval(redraw, REDRAW_MS);
+    redrawTimer.current = redrawLoop(redraw, REDRAW_MS);
     s.on("log", (entry) => {
       model.apply(entry);
       dirty = true;
