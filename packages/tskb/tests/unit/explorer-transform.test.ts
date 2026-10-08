@@ -332,6 +332,47 @@ describe("transformGraph — nested export hierarchy", () => {
     expect(exportIds).toContain("pkg.app.MyClass");
     expect(exportIds).toContain("pkg.app.MyClass.run");
   });
+
+  it("keeps exports that belong-to a folder (no declared module) on that folder", () => {
+    const graph = makeGraph({
+      folders: { pkg: { desc: "package", path: "pkg" } },
+      // A declared module behind a ghost intermediary forces the ghost-chain rewrite.
+      modules: { "pkg.app": { desc: "app module", resolvedPath: "pkg/src/app.ts" } },
+      exports: {
+        "pkg.Worker": { desc: "worker service", resolvedPath: "pkg/src/services/worker.ts" },
+      },
+      edges: [
+        { from: ROOT, to: "pkg", type: "contains" },
+        { from: "pkg.app", to: "pkg", type: "belongs-to" },
+        { from: "pkg.Worker", to: "pkg", type: "belongs-to" },
+      ],
+    });
+
+    const result = transformGraph(graph);
+    const chunk = result.folders.get("pkg")!;
+
+    const worker = chunk.exports.find((e) => e.id === "pkg.Worker");
+    expect(worker?.parentId).toBe("pkg");
+    expect(result.meta.parentOf["pkg.Worker"]).toBe("pkg");
+  });
+
+  it("creates a chunk for a folder whose only content is folder-owned exports", () => {
+    const graph = makeGraph({
+      folders: { pkg: { desc: "package", path: "pkg" } },
+      exports: { "pkg.Worker": { desc: "worker service", resolvedPath: "pkg/worker.ts" } },
+      edges: [
+        { from: ROOT, to: "pkg", type: "contains" },
+        { from: "pkg.Worker", to: "pkg", type: "belongs-to" },
+      ],
+    });
+
+    const result = transformGraph(graph);
+
+    expect(result.folders.get("pkg")?.exports.map((e) => e.id)).toEqual(["pkg.Worker"]);
+    const pkgNode = result.meta.topFolders.find((f) => f.id === "pkg")!;
+    expect(pkgNode.detail["_hasChildren"]).toBe("true");
+    expect(pkgNode.detail["_childCount"]).toBe("1");
+  });
 });
 
 describe("transformGraph — flow steps", () => {
