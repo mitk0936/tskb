@@ -112,6 +112,9 @@ function buildFolderChildren(
       }
     }
 
+    // Exports owned by the folder itself (no declared module for their file)
+    children.push(...buildExportTree(folder.id, chunk.exports));
+
     // Files (leaf nodes — no children)
     for (const file of chunk.files ?? []) {
       children.push({ ...file });

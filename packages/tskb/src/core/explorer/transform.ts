@@ -352,11 +352,14 @@ class GraphToExplorerTransformer {
       const directModuleIds = this.getDirectModuleIds(folderId);
       const directSubfolderIds = this.getDirectSubfolderIds(folderId);
       const directFileIds = this.getDirectFileIds(folderId);
+      // Exports whose file has no declared module belong-to the folder itself.
+      const folderExports = this.buildExportNodes(folderId);
 
       if (
         directModuleIds.length === 0 &&
         directSubfolderIds.length === 0 &&
-        directFileIds.length === 0
+        directFileIds.length === 0 &&
+        folderExports.length === 0
       ) {
         // Folder is empty — skip chunk creation but keep recursing
         this.buildAllFolderChunksRecursively(folderId);
@@ -367,7 +370,10 @@ class GraphToExplorerTransformer {
 
       const subfolders = directSubfolderIds.map((sfId) => this.buildSubfolderNode(sfId, folderId));
       const modules = directModuleIds.map((moduleId) => this.buildModuleNode(moduleId, folderId));
-      const exports = directModuleIds.flatMap((moduleId) => this.buildExportNodes(moduleId));
+      const exports = [
+        ...folderExports,
+        ...directModuleIds.flatMap((moduleId) => this.buildExportNodes(moduleId)),
+      ];
       const files = directFileIds.map((fileId) => this.buildFileNodeForChunk(fileId, folderId));
       const { internalEdges, externalEdges } = this.buildImportEdges(moduleIdSet);
 
@@ -425,6 +431,7 @@ class GraphToExplorerTransformer {
     });
   }
 
+  /** Exports that belong-to `moduleId` — a module, or a folder for exports with no declared module. */
   private buildExportNodes(moduleId: string): ExplorerNode[] {
     // Flat: all exports that belong-to the module are direct children.
     // Class method exports get a compound label like "ClassName.methodName".
@@ -688,7 +695,8 @@ class GraphToExplorerTransformer {
 
       const ghostLevels = new Map<string, GhostLevelBuilder>();
       const directModules: ExplorerNode[] = [];
-      const directExports: ExplorerNode[] = [];
+      // Folder-owned exports stay on the declared folder; module exports follow their module.
+      const directExports: ExplorerNode[] = this.getModuleExports(folderId, chunk.exports);
       const directSubfolders: ExplorerNode[] = [];
 
       // Route subfolders first so we know which ghost paths they create.
@@ -864,7 +872,10 @@ class GraphToExplorerTransformer {
     const chunk = this.folderChunks.get(node.id);
     if (!chunk) return;
     node.detail["_hasChildren"] = "true";
-    node.detail["_childCount"] = String(chunk.modules.length + chunk.subfolders.length);
+    const ownExports = this.getModuleExports(node.id, chunk.exports).length;
+    node.detail["_childCount"] = String(
+      chunk.modules.length + chunk.subfolders.length + ownExports
+    );
   }
 
   /** Builds a flat node-id → parent-id map across all folder chunks. */

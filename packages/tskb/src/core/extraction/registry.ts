@@ -1059,6 +1059,16 @@ function extractExportType(
         }
       }
 
+      // `Alias["member"]` (static member, or an alias to an instance/interface type):
+      // the file comes from the alias, so the export still lands on its module.
+      if (
+        !importPath &&
+        ts.isIndexedAccessTypeNode(propType) &&
+        ts.isTypeReferenceNode(propType.objectType)
+      ) {
+        importPath = resolveTypeAliasImport(propType.objectType, checker)?.importPath;
+      }
+
       // Detect InstanceType<X>["method"] — class member export.
       // Resolve the alias (e.g. `AuthServiceClass`) to the actual class name (e.g. `AuthService`)
       // so buildExportMembership can match against typeSignature via `.endsWith('.AuthService')`.
