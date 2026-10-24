@@ -1,6 +1,6 @@
 {
   "name": "omkit",
-  "version": "0.8.9",
+  "version": "0.8.20",
   "description": "A tiny runtime for developer workflows: typed actions that pass runtime capabilities and emit typed events, under one run and one shared log. The operational/runtime layer to tskb's knowledge layer.",
   "type": "module",
   "main": "./dist/index.js",
@@ -24,8 +24,8 @@
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "tsc && node scripts/copy-assets.mjs",
+    "dev": "node scripts/copy-assets.mjs && tsc --watch",
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
@@ -54,6 +54,7 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "d3": "^7.9.0",
     "ink": "^7.1.1",
     "patch-console": "^2.0.0",
     "playwright-core": "^1.49.0",

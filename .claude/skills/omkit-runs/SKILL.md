@@ -65,7 +65,8 @@ Attach to a running Chrome over CDP, run a JS expression in one of its open tabs
 ## Where output lands
 
 `om/logs/<name>-<hash8>/<date>/<time>/` — `main.log`, `result.json`, `artifacts.log`,
-`events.log`, `asserts.log`, `raw.jsonl`. A run's identity is its name plus its defining
+`events.log`, `asserts.log`, `raw.jsonl`, and `report.html` (the run as one self-contained page
+for a human to open). A run's identity is its name plus its defining
 file, so "the latest run of X" is always resolvable without parsing scrollback.
 
 ## What the outlines above do and do not tell you

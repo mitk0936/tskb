@@ -34,6 +34,11 @@ declare global {
         desc: "Finalize writer: serializes the run tree and verdict to result.json.";
         type: typeof import("packages/omkit/src/output/writers/ResultWriter.js");
       }>;
+
+      "omkit.output.writers.report": Module<{
+        desc: "Finalize writer: renders the run as one self-contained HTML page — timeline, flow, logs, and images — with its data and viewer inlined.";
+        type: typeof import("packages/omkit/src/output/writers/ReportWriter.js");
+      }>;
     }
 
     interface Exports {
@@ -66,6 +71,11 @@ declare global {
         desc: "Serializes the whole run tree and verdict to result.json.";
         type: typeof import("packages/omkit/src/output/writers/ResultWriter.js").writeResult;
       }>;
+
+      "omkit.writeReport": Export<{
+        desc: "Writes report.html: the run view, every entry, snapshot payloads, base64 images, d3, and the viewer, in one file that opens from disk.";
+        type: typeof import("packages/omkit/src/output/writers/ReportWriter.js").writeReport;
+      }>;
     }
   }
 }
@@ -78,6 +88,7 @@ const LiveRendererExport = ref as tskb.Exports["omkit.LiveRenderer"];
 const WriteNodeLogsExport = ref as tskb.Exports["omkit.writeNodeLogs"];
 const WriteRollupExport = ref as tskb.Exports["omkit.writeRollup"];
 const WriteResultExport = ref as tskb.Exports["omkit.writeResult"];
+const WriteReportExport = ref as tskb.Exports["omkit.writeReport"];
 
 const ActionRunExport = ref as tskb.Exports["omkit.ActionRun"];
 const ExecutionTreeModule = ref as tskb.Modules["omkit.core.execution-tree"];
@@ -120,8 +131,20 @@ export default (
       the legend and end-of-run summary). {WriteRollupExport} slices the same history by facet —{" "}
       <code>events.log</code>, <code>asserts.log</code>, <code>snapshots.log</code> — in global
       sequence order. {WriteResultExport} serializes the run tree and verdict to{" "}
-      <code>result.json</code>. Because every entry carries that global sequence, all of these files
-      merge back into one order.
+      <code>result.json</code>, each node carrying what its definition declared about itself (its
+      summary, MCP exposure, and args schema) so a reader of the record never has to find the source
+      to learn what a step was for. Because every entry carries that global sequence, all of these
+      files merge back into one order.
+    </P>
+    <P>
+      Last, {WriteReportExport} turns the same run view and history into <code>report.html</code>, a
+      page a human opens instead of reading logs. It inlines everything: the data as one JSON block
+      (including each action's source, cut from its file with the TypeScript parser so the popover
+      shows the whole definition), each image as its own base64 block (decoded only when shown, so
+      the page parses in time proportional to the log, not the screenshots), d3, and the viewer. The
+      page paints a loader first and swaps it out once the data is parsed. It is a convenience over
+      the record, not part of it: if it cannot be written, the run keeps its verdict, its exit code,
+      and its other files.
     </P>
 
     <Flow
@@ -132,15 +155,16 @@ export default (
       <Step node={WriteNodeLogsExport} label="writes per-action .log files and main.log" />
       <Step node={WriteRollupExport} label="writes events / asserts / snapshots rollups" />
       <Step node={WriteResultExport} label="serializes the run tree and verdict to result.json" />
+      <Step node={WriteReportExport} label="renders the self-contained HTML report" />
     </Flow>
 
     <H2>One timeline, many views</H2>
     <P>
       The store carries no presentation — writers apply headers and prefixes at read time. That
       single separation is why the same run can be a live terminal status line, a machine-readable{" "}
-      <code>raw.jsonl</code>, per-action human logs, cross-cutting rollups, and a structured{" "}
-      <code>result.json</code> all at once: each is just a different projection of one append-only
-      sequence.
+      <code>raw.jsonl</code>, per-action human logs, cross-cutting rollups, a structured{" "}
+      <code>result.json</code>, and a browsable <code>report.html</code> all at once: each is just a
+      different projection of one append-only sequence.
     </P>
   </Doc>
 );

@@ -279,4 +279,22 @@ export interface LaunchSpec {
   readonly body: Exec<object, unknown, unknown>;
   /** `file:line` where the action was defined; carried onto the node for its log header. */
   readonly definedAt: string | undefined;
+  /** What the definition declared about itself — carried onto the node for the run record. */
+  readonly meta?: ActionMeta;
+  /** `file:line` of the call that launched this instance; carried onto the node for the record. */
+  readonly calledAt?: string;
+}
+
+/**
+ * A definition's self-description, as it travels onto each node it launches: what
+ * `.describe()` and `.mcp()` said, and the `.args()` schema as JSON Schema. Read only by the
+ * run record (`result.json`, `report.html`) — the runtime never branches on it.
+ */
+export interface ActionMeta {
+  readonly description?: OmDescription;
+  readonly mcp?: ResolvedMcpExposure;
+  /** Converts the declared args schema; called once, at finalize. */
+  readonly describeArgs?: () => DescribedArgs;
+  /** Launched by `step(…)` — an inline action with no reusable definition. */
+  readonly inline?: boolean;
 }

@@ -15,9 +15,9 @@ The big-picture index of this repo. Load this whenever you start a task — it t
 - **__TSKB.ROOT__** (`.`) — The root directory (automatically added by tskb)
   - **docs** (`docs`) — A folder that contains all the repo docs (.tskb.tsx) files. Uses its own ts configuration. [2 folders, 2 files]
   - **packages** (`packages`) — A folder that contains independent packages in the repo (npm worskspace) [2 folders]
-    - **omkit** (`packages/omkit`) — The operational-model kit: a Node runtime for the workflows around your code (start servers, wait, watch, drive a browser, tear down) that narrates each run to disk. [2 folders, 6 files]
+    - **omkit** (`packages/omkit`) — The operational-model kit: a Node runtime for the workflows around your code (start servers, wait, watch, drive a browser, tear down) that narrates each run to disk. [3 folders, 6 files]
     - **TSKB.Package.Root** (`packages/tskb`) — The root folder of the package, with its package.json and main npm README.md [3 folders, 5 files]
-  - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [4 files]
+  - **references** (`references`) — A folder that contains git tracked references used for documentation illustration purposes, referenced on npm [1 folder, 4 files]
   - **tests** (`tests`) — End-to-end tests for the tskb CLI. [1 folder]
     - **tests.e2e** (`tests/e2e`) — E2E test files that run the CLI and check its output. [1 folder, 9 files]
 

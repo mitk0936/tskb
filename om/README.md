@@ -186,6 +186,7 @@ om/logs/<name>-<hash8>/<date>/<time>/
 ├── result.json        # tree of every step with status, verdict, and resolved args
 ├── raw.jsonl          # every log entry, machine-readable
 ├── events.log  asserts.log  snapshots.log  artifacts.log
+├── report.html        # the run as one self-contained page: timeline, flow, logs, images
 ├── snapshots/         # JSON state captured during the run
 └── <action>_<id>/     # files an action produced (e.g. page:drive screenshots)
 ```
@@ -194,6 +195,7 @@ om/logs/<name>-<hash8>/<date>/<time>/
 
 When something breaks, start here:
 
+0. **`report.html`**: open it in a browser to see the whole run at once: what ran when, what each step emitted, and the screenshots it took.
 1. **`result.json`**: which step failed?
 2. **That step's `.log`**: what did it print right before it failed?
 3. **`main.log`**: what order did things happen in?
