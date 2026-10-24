@@ -13,12 +13,19 @@ import { LiveRenderer } from "../output/LiveRenderer.ts";
 import { writeNodeLogs } from "../output/writers/NodeLogWriter.ts";
 import { writeRollup } from "../output/writers/RollupWriter.ts";
 import { writeResult } from "../output/writers/ResultWriter.ts";
+import { writeReport } from "../output/writers/ReportWriter.ts";
 import type { ArtifactView, NodeView, RunView } from "../output/writers/views.ts";
 import { ActionRun, type NodeInit } from "./ActionRun.ts";
 import { procRegistry } from "../system/proc.ts";
 import { currentNode } from "./context.ts";
 import { activeSupervisor } from "./interaction.ts";
-import type { Exec, LaunchSpec, OmDescription, ResolvedMcpExposure } from "./types.ts";
+import type {
+  DescribedArgs,
+  Exec,
+  LaunchSpec,
+  OmDescription,
+  ResolvedMcpExposure,
+} from "./types.ts";
 import type { LogEntry } from "../foundation/LogEntry.ts";
 
 /**
@@ -49,6 +56,8 @@ export class ExecutionTree {
   readonly store = new LogStore();
   readonly folder: RunFolder;
   readonly root: ActionRun;
+  /** The om's name, as given to `om(name)`. */
+  readonly name: string;
   /**
    * The om's `.describe(…)` summary, carried here from the builder so it survives the
    * terminal `.run(...)` call. Stored so it is retrievable; nothing reads it yet.
@@ -67,6 +76,7 @@ export class ExecutionTree {
   private readonly snapshotStore: SnapshotStore;
   private readonly artifactStore = new ArtifactStore();
   private readonly registry: ActionRun[] = [];
+  private readonly schemaCache = new Map<() => DescribedArgs, unknown>();
   private readonly unsettled = new Set<Promise<unknown>>();
   private readonly originalLog = console.log.bind(console);
   private streaming: Promise<void> | undefined;
@@ -102,6 +112,7 @@ export class ExecutionTree {
     description?: OmDescription,
     mcp?: ResolvedMcpExposure
   ) {
+    this.name = name;
     this.description = description;
     this.mcp = mcp;
     // The run's identity: its name + where om() is written (not how it was launched),
@@ -155,6 +166,8 @@ export class ExecutionTree {
       // into the parent's log, attributed to this child's id.
       bubble: (message) => this.append(parent, "child", id, message),
     });
+    node.meta = spec.meta;
+    node.calledAt = spec.calledAt;
     parent.children.push(node);
     this.registry.push(node);
     // Launch reference — the parent's pointer to the child's own (absolute) log, plus where
@@ -341,7 +354,23 @@ export class ExecutionTree {
     await writeRollup(at("asserts.log"), flat, entries, (e) => e.level === "assert", assertSummary);
     await writeRollup(at("snapshots.log"), flat, entries, (e) => e.level === "snapshot");
     await writeRollup(at("artifacts.log"), flat, entries, (e) => e.level === "artifact");
-    await writeResult(at("result.json"), this.runView());
+    const run = this.runView();
+    await writeResult(at("result.json"), run);
+    // The page is a convenience over the record above — a failure to build it must not
+    // cost the run its verdict, its exit code, or its other files.
+    try {
+      await writeReport(at("report.html"), {
+        name: this.name,
+        folder: this.folder.path(),
+        run,
+        entries,
+        artifacts: this.curatedArtifactsWithNode(),
+      });
+    } catch (e) {
+      this.originalLog(
+        `omkit: report.html not written — ${e instanceof Error ? e.message : String(e)}`
+      );
+    }
 
     // Only now let go of the process hooks — a Ctrl+C during the writes must still be
     // caught (as a no-op) so it can't fall through to Node's kill-without-log default.
@@ -371,6 +400,7 @@ export class ExecutionTree {
       `  asserts   → ${at("asserts.log")}   ${assertSummary}`,
       `  snapshots → ${at("snapshots.log")}`,
       `  artifacts → ${at("artifacts.log")}`,
+      `  report    → ${at("report.html")}`,
     ];
   }
 
@@ -391,6 +421,7 @@ export class ExecutionTree {
       uuid: node.uuid,
       name: node.name,
       definedAt: node.definedAt,
+      ...(node.calledAt === undefined ? {} : { calledAt: node.calledAt }),
       path: node.path,
       parentId: node.parentId,
       tags: [...node.tags],
@@ -401,7 +432,37 @@ export class ExecutionTree {
       endedAt: node.endedAt,
       duration: node.duration,
       logFile: this.logFile(node.path),
+      ...this.metaView(node),
+      ...valueView(node.value),
       children: node.children.map((child) => this.nodeView(child)),
+    };
+  }
+
+  /**
+   * The node's self-description, projected for the record. The root's comes from the om
+   * builder; a child's from its action definition. The args schema is converted here, once per
+   * definition, so a step launched a thousand times converts its schema once.
+   */
+  private metaView(
+    node: ActionRun
+  ): Pick<NodeView, "description" | "mcp" | "inputSchema" | "kind"> {
+    const meta =
+      node.parentId === null
+        ? { description: this.description, mcp: this.mcp, describeArgs: node.meta?.describeArgs }
+        : node.meta;
+    if (!meta) return {};
+    let inputSchema: unknown;
+    if (meta.describeArgs) {
+      if (!this.schemaCache.has(meta.describeArgs)) {
+        this.schemaCache.set(meta.describeArgs, meta.describeArgs().inputSchema);
+      }
+      inputSchema = this.schemaCache.get(meta.describeArgs);
+    }
+    return {
+      ...(meta.description === undefined ? {} : { description: { ...meta.description } }),
+      ...(meta.mcp === undefined ? {} : { mcp: { ...meta.mcp } }),
+      ...(inputSchema === undefined ? {} : { inputSchema }),
+      ...("inline" in meta && meta.inline ? { kind: "step" as const } : {}),
     };
   }
 
@@ -452,13 +513,19 @@ export class ExecutionTree {
    * artifact name is free-form, so any printable separator can be forged inside a key.
    */
   private curatedArtifacts(): readonly ArtifactView[] {
-    const byKey = new Map<string, ArtifactView>();
+    return this.curatedArtifactsWithNode().map(({ nodeId: _nodeId, ...view }) => view);
+  }
+
+  /** {@link curatedArtifacts}, each still carrying the node that registered it (for the report). */
+  private curatedArtifactsWithNode(): Array<ArtifactView & { nodeId: string }> {
+    const byKey = new Map<string, ArtifactView & { nodeId: string }>();
     for (const { name, file, description, mime, nodeId } of this.artifactStore.all()) {
       byKey.set(`${nodeId}\0${name}`, {
         name,
         file,
         mime,
         ...(description === undefined ? {} : { description }),
+        nodeId,
       });
     }
     return [...byKey.values()];
@@ -498,6 +565,36 @@ const messageOf = (error: unknown): string =>
  * body may hand back anything — a capability handle, a cyclic object — and the run must
  * still write its record; a value that does not survive JSON is dropped, not fatal.
  */
+/** A node's return value is recorded up to this many characters of JSON. */
+const VALUE_CAP = 512 * 1024;
+
+/**
+ * What a node returned, for the record: the value itself when JSON can carry it and it fits,
+ * otherwise a one-line note saying what it was — so "returned a Page" is still on the record.
+ */
+function valueView(value: unknown): Pick<NodeView, "value" | "valueNote"> {
+  if (value === undefined) return {};
+  const kind =
+    value === null
+      ? "null"
+      : typeof value === "object"
+        ? ((value as object).constructor?.name ?? "object")
+        : typeof value;
+  let text: string | undefined;
+  try {
+    text = JSON.stringify(value);
+  } catch {
+    text = undefined;
+  }
+  if (text === undefined) return { valueNote: `${kind} (not JSON)` };
+  if (text.length > VALUE_CAP) {
+    return {
+      valueNote: `${kind}, ${Math.round(text.length / 1024)} KB of JSON — too large to record`,
+    };
+  }
+  return { value: JSON.parse(text) as unknown };
+}
+
 function serialisable(value: unknown): unknown {
   if (value === undefined) return undefined;
   try {

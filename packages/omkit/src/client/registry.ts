@@ -16,6 +16,12 @@ export interface DiscoveredOm {
   /** 1-based line of the `om(...)` call (informational). */
   readonly line: number;
   /**
+   * The `.describe({ summary })` text, read statically — present only when it is written as a
+   * string literal. The authoritative value (whatever the expression evaluates to) comes from
+   * the import-based pass, `discoverRegistrations`.
+   */
+  readonly summary?: string;
+  /**
    * A static approximation of what the body calls, in source order. Absent when the walk
    * found nothing recognisable. Never a contract — see {@link import("./outline.ts").outlineBody}
    * for what it deliberately cannot see.

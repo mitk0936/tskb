@@ -6,7 +6,8 @@ import { omHash } from "../foundation/ids.ts";
 import { fsSafe } from "../foundation/fsSafe.ts";
 import { canonicalPath } from "../foundation/canonicalPath.ts";
 import { tsxLoader } from "./runner.ts";
-import { chainRoot, importedNames, outlineBody } from "./outline.ts";
+import { chainRoot, importedNames, outlineBody, summaryOf } from "./outline.ts";
+import { checkedProgram } from "./tsCache.ts";
 import type { OmRegistrationMessage } from "../core/discovery-mode.ts";
 import type { ActionsMessage, ScanMessage } from "./discover-child.ts";
 import type {
@@ -22,7 +23,6 @@ import type {
 /** Local binding names imported from "omkit" (handles `import { om as run } from "omkit"`). */
 interface OmkitNames {
   om?: string;
-  step?: string;
   action?: string;
 }
 
@@ -39,10 +39,8 @@ export function discover(tsconfigPath: string): Registry {
 
   const { parsed, warnings: configWarnings } = loadProject(tsconfigPath);
   warnings.push(...configWarnings);
-  const program = ts.createProgram({
-    rootNames: parsed.fileNames,
-    options: { ...parsed.options, noEmit: true },
-  });
+  const checked = checkedProgram(parsed, tsconfigPath);
+  const program = checked.program;
   const fileSet = new Set(parsed.fileNames.map((f) => canonical(f)));
 
   for (const sf of program.getSourceFiles()) {
@@ -54,24 +52,27 @@ export function discover(tsconfigPath: string): Registry {
     // whole chain agrees with the filesystem, and with the paths a real run reports.
     const file = canonicalPath(sf.fileName);
 
-    for (const d of program.getSemanticDiagnostics(sf)) warnings.push(formatDiagnostic(d));
+    for (const d of checked.semanticDiagnostics(sf)) warnings.push(formatDiagnostic(d));
 
     const names = omkitImports(sf);
     const outlines = outlinesIn(sf, names.om, importedNames(sf));
 
+    // Only `om(...)` is runnable on its own. A `step(...)` is an inline child of whatever run
+    // launches it — it throws outside one — so it is part of an om's outline, never an entry.
     const visit = (node: ts.Node): void => {
       if (
         ts.isCallExpression(node) &&
         ts.isIdentifier(node.expression) &&
-        (node.expression.text === names.om || node.expression.text === names.step)
+        node.expression.text === names.om
       ) {
         const arg = node.arguments[0];
         if (arg && ts.isStringLiteralLike(arg)) {
-          const calls = outlines.get(arg.text);
+          const { calls, summary } = outlines.get(arg.text) ?? {};
           oms.push({
             name: arg.text,
             file,
             line: lineOf(sf, node),
+            ...(summary !== undefined ? { summary } : {}),
             ...(calls?.length ? { calls } : {}),
           });
         }
@@ -98,11 +99,13 @@ export function discover(tsconfigPath: string): Registry {
     }
   }
 
+  checked.save();
   return { oms, actions, warnings };
 }
 
 /**
- * Outline every `om("name")…​.run(body)` chain in a file, keyed by om name.
+ * Outline every `om("name")…​.run(body)` chain in a file, keyed by om name, along with the
+ * chain's literal `.describe({ summary })`.
  *
  * Collected in its own pass rather than alongside the `om(...)` match, because a body is only
  * reachable from the `.run` end of the chain and the om name only from the other — and the
@@ -112,8 +115,8 @@ function outlinesIn(
   sf: ts.SourceFile,
   omName: string | undefined,
   imported: ReadonlySet<string>
-): Map<string, OmCall[]> {
-  const outlines = new Map<string, OmCall[]>();
+): Map<string, { calls?: OmCall[]; summary?: string }> {
+  const outlines = new Map<string, { calls?: OmCall[]; summary?: string }>();
   if (omName === undefined) return outlines;
 
   const visit = (node: ts.Node): void => {
@@ -125,8 +128,12 @@ function outlinesIn(
       const root = chainRoot(node);
       const body = node.arguments[0];
       const name = root?.call.arguments[0];
-      if (root?.name === omName && name && ts.isStringLiteralLike(name) && body) {
-        if (ts.isFunctionLike(body)) outlines.set(name.text, outlineBody(body, imported));
+      if (root?.name === omName && name && ts.isStringLiteralLike(name)) {
+        const summary = summaryOf(root);
+        outlines.set(name.text, {
+          ...(body && ts.isFunctionLike(body) ? { calls: outlineBody(body, imported) } : {}),
+          ...(summary !== undefined ? { summary } : {}),
+        });
       }
     }
     ts.forEachChild(node, visit);
@@ -290,11 +297,10 @@ function isOmkitImport(stmt: ts.Statement): stmt is ts.ImportDeclaration {
   );
 }
 
-/** Record the local binding for an imported `om` / `step` / `action` specifier. */
+/** Record the local binding for an imported `om` / `action` specifier. */
 function bindName(names: OmkitNames, el: ts.ImportSpecifier): void {
   const imported = (el.propertyName ?? el.name).text;
   if (imported === "om") names.om = el.name.text;
-  else if (imported === "step") names.step = el.name.text;
   else if (imported === "action") names.action = el.name.text;
 }
 

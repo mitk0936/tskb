@@ -93,6 +93,27 @@ export function outlineBody(body: ts.Node, imported: ReadonlySet<string>): OmCal
  * match is the innermost — the tag attached directly to the action rather than to something
  * further along the chain.
  */
+/** The `summary` of a `.describe({ summary: "…" })` in the chain, when it is a string literal. */
+export function summaryOf(chain: ChainRoot): string | undefined {
+  for (const call of chain.calls) {
+    const callee = call.expression;
+    if (!ts.isPropertyAccessExpression(callee) || callee.name.text !== "describe") continue;
+    const arg = call.arguments[0];
+    if (!arg || !ts.isObjectLiteralExpression(arg)) continue;
+    for (const prop of arg.properties) {
+      if (
+        ts.isPropertyAssignment(prop) &&
+        ts.isIdentifier(prop.name) &&
+        prop.name.text === "summary" &&
+        ts.isStringLiteralLike(prop.initializer)
+      ) {
+        return prop.initializer.text;
+      }
+    }
+  }
+  return undefined;
+}
+
 function tagOf(chain: ChainRoot): string | undefined {
   let tag: string | undefined;
   for (const call of chain.calls) {

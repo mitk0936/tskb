@@ -59,6 +59,8 @@ function launch(
   }
   const tree = new ExecutionTree(name, site, description, exposure);
   ExecutionTree.current = tree;
+  // The root's description and exposure live on the tree; its schema rides on the node.
+  if (schema !== undefined) tree.root.meta = { describeArgs: () => describeSchema(schema) };
 
   const rootBody: Exec<object, unknown, unknown> = (ctx) =>
     body({

@@ -10,10 +10,16 @@ describe("discover", () => {
   test("finds runnable oms with names, files, and lines", () => {
     const { oms } = discover(tsconfig);
     const names = oms.map((o) => o.name).sort();
-    expect(names).toEqual(["build", "dev"]);
+    expect(names).toEqual(["build", "dev"]); // not "compile": a step inside an om is not an om
     const dev = oms.find((o) => o.name === "dev")!;
     expect(path.basename(dev.file)).toBe("dev.ts");
     expect(dev.line).toBeGreaterThan(0);
+  });
+
+  test("reads an om's literal .describe({ summary }) without importing it", () => {
+    const { oms } = discover(tsconfig);
+    expect(oms.find((o) => o.name === "dev")?.summary).toBe("Start the dev stack");
+    expect(oms.find((o) => o.name === "build")).not.toHaveProperty("summary");
   });
 
   test("finds inspectable actions with capability/events metadata", () => {

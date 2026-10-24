@@ -4,6 +4,7 @@ import { describeSchema } from "./discovery-mode.ts";
 import { formatIssues } from "./args.ts";
 import type {
   Action,
+  ActionMeta,
   DescribedArgs,
   ActionBuilderArgs,
   ActionBuilderEvents,
@@ -70,9 +71,15 @@ class Builder<Events extends object, Handle> implements ActionBuilderEvents<Even
     // No `.args()` on this path, so there is nothing to describe — or to resolve against.
     const describeArgs = (): DescribedArgs => describeSchema(undefined);
     const parseArgs = (supplied: unknown): unknown => supplied;
+    const meta: ActionMeta = {
+      ...(description === undefined ? {} : { description }),
+      ...(mcp === undefined ? {} : { mcp }),
+    };
     const exec = body as unknown as Exec<object, unknown, unknown>;
     const create = (...args: Args): Activity<Result, Events, Handle> => {
-      const spec: LaunchSpec = { name, args, tags: [], body: exec, definedAt };
+      // where this launch was written — for a battery, the user's call rather than its definition
+      const calledAt = callerSite();
+      const spec: LaunchSpec = { name, args, tags: [], body: exec, definedAt, calledAt, meta };
       return ExecutionTree.require().launch(spec) as unknown as Activity<Result, Events, Handle>;
     };
     return Object.assign(create, {
@@ -128,6 +135,11 @@ class ArgsBuilder<
     // that built it — rather than in whichever copy the discovery child is running.
     const schema = this.schema;
     const describeArgs = (): DescribedArgs => describeSchema(schema);
+    const meta: ActionMeta = {
+      ...(description === undefined ? {} : { description }),
+      ...(mcp === undefined ? {} : { mcp }),
+      describeArgs,
+    };
     // `safeParse` is what applies `.default()`s, so this is where an advertised default
     // becomes the effective one. A refusal names the action and every failing field.
     const parseArgs = (supplied: unknown): unknown => {
@@ -137,7 +149,9 @@ class ArgsBuilder<
     };
     const exec = body as unknown as Exec<object, unknown, unknown>;
     const create = (...args: [InferSchema<S>]): Activity<Result, Events, Handle> => {
-      const spec: LaunchSpec = { name, args, tags: [], body: exec, definedAt };
+      // where this launch was written — for a battery, the user's call rather than its definition
+      const calledAt = callerSite();
+      const spec: LaunchSpec = { name, args, tags: [], body: exec, definedAt, calledAt, meta };
       return ExecutionTree.require().launch(spec) as unknown as Activity<Result, Events, Handle>;
     };
     return Object.assign(create, {

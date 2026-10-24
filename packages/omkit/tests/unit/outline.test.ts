@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import ts from "typescript";
-import { outlineBody, importedNames } from "../../src/client/outline.ts";
+import { outlineBody, importedNames, chainRoot, summaryOf } from "../../src/client/outline.ts";
 
 const parse = (src: string): ts.SourceFile =>
   ts.createSourceFile("t.ts", src, ts.ScriptTarget.ESNext, true);
@@ -128,5 +128,31 @@ describe("outlineBody", () => {
       { name: "browser", tag: "chrome" },
       { name: "chromePage", tag: "page" },
     ]);
+  });
+});
+
+describe("summaryOf", () => {
+  /** The outermost call of the first statement's chain, resolved to its root. */
+  const chain = (src: string) => {
+    const stmt = parse(src).statements[0] as ts.ExpressionStatement;
+    return chainRoot(stmt.expression as ts.CallExpression)!;
+  };
+
+  it("reads a string-literal summary anywhere in the chain", () => {
+    expect(summaryOf(chain(`om("a").describe({ summary: "Boots it" }).run(() => {});`))).toBe(
+      "Boots it"
+    );
+    expect(summaryOf(chain("om('a').args(s).describe({ summary: `tpl` }).run(() => {});"))).toBe(
+      "tpl"
+    );
+  });
+
+  it("gives up on anything it would have to evaluate", () => {
+    expect(summaryOf(chain(`om("a").describe({ summary: text }).run(() => {});`))).toBeUndefined();
+    expect(
+      summaryOf(chain("om('a').describe({ summary: `v${1}` }).run(() => {});"))
+    ).toBeUndefined();
+    expect(summaryOf(chain(`om("a").describe(meta).run(() => {});`))).toBeUndefined();
+    expect(summaryOf(chain(`om("a").run(() => {});`))).toBeUndefined();
   });
 });

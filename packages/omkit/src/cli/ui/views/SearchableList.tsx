@@ -19,6 +19,12 @@ export interface SearchableListProps<T> {
   max?: number;
   /** Prefix for the search line. Default "search: ". */
   searchLabel?: string;
+  /** Keep the search line on screen even when the list fits (it shows a placeholder while empty). */
+  alwaysShowSearch?: boolean;
+  /** Dim text shown on an empty, always-visible search line. */
+  searchPlaceholder?: string;
+  /** Drawn under the list for the highlighted item (`undefined` when nothing matches). */
+  renderDetail?: (item: T | undefined) => ReactNode;
 }
 
 /**
@@ -36,6 +42,9 @@ export function SearchableList<T>({
   initialIndex = 0,
   max = MAX_VISIBLE,
   searchLabel = "search: ",
+  alwaysShowSearch,
+  searchPlaceholder,
+  renderDetail,
 }: SearchableListProps<T>): ReactElement {
   // Refs hold the authoritative query/index: Ink can deliver several key events before React
   // re-renders, so the Enter handler must read refs, not a possibly-stale render closure. State
@@ -63,6 +72,11 @@ export function SearchableList<T>({
       const list = match(queryRef.current);
       const picked = list[clampIndex(indexRef.current, list.length)];
       if (picked) onSelect(picked);
+    } else if (key.escape) {
+      queryRef.current = "";
+      indexRef.current = 0;
+      setQuery("");
+      setIndex(0);
     } else if (key.backspace || key.delete) {
       queryRef.current = queryRef.current.slice(0, -1);
       indexRef.current = 0;
@@ -88,15 +102,12 @@ export function SearchableList<T>({
   const below = filtered.length - (start + window);
 
   const overflows = items.length > Math.min(max, MAX_VISIBLE);
-  const showSearch = overflows || query.length > 0;
+  const showSearch = alwaysShowSearch || overflows || query.length > 0;
 
   return (
     <Box flexDirection="column">
       {showSearch ? (
-        <Text dimColor>
-          {searchLabel}
-          {query}
-        </Text>
+        <SearchLine label={searchLabel} query={query} placeholder={searchPlaceholder} />
       ) : null}
       {above > 0 ? <Text dimColor>{`↑ ${above} more`}</Text> : null}
       {filtered.length === 0 ? <Text dimColor>no matches</Text> : null}
@@ -104,6 +115,25 @@ export function SearchableList<T>({
         <Box key={getKey(it)}>{renderRow(it, start + vi === selected)}</Box>
       ))}
       {below > 0 ? <Text dimColor>{`+${below} more`}</Text> : null}
+      {renderDetail ? renderDetail(filtered[selected]) : null}
     </Box>
+  );
+}
+
+/** The search line: what has been typed so far, or a dim hint while it is empty. */
+function SearchLine({
+  label,
+  query,
+  placeholder,
+}: {
+  label: string;
+  query: string;
+  placeholder: string | undefined;
+}): ReactElement {
+  return (
+    <Text dimColor>
+      {label}
+      {query ? <Text color="cyan">{query}</Text> : placeholder}
+    </Text>
   );
 }

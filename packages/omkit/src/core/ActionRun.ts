@@ -3,12 +3,23 @@ import { events, type Emitter, type EventHandler } from "../foundation/events.ts
 import { CancelledError } from "../foundation/CancelledError.ts";
 import { renderValue } from "../foundation/format.ts";
 import type { ActionRef } from "../foundation/ActionRef.ts";
+import { callerSite } from "../foundation/callsite.ts";
+import type { LogLink } from "../foundation/LogEntry.ts";
+import { currentNode } from "./context.ts";
+import { traceHandle, REF_CALL_CAP } from "./refTrace.ts";
 import { createProc } from "../system/proc.ts";
 import { FolderCache } from "../system/fs/FolderCache.ts";
 import type { LogStore } from "../output/log/LogStore.ts";
 import type { SnapshotStore } from "../output/snapshot/SnapshotStore.ts";
 import type { ArtifactStore } from "../output/artifact/ArtifactStore.ts";
-import type { ActionContext, Activity, Exec, InstanceEvents, NodeStatus } from "./types.ts";
+import type {
+  ActionContext,
+  ActionMeta,
+  Activity,
+  Exec,
+  InstanceEvents,
+  NodeStatus,
+} from "./types.ts";
 
 /** Everything a node needs to exist, minus its behavior. */
 export interface NodeInit {
@@ -56,6 +67,10 @@ export class ActionRun<
   readonly path: string;
   readonly parentId: string | null;
   readonly tags: string[] = [];
+  /** What the definition said about itself (`.describe()`, `.mcp()`, `.args()`); for the record. */
+  meta: ActionMeta | undefined;
+  /** `file:line` of the call that launched this node (absent for the root). */
+  calledAt: string | undefined;
   /** The captured args this node ran with (for the log header); set at run start. */
   args: readonly unknown[] = [];
   readonly children: ActionRun[] = [];
@@ -81,6 +96,8 @@ export class ActionRun<
   private attached = false;
   private observed = false;
   private refObserved = false;
+  /** The traced handle every `.ref` reader shares (see {@link traceHandle}); made on first read. */
+  private tracedRef: Promise<Handle> | undefined;
   private cancelLogged = false;
   // The armed body + args, set at launch and run once by `commit()` on a microtask — the
   // window during which `withCache` may still wrap the body. `committed` closes that window.
@@ -149,7 +166,29 @@ export class ActionRun<
   /** The attached handle; rejects on failure/cancel. */
   get ref(): Promise<Handle> {
     this.refObserved = true;
-    return this.handle.promise;
+    // One traced handle for every reader — identity holds across reads, and each method call
+    // another node makes on it is recorded here as a `ref` link.
+    if (!this.tracedRef) {
+      this.tracedRef = this.handle.promise.then((h) =>
+        traceHandle(h, {
+          call: (c) =>
+            this.link(
+              `${c.key}() ← ${c.from} · ${c.ms}ms${c.outcome === "failed" ? " · failed" : ""}`,
+              {
+                op: "ref",
+                from: c.from,
+                ...(c.site ? { site: c.site } : {}),
+                key: c.key,
+                ms: c.ms,
+                outcome: c.outcome,
+              }
+            ),
+          capped: () => this.log("info", "ref", `ref calls past ${REF_CALL_CAP} are not recorded`),
+        })
+      );
+      void this.tracedRef.catch(() => {});
+    }
+    return this.tracedRef;
   }
 
   on<K extends keyof InstanceEvents<Events, Result>>(
@@ -166,8 +205,31 @@ export class ActionRun<
   once<K extends keyof InstanceEvents<Events, Result>>(
     key: K
   ): Promise<InstanceEvents<Events, Result>[K] | undefined> {
+    // Who waits, from where — recorded on this node as a `once` link when the wait ends.
+    const from = currentNode.getStore();
+    const site = callerSite();
+    const t0 = Date.now();
+    const note = (outcome: "fired" | "ended" | "failed"): void => {
+      if (!from || from.id === this.id) return;
+      const ms = Date.now() - t0;
+      this.link(`${String(key)} ← ${from.id} · ${outcome} after ${ms}ms`, {
+        op: "once",
+        from: from.id,
+        ...(site ? { site } : {}),
+        key: String(key),
+        ms,
+        outcome,
+      });
+    };
     // `done` is the outcome itself — identical to `.result` (resolve the value, reject on failure).
-    if (key === "done") return this.result as Promise<InstanceEvents<Events, Result>[K]>;
+    if (key === "done") {
+      const outcome = this.result as Promise<InstanceEvents<Events, Result>[K]>;
+      outcome.then(
+        () => note("fired"),
+        () => note("failed")
+      );
+      return outcome;
+    }
     // Awaiting an event observes the activity: resolve the payload when it fires, but if the
     // activity settles first, resolve `undefined` on success and **reject** on failure/cancel —
     // so an event gate surfaces a failure instead of hanging (or, for `error`, hand back the error).
@@ -176,15 +238,20 @@ export class ActionRun<
       let done = false;
       const win = (): boolean => (done ? false : (done = true));
       this.emitter.listenOnce(key, (p) => {
-        if (win()) resolve(p);
+        if (!win()) return;
+        note("fired");
+        resolve(p);
       });
       this.settled.promise.then(
         () => {
-          if (win()) resolve(undefined);
+          if (!win()) return;
+          note("ended");
+          resolve(undefined);
         },
         (error: unknown) => {
           if (!win()) return;
           // Awaiting the `error` event hands back the error; any other gate rejects on failure.
+          note(key === "error" ? "fired" : "failed");
           if (key === "error") resolve(error as never);
           else reject(error);
         }
@@ -211,6 +278,16 @@ export class ActionRun<
   }
 
   cancel(): void {
+    // A cancel from another node is a link: who stopped this one, and from where.
+    const from = currentNode.getStore();
+    if (from && from.id !== this.id && this.parentId !== null && this.status === "running") {
+      const site = callerSite();
+      this.link(`by ${from.id}${site ? ` @ ${site}` : ""}`, {
+        op: "cancel",
+        from: from.id,
+        ...(site ? { site } : {}),
+      });
+    }
     this.noteCancelled(); // a direct cancel of this activity
     this.controller.abort();
   }
@@ -399,6 +476,18 @@ export class ActionRun<
 
   private log(level: string, source: string, message: string): void {
     this.store.append({ nodeId: this.id, path: this.path, level, source, message });
+  }
+
+  /** A cross-node interaction, on this (the targeted) node's log; `source` is the link's op. */
+  private link(message: string, link: LogLink): void {
+    this.store.append({
+      nodeId: this.id,
+      path: this.path,
+      level: "link",
+      source: link.op,
+      message,
+      link,
+    });
   }
 }
 

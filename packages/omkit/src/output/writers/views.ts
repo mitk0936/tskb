@@ -10,6 +10,8 @@ export interface NodeView {
   readonly name: string;
   /** `file:line` where the action was defined (the `.run(...)` site); absent for the root. */
   readonly definedAt?: string;
+  /** `file:line` of the call that launched this node; absent for the root. */
+  readonly calledAt?: string;
   readonly path: string;
   readonly parentId: string | null;
   readonly tags: readonly string[];
@@ -20,6 +22,18 @@ export interface NodeView {
   readonly duration: number;
   /** Absolute path to this node's own `.log`. */
   readonly logFile: string;
+  /** What the definition's `.describe()` said; absent when it said nothing. */
+  readonly description?: { readonly summary: string };
+  /** The definition's `.mcp()` exposure; absent when it is not exposed. */
+  readonly mcp?: { readonly mode: string };
+  /** The definition's `.args()` schema as JSON Schema; absent without one. */
+  readonly inputSchema?: unknown;
+  /** What the node returned, when JSON can carry it; absent for `undefined` and for failures. */
+  readonly value?: unknown;
+  /** Why a returned value is not in {@link value}: what it was, and that it was too big or not JSON. */
+  readonly valueNote?: string;
+  /** `"step"` for an inline `step(…)`; absent for an action launched from a definition. */
+  readonly kind?: "step";
   readonly children: readonly NodeView[];
 }
 
