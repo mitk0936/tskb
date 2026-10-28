@@ -65,6 +65,7 @@ function launch(
   const rootBody: Exec<object, unknown, unknown> = (ctx) =>
     body({
       signal: ctx.signal,
+      untilAborted: ctx.untilAborted,
       logs: ctx.logs,
       tag: ctx.tag,
       cancel: () => tree.cancel(),

@@ -11,6 +11,7 @@ export { om } from "./core/om.ts";
 export { action } from "./core/action.ts";
 export { step } from "./core/step.ts";
 export { CancelledError, isCancelled } from "./foundation/CancelledError.ts";
+export { untilAborted } from "./foundation/untilAborted.ts";
 
 export type {
   Action,

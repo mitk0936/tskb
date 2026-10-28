@@ -21,6 +21,14 @@ declare global {
         desc: "Battery: wait until nothing is listening on a TCP port, so a restart can rebind without racing the old process.";
         type: typeof import("packages/omkit/src/actions/index.js").portFree;
       }>;
+      "omkit.pollUntil": Export<{
+        desc: "Battery: poll a predicate until it yields a value, resolving with that value.";
+        type: typeof import("packages/omkit/src/actions/index.js").pollUntil;
+      }>;
+      "omkit.tailLog": Export<{
+        desc: "Battery: follow a log file another process writes and fold its lines into the run log.";
+        type: typeof import("packages/omkit/src/actions/index.js").tailLog;
+      }>;
       "omkit.prompt": Export<{
         desc: "Battery: ask the user a question mid-run (answered in-terminal, or over the channel when supervised).";
         type: typeof import("packages/omkit/src/actions/index.js").prompt;
@@ -41,6 +49,8 @@ const Command = ref as tskb.Exports["omkit.command"];
 const Watch = ref as tskb.Exports["omkit.watch"];
 const Healthcheck = ref as tskb.Exports["omkit.healthcheck"];
 const PortFree = ref as tskb.Exports["omkit.portFree"];
+const PollUntil = ref as tskb.Exports["omkit.pollUntil"];
+const TailLog = ref as tskb.Exports["omkit.tailLog"];
 const Prompt = ref as tskb.Exports["omkit.prompt"];
 const ChromePage = ref as tskb.Exports["omkit.chromePage"];
 
@@ -66,6 +76,20 @@ export default (
       needs before it rebinds, since a killed process can hold its socket well after the run has
       moved on. It probes by connecting: only a refused connection proves nobody is listening, so a
       filtered or unreachable port reads as still busy rather than falsely free.
+    </P>
+    <P>
+      For a condition no dedicated gate covers, {PollUntil} is the general form: it calls a
+      predicate until it returns something other than false, null or undefined, and resolves with
+      that value, so the same call can wait for a thing and hand it over. Its node is named after
+      the description it is given, the way {Command} is named after its command line.
+    </P>
+    <P>
+      {TailLog} cannot trust file-watch events alone. On Windows, when the writing process keeps the
+      log file open (as servers and loggers do), the operating system often sends one change event
+      and then nothing until the file is closed, so a watcher-only tail goes silent while the file
+      keeps growing. {TailLog} therefore also checks the file size on a timer (its{" "}
+      <code>pollMs</code> option). Do not remove that fallback to save work: the regression tests
+      with a separate writer process fail without it.
     </P>
 
     <Relation from={Command} to={ZxExternal} label="runs shell commands through" />

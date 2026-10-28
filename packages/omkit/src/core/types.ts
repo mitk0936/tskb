@@ -35,6 +35,11 @@ export type InstanceEvents<Events extends object, Result> = Events & SystemEvent
 export interface ActionContext<Events extends object = NoEvents, Handle = void> {
   /** This node's abort signal — honor it to stop early. */
   readonly signal: AbortSignal;
+  /**
+   * Resolves once `signal` aborts — the daemon idiom `await ctx.untilAborted(); cleanup()`.
+   * Code after the await stays attributed to this node (an `"abort"` listener would not).
+   */
+  readonly untilAborted: () => Promise<void>;
   /** The combined run log, read-only (subscribe/observe; never append). */
   readonly logs: ReadableLog;
   /** Emit one of this action's declared events (also logged onto the timeline). */
@@ -137,6 +142,11 @@ export interface OmBuilderArgs<S extends ZodTypeLike> {
 export interface OmContext {
   /** The run's (root) abort signal. */
   readonly signal: AbortSignal;
+  /**
+   * Resolves once `signal` aborts — the daemon idiom `await ctx.untilAborted(); cleanup()`.
+   * Code after the await stays attributed to this node (an `"abort"` listener would not).
+   */
+  readonly untilAborted: () => Promise<void>;
   /** Tag the root run. */
   readonly tag: (name: string) => void;
   /** Tear the whole run down. */

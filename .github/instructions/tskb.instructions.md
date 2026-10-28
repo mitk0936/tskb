@@ -79,6 +79,7 @@ All paths are relative to project root and can be used directly to read files.
 
 ## Constraint Docs
 
+- `docs/src/omkit/console-attribution.tskb.tsx` — Why can a console line from an action end up in another node's log?
 - `docs/src/omkit/run-folder-identity.tskb.tsx` — Why is a run folder's identity keyed by the om's name and its defining file?
 - `docs/src/tskb/constraints/constraint-graph-write-order.tskb.tsx` — Why must the graph writer write meta.json last and atomically?
 - `docs/src/tskb/constraints/constraint-panel-views.tskb.tsx` — How are explorer panel views structured?
@@ -103,7 +104,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — What does the runtime module provide and what does it not do?
 - `docs/src/tskb/usage.tskb.tsx` — What's the typical workflow for setting up tskb in a repo?
 
-_Plus 34 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 35 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 ## Externals
 

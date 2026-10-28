@@ -13,7 +13,7 @@ declare global {
 
     interface Exports {
       "omkit.ActionContext": Export<{
-        desc: "What an action's body receives — signal, logs, emit, tag, assert, snapshot, proc, and attach (the capability publisher).";
+        desc: "What an action's body receives — signal, untilAborted, logs, emit, tag, assert, snapshot, proc, and attach (the capability publisher).";
         type: import("packages/omkit/src/core/types.js").ActionContext;
       }>;
 

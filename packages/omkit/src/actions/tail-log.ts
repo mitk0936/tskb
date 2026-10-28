@@ -1,3 +1,4 @@
+import { AsyncResource } from "node:async_hooks";
 import { watch as fsWatch } from "node:fs";
 import { open, stat } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
@@ -11,6 +12,18 @@ export interface TailLogOptions {
   encoding?: BufferEncoding;
   /** Coalesce rapid writes within this window. Default 50ms. */
   debounceMs?: number;
+  /**
+   * Also re-check the file's size this often (ms), independent of watch events; 0 disables.
+   * Needed on Windows, where appends through a handle another process keeps open often raise
+   * no directory notification until that handle closes. Default 500ms.
+   */
+  pollMs?: number;
+  /**
+   * Log `[diag]` lines (watch events, filter decisions, pump/read activity, sizes and
+   * offsets — never file contents) into this action's log. Default: on when
+   * `OMKIT_DEBUG` is set.
+   */
+  diagnostics?: boolean;
 }
 
 /**
@@ -25,7 +38,14 @@ export const tailLog = action("tailLog").run(
     const file = resolve(target);
     const dir = dirname(file);
     const name = basename(file);
-    const { fromStart = false, encoding = "utf8", debounceMs = 50 } = opts;
+    const {
+      fromStart = false,
+      encoding = "utf8",
+      debounceMs = 50,
+      pollMs = 500,
+      diagnostics = Boolean(process.env.OMKIT_DEBUG),
+    } = opts;
+    const diag = diagnostics ? (msg: string): void => console.log(`[diag] ${msg}`) : undefined;
 
     let pos = 0; // bytes consumed so far
     let pending = ""; // partial trailing line, buffered until its newline
@@ -45,12 +65,15 @@ export const tailLog = action("tailLog").run(
       let size: number;
       try {
         size = (await stat(file)).size;
-      } catch {
+      } catch (err) {
+        diag?.(`stat failed: ${(err as NodeJS.ErrnoException).code ?? err}`);
         return; // missing/unreadable — wait for the next event
       }
+      if (size !== pos) diag?.(`read size=${size} pos=${pos}`); // quiet on idle poll ticks
 
       if (size < pos) {
         // Truncation/rotation: restart from the top, drop stale buffers.
+        diag?.(`truncated ${pos} -> ${size}, restarting from 0`);
         pos = 0;
         pending = "";
         decoder = new StringDecoder(encoding);
@@ -66,6 +89,7 @@ export const tailLog = action("tailLog").run(
           const { bytesRead } = await handle.read(buffer, 0, length, pos);
           if (bytesRead === 0) break;
           pos += bytesRead;
+          diag?.(`read bytes=${bytesRead} pos=${pos}`);
           feed(decoder.write(buffer.subarray(0, bytesRead)));
         }
       } finally {
@@ -76,9 +100,12 @@ export const tailLog = action("tailLog").run(
     // Serialize reads; coalesce extra triggers into a single follow-up pass.
     let reading = false;
     let again = false;
+    let stopped = false;
     const pump = (): void => {
+      if (stopped) return;
       if (reading) {
         again = true;
+        diag?.("pump: read in flight, queued follow-up");
         return;
       }
       reading = true;
@@ -88,6 +115,9 @@ export const tailLog = action("tailLog").run(
             again = false;
             await readDelta();
           } while (again);
+        } catch (err) {
+          diag?.(`read failed: ${(err as NodeJS.ErrnoException).code ?? err}`);
+          throw err;
         } finally {
           reading = false;
         }
@@ -97,7 +127,11 @@ export const tailLog = action("tailLog").run(
     let timer: ReturnType<typeof setTimeout> | undefined;
     const schedule = (): void => {
       if (timer) clearTimeout(timer);
-      timer = setTimeout(pump, debounceMs);
+      diag?.(`schedule pump in ${debounceMs}ms${timer ? " (reset pending timer)" : ""}`);
+      timer = setTimeout(() => {
+        timer = undefined;
+        pump();
+      }, debounceMs);
     };
 
     try {
@@ -107,20 +141,39 @@ export const tailLog = action("tailLog").run(
     }
 
     console.log(`tailing ${file}${fromStart ? " (from start)" : ""}`);
+    diag?.(`watching dir=${dir} name=${name} startPos=${pos}`);
     if (fromStart) pump();
+    // Fallback for missed notifications. Goes through the serialized pump and reads are
+    // offset-based, so a tick racing a watch-triggered read can't overlap or duplicate it.
+    const poll = pollMs > 0 ? setInterval(pump, pollMs) : undefined;
 
-    const watcher = fsWatch(dir, (_event, filename) => {
-      if (filename === null || filename === name) schedule();
+    const watcher = fsWatch(dir, (event, filename) => {
+      const accepted = filename === null || filename === name;
+      diag?.(`watch ${event} filename=${filename} ${accepted ? "accepted" : "ignored"}`);
+      if (accepted) schedule();
     });
+    if (diag) {
+      // Observe only: rethrow so a watcher error stays as loud as it is without a listener.
+      watcher.on("error", (err) => {
+        diag(`watcher error: ${err.message}`);
+        throw err;
+      });
+    }
 
     return new Promise<void>((resolveRun) => {
-      const stop = (): void => {
+      // Bound to this action's async context: the abort listener otherwise runs in the
+      // canceller's, and the flushed partial line would be attributed to that node instead.
+      const stop = AsyncResource.bind((): void => {
+        diag?.(`stop: aborted, pos=${pos} pendingChars=${pending.length}`);
+        stopped = true;
         if (timer) clearTimeout(timer);
+        if (poll) clearInterval(poll);
         watcher.close();
         const tail = pending.replace(/\r$/, "");
+        pending = "";
         if (tail) console.log(tail);
         resolveRun();
-      };
+      });
       if (signal.aborted) stop();
       else signal.addEventListener("abort", stop, { once: true });
     });

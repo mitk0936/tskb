@@ -8,6 +8,9 @@ export type { CommandOptions } from "./command.ts";
 export { untilLog } from "./until-log.ts";
 export type { LogMatcher, UntilLogOptions, UntilLogEvents } from "./until-log.ts";
 
+export { pollUntil } from "./poll-until.ts";
+export type { PollUntilOptions, PollValue } from "./poll-until.ts";
+
 export { healthcheck } from "./healthcheck.ts";
 export type {
   HealthcheckOptions,
