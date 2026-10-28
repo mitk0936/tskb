@@ -1074,9 +1074,14 @@
           prev.n++;
           continue;
         }
-        list.push({ type: "link", l, n: 1, t: l.t, name: l.label });
+        // Placed by when the wait / call began, and never before its target started. By its end, a
+        // wait ties with the next step's start (the target ends, the next step launches); by its
+        // start alone, it ties with its target's. Clamping to the target, with ties sorting after
+        // a card, puts it right under what it waited on.
+        list.push({ type: "link", l, n: 1, t: l.t, at: Math.max(l.t0, l.to.start), name: l.label });
       }
-      const byTime = (a, b) => (a.t ?? Infinity) - (b.t ?? Infinity);
+      const at = (x) => x.at ?? x.t ?? Infinity; // where a chip sits in its lane
+      const byTime = (a, b) => at(a) - at(b);
       const pos = new Map();
       const lanes = [];
       const chipRows = [];
@@ -1098,7 +1103,7 @@
         let si = 0;
         for (const k of kids) {
           const before = [];
-          while (si < shots.length && (shots[si].t ?? Infinity) < k.start) before.push(shots[si++]);
+          while (si < shots.length && at(shots[si]) < k.start) before.push(shots[si++]);
           if (before.length) seq.push({ shots: before });
           seq.push({ node: k });
         }

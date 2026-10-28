@@ -60,7 +60,7 @@ npx --no -- tskb explore    # open the visual explorer
 ```ts
 om("dev").run(async () => {
   command("npm run dev", { cwd: "api" }).tag("api");
-  await healthcheck({ url: "http://localhost:3000" }).result; // wait until it actually serves
+  await healthcheck({ url: "http://localhost:3000" }).once("healthy"); // wait until it actually serves
   const page = chromePage("app", await browser().ref, { url: "http://localhost:3000" });
 });
 ```

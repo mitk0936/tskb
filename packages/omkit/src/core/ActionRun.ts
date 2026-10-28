@@ -1,6 +1,7 @@
 import { defer, type Deferred } from "../foundation/Deferred.ts";
 import { events, type Emitter, type EventHandler } from "../foundation/events.ts";
 import { CancelledError } from "../foundation/CancelledError.ts";
+import { untilAborted } from "../foundation/untilAborted.ts";
 import { renderValue } from "../foundation/format.ts";
 import type { ActionRef } from "../foundation/ActionRef.ts";
 import { callerSite } from "../foundation/callsite.ts";
@@ -349,6 +350,7 @@ export class ActionRun<
   private context(): ActionContext<Events, Handle> {
     return {
       signal: this.signal,
+      untilAborted: () => untilAborted(this.signal),
       logs: this.store,
       emit: ((key: keyof Events, payload: unknown) => {
         (this.emitter.emit as (k: keyof Events, p?: unknown) => void)(key, payload);
