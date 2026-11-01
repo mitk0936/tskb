@@ -102,6 +102,31 @@
       /[&<>"']/g,
       (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
     );
+  /** A description key as a label: `docsUrl` / `docs-url` / `docs_url` → `Docs url`. */
+  const propLabel = (key) => {
+    const words = String(key)
+      .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+      .replace(/[-_]+/g, " ")
+      .trim()
+      .toLowerCase();
+    return words.charAt(0).toUpperCase() + words.slice(1);
+  };
+  /**
+   * Key/value rows for a `.describe(…)`: the summary, then every further prop in the order it
+   * was written. A list reads as its items joined; a web address becomes a link.
+   */
+  const descriptionRows = (d) =>
+    Object.entries(d)
+      .filter(([, v]) => v !== undefined && v !== null && v !== "")
+      .sort(([a], [b]) => (a === "summary" ? -1 : b === "summary" ? 1 : 0))
+      .map(([k, v]) => {
+        const text = Array.isArray(v) ? v.join(", ") : String(v);
+        const value = /^https?:\/\/\S+$/.test(text)
+          ? `<a href="${esc(text)}" target="_blank" rel="noopener">${esc(text)}</a>`
+          : esc(text);
+        return `<div class="k">${esc(propLabel(k))}</div><div class="v">${value}</div>`;
+      })
+      .join("");
   const basename = (p) => String(p).split(/[\\/]/).pop();
   const fileUrl = (p) =>
     "file:///" +
@@ -752,7 +777,8 @@
         const need = text.length * 6.6 + 14;
         const inside = w >= need;
         const clipX = Math.max(x0, 0);
-        const outside = !inside && w <= 60;
+        // outside, too, when inside would cut it to a stub (`port =…`): a call label needs room
+        const outside = !inside && w < 16 * 6.6 + 14;
         const shown = inside || outside ? text : truncate(text, (w - 14) / 6.6);
         const tw = shown.length * 6.6;
         // an outside label that would run off the chart hangs left of its bar instead
@@ -1007,6 +1033,26 @@
     let flowG = null;
     let flowPos = new Map();
     let flowBounds = null;
+    // Lanes shown at full strength, by parent id; the rest are dimmed to cut the noise. Only the
+    // root's starts that way — each lane's toggle (on its parent link) flips just its own items.
+    const flowOpen = new Set([model.root.id]);
+    /** Dims every lane element (`data-lane` = its parent's id) whose lane is not open. */
+    function applyFlowDim() {
+      d3.select(el.flow)
+        .selectAll("[data-lane]")
+        .classed("dim", function () {
+          return !flowOpen.has(this.dataset.lane);
+        });
+      d3.select(el.flow)
+        .selectAll("g.lane-btn")
+        .classed("open", function () {
+          return flowOpen.has(this.dataset.for);
+        })
+        .select("text")
+        .text(function () {
+          return flowOpen.has(this.parentNode.dataset.for) ? "−" : "+";
+        });
+    }
     const FLOW = { CW: 250, CH: 58, TAGS_H: 18, GX: 64, GY: 26, LANE_DX: 22, TW: 46, TH: 28 };
     /** A tag chip in SVG, matching the HTML `.chip`; returns its group and width. */
     function svgChip(parent, x, label, color) {
@@ -1142,7 +1188,8 @@
           first.node && first.top === p.y
             ? `M${p.x + CW},${mid}H${lane.cardX}`
             : `M${p.x + CW},${mid}H${lane.x - 8}Q${lane.x},${mid} ${lane.x},${mid + 8}V${first.top - 2}`;
-        links.append("path").attr("class", "flow-link").attr("d", d);
+        const laneId = lane.parent.id;
+        links.append("path").attr("class", "flow-link").attr("data-lane", laneId).attr("d", d);
         // sibling → next sibling: the flow direction. Overlapping siblings ran in parallel.
         let prevNode = null;
         for (let i = 0; i + 1 < lane.items.length; i++) {
@@ -1153,12 +1200,14 @@
           links
             .append("path")
             .attr("class", `flow-seq${parallel ? " parallel" : ""}`)
+            .attr("data-lane", laneId)
             .attr("d", `M${lane.x},${a.bottom + 2}V${b.top - 3}`)
             .attr("marker-end", parallel ? null : "url(#flow-arrow)");
           if (parallel) {
             links
               .append("text")
               .attr("class", "flow-par")
+              .attr("data-lane", laneId)
               .attr("x", lane.x + 6)
               .attr("y", (a.bottom + b.top) / 2 + 3)
               .text("∥ parallel");
@@ -1173,6 +1222,7 @@
         .data(nodes, (n) => n.id)
         .join("g")
         .attr("class", (n) => `flow-card ${n.id === state.selected ? "selected" : ""}`)
+        .attr("data-lane", (n) => (n.parent ? n.parent.id : null))
         .attr("transform", (n) => `translate(${pos.get(n.id).x},${pos.get(n.id).y})`)
         .style("cursor", "pointer")
         .on("click", (ev, n) => select(n.id))
@@ -1260,6 +1310,36 @@
       fcb.append("circle").attr("r", 9);
       fcb.append("text").attr("text-anchor", "middle").attr("y", 3.5).text("<>");
 
+      // a lane's toggle sits on its parent link, between the card and its children
+      const laneBtn = flowG
+        .append("g")
+        .attr("class", "flow-lane-btns")
+        .selectAll("g.lane-btn")
+        .data(lanes)
+        .join("g")
+        .attr("class", "lane-btn")
+        .attr("data-for", (l) => l.parent.id)
+        .attr("transform", (l) => {
+          const p = pos.get(l.parent.id);
+          return `translate(${p.x + CW + GX / 2},${p.y + CH / 2})`;
+        })
+        .on("click", (ev, l) => {
+          ev.stopPropagation();
+          if (!flowOpen.delete(l.parent.id)) flowOpen.add(l.parent.id);
+          applyFlowDim();
+        })
+        .on("dblclick", (ev) => ev.stopPropagation())
+        .on("mouseenter", (ev, l) =>
+          showTip(
+            ev,
+            `${flowOpen.has(l.parent.id) ? "Dim" : "Highlight"} ${l.parent.children.length} child action${l.parent.children.length === 1 ? "" : "s"}`
+          )
+        )
+        .on("mousemove", (ev) => moveTip(ev))
+        .on("mouseleave", hideTip);
+      laneBtn.append("circle").attr("r", 8);
+      laneBtn.append("text").attr("text-anchor", "middle").attr("y", 4);
+
       // snapshot chips — on lane arrows, and in strips under leaf cards
       const chipLayer = flowG.append("g").attr("class", "flow-shots");
       // A link chip's wire, drawn under everything else: out of the chip to a gutter right of the
@@ -1287,9 +1367,12 @@
           })
           .attr("stroke", (w) => linkColor(w.c.x2.l));
       };
-      const drawChips = (x, y, shots, max, owner) => {
+      const drawChips = (x, y, shots, max, owner, laneId) => {
         const shown = shots.length > max ? shots.slice(0, max - 1) : shots;
-        const g = chipLayer.append("g").attr("transform", `translate(${x},${y})`);
+        const g = chipLayer
+          .append("g")
+          .attr("data-lane", laneId)
+          .attr("transform", `translate(${x},${y})`);
         const cell = g
           .selectAll("g.shot")
           .data(shown)
@@ -1375,10 +1458,13 @@
       };
       for (const r of chipRows) {
         const owner = lanes.find((l) => l.items.some((i) => i.row === r)).parent;
-        drawChips(r.x, r.y, r.shots, 6, owner);
+        drawChips(r.x, r.y, r.shots, 6, owner, owner.id);
       }
-      for (const s of strips) drawChips(s.x, s.y, s.shots, Math.floor((CW - 12) / (TW + 4)), s.n);
+      // a leaf's strip goes with its card
+      for (const s of strips)
+        drawChips(s.x, s.y, s.shots, Math.floor((CW - 12) / (TW + 4)), s.n, s.n.parent?.id ?? null);
       drawFlowWires(null);
+      applyFlowDim();
 
       flowPos = new Map([...pos].map(([id, p]) => [id, { x: p.x + CW / 2, y: p.y + CH / 2 }]));
       svg.call(flowZoom).on("dblclick.zoom", null);
@@ -1557,7 +1643,7 @@
           ${call ? `<div class="tcall who-call">${callHtml(n, call)}</div>` : ""}
           <div class="kv">
             <div class="k">Duration</div><div class="v">${fmtDur(n.duration)}</div>
-            ${n.v.description ? `<div class="k">Summary</div><div class="v">${esc(n.v.description.summary)}</div>` : ""}
+            ${n.v.description ? descriptionRows(n.v.description) : ""}
             ${n.v.tags.length ? `<div class="k">Tags</div><div class="v">${chipsHtml(n.v.tags, Infinity, 40)}</div>` : ""}
             ${n.v.mcp ? `<div class="k">MCP</div><div class="v"><span class="badge-inline">${esc(n.v.mcp.mode)}</span></div>` : ""}
             <div class="k">Id</div><div class="v mono-sm">${esc(n.id)}</div>

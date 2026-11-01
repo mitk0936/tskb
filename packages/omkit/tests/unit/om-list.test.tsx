@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import path from "node:path";
 import { render } from "ink-testing-library";
-import { OmList } from "../../src/cli/ui/views/OmList.tsx";
+import { OmList, labelOf } from "../../src/cli/ui/views/OmList.tsx";
 import type { DiscoveredOm } from "../../src/client/registry.ts";
 
 const oms: DiscoveredOm[] = [
@@ -36,9 +36,10 @@ describe("OmList", () => {
     const { lastFrame } = render(<OmList oms={oms} onSelect={() => {}} />);
     const frame = lastFrame()!;
     expect(frame).toContain("Compile the docs graph");
-    // "build" is highlighted first: its file:line and call outline are in the detail pane
+    // "build" is highlighted first: its file:line and numbered steps are in the detail pane
     expect(frame).toContain("build.ts:7");
-    expect(frame).toContain("watchDir [watch] → buildDocs");
+    expect(frame).toMatch(/1  watchDir   watch/);
+    expect(frame).toMatch(/2  buildDocs/);
   });
 
   test("typing filters by name", async () => {
@@ -87,5 +88,58 @@ describe("OmList", () => {
     ];
     const { lastFrame } = render(<OmList oms={nested} onSelect={() => {}} />);
     expect(rowNames(lastFrame()!)).toEqual(["z-top", "a-build", "b-build", "a-nightly"]);
+  });
+});
+
+const lines = (frame: string | undefined): string[] => (frame ?? "").split("\n");
+
+describe("OmList detail box", () => {
+  test("lays the om out as fields — summary, every further describe prop, where it is defined", () => {
+    const om: DiscoveredOm = {
+      name: "dev",
+      file: `${process.cwd()}/oms/dev.ts`,
+      line: 12,
+      summary: "Bring up the dev stack",
+      details: [
+        { key: "owner", value: "platform" },
+        { key: "docsUrl", value: "https://x.dev" },
+      ],
+    };
+    const frame = render(<OmList oms={[om]} onSelect={() => {}} />).lastFrame();
+    const row = (label: string) => lines(frame).find((l) => l.includes(label)) ?? "";
+    expect(row("Summary")).toMatch(/Summary\s+Bring up the dev stack/);
+    expect(row("Owner")).toMatch(/Owner\s+platform/);
+    expect(row("Docs url")).toMatch(/Docs url\s+https:\/\/x\.dev/);
+    expect(row("Defined")).toMatch(/Defined\s+.*dev\.ts:12/);
+    // the values line up in one column
+    const col = (label: string) => row(label).indexOf(label === "Owner" ? "platform" : "Bring");
+    expect(col("Owner")).toBe(col("Summary"));
+  });
+
+  test("numbers the steps, tags beside them, and collapses a long outline", () => {
+    const calls = Array.from({ length: 13 }, (_, i) =>
+      i === 0 ? { name: "watchDir", tag: "watch:build" } : { name: `step${i}` }
+    );
+    const om: DiscoveredOm = { name: "big", file: "/p/big.ts", line: 1, calls };
+    const frame = render(<OmList oms={[om]} onSelect={() => {}} />).lastFrame() ?? "";
+    expect(frame).toContain("Steps");
+    expect(frame).toContain("approximate");
+    expect(frame).toMatch(/ 1 {2}watchDir {2}watch:build/);
+    expect(frame).toMatch(/10 {2}step9/);
+    expect(frame).not.toContain("step10");
+    expect(frame).toContain("+3 more");
+  });
+
+  test("says how to add a summary when there is none", () => {
+    const om: DiscoveredOm = { name: "bare", file: "/p/bare.ts", line: 1 };
+    const frame = render(<OmList oms={[om]} onSelect={() => {}} />).lastFrame() ?? "";
+    expect(frame).toContain("add .describe({ summary }) to the om");
+  });
+
+  test("labels read as words whatever the key's casing", () => {
+    expect(labelOf("owner")).toBe("Owner");
+    expect(labelOf("docsUrl")).toBe("Docs url");
+    expect(labelOf("needs-auth")).toBe("Needs auth");
+    expect(labelOf("max_retries")).toBe("Max retries");
   });
 });

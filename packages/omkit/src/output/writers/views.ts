@@ -22,8 +22,8 @@ export interface NodeView {
   readonly duration: number;
   /** Absolute path to this node's own `.log`. */
   readonly logFile: string;
-  /** What the definition's `.describe()` said; absent when it said nothing. */
-  readonly description?: { readonly summary: string };
+  /** What the definition's `.describe()` said — its summary and any further props. */
+  readonly description?: { readonly summary: string; readonly [prop: string]: unknown };
   /** The definition's `.mcp()` exposure; absent when it is not exposed. */
   readonly mcp?: { readonly mode: string };
   /** The definition's `.args()` schema as JSON Schema; absent without one. */

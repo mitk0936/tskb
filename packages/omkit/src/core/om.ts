@@ -4,6 +4,7 @@ import { describeSchema, isDiscovering, reportOm } from "./discovery-mode.ts";
 import { activeSupervisor } from "./interaction.ts";
 import { jsonAnswerComplete, resolveArgs, type AskSpec } from "./args.ts";
 import { OPAQUE } from "./schema-hint.ts";
+import { normalizeDescription } from "./description.ts";
 import type {
   Awaitable,
   Exec,
@@ -91,7 +92,7 @@ class Builder implements OmBuilder {
   ) {}
 
   describe(description: OmDescription): OmBuilder {
-    this.description = description;
+    this.description = normalizeDescription(description);
     return this;
   }
 
@@ -126,7 +127,7 @@ class ArgsBuilder<S extends ZodTypeLike> implements OmBuilderArgs<S> {
   ) {}
 
   describe(description: OmDescription): OmBuilderArgs<S> {
-    this.description = description;
+    this.description = normalizeDescription(description);
     return this;
   }
 

@@ -53,6 +53,38 @@ describe("action metadata", () => {
     expect(handle).toBe("ok");
   });
 
+  test(".emits() and .ref() can also come after .args()", async () => {
+    const built = action("args-first")
+      .args(z.object({ label: z.string() }))
+      .emits<{ tick: number }>()
+      .ref<string>()
+      .describe({ summary: "Args first" })
+      .run(async (ctx, args) => {
+        ctx.emit("tick", 1);
+        ctx.attach(args.label);
+        return args.label;
+      });
+
+    let handle = "";
+    await om("action-args-first").run(async () => {
+      handle = await built({ label: "ok" }).ref;
+    });
+    expect(handle).toBe("ok");
+    expect(built.description?.summary).toBe("Args first");
+    expect(built.describeArgs().inputSchema).toBeDefined();
+  });
+
+  test(".describe() collapses a multi-line summary to one line", () => {
+    const summary = `
+      Doubles a number,
+      then returns it.
+    `;
+    const noop = async (): Promise<void> => {};
+    expect(action("a").describe({ summary }).run(noop).description?.summary).toBe(
+      "Doubles a number, then returns it."
+    );
+  });
+
   test(".describe() survives every builder link and lands on the definition", () => {
     // Each of `.emits()`, `.ref()` and `.args()` returns a *new* builder, and `.run()` is the
     // terminal call that has to put the value somewhere durable. Both halves have been broken

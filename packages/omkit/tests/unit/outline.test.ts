@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import ts from "typescript";
-import { outlineBody, importedNames, chainRoot, summaryOf } from "../../src/client/outline.ts";
+import {
+  outlineBody,
+  importedNames,
+  chainRoot,
+  summaryOf,
+  detailsOf,
+} from "../../src/client/outline.ts";
 
 const parse = (src: string): ts.SourceFile =>
   ts.createSourceFile("t.ts", src, ts.ScriptTarget.ESNext, true);
@@ -147,6 +153,12 @@ describe("summaryOf", () => {
     );
   });
 
+  it("collapses a multi-line template summary to one line", () => {
+    const src =
+      "om('a').describe({ summary: `\n    Boots it,\n    then waits.\n  ` }).run(() => {});";
+    expect(summaryOf(chain(src))).toBe("Boots it, then waits.");
+  });
+
   it("gives up on anything it would have to evaluate", () => {
     expect(summaryOf(chain(`om("a").describe({ summary: text }).run(() => {});`))).toBeUndefined();
     expect(
@@ -154,5 +166,36 @@ describe("summaryOf", () => {
     ).toBeUndefined();
     expect(summaryOf(chain(`om("a").describe(meta).run(() => {});`))).toBeUndefined();
     expect(summaryOf(chain(`om("a").run(() => {});`))).toBeUndefined();
+  });
+});
+
+describe("detailsOf", () => {
+  const chain = (src: string) => {
+    const stmt = parse(src).statements[0] as ts.ExpressionStatement;
+    return chainRoot(stmt.expression as ts.CallExpression)!;
+  };
+
+  it("reads the props besides summary, in source order, as text", () => {
+    const src = `om("a").describe({
+      summary: "Boots it",
+      owner: "platform",
+      "docs-url": "https://x.dev/a",
+      retries: 3,
+      headless: false,
+      needs: ["docker", "node 24"],
+    }).run(() => {});`;
+    expect(detailsOf(chain(src))).toEqual([
+      { key: "owner", value: "platform" },
+      { key: "docs-url", value: "https://x.dev/a" },
+      { key: "retries", value: "3" },
+      { key: "headless", value: "false" },
+      { key: "needs", value: "docker, node 24" },
+    ]);
+  });
+
+  it("leaves out a prop it would have to evaluate, keeping the rest", () => {
+    const src = `om("a").describe({ summary: "s", owner: who, team: "core", tags: [t] }).run(() => {});`;
+    expect(detailsOf(chain(src))).toEqual([{ key: "team", value: "core" }]);
+    expect(detailsOf(chain(`om("a").describe(meta).run(() => {});`))).toEqual([]);
   });
 });

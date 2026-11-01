@@ -1,5 +1,5 @@
 import path from "node:path";
-import { useMemo, type ReactElement } from "react";
+import { useMemo, type ReactElement, type ReactNode } from "react";
 import { Box, Text, useStdout } from "ink";
 import { SearchableList } from "./SearchableList.tsx";
 import { byNesting } from "../../../client/order.ts";
@@ -25,13 +25,20 @@ function truncate(text: string, max: number): string {
  * Rows are ordered by {@link byNesting} from the working directory — the same root the paths
  * are rendered from, so the oms nearest the top of the project come first, deeper ones after,
  * and any shown as an absolute path last.
+ *
+ * `status` goes on the header line (the shell's "rediscovering…"), and `hint` replaces the key
+ * line under the list, for a caller that binds more keys than the list does.
  */
 export function OmList({
   oms,
   onSelect,
+  status,
+  hint = "↑↓ move · enter run · esc clears search · ctrl+c quit",
 }: {
   oms: DiscoveredOm[];
   onSelect: (om: DiscoveredOm) => void;
+  status?: ReactNode;
+  hint?: string;
 }): ReactElement {
   const root = process.cwd();
   const sorted = useMemo(() => [...oms].sort(byNesting(root)), [oms, root]);
@@ -50,6 +57,8 @@ export function OmList({
       <Text>
         <Text bold>omkit</Text>
         <Text dimColor>{` · ${oms.length} om${oms.length === 1 ? "" : "s"}`}</Text>
+        {status ? <Text dimColor>{"  "}</Text> : null}
+        {status ?? null}
       </Text>
       <SearchableList
         items={sorted}
@@ -71,37 +80,102 @@ export function OmList({
         )}
         renderDetail={(o) => (o ? <OmDetail om={o} root={root} /> : null)}
       />
-      <Text dimColor>↑↓ move · enter run · esc clears search · ctrl+c quit</Text>
+      <Text dimColor>{hint}</Text>
     </Box>
   );
 }
 
-/** The highlighted om in full. */
+/** Steps listed before the rest collapse into `+N more`, so the box keeps a steady height. */
+const MAX_STEPS = 10;
+
+/** A description key as a label: `docsUrl` / `docs-url` / `docs_url` → `Docs url`. */
+export function labelOf(key: string): string {
+  const words = key
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[-_]+/g, " ")
+    .trim()
+    .toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/** One label/value row; the value wraps under itself, not under the label. */
+function Field({
+  label,
+  width,
+  children,
+}: {
+  label: string;
+  width: number;
+  children: ReactNode;
+}): ReactElement {
+  return (
+    <Box>
+      <Box width={width + 2} flexShrink={0}>
+        <Text dimColor>{label}</Text>
+      </Box>
+      <Box flexGrow={1}>{children}</Box>
+    </Box>
+  );
+}
+
+/**
+ * The highlighted om in full: its name, then a field per thing it says about itself — the
+ * summary, any further `.describe(…)` props, where it is defined — then its steps, numbered.
+ * The steps are the static outline, an approximation (see `outlineBody`), and say so.
+ */
 function OmDetail({ om, root }: { om: DiscoveredOm; root: string }): ReactElement {
+  const details = (om.details ?? []).map((d) => ({ label: labelOf(d.key), value: d.value }));
+  const width = Math.max("Summary".length, "Defined".length, ...details.map((d) => d.label.length));
+  const steps = om.calls ?? [];
+  const shown = steps.slice(0, MAX_STEPS);
+  const stepWidth = Math.min(24, Math.max(0, ...shown.map((c) => c.name.length)));
+  const numWidth = String(shown.length).length;
+
   return (
     <Box flexDirection="column" borderStyle="round" borderColor="gray" paddingX={1} marginTop={1}>
       <Text bold color="cyan">
         {om.name}
       </Text>
-      {om.summary ? (
-        <Text>{om.summary}</Text>
-      ) : (
-        <Text dimColor italic>
-          No summary. Add .describe({"{ summary }"}) to the om.
-        </Text>
-      )}
-      <Text dimColor>{`${displayPath(om.file, root)}:${om.line}`}</Text>
-      {om.calls?.length ? (
-        <Text wrap="wrap">
-          <Text dimColor>calls </Text>
-          {om.calls.map((c, i) => (
-            <Text key={`${c.name}\0${c.tag ?? ""}`}>
-              {i > 0 ? <Text dimColor> → </Text> : null}
-              {c.name}
-              {c.tag ? <Text dimColor>{` [${c.tag}]`}</Text> : null}
+      <Box flexDirection="column" marginTop={1}>
+        <Field label="Summary" width={width}>
+          {om.summary ? (
+            <Text wrap="wrap">{om.summary}</Text>
+          ) : (
+            <Text dimColor italic>
+              none · add .describe({"{ summary }"}) to the om
+            </Text>
+          )}
+        </Field>
+        {details.map((d) => (
+          <Field key={d.label} label={d.label} width={width}>
+            <Text wrap="wrap">{d.value}</Text>
+          </Field>
+        ))}
+        <Field label="Defined" width={width}>
+          <Text dimColor wrap="truncate-start">{`${displayPath(om.file, root)}:${om.line}`}</Text>
+        </Field>
+      </Box>
+      {shown.length ? (
+        <Box flexDirection="column" marginTop={1}>
+          <Text>
+            <Text dimColor>Steps</Text>
+            <Text dimColor italic>
+              {"  read from source · approximate"}
+            </Text>
+          </Text>
+          {shown.map((c, i) => (
+            <Text key={`${c.name}\0${c.tag ?? ""}`} wrap="truncate-end">
+              <Text dimColor>{`  ${String(i + 1).padStart(numWidth)}  `}</Text>
+              {c.tag ? c.name.padEnd(stepWidth) : c.name}
+              {c.tag ? <Text color="cyan">{`  ${c.tag}`}</Text> : null}
             </Text>
           ))}
-        </Text>
+          {steps.length > shown.length ? (
+            <Text
+              dimColor
+            >{`  ${" ".repeat(numWidth)}  +${steps.length - shown.length} more`}</Text>
+          ) : null}
+        </Box>
       ) : null}
     </Box>
   );

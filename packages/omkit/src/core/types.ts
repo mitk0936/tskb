@@ -70,9 +70,62 @@ export interface ActionContext<Events extends object = NoEvents, Handle = void> 
 
 /** Human-readable metadata about an om or action. */
 export interface OmDescription {
-  /** One line saying what this does. */
+  /** One line saying what this does. Whitespace is collapsed, so a template literal is fine. */
   summary: string;
+  // Suggested keys — optional, but using these names keeps descriptions alike across projects.
+  /** What must be in place before it runs: tools, services, credentials, other oms. */
+  readonly needs?: string | readonly string[];
+  /** What it changes outside its own run folder: processes left running, state mutated. */
+  readonly sideEffects?: string | readonly string[];
+  /** Files or folders it writes, outside `logs/`. */
+  readonly writes?: string | readonly string[];
+  /** Who to ask about it. */
+  readonly owner?: string;
+  /** Where to read more. */
+  readonly docs?: string;
+  /**
+   * Anything else worth knowing before running it — an owner, a docs link, what it needs.
+   * Listed under the summary, keyed by name, in the interactive picker and the run report.
+   */
+  readonly [prop: string]: DescriptionValue;
 }
+
+/**
+ * A summary literal as the one line `.describe()` stores at runtime: newlines, tabs and
+ * indentation collapsed to single spaces, ends trimmed. Carried on {@link Action} and
+ * {@link Activity} so an editor hover shows what an action is for, at the definition, at every
+ * call site and on the activity it returns. A non-literal summary stays `string`, and so does
+ * one too long to clean within the instantiation budget — never a compile error.
+ */
+export type OneLine<S extends string> = string extends S
+  ? string
+  : Trimmed<Squashed<ReplaceAll<ReplaceAll<ReplaceAll<S, "\r", " ">, "\t", " ">, "\n", " ">>>;
+
+/** Steps one rewrite may take before giving up as `string`; tail recursion allows 1000. */
+type RewriteBudget = 500;
+
+type ReplaceAll<
+  S extends string,
+  From extends string,
+  To extends string,
+  Steps extends 0[] = [],
+> = Steps["length"] extends RewriteBudget
+  ? string
+  : S extends `${infer A}${From}${infer B}`
+    ? ReplaceAll<`${A}${To}${B}`, From, To, [...Steps, 0]>
+    : S;
+
+type Squashed<S extends string> = ReplaceAll<S, "  ", " ">;
+
+/** At most one space is left at each end once runs are squashed. */
+type Trimmed<S extends string> = S extends ` ${infer R}`
+  ? Trimmed<R>
+  : S extends `${infer R} `
+    ? Trimmed<R>
+    : S;
+
+/** What a description prop can hold: values that read plainly in a terminal and a report. */
+export type DescriptionValue = string | number | boolean | readonly string[] | undefined;
 
 /** How an om or action behaves when a client runs it as an MCP tool. */
 export type McpMode = "settling" | "long-lived";
@@ -179,7 +232,13 @@ export interface OmContext {
  * committed one microtask after the launching call, so pre-body config (`withCache`) chained
  * before the first `await` still applies.
  */
-export interface Activity<Result = unknown, Events extends object = NoEvents, Handle = void> {
+export interface Activity<
+  Result = unknown,
+  Events extends object = NoEvents,
+  Handle = void,
+  /** The defining action's `.describe()` summary, for editor hovers; never read at runtime. */
+  Summary extends string = string,
+> {
   readonly id: string;
   /**
    * The terminal outcome: resolves the value on success, **rejects** with the action's error on
@@ -195,7 +254,7 @@ export interface Activity<Result = unknown, Events extends object = NoEvents, Ha
    * and logs `cached, skipping`). **Pre-body only** — chain it before the first `await`
    * after the launching call; calling it once the body has started throws.
    */
-  withCache(...paths: string[]): Activity<Result | undefined, Events, Handle>;
+  withCache(...paths: string[]): Activity<Result | undefined, Events, Handle, Summary>;
   /** Subscribe to every emit of a declared/system event (`done`/`error`/`attached`). */
   on<K extends keyof InstanceEvents<Events, Result>>(
     key: K,
@@ -222,8 +281,10 @@ export interface Action<
   Result,
   Events extends object = NoEvents,
   Handle = void,
+  /** The `.describe()` summary as a literal type, so a hover on the action shows it. */
+  Summary extends string = string,
 > {
-  (...args: Args): Activity<Result, Events, Handle>;
+  (...args: Args): Activity<Result, Events, Handle, Summary>;
   readonly actionName: string;
   /** `file:line` where this action was defined (the `.run(...)` site), for the log header. */
   readonly definedAt: string | undefined;
@@ -252,27 +313,42 @@ export interface Action<
 }
 
 /** Intermediate step from `action(name)`: declare metadata/events/handle, then the impl. */
-export interface ActionBuilderEvents<Events extends object, Handle = void> {
-  describe(description: OmDescription): ActionBuilderEvents<Events, Handle>;
+export interface ActionBuilderEvents<
+  Events extends object,
+  Handle = void,
+  Summary extends string = string,
+> {
+  describe<const D extends string>(
+    description: OmDescription & { summary: D }
+  ): ActionBuilderEvents<Events, Handle, OneLine<D>>;
   /** Expose this action over MCP. Without it the MCP server does not list or run it. */
-  mcp(exposure?: McpExposure): ActionBuilderEvents<Events, Handle>;
-  emits<E extends object>(): ActionBuilderEvents<E, Handle>;
-  ref<H>(): ActionBuilderEvents<Events, H>;
+  mcp(exposure?: McpExposure): ActionBuilderEvents<Events, Handle, Summary>;
+  emits<E extends object>(): ActionBuilderEvents<E, Handle, Summary>;
+  ref<H>(): ActionBuilderEvents<Events, H, Summary>;
   /** Pin the first parameter to the schema's inferred type. */
-  args<S extends ZodTypeLike>(schema: S): ActionBuilderArgs<S, Events, Handle>;
+  args<S extends ZodTypeLike>(schema: S): ActionBuilderArgs<S, Events, Handle, Summary>;
   run<Args extends unknown[], Result>(
     body: (ctx: ActionContext<Events, Handle>, ...args: Args) => Awaitable<Result>
-  ): Action<Args, Result, Events, Handle>;
+  ): Action<Args, Result, Events, Handle, Summary>;
 }
 
 /** After `.args(schema)`: `.run` takes exactly one typed argument. */
-export interface ActionBuilderArgs<S extends ZodTypeLike, Events extends object, Handle = void> {
-  describe(description: OmDescription): ActionBuilderArgs<S, Events, Handle>;
+export interface ActionBuilderArgs<
+  S extends ZodTypeLike,
+  Events extends object,
+  Handle = void,
+  Summary extends string = string,
+> {
+  describe<const D extends string>(
+    description: OmDescription & { summary: D }
+  ): ActionBuilderArgs<S, Events, Handle, OneLine<D>>;
   /** Expose this action over MCP. Without it the MCP server does not list or run it. */
-  mcp(exposure?: McpExposure): ActionBuilderArgs<S, Events, Handle>;
+  mcp(exposure?: McpExposure): ActionBuilderArgs<S, Events, Handle, Summary>;
+  emits<E extends object>(): ActionBuilderArgs<S, E, Handle, Summary>;
+  ref<H>(): ActionBuilderArgs<S, Events, H, Summary>;
   run<Result>(
     body: (ctx: ActionContext<Events, Handle>, args: InferSchema<S>) => Awaitable<Result>
-  ): Action<[InferSchema<S>], Result, Events, Handle>;
+  ): Action<[InferSchema<S>], Result, Events, Handle, Summary>;
 }
 
 /** The exec signature bound by `.run(...)` (arg types erased at the boundary). */

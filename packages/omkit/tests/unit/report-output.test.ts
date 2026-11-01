@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import vm from "node:vm";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 import { action, om, step } from "../../src/index.ts";
@@ -149,6 +150,32 @@ describe("report.html", () => {
     expect(bare!.inputSchema).toBeUndefined();
     // a defined action is not marked; only inline step(...) nodes are
     expect(described).not.toHaveProperty("kind");
+  });
+
+  test("a description's further props are recorded alongside its summary", async () => {
+    await om("report-props")
+      .describe({ summary: "s", owner: "platform", needs: ["docker", "node"], retries: 3 })
+      .run(async () => {});
+
+    const parsed = JSON.parse(
+      await readFile(path.join(ExecutionTree.last!.folder.path(), "result.json"), "utf8")
+    ) as { root: { description?: Record<string, unknown> } };
+    expect(parsed.root.description).toEqual({
+      summary: "s",
+      owner: "platform",
+      needs: ["docker", "node"],
+      retries: 3,
+    });
+  });
+
+  test("the viewer script parses — the page is dead on a syntax error, which nothing else sees", async () => {
+    // The viewer is pasted into the page as-is with no build step, so a syntax error (a name
+    // declared twice in its one scope, say) blanks the whole report while every run still passes.
+    const source = await readFile(
+      path.resolve(import.meta.dirname, "../../src/output/writers/report/report.js"),
+      "utf8"
+    );
+    expect(() => new vm.Script(source, { filename: "report.js" })).not.toThrow();
   });
 
   test("each node records what it returned, or a note when JSON cannot carry it", async () => {

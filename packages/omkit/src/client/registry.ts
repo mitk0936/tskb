@@ -7,6 +7,12 @@ export interface OmCall {
   readonly tag?: string;
 }
 
+/** One `.describe(…)` prop besides `summary`: its key, and its literal value as text. */
+export interface DescriptionDetail {
+  readonly key: string;
+  readonly value: string;
+}
+
 /** A runnable om discovered from a top-level `om("name", …)` call. */
 export interface DiscoveredOm {
   /** The om's name — its first string argument. */
@@ -21,6 +27,11 @@ export interface DiscoveredOm {
    * the import-based pass, `discoverRegistrations`.
    */
   readonly summary?: string;
+  /**
+   * The `.describe(…)` props besides `summary`, in source order, each value rendered as text
+   * (a list joined with commas). Read statically like `summary`, so only literal values appear.
+   */
+  readonly details?: readonly DescriptionDetail[];
   /**
    * A static approximation of what the body calls, in source order. Absent when the walk
    * found nothing recognisable. Never a contract — see {@link import("./outline.ts").outlineBody}

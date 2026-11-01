@@ -1,4 +1,5 @@
-import { type Module, type Export, Doc, H1, H2, P, Relation, ref } from "tskb";
+import { type Module, type Export, Doc, H1, H2, P, Relation, Snippet, Flow, Step, ref } from "tskb";
+import { action, om } from "packages/omkit/src/index.js";
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -40,6 +41,7 @@ const CommitExport = ref as tskb.Exports["omkit.ActionRun.commit"];
 const RunExport = ref as tskb.Exports["omkit.ActionRun.run"];
 
 const ActivityExport = ref as tskb.Exports["omkit.Activity"];
+const ActionExport = ref as tskb.Exports["omkit.action"];
 const ExecutionTreeModule = ref as tskb.Modules["omkit.core.execution-tree"];
 const SupervisionTerm = ref as tskb.Terms["structured-supervision"];
 
@@ -94,6 +96,38 @@ export default (
       glosses: reading <code>ref</code> counts as watching only if the handle never attached — once
       an action has published its capability, a later failure is a separate event.
     </P>
+
+    <H2>In code</H2>
+    <P>The same failing action, watched and not watched:</P>
+    <Snippet
+      code={() => {
+        const lint = action("lint").run(async () => {
+          throw new Error("lint failed");
+        });
+
+        om("check").run(async () => {
+          // Watched: .result is read, so the failure is handled here and the run goes on.
+          await lint().result.catch(() => console.log("lint failed, going on"));
+
+          // Not watched: nothing reads the result, so this failure tears the whole run down.
+          lint();
+        });
+      }}
+    />
+
+    <Flow
+      name="omkit-action-settle"
+      desc="A launched action runs its body, settles, and a failure nobody watched tears the run down"
+    >
+      <Step node={ActionExport} label="a call launches the action and returns its handle" />
+      <Step node={CommitExport} label="runs the body one microtask later" />
+      <Step node={RunExport} label="runs the body inside the error boundary" />
+      <Step
+        node={ActionRunExport}
+        label="settles ok, failed, or cancelled; checks if anyone watched"
+      />
+      <Step node={ExecutionTreeModule} label="tears the run down if a failure went unwatched" />
+    </Flow>
 
     <Relation
       from={ActionRunExport}

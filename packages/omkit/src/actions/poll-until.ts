@@ -1,5 +1,6 @@
 import { setTimeout as sleep } from "node:timers/promises";
-import { action } from "../core/action.ts";
+import { action, launchedFrom } from "../core/action.ts";
+import { callerSite } from "../foundation/callsite.ts";
 
 /** What a {@link pollUntil} predicate returns: `false`, `null` or `undefined` mean "not yet". */
 export type PollValue<T> = T | false | null | undefined;
@@ -24,22 +25,27 @@ export function pollUntil<T>(
   options: PollUntilOptions = {}
 ) {
   const { intervalMs = 200, timeoutMs = 30_000 } = options;
-  return action(description).run(async ({ signal }): Promise<T> => {
-    const deadline = Date.now() + timeoutMs;
-    let attempts = 0;
-    for (;;) {
-      signal.throwIfAborted();
-      attempts++;
-      const value = await predicate(signal);
-      if (value !== false && value !== null && value !== undefined) {
-        console.log(`met after ${attempts} ${attempts === 1 ? "check" : "checks"}`);
-        return value;
+  // Built per call, so the launch below is in this file; record the user's line instead.
+  const site = callerSite();
+  return launchedFrom(site, () =>
+    // The call's own arguments go through the launch, so the run record shows them as args.
+    action(description).run(async ({ signal }, ..._call: unknown[]): Promise<T> => {
+      const deadline = Date.now() + timeoutMs;
+      let attempts = 0;
+      for (;;) {
+        signal.throwIfAborted();
+        attempts++;
+        const value = await predicate(signal);
+        if (value !== false && value !== null && value !== undefined) {
+          console.log(`met after ${attempts} ${attempts === 1 ? "check" : "checks"}`);
+          return value;
+        }
+        const remaining = deadline - Date.now();
+        if (remaining <= 0) {
+          throw new Error(`${description}: not met within ${timeoutMs}ms (${attempts} checks)`);
+        }
+        await sleep(Math.min(intervalMs, remaining), undefined, { signal });
       }
-      const remaining = deadline - Date.now();
-      if (remaining <= 0) {
-        throw new Error(`${description}: not met within ${timeoutMs}ms (${attempts} checks)`);
-      }
-      await sleep(Math.min(intervalMs, remaining), undefined, { signal });
-    }
-  })();
+    })(description, predicate, options)
+  );
 }

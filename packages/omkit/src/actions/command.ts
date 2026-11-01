@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
-import { action } from "../core/action.ts";
+import { action, launchedFrom } from "../core/action.ts";
+import { callerSite } from "../foundation/callsite.ts";
 import { debuggerFreeEnv, killTree, streamLines } from "../system/proc.ts";
 
 /** Tunes an action built with {@link command}. */
@@ -46,82 +47,98 @@ export function commandName(cmdOrFile: string, options: CommandOptions = {}): st
 export function command(cmdOrFile: string, options: CommandOptions = {}) {
   const cwd = path.resolve(options.cwd ?? ".");
   const name = commandName(cmdOrFile, options);
+  // Built per call, so each launch below is in this file; record the user's line instead.
+  const site = callerSite();
+  // What the run record shows as this call's args. `env` is left out on purpose: it is a whole
+  // environment, secrets included, and the record is written to disk and into the report.
+  const shown: [string, Omit<CommandOptions, "env">] = [
+    cmdOrFile,
+    {
+      ...(options.args && { args: options.args }),
+      ...(options.cwd && { cwd: options.cwd }),
+      ...(options.inheritDebugger && { inheritDebugger: true }),
+    },
+  ];
 
   // Shell command — the command string is the action (and proc) name.
   if (options.args === undefined) {
-    return action(name).run((ctx) =>
-      ctx.proc(cmdOrFile, {
-        cwd,
-        ...(options.env && { env: options.env }),
-        ...(options.inheritDebugger && {
-          inheritDebugger: true,
-        }),
-      })(verbatim(cmdOrFile))
-    )();
+    return launchedFrom(site, () =>
+      action(name).run((ctx, ..._shown: unknown[]) =>
+        ctx.proc(cmdOrFile, {
+          cwd,
+          ...(options.env && { env: options.env }),
+          ...(options.inheritDebugger && {
+            inheritDebugger: true,
+          }),
+        })(verbatim(cmdOrFile))
+      )(...shown)
+    );
   }
 
   // Direct executable — the file plus its args form the action name.
   const args = options.args;
-  return action(name).run(async (ctx) => {
-    const inherit = options.inheritDebugger;
+  return launchedFrom(site, () =>
+    action(name).run(async (ctx, ..._shown: unknown[]) => {
+      const inherit = options.inheritDebugger;
 
-    const env = inherit
-      ? (options.env ?? process.env)
-      : debuggerFreeEnv(options.env ?? process.env);
+      const env = inherit
+        ? (options.env ?? process.env)
+        : debuggerFreeEnv(options.env ?? process.env);
 
-    const child = spawn(cmdOrFile, args, {
-      cwd,
-      env,
-      detached: process.platform !== "win32",
-      windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-
-    console.log(`${name} · start · '${cmdOrFile}' ${args.join(" ")} · in ${cwd}`);
-
-    void streamLines(child.stdout!, console.info);
-    void streamLines(child.stderr!, console.error);
-
-    let finished = false;
-
-    const onAbort = (): void => {
-      if (!finished && child.pid !== undefined) {
-        killTree(child.pid);
-      }
-    };
-
-    if (ctx.signal.aborted) {
-      onAbort();
-    } else {
-      ctx.signal.addEventListener("abort", onAbort, { once: true });
-    }
-
-    try {
-      await new Promise<void>((resolve, reject) => {
-        child.once("error", (err) => {
-          reject(new Error(`${name}: ${err.message}`, { cause: err }));
-        });
-
-        child.once("exit", (code, signal) => {
-          finished = true;
-
-          if (ctx.signal.aborted || code === 0) {
-            resolve();
-          } else {
-            reject(
-              Object.assign(
-                new Error(
-                  signal ? `${name} terminated by ${signal}` : `${name} exited with code ${code}`
-                ),
-                { exitCode: code ?? undefined }
-              )
-            );
-          }
-        });
+      const child = spawn(cmdOrFile, args, {
+        cwd,
+        env,
+        detached: process.platform !== "win32",
+        windowsHide: true,
+        stdio: ["ignore", "pipe", "pipe"],
       });
-    } finally {
-      finished = true;
-      ctx.signal.removeEventListener("abort", onAbort);
-    }
-  })();
+
+      console.log(`${name} · start · '${cmdOrFile}' ${args.join(" ")} · in ${cwd}`);
+
+      void streamLines(child.stdout!, console.info);
+      void streamLines(child.stderr!, console.error);
+
+      let finished = false;
+
+      const onAbort = (): void => {
+        if (!finished && child.pid !== undefined) {
+          killTree(child.pid);
+        }
+      };
+
+      if (ctx.signal.aborted) {
+        onAbort();
+      } else {
+        ctx.signal.addEventListener("abort", onAbort, { once: true });
+      }
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          child.once("error", (err) => {
+            reject(new Error(`${name}: ${err.message}`, { cause: err }));
+          });
+
+          child.once("exit", (code, signal) => {
+            finished = true;
+
+            if (ctx.signal.aborted || code === 0) {
+              resolve();
+            } else {
+              reject(
+                Object.assign(
+                  new Error(
+                    signal ? `${name} terminated by ${signal}` : `${name} exited with code ${code}`
+                  ),
+                  { exitCode: code ?? undefined }
+                )
+              );
+            }
+          });
+        });
+      } finally {
+        finished = true;
+        ctx.signal.removeEventListener("abort", onAbort);
+      }
+    })(...shown)
+  );
 }

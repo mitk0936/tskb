@@ -1,4 +1,7 @@
-import { type Export, Doc, H1, P, Relation, ref } from "tskb";
+import { type Export, Doc, H1, H2, P, Relation, Snippet, ref } from "tskb";
+import { existsSync } from "node:fs";
+import { om } from "packages/omkit/src/index.js";
+import { command, healthcheck, pollUntil } from "packages/omkit/src/actions/index.js";
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -90,6 +93,32 @@ export default (
       keeps growing. {TailLog} therefore also checks the file size on a timer (its{" "}
       <code>pollMs</code> option). Do not remove that fallback to save work: the regression tests
       with a separate writer process fail without it.
+    </P>
+
+    <H2>In code</H2>
+    <P>A typical dev om: start a server, wait for it, then wait for a file it builds.</P>
+    <Snippet
+      code={() => {
+        om("dev").run(async () => {
+          // Start the dev server. It keeps running after the body returns.
+          command("npm run dev");
+
+          // Wait until the server answers on its port.
+          await healthcheck({ port: 5173 }).result;
+
+          // Wait for a value and get it back: the predicate returns false until the file exists.
+          const entry = await pollUntil(
+            "build output",
+            () => existsSync("dist/index.html") && "dist/index.html"
+          ).result;
+          console.log(`built ${entry}`);
+        });
+      }}
+    />
+
+    <P>
+      {Command} and {PollUntil} build a new action on every call. That puts a rule on them, and on
+      any battery built the same way: see the doc on batteries built per call.
     </P>
 
     <Relation from={Command} to={ZxExternal} label="runs shell commands through" />

@@ -1,4 +1,5 @@
-import { type Module, type Export, Doc, H1, H2, P, Relation, ref } from "tskb";
+import { type Module, type Export, Doc, H1, H2, P, Relation, Snippet, Flow, Step, ref } from "tskb";
+import { action } from "packages/omkit/src/index.js";
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,36 @@ export default (
     </P>
 
     <Relation from={ActivityExport} to={CapabilityTerm} label="delivers one through .ref" />
+
+    <H2>In code</H2>
+    <P>A server publishes its port; the next step waits for it and uses it.</P>
+    <Snippet
+      code={async () => {
+        // The producer declares its handle type with .ref<H>() and publishes it with attach().
+        const server = action("server")
+          .ref<{ port: number }>()
+          .run(async (ctx) => {
+            ctx.attach({ port: 5173 });
+          });
+
+        // The consumer waits on .ref. It resolves as soon as attach() runs, not when the server ends.
+        const { port } = await server().ref;
+        return `http://localhost:${port}`;
+      }}
+    />
+
+    <Flow
+      name="omkit-capability-handoff"
+      desc="One action publishes a typed handle and another receives it, without waiting for the first to finish"
+    >
+      <Step node={ActionExport} label="declares the handle type with .ref<H>()" />
+      <Step
+        node={ActionContextExport}
+        label="the producer's body publishes the handle with attach()"
+      />
+      <Step node={ActivityExport} label="resolves the producer's .ref with that handle" />
+      <Step node={CapabilityTerm} label="the consumer receives it and starts" />
+    </Flow>
 
     <H2>The flagship: a live page</H2>
     <P>

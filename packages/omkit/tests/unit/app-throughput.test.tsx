@@ -48,10 +48,7 @@ test("the app keeps up with a chatty run instead of draining it a frame at a tim
     check: async () => [],
   } as unknown as OmkitClient;
 
-  let exited = false;
-  const { stdin, lastFrame } = render(
-    <App client={client} oms={[chattyOm]} onExit={() => (exited = true)} />
-  );
+  const { stdin, lastFrame } = render(<App client={client} oms={[chattyOm]} />);
 
   const started = Date.now();
   const waitFor = async (p: () => boolean, ms: number): Promise<boolean> => {
@@ -67,5 +64,7 @@ test("the app keeps up with a chatty run instead of draining it a frame at a tim
 
   // 1500 entries at one frame each is ~30s of drawing after a child that finishes in under a
   // second. A budget an order of magnitude under that separates the two without racing.
-  expect(await waitFor(() => exited, 15_000)).toBe(true);
+  // The verdict reaching the scrollback is the run having been drained to its end.
+  const done = (): boolean => (lastFrame() ?? "").includes("✓ chatty · ok");
+  expect(await waitFor(done, 15_000)).toBe(true);
 }, 30_000);
