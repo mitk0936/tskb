@@ -9,6 +9,12 @@ export interface RunNode {
   readonly path: string;
   readonly status: RunNodeStatus;
   readonly tags: readonly string[];
+  /** Epoch millis of the node's first entry. */
+  readonly startedAt: number;
+  /** Epoch millis it settled; absent while it runs. */
+  readonly endedAt?: number;
+  /** First line of the node's latest output (console or proc), for a live "what is it doing" row. */
+  readonly last?: string;
 }
 
 /** A compact roll-up of the live tree, for a one-line status strip. */
@@ -28,6 +34,9 @@ interface MutableNode {
   status: RunNodeStatus;
   tags: string[];
   order: number;
+  startedAt: number;
+  endedAt?: number;
+  last?: string;
 }
 
 /**
@@ -48,6 +57,10 @@ export class RunModel {
       return null; // tags decorate a node's lines; they aren't a line of their own
     }
     this.transition(node, entry);
+    if (isActivity(entry)) {
+      const line = entry.message.split("\n", 1)[0]!.trim();
+      if (line) node.last = line;
+    }
     const rendered = format(entry, node.tags);
     if (rendered) this.push(rendered.text);
     return rendered;
@@ -55,11 +68,13 @@ export class RunModel {
 
   /** The live tree: every node touched so far, with its current status and tags. */
   nodes(): readonly RunNode[] {
-    return [...this._nodes.values()].map((n) => ({
-      path: n.path,
-      status: n.status,
-      tags: [...n.tags],
-    }));
+    return [...this._nodes.values()].map(view);
+  }
+
+  /** One node of the live tree by id, as it stands now — for a caller rendering one entry. */
+  node(nodeId: string): RunNode | undefined {
+    const n = this._nodes.get(nodeId);
+    return n && view(n);
   }
 
   /** The capped tail of milestone lines, oldest first. */
@@ -89,7 +104,13 @@ export class RunModel {
       existing.order = this.seq++; // most-recent activity wins the ordering
       return existing;
     }
-    const node: MutableNode = { path: entry.path, status: "running", tags: [], order: this.seq++ };
+    const node: MutableNode = {
+      path: entry.path,
+      status: "running",
+      tags: [],
+      order: this.seq++,
+      startedAt: entry.ts,
+    };
     this._nodes.set(entry.nodeId, node);
     return node;
   }
@@ -99,9 +120,11 @@ export class RunModel {
       // A node reports `done · <status>` when it settles; "launched" leaves it running.
       if (entry.message.startsWith("done · ")) {
         node.status = statusOf(entry.message.slice("done · ".length));
+        node.endedAt = entry.ts;
       }
     } else if (entry.level === "event" && entry.source === "cancel") {
       node.status = "cancelled";
+      node.endedAt ??= entry.ts;
     }
   }
 
@@ -109,6 +132,26 @@ export class RunModel {
     this._milestones.push(text);
     if (this._milestones.length > MILESTONE_CAP) this._milestones.shift();
   }
+}
+
+/**
+ * What a node is doing, for its "latest line": its output and its own events (a watcher's
+ * `update · …`), not its lifecycle or a cancellation, which its status already says.
+ */
+function isActivity(e: LogEntry): boolean {
+  if (e.level === "info" || e.level === "error") return true;
+  return e.level === "event" && e.source !== "lifecycle" && e.source !== "cancel";
+}
+
+function view(n: MutableNode): RunNode {
+  return {
+    path: n.path,
+    status: n.status,
+    tags: [...n.tags],
+    startedAt: n.startedAt,
+    ...(n.endedAt === undefined ? {} : { endedAt: n.endedAt }),
+    ...(n.last === undefined ? {} : { last: n.last }),
+  };
 }
 
 function statusOf(s: string): RunNodeStatus {

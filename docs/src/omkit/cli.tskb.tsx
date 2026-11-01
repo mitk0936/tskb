@@ -6,25 +6,25 @@ declare global {
   namespace tskb {
     interface Folders {
       "omkit.cli": Folder<{
-        desc: "The omkit command-line binary: the supervisor process that hosts the client engine and drives it — the commands (init, ls, check, run) and the interactive app.";
+        desc: "The omkit command-line binary: the supervisor process that hosts the client engine and drives it — the commands and the interactive app.";
         path: "packages/omkit/src/cli";
         boundary: "omkit CLI";
       }>;
 
       "omkit.cli.commands": Folder<{
-        desc: "The CLI command adapters — init, ls, check, and run — thin frontends over the client engine; run with no om opens the interactive app.";
+        desc: "The CLI command adapters: thin frontends over the client engine. Run with no om opens the interactive app.";
         path: "packages/omkit/src/cli/commands";
       }>;
 
       "omkit.cli.ui": Folder<{
-        desc: "The interactive Ink app: search oms, run one, stream live milestones, and answer prompts in-console.";
+        desc: "The interactive app: a shell that stays open to pick, run, stop, and rerun oms, and answer their prompts.";
         path: "packages/omkit/src/cli/ui";
       }>;
     }
 
     interface Modules {
       "omkit.cli.ui.app": Module<{
-        desc: "The interactive app's state machine: discover → list → run → live view.";
+        desc: "The interactive shell's state machine: pick → run → back to the picker, until you quit; owns the stop, rerun, open-report, and quit keys.";
         type: typeof import("packages/omkit/src/cli/ui/app.js");
       }>;
     }

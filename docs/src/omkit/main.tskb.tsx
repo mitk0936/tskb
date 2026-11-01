@@ -11,8 +11,10 @@ import {
   Relation,
   Flow,
   Step,
+  Snippet,
   ref,
 } from "tskb";
+import { action, om } from "packages/omkit/src/index.js";
 
 // ─── Registry ─────────────────────────────────────────────────────────────────
 
@@ -194,16 +196,32 @@ export default (
     </P>
     <P>
       Both {OmExport} and {ActionExport} return a builder: chain <code>.describe(...)</code> to
-      attach a one-line summary, <code>.mcp(...)</code> to expose the entry to the MCP server — the
-      first consumer to actually read that summary back, though <code>omkit ls</code> still does not
-      — and finish with <code>.run(body)</code>. {OmExport}'s <code>.args(schema)</code> declares
-      the run's input shape, and {ResolveArgsExport} fills it in — defaults, prompting and all —
-      before handing the resolved value to <code>.run</code>'s body as its second parameter.{" "}
-      {ActionExport}'s own <code>.args(schema)</code> pins that parameter's type for in-code
-      callers, and backs what the MCP server advertises and applies when it runs the action as a
-      tool. How the two differ, and how resolution actually works, is its own question — see the
-      args doc.
+      attach a summary and any other props (see the describe doc), <code>.mcp(...)</code> to expose
+      the entry to the MCP server, and finish with <code>.run(body)</code>. {OmExport}'s{" "}
+      <code>.args(schema)</code> declares the run's input shape, and {ResolveArgsExport} fills it in
+      — defaults, prompting and all — before handing the resolved value to <code>.run</code>'s body
+      as its second parameter. {ActionExport}'s own <code>.args(schema)</code> pins that parameter's
+      type for in-code callers, and backs what the MCP server advertises and applies when it runs
+      the action as a tool. How the two differ, and how resolution actually works, is its own
+      question — see the args doc.
     </P>
+
+    <P>The smallest om: one action, called from one run.</P>
+    <Snippet
+      code={() => {
+        // An action is a named, typed unit of work. Calling it launches it.
+        const greet = action("greet").run(async (_ctx, name: string) => {
+          console.log(`hello ${name}`);
+          return name.length;
+        });
+
+        // An om hosts one run. Its body is plain TypeScript that calls actions.
+        om("hello").run(async () => {
+          const length = await greet("world").result;
+          console.log(`greeted a name of ${length} letters`);
+        });
+      }}
+    />
 
     <H2>The model</H2>
     <P>

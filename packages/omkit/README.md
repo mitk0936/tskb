@@ -83,7 +83,7 @@ om("dev")
 Run it:
 
 ```sh
-npx omkit            # interactive picker: browse, run, watch milestones live
+npx omkit            # interactive shell: pick, run, watch, stop, rerun — until you quit
 npx omkit run dev    # or run one om directly
 ```
 
@@ -116,12 +116,12 @@ om(name: string): OmBuilder
 
 Returns a builder. Chain configuration, then finish with `.run(body)`, which launches the run.
 
-| Method                   | Purpose                                                                                                       |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
-| `.describe({ summary })` | A one-line summary, shown by `omkit ls --describe`, the skill file, MCP and the report.                       |
-| `.args(schema)`          | A zod schema for the run's inputs. **Resolved at runtime**; see below.                                        |
-| `.mcp({ mode? })`        | Expose this om over MCP. `mode` is `"settling"` (default) or `"long-lived"`.                                  |
-| `.run(body)`             | Launch the run. `body(ctx, args?)` receives an [`OmContext`](#contexts) and, after `.args()`, the typed args. |
+| Method                      | Purpose                                                                                                                                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `.describe({ summary, … })` | A one-line summary, shown by `omkit ls --describe`, the skill file, MCP and the report. Any further props (`owner`, `docsUrl`, `needs: [...]`) are listed under it in the interactive picker and the report. |
+| `.args(schema)`             | A zod schema for the run's inputs. **Resolved at runtime**; see below.                                                                                                                                       |
+| `.mcp({ mode? })`           | Expose this om over MCP. `mode` is `"settling"` (default) or `"long-lived"`.                                                                                                                                 |
+| `.run(body)`                | Launch the run. `body(ctx, args?)` receives an [`OmContext`](#contexts) and, after `.args()`, the typed args.                                                                                                |
 
 `.run()` returns a promise that resolves once the run has torn down and written its record. It never rejects: failures are recorded in the run and set the process exit code. Whatever the body returns is recorded as the run's `value` in `result.json`.
 
@@ -156,14 +156,14 @@ import { action } from "omkit";
 action(name: string): ActionBuilder
 ```
 
-| Method                   | Purpose                                                                               |
-| ------------------------ | ------------------------------------------------------------------------------------- |
-| `.describe({ summary })` | A one-line summary, carried onto every run of this action.                            |
-| `.emits<Events>()`       | Declare the events this action emits, as a type: `{ ready: number; error: string }`.  |
-| `.ref<Handle>()`         | Declare the type of the value this action publishes with `attach`.                    |
-| `.args(schema)`          | Pin `.run`'s argument to a zod schema's type. **Type-level only** in code; see below. |
-| `.mcp({ mode? })`        | Expose this action over MCP as a runnable tool.                                       |
-| `.run(exec)`             | Bind the implementation. Returns an **Action**: a function you call to launch it.     |
+| Method                      | Purpose                                                                                                     |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `.describe({ summary, … })` | A one-line summary, plus any further props, carried onto every run of this action and listed in the report. |
+| `.emits<Events>()`          | Declare the events this action emits, as a type: `{ ready: number; error: string }`.                        |
+| `.ref<Handle>()`            | Declare the type of the value this action publishes with `attach`.                                          |
+| `.args(schema)`             | Pin `.run`'s argument to a zod schema's type. **Type-level only** in code; see below.                       |
+| `.mcp({ mode? })`           | Expose this action over MCP as a runnable tool.                                                             |
+| `.run(exec)`                | Bind the implementation. Returns an **Action**: a function you call to launch it.                           |
 
 `exec(ctx, ...args)` receives an [`ActionContext`](#contexts) and the arguments the action was called with. Its return value is the activity's result.
 

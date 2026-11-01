@@ -1,4 +1,5 @@
-import { type Export, Doc, H1, H2, P, Relation, ref } from "tskb";
+import { type Export, Doc, H1, H2, P, Relation, Snippet, Flow, Step, ref } from "tskb";
+import { createOmkitClient } from "packages/omkit/src/client/index.js";
 
 // ─── Refs ─────────────────────────────────────────────────────────────────────
 // All nodes referenced here are declared in client.tskb.tsx (the client layer) and
@@ -21,6 +22,9 @@ const ClientExport = ref as tskb.Exports["omkit.OmkitClient"];
 const RunSessionExport = ref as tskb.Exports["omkit.RunSession"];
 const RunBareExport = ref as tskb.Exports["omkit.runBare"];
 const UiFolder = ref as tskb.Folders["omkit.cli.ui"];
+const ChannelModule = ref as tskb.Modules["omkit.client.channel"];
+const SupervisorExport = ref as tskb.Exports["omkit.core.Supervisor"];
+const ExecutionTreeModule = ref as tskb.Modules["omkit.core.execution-tree"];
 
 const SupervisedRun = ref as tskb.Terms["supervised-run"];
 const BareRun = ref as tskb.Terms["bare-run"];
@@ -64,6 +68,34 @@ export default (
       the channel; unset, the child runs bare. A bare run clears the flag before forking, so a
       nested subprocess it spawns never inherits supervised mode by accident.
     </P>
+
+    <H2>In code</H2>
+    <P>A frontend starts a supervised run, prints its logs, and waits for the verdict.</P>
+    <Snippet
+      code={async () => {
+        const client = createOmkitClient({ tsconfig: "om/tsconfig.omkit.json" });
+        const session = client.run("om/oms/dev.om.ts");
+
+        // Logs arrive over the channel instead of being printed by the child.
+        session.on("log", (entry) => console.log(entry.message));
+
+        // The verdict comes last, after the child has shut down what it started.
+        const verdict = await session.result;
+        return verdict.ok;
+      }}
+    />
+
+    <Flow
+      name="omkit-supervised-run"
+      desc="A frontend runs an om as a supervised child and renders what it sends back"
+    >
+      <Step node={ClientExport} label="run() starts a supervised run" />
+      <Step node={RunnerModule} label="forks the om file as a child, in supervised mode" />
+      <Step node={ExecutionTreeModule} label="runs the om in the child" />
+      <Step node={SupervisorExport} label="sends logs, prompts, and the verdict up the channel" />
+      <Step node={ChannelModule} label="turns those messages into session events" />
+      <Step node={RunSessionExport} label="the frontend listens to it and awaits the verdict" />
+    </Flow>
 
     <Relation from={ClientExport} to={SupervisedRun} label="run() produces" />
     <Relation from={ClientExport} to={BareRun} label="runBare() produces" />

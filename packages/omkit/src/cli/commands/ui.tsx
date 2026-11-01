@@ -5,9 +5,10 @@ import { reportNoOms } from "./run.ts";
 import type { OmkitClient, Verdict } from "../../client/index.ts";
 
 /**
- * Render the interactive Ink app. Ink's own Ctrl+C handling is disabled so the app can tear the
- * run down gracefully first; the final verdict + run-folder path are printed here, after Ink
- * unmounts (it erases its own frame), so the pointer to the on-disk record survives on screen.
+ * Render the interactive shell, which stays up across runs until the user quits. Ink's own Ctrl+C
+ * handling is disabled so the app can tear a live run down gracefully first. Each run's verdict
+ * and recap block are already in the scrollback by then (the app writes them there as each run
+ * settles), so nothing is reprinted here; the exit code is the last run's verdict.
  *
  * Discovery runs first, before Ink takes the terminal: a fatal config problem throws here and the
  * bin's error boundary turns it into a clean crash rather than an empty list. With no oms to show,
@@ -30,20 +31,18 @@ export async function launchUi(client: OmkitClient): Promise<void> {
 
   let finalVerdict: Verdict | undefined;
   const app = render(
-    <App client={client} oms={registry.oms} onExit={(v) => (finalVerdict = v)} />,
+    <App
+      client={client}
+      oms={registry.oms}
+      warnings={registry.warnings}
+      onExit={(v) => (finalVerdict = v)}
+    />,
     {
       exitOnCtrlC: false,
     }
   );
   void app.waitUntilExit().then(() => {
-    if (finalVerdict) {
-      // Ink erased its frame on unmount; reprint the verdict marker plus the run's recap block
-      // (the same summary a bare run prints) so the pointers to the on-disk record survive.
-      console.log("");
-      console.log(finalVerdict.ok ? "✓ ok" : "✗ failed");
-      for (const line of finalVerdict.summary) console.log(line);
-      process.exitCode = finalVerdict.ok ? 0 : 1;
-    }
+    if (finalVerdict) process.exitCode = finalVerdict.ok ? 0 : 1;
     // Backstop: the runner disconnects the supervised child so both processes can exit, but if
     // anything (a wedged pipe, a lingering handle) keeps the event loop alive past the grace,
     // force the exit. Unref'd, so it only fires when the process is genuinely stuck — a clean

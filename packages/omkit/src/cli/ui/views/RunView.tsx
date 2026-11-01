@@ -1,8 +1,9 @@
-import { useRef, useState, type ReactElement } from "react";
-import { Box, Text, useInput } from "ink";
+import { useEffect, useRef, useState, type ReactElement } from "react";
+import { Box, Text, useInput, useStdout } from "ink";
 import { SearchableList } from "./SearchableList.tsx";
-import type { RunSummary } from "../../../output/RunModel.ts";
-import type { PromptRequest, Verdict } from "../../../client/types.ts";
+import { Spinner } from "../Spinner.tsx";
+import type { RunNode, RunSummary } from "../../../output/RunModel.ts";
+import type { PromptRequest } from "../../../client/types.ts";
 
 /** A choice prompt: searchable, arrow-navigable options, Enter picks the highlighted one. */
 function ChoicePrompt({
@@ -93,9 +94,58 @@ export function PromptView({
   );
 }
 
+/** Where a run is: its body still going, its body returned with daemons left up, or tearing down. */
+export type RunPhase = "running" | "up" | "stopping";
+
+/** Rows of the live tree before the rest collapse into `+N running` — so the box never jumps. */
+export const MAX_TREE_ROWS = 6;
+
+/** `850ms`, `8.3s`, `3m12s`, `1h04m`. */
+export function formatDuration(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return "";
+  if (ms < 1000) return `${Math.round(ms)}ms`;
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}s`;
+  const s = Math.floor(ms / 1000);
+  if (s < 3600) return `${Math.floor(s / 60)}m${String(s % 60).padStart(2, "0")}s`;
+  return `${Math.floor(s / 3600)}h${String(Math.floor(s / 60) % 60).padStart(2, "0")}m`;
+}
+
+/** Longest node name the tree shows before cutting out its middle. */
+const NAME_MAX = 40;
+
+/**
+ * A node's name in the tree, with its tags — `vite [ready]`. The log stream carries only the
+ * node's path segment, the action name made file-safe plus the node's id (`tailLog_bbe803dc`),
+ * so the id is dropped and an over-long name (a `command`'s whole command line) keeps its two
+ * ends — the tag beside it is usually what tells the rows apart.
+ */
+export function nodeLabel(node: Pick<RunNode, "path" | "tags">): string {
+  const segment = node.path.slice(node.path.lastIndexOf("/") + 1).replace(/_[0-9a-f]{8}$/, "");
+  const name =
+    segment.length > NAME_MAX
+      ? `${segment.slice(0, NAME_MAX / 2 - 1)}…${segment.slice(-(NAME_MAX / 2))}`
+      : segment;
+  return node.tags.length ? `${name} [${node.tags.join(", ")}]` : name;
+}
+
+/**
+ * The time since `since`. Read at render, so every redraw shows it current; the tick only forces
+ * one when nothing else does (an idle stack that is up). Unref'd, like {@link Spinner}'s
+ * interval, so it never holds the process open.
+ */
+function Elapsed({ since }: { since: number }): ReactElement {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    id.unref?.();
+    return () => clearInterval(id);
+  }, []);
+  return <>{formatDuration(Date.now() - since)}</>;
+}
+
 /** One-line roll-up of the live tree: what's still running and the finished tally. Empty until
  *  something is happening, so it renders nothing at the very start of a run. */
-function statusStrip(s: RunSummary): string {
+export function statusStrip(s: RunSummary): string {
   const parts: string[] = [];
   if (s.running.length) {
     const shown = s.running.slice(0, 3).join(", ");
@@ -110,33 +160,132 @@ function statusStrip(s: RunSummary): string {
   return parts.join("  ·  ");
 }
 
-/** The live run surface: milestone lines, a compact status strip, a pending prompt, and the verdict. */
+/**
+ * The running nodes under the root, most recently active first — the order {@link RunSummary}
+ * keeps — so whatever is talking right now stays on screen when the rest collapse.
+ */
+function liveNodes(nodes: readonly RunNode[], summary: RunSummary | undefined): RunNode[] {
+  const byPath = new Map(nodes.map((n) => [n.path, n]));
+  const order = summary?.running ?? nodes.filter((n) => n.status === "running").map((n) => n.path);
+  return order
+    .map((p) => byPath.get(p))
+    .filter((n): n is RunNode => n !== undefined && n.path.includes("/"));
+}
+
+function Header({
+  name,
+  phase,
+  startedAt,
+  upAt,
+}: {
+  name: string;
+  phase: RunPhase;
+  startedAt: number;
+  upAt?: number;
+}): ReactElement {
+  return (
+    <Text>
+      <Text bold>{name}</Text>
+      <Text dimColor>{" · "}</Text>
+      {phase === "stopping" ? (
+        <Text color="yellow">stopping…</Text>
+      ) : phase === "up" ? (
+        <Text color="green">
+          ● up <Elapsed since={upAt ?? startedAt} />
+        </Text>
+      ) : (
+        <Text color="cyan">
+          running <Elapsed since={startedAt} />
+        </Text>
+      )}
+    </Text>
+  );
+}
+
+/**
+ * The live run box — the only part of the screen redrawn while a run streams (its milestones go
+ * to the scrollback above it): a header with the phase and elapsed time, the running nodes with
+ * their latest line, the finished tally, and a pending prompt, which takes the box over.
+ */
 export function RunView({
-  lines,
-  status,
+  name,
+  phase,
+  startedAt,
+  upAt,
+  nodes,
+  summary,
   prompt,
-  verdict,
   onAnswer,
 }: {
-  lines: readonly string[];
-  status?: RunSummary;
+  name: string;
+  phase: RunPhase;
+  startedAt: number;
+  /** When the run's body returned (the `up` event), for the "up for" clock. */
+  upAt?: number;
+  nodes: readonly RunNode[];
+  summary?: RunSummary;
   prompt?: PromptRequest;
-  verdict?: Verdict;
   onAnswer: (value: string) => void;
 }): ReactElement {
-  const strip = status && !verdict ? statusStrip(status) : "";
+  const { stdout } = useStdout();
+  const width = Math.max(30, (stdout?.columns || 100) - 4);
+  const live = liveNodes(nodes, summary);
+  const shown = live.slice(0, MAX_TREE_ROWS);
+  const root = nodes.find((n) => !n.path.includes("/"));
+  const now = Date.now();
+  const stopping = phase === "stopping";
+  const strip = summary ? statusStrip(summary) : "";
+  const tally = summary
+    ? [
+        summary.ok ? `✓ ${summary.ok} ok` : "",
+        summary.failed ? `✗ ${summary.failed} failed` : "",
+        summary.cancelled ? `⊘ ${summary.cancelled} cancelled` : "",
+      ].filter(Boolean)
+    : [];
+
   return (
-    <Box flexDirection="column">
-      {lines.map((line, i) => (
-        <Text key={i}>{line}</Text>
-      ))}
-      {strip ? <Text dimColor>{strip}</Text> : null}
-      {prompt ? <PromptView request={prompt} onAnswer={onAnswer} /> : null}
-      {verdict ? (
-        <Text color={verdict.ok ? "green" : "red"}>
-          {verdict.ok ? "✓ ok" : "✗ failed"} · {verdict.folder}
-        </Text>
-      ) : null}
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor={stopping ? "yellow" : phase === "up" ? "green" : "gray"}
+      paddingX={1}
+    >
+      <Header name={name} phase={phase} startedAt={startedAt} upAt={upAt} />
+      {prompt ? (
+        <>
+          {strip ? <Text dimColor>{strip}</Text> : null}
+          <PromptView request={prompt} onAnswer={onAnswer} />
+        </>
+      ) : (
+        <>
+          {shown.map((n) => (
+            <Box key={n.path} flexDirection="column">
+              <Text wrap="truncate-end">
+                {stopping ? <Text color="yellow">◌ </Text> : <Text color="cyan">● </Text>}
+                {nodeLabel(n)}
+                <Text dimColor>{`  ${formatDuration(now - n.startedAt)}`}</Text>
+              </Text>
+              {n.last ? (
+                <Text dimColor wrap="truncate-end">
+                  {`  └ ${n.last.slice(0, width)}`}
+                </Text>
+              ) : null}
+            </Box>
+          ))}
+          {live.length > shown.length ? (
+            <Text dimColor>{`  +${live.length - shown.length} more running`}</Text>
+          ) : null}
+          {live.length === 0 && !stopping ? (
+            // nothing launched under the root (yet): what the om's own body last said, if anything
+            root?.last ? (
+              <Text dimColor wrap="truncate-end">{`└ ${root.last.slice(0, width)}`}</Text>
+            ) : (
+              <Spinner label={phase === "up" ? "idle" : "starting…"} />
+            )
+          ) : null}
+          {tally.length ? <Text dimColor>{tally.join(" · ")}</Text> : null}
+        </>
+      )}
     </Box>
   );
 }

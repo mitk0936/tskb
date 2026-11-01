@@ -1,5 +1,6 @@
 import ts from "typescript";
-import type { OmCall } from "./registry.ts";
+import type { DescriptionDetail, OmCall } from "./registry.ts";
+import { oneLine } from "../core/description.ts";
 
 /**
  * Every identifier a file binds through an import — the whole allow-list for the outline.
@@ -107,9 +108,48 @@ export function summaryOf(chain: ChainRoot): string | undefined {
         prop.name.text === "summary" &&
         ts.isStringLiteralLike(prop.initializer)
       ) {
-        return prop.initializer.text;
+        return oneLine(prop.initializer.text);
       }
     }
+  }
+  return undefined;
+}
+
+/**
+ * The props of a `.describe({ … })` in the chain besides `summary`, in source order, with each
+ * value rendered as text. Like {@link summaryOf}, only what the AST can read without evaluating:
+ * a string, number or boolean literal, or an array of those (joined with commas). A prop with
+ * any other value is left out rather than guessed at.
+ */
+export function detailsOf(chain: ChainRoot): DescriptionDetail[] {
+  const details: DescriptionDetail[] = [];
+  for (const call of chain.calls) {
+    const callee = call.expression;
+    if (!ts.isPropertyAccessExpression(callee) || callee.name.text !== "describe") continue;
+    const arg = call.arguments[0];
+    if (!arg || !ts.isObjectLiteralExpression(arg)) continue;
+    for (const prop of arg.properties) {
+      if (!ts.isPropertyAssignment(prop)) continue;
+      const key =
+        ts.isIdentifier(prop.name) || ts.isStringLiteralLike(prop.name)
+          ? prop.name.text
+          : undefined;
+      if (key === undefined || key === "summary") continue;
+      const value = literalText(prop.initializer);
+      if (value !== undefined) details.push({ key, value });
+    }
+  }
+  return details;
+}
+
+/** A literal's value as text, or `undefined` when it needs evaluating. Arrays join with commas. */
+function literalText(node: ts.Expression): string | undefined {
+  if (ts.isStringLiteralLike(node) || ts.isNumericLiteral(node)) return node.text;
+  if (node.kind === ts.SyntaxKind.TrueKeyword) return "true";
+  if (node.kind === ts.SyntaxKind.FalseKeyword) return "false";
+  if (ts.isArrayLiteralExpression(node)) {
+    const items = node.elements.map((e) => literalText(e));
+    return items.every((i) => i !== undefined) ? items.join(", ") : undefined;
   }
   return undefined;
 }

@@ -6,7 +6,7 @@ import { omHash } from "../foundation/ids.ts";
 import { fsSafe } from "../foundation/fsSafe.ts";
 import { canonicalPath } from "../foundation/canonicalPath.ts";
 import { tsxLoader } from "./runner.ts";
-import { chainRoot, importedNames, outlineBody, summaryOf } from "./outline.ts";
+import { chainRoot, detailsOf, importedNames, outlineBody, summaryOf } from "./outline.ts";
 import { checkedProgram } from "./tsCache.ts";
 import type { OmRegistrationMessage } from "../core/discovery-mode.ts";
 import type { ActionsMessage, ScanMessage } from "./discover-child.ts";
@@ -67,12 +67,13 @@ export function discover(tsconfigPath: string): Registry {
       ) {
         const arg = node.arguments[0];
         if (arg && ts.isStringLiteralLike(arg)) {
-          const { calls, summary } = outlines.get(arg.text) ?? {};
+          const { calls, summary, details } = outlines.get(arg.text) ?? {};
           oms.push({
             name: arg.text,
             file,
             line: lineOf(sf, node),
             ...(summary !== undefined ? { summary } : {}),
+            ...(details?.length ? { details } : {}),
             ...(calls?.length ? { calls } : {}),
           });
         }
@@ -103,9 +104,12 @@ export function discover(tsconfigPath: string): Registry {
   return { oms, actions, warnings };
 }
 
+/** What one om chain's outline pass collects: its steps and its literal description. */
+type Outline = Pick<DiscoveredOm, "calls" | "summary" | "details">;
+
 /**
  * Outline every `om("name")…​.run(body)` chain in a file, keyed by om name, along with the
- * chain's literal `.describe({ summary })`.
+ * chain's literal `.describe({ summary, … })`.
  *
  * Collected in its own pass rather than alongside the `om(...)` match, because a body is only
  * reachable from the `.run` end of the chain and the om name only from the other — and the
@@ -115,8 +119,8 @@ function outlinesIn(
   sf: ts.SourceFile,
   omName: string | undefined,
   imported: ReadonlySet<string>
-): Map<string, { calls?: OmCall[]; summary?: string }> {
-  const outlines = new Map<string, { calls?: OmCall[]; summary?: string }>();
+): Map<string, Outline> {
+  const outlines = new Map<string, Outline>();
   if (omName === undefined) return outlines;
 
   const visit = (node: ts.Node): void => {
@@ -130,9 +134,11 @@ function outlinesIn(
       const name = root?.call.arguments[0];
       if (root?.name === omName && name && ts.isStringLiteralLike(name)) {
         const summary = summaryOf(root);
+        const details = detailsOf(root);
         outlines.set(name.text, {
           ...(body && ts.isFunctionLike(body) ? { calls: outlineBody(body, imported) } : {}),
           ...(summary !== undefined ? { summary } : {}),
+          ...(details.length ? { details } : {}),
         });
       }
     }

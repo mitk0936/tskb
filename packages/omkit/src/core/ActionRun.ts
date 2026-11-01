@@ -270,6 +270,10 @@ export class ActionRun<
     if (this.committed) {
       throw new Error("withCache: already launched — chain it before the first await");
     }
+    // No inputs fingerprint to a constant, so every run after the first success would skip.
+    if (paths.length === 0) {
+      throw new Error("withCache: pass at least one input path — with none it would skip forever");
+    }
     // Validate + canonicalize eagerly (fails fast on a relative path), then wrap the armed
     // body so a fingerprint hit skips it. Applied before `commit()` runs the body.
     const targets = FolderCache.resolvePaths(paths);

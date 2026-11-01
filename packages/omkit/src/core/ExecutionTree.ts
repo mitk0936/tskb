@@ -426,7 +426,7 @@ export class ExecutionTree {
       parentId: node.parentId,
       tags: [...node.tags],
       // The root never has args passed to `run()`; its own are resolved mid-body.
-      args: [...(node.parentId === null ? this.rootArgs : node.args)],
+      args: (node.parentId === null ? this.rootArgs : node.args).map(argView),
       status: node.status,
       startedAt: node.startedAt,
       endedAt: node.endedAt,
@@ -594,6 +594,46 @@ function valueView(value: unknown): Pick<NodeView, "value" | "valueNote"> {
   }
   return { value: JSON.parse(text) as unknown };
 }
+
+/** Past this, one recorded arg is replaced by a note. Args repeat per node, so this sits well under {@link VALUE_CAP}. */
+const ARG_CAP = 64 * 1024;
+
+/**
+ * One launch arg, for the record. Plain data is kept; a function, or anything built from a
+ * class (an activity, a page, a client), is recorded as a short tag rather than walked, since
+ * walking a live object can drag its whole graph in — an activity passed as an arg once
+ * serialized to its entire tree. Whatever is still too large, or will not serialize, becomes
+ * a note.
+ */
+function argView(arg: unknown): unknown {
+  let text: string | undefined;
+  try {
+    text = JSON.stringify(arg, (_key, value: unknown) => liveTag(value) ?? value);
+  } catch {
+    return `[${kindOf(arg)} — not JSON]`;
+  }
+  if (text === undefined) return undefined;
+  if (text.length > ARG_CAP) {
+    return `[${kindOf(arg)}, ${Math.round(text.length / 1024)} KB of JSON — too large to record]`;
+  }
+  return JSON.parse(text) as unknown;
+}
+
+/** A tag for a function or a class instance — anything that is not plain data; undefined otherwise. */
+function liveTag(value: unknown): string | undefined {
+  if (typeof value === "function") return `[Function${value.name ? ` ${value.name}` : ""}]`;
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return undefined;
+  if (value instanceof ActionRun) return `[Activity ${value.id}]`;
+  const proto = Object.getPrototypeOf(value) as object | null;
+  return proto === null || proto === Object.prototype ? undefined : `[${kindOf(value)}]`;
+}
+
+const kindOf = (value: unknown): string =>
+  value === null
+    ? "null"
+    : typeof value === "object"
+      ? ((value as object).constructor?.name ?? "object")
+      : typeof value;
 
 function serialisable(value: unknown): unknown {
   if (value === undefined) return undefined;

@@ -70,7 +70,7 @@ All paths are relative to project root and can be used directly to read files.
 ## Boundaries
 
 - **E2E tests** — `tests` — End-to-end tests for the tskb CLI.
-- **omkit CLI** — `packages/omkit/src/cli` — The omkit command-line binary: the supervisor process that hosts the client engine and drives it — the commands (init, ls, check, run) and the interactive app.
+- **omkit CLI** — `packages/omkit/src/cli` — The omkit command-line binary: the supervisor process that hosts the client engine and drives it — the commands and the interactive app.
 - **omkit runtime** — `packages/omkit` — The operational-model kit: a Node runtime for the workflows around your code (start servers, wait, watch, drive a browser, tear down) that narrates each run to disk.
 - **test-fixtures** — `tests/e2e/fixture` — A small sample project used as the test subject — like a real repo that adopted tskb.
 - **TSKB Explorer server** — `packages/tskb/src/core/explorer` — Server side of the explorer: turns the graph into chunks and serves them.
@@ -79,7 +79,9 @@ All paths are relative to project root and can be used directly to read files.
 
 ## Constraint Docs
 
+- `docs/src/omkit/battery-call-site.tskb.tsx` — What must a battery that builds its action per call do?
 - `docs/src/omkit/console-attribution.tskb.tsx` — Why can a console line from an action end up in another node's log?
+- `docs/src/omkit/interactive-stop.tskb.tsx` — Why must the interactive app wait for a run's verdict before it moves on or quits?
 - `docs/src/omkit/run-folder-identity.tskb.tsx` — Why is a run folder's identity keyed by the om's name and its defining file?
 - `docs/src/tskb/constraints/constraint-graph-write-order.tskb.tsx` — Why must the graph writer write meta.json last and atomically?
 - `docs/src/tskb/constraints/constraint-panel-views.tskb.tsx` — How are explorer panel views structured?
@@ -104,7 +106,7 @@ Constraint docs define architectural rules that **MUST** be followed when workin
 - `docs/src/tskb/runtime/runtime.tskb.tsx` — What does the runtime module provide and what does it not do?
 - `docs/src/tskb/usage.tskb.tsx` — What's the typical workflow for setting up tskb in a repo?
 
-_Plus 35 supplementary docs available via `npx --no -- tskb docs --plain`._
+_Plus 39 supplementary docs available via `npx --no -- tskb docs --plain`._
 
 ## Externals
 
@@ -139,4 +141,4 @@ _Plus 35 supplementary docs available via `npx --no -- tskb docs --plain`._
 - **omkit-run** [essential] — An om(name).run(body) call hosts a run: actions launch as nodes, the engine supervises them and the shared log, and the run folder captures the record
   omkit.om → omkit.action → omkit.core.execution-tree → omkit.output.run-folder
 
-_Plus 13 supplementary flows available via `npx --no -- tskb flows --plain`._
+_Plus 19 supplementary flows available via `npx --no -- tskb flows --plain`._

@@ -20,6 +20,11 @@ declare global {
         type: typeof import("packages/omkit/src/output/LiveRenderer.js");
       }>;
 
+      "omkit.output.run-model": Module<{
+        desc: "Folds a run's log stream into a live node tree (status, timing, latest line) and milestone lines; shared by the live renderer and the interactive app.";
+        type: typeof import("packages/omkit/src/output/RunModel.js");
+      }>;
+
       "omkit.output.writers.node-log": Module<{
         desc: "Finalize writer: projects the history into a per-action .log plus the root main.log.";
         type: typeof import("packages/omkit/src/output/writers/NodeLogWriter.js");
@@ -85,6 +90,7 @@ declare global {
 const LogStoreExport = ref as tskb.Exports["omkit.LogStore"];
 const RawStreamExport = ref as tskb.Exports["omkit.RawStream"];
 const LiveRendererExport = ref as tskb.Exports["omkit.LiveRenderer"];
+const RunModelModule = ref as tskb.Modules["omkit.output.run-model"];
 const WriteNodeLogsExport = ref as tskb.Exports["omkit.writeNodeLogs"];
 const WriteRollupExport = ref as tskb.Exports["omkit.writeRollup"];
 const WriteResultExport = ref as tskb.Exports["omkit.writeResult"];
@@ -122,6 +128,7 @@ export default (
       to={LogStoreExport}
       label="renders terminal milestones from"
     />
+    <Relation from={LiveRendererExport} to={RunModelModule} label="tracks node status with" />
 
     <H2>The finalize projections</H2>
     <P>
@@ -132,9 +139,9 @@ export default (
       <code>events.log</code>, <code>asserts.log</code>, <code>snapshots.log</code> — in global
       sequence order. {WriteResultExport} serializes the run tree and verdict to{" "}
       <code>result.json</code>, each node carrying what its definition declared about itself (its
-      summary, MCP exposure, and args schema) so a reader of the record never has to find the source
-      to learn what a step was for. Because every entry carries that global sequence, all of these
-      files merge back into one order.
+      description, MCP exposure, and args schema) so a reader of the record never has to find the
+      source to learn what a step was for. Because every entry carries that global sequence, all of
+      these files merge back into one order.
     </P>
     <P>
       Last, {WriteReportExport} turns the same run view and history into <code>report.html</code>, a

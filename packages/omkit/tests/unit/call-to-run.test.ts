@@ -39,6 +39,14 @@ describe("call-to-run model", () => {
     });
     expect(process.exitCode).toBe(0);
   });
+
+  test("withCache with no paths throws (it would skip forever)", async () => {
+    await om("call-to-run").run(async () => {
+      const h = action("x").run(async () => 1)();
+      expect(() => h.withCache()).toThrow(/at least one input path/);
+      await h.result;
+    });
+  });
 });
 
 describe("withCache on the handle", () => {
